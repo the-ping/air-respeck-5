@@ -6,4 +6,7 @@
 
     <string name="bpm">bpm</string>
     <string name="ug_m3">µg/m3</string>
+
+    <string name="home">HOME</string>
+    <string name="settings">SETTINGS</string>
 </resources>

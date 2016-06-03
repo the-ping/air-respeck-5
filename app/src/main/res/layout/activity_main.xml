@@ -1,163 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="1"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.specknet.airrespeck.MainActivity">
 
-
-    <LinearLayout
-        android:orientation="vertical"
+    <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:weightSum="1">
+        android:layout_height="0dp"
+        android:layout_weight="0.25"
+        android:gravity="fill_horizontal">
 
-        <TableLayout
+        <TableRow
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.25"
+            android:layout_height="match_parent"
+            android:baselineAligned="false"
             android:gravity="fill_horizontal">
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:baselineAligned="false"
-                android:gravity="fill_horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/respiratory_rate"
+                android:id="@+id/tvRespiratoryRate"
+                android:layout_column="0" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="@string/respiratory_rate"
-                    android:id="@+id/tvRespiratoryRate"
-                    android:layout_column="0" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="20"
+                android:id="@+id/tvRespiratoryRateVal"
+                android:layout_column="1"
+                android:textAlignment="viewEnd" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="20"
-                    android:id="@+id/tvRespiratoryRateVal"
-                    android:layout_column="1"
-                    android:textAlignment="viewEnd" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/tvRespiratoryRateUnit"
+                android:layout_column="2"
+                android:text="@string/bpm" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:id="@+id/tvRespiratoryRateUnit"
-                    android:layout_column="2"
-                    android:text="@string/bpm" />
+        </TableRow>
 
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="fill_horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="@string/pm10"
-                    android:id="@+id/tvPM10"
-                    android:layout_column="0" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="100"
-                    android:id="@+id/tvPM10Val"
-                    android:layout_column="1"
-                    android:textAlignment="viewEnd" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:id="@+id/tvPM10Unit"
-                    android:layout_column="2"
-                    android:text="@string/ug_m3" />
-
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="fill_horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="@string/pm2_5"
-                    android:id="@+id/tvPM2.5"
-                    android:layout_column="0" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="150"
-                    android:id="@+id/tvPM2.5Val"
-                    android:layout_column="1"
-                    android:textAlignment="viewEnd" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:id="@+id/tvPM2.5Unit"
-                    android:layout_column="2"
-                    android:text="@string/ug_m3" />
-            </TableRow>
-
-        </TableLayout>
-
-        <ImageView
+        <TableRow
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:id="@+id/imgvGoNoGo"
-            android:layout_weight="0.25"
-            android:src="@drawable/ic_running_man" />
+            android:layout_height="match_parent"
+            android:gravity="fill_horizontal">
 
-        <TextView
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/pm10"
+                android:id="@+id/tvPM10"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="100"
+                android:id="@+id/tvPM10Val"
+                android:layout_column="1"
+                android:textAlignment="viewEnd" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/tvPM10Unit"
+                android:layout_column="2"
+                android:text="@string/ug_m3" />
+
+        </TableRow>
+
+        <TableRow
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Safe to exercise"
-            android:id="@+id/tvFeedback"
-            android:layout_weight="0.40"
-            android:gravity="center_vertical|center_horizontal" />
+            android:layout_height="match_parent"
+            android:gravity="fill_horizontal">
 
-        <TableLayout
-            android:layout_width="match_parent"
-            android:layout_height="101dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/pm2_5"
+                android:id="@+id/tvPM2.5"
+                android:layout_column="0" />
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="150"
+                android:id="@+id/tvPM2.5Val"
+                android:layout_column="1"
+                android:textAlignment="viewEnd" />
 
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/imgbHome"
-                    android:src="@drawable/ic_home" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/tvPM2.5Unit"
+                android:layout_column="2"
+                android:text="@string/ug_m3" />
+        </TableRow>
 
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/imgbSettings"
-                    android:layout_column="2"
-                    android:src="@drawable/ic_settings" />
-            </TableRow>
-        </TableLayout>
+    </TableLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/imgvGoNoGo"
+        android:layout_weight="0.25"
+        android:src="@drawable/ic_running_man" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Safe to exercise"
+        android:id="@+id/tvFeedback"
+        android:layout_weight="0.41"
+        android:gravity="center_vertical|center_horizontal" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2" >
+
+        <Button
+            android:id="@+id/btnHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/home"
+            android:textAlignment="center"
+            android:scaleType="fitXY"
+            android:layout_weight="1"
+            android:singleLine="false"
+            android:drawableTop="@drawable/ic_home" />
+
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings"
+            android:textAlignment="center"
+            android:scaleType="fitXY"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/ic_settings" />
 
     </LinearLayout>
-</RelativeLayout>
+
+</LinearLayout>
