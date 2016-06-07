@@ -1,0 +1,109 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.specknet.airrespeck.MainDataFragment">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/respiratory_rate_label"
+                android:text="@string/respiratory_rate"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0" />
+
+            <Space
+                android:layout_width="20px"
+                android:layout_height="20px"
+                android:layout_column="1" />
+
+            <TextView
+                android:id="@+id/respiratory_rate_val"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textAlignment="viewEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2" />
+            <TextView
+                android:id="@+id/respiratory_rate_units"
+                android:text="@string/bpm"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/pm10_label"
+                android:text="@string/pm10"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0" />
+
+            <Space
+                android:layout_width="20px"
+                android:layout_height="20px"
+                android:layout_column="1" />
+
+            <TextView
+                android:id="@+id/pm10_val"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textAlignment="viewEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2" />
+            <TextView
+                android:id="@+id/pm10_units"
+                android:text="@string/ug_m3"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/pm2_5_label"
+                android:text="@string/pm2_5"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0" />
+
+            <Space
+                android:layout_width="20px"
+                android:layout_height="20px"
+                android:layout_column="1" />
+
+            <TextView
+                android:id="@+id/pm2_5_val"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textAlignment="viewEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2" />
+            <TextView
+                android:id="@+id/pm2_5_units"
+                android:text="@string/ug_m3"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="3" />
+        </TableRow>
+
+    </TableLayout>
+
+</FrameLayout>
