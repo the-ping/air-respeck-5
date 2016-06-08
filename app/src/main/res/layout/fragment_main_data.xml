@@ -17,6 +17,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_column="0" />
 
             <Space
@@ -30,6 +31,7 @@
                 android:textAlignment="viewEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_column="2" />
             <TextView
                 android:id="@+id/respiratory_rate_units"
@@ -37,6 +39,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_column="3" />
         </TableRow>
 
@@ -49,6 +52,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_column="0" />
 
             <Space
@@ -62,6 +66,7 @@
                 android:textAlignment="viewEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_column="2" />
             <TextView
                 android:id="@+id/pm10_units"
@@ -69,6 +74,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_column="3" />
         </TableRow>
 
@@ -81,6 +87,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_column="0" />
 
             <Space
@@ -94,6 +101,7 @@
                 android:textAlignment="viewEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_column="2" />
             <TextView
                 android:id="@+id/pm2_5_units"
@@ -101,6 +109,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:layout_column="3" />
         </TableRow>
 
