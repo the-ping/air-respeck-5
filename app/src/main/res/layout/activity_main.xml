@@ -1,43 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="https://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:fitsSystemWindows="true"
     tools:context="com.specknet.airrespeck.MainActivity">
 
-    <fragment
-        android:id="@+id/main_data_fragment"
-        android:name="com.specknet.airrespeck.MainDataFragment"
+    <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        tools:layout="@layout/fragment_main_data" />
+        android:theme="@style/AppTheme.AppBarOverlay">
 
-    <fragment
-        android:id="@+id/feedback_fragment"
-        android:name="com.specknet.airrespeck.FeedbackFragment"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_gravity="center"
-        tools:layout="@layout/fragment_feedback" />
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-<!--    <FrameLayout
-        android:id="@+id/content_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"></FrameLayout>-->
+    </android.support.design.widget.AppBarLayout>
 
-    <fragment
-        android:id="@+id/menu_fragment"
-        android:name="com.specknet.airrespeck.MenuFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        tools:layout="@layout/fragment_menu" />
+    <include layout="@layout/content_main" />
 
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

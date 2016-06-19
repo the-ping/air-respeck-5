@@ -1,11 +1,9 @@
 package com.specknet.airrespeck;
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +11,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.specknet.airrespeck.utils.ButtonDesc;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class MenuFragment extends Fragment {
 
-    private FragmentActivity mListener;
+    private List<ButtonDesc> mButtons;
+
+    private OnMenuSelectedListener mListener;
+
     private LinearLayout mMenuContainer;
     private LinearLayout.LayoutParams mMenuItemLayoutParameters;
 
@@ -27,8 +33,8 @@ public class MenuFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof Activity) {
-            mListener = (FragmentActivity) context;
+        if (context instanceof OnMenuSelectedListener) {
+            mListener = (OnMenuSelectedListener) context;
         }
     }
 
@@ -44,6 +50,14 @@ public class MenuFragment extends Fragment {
 
         mMenuItemLayoutParameters = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+
+        mButtons = new ArrayList<ButtonDesc>();
+        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.HOME, getString(R.string.menu_home),
+                R.drawable.ic_home));
+        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.DASHBOARD, getString(R.string.menu_dashboard),
+                R.drawable.ic_dashboard));
+        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.SETTINGS, getString(R.string.menu_settings),
+                R.drawable.ic_settings));
     }
 
     @Override
@@ -57,21 +71,34 @@ public class MenuFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         mMenuContainer = (LinearLayout)view.findViewById(R.id.menu_layout);
 
-        createButton(getString(R.string.home), R.drawable.ic_home);
-        createButton(getString(R.string.dashboard), R.drawable.ic_dashboard);
-        createButton(getString(R.string.settings), R.drawable.ic_settings);
+        createButton(mButtons.get(0));
+        createButton(mButtons.get(1));
+        createButton(mButtons.get(2));
     }
 
-    private void createButton(final String label, final int image) {
-        Button button = new Button(mListener);
-        button.setText(label);
+    /**
+     * Interface to communicate with the host activity
+     * The host activity must implement this interface
+     */
+    public interface OnMenuSelectedListener {
+        void onButtonSelected(int buttonId);
+    }
+
+    public void onButtonClick(View v, int buttonId) {
+        // Send events to the host activity
+        mListener.onButtonSelected(buttonId);
+    }
+
+    private void createButton(final ButtonDesc buttonDesc) {
+        Button button = new Button(getActivity());
+        button.setText(buttonDesc.getLabel());
         button.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        button.setCompoundDrawablesWithIntrinsicBounds(0, image, 0, 0);
+        button.setCompoundDrawablesWithIntrinsicBounds(0, buttonDesc.getImage(), 0, 0);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //startActivity(new Intent(this, xActivity.class));
+                onButtonClick(v, buttonDesc.getType().ordinal());
             }
         });
 

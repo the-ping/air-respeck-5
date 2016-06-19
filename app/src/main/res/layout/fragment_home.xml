@@ -1,12 +1,15 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.specknet.airrespeck.MainDataFragment">
+    tools:context="com.specknet.airrespeck.HomeFragment">
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true">
 
         <TableRow
             android:layout_width="match_parent"
@@ -21,17 +24,16 @@
                 android:layout_column="0" />
 
             <Space
-                android:layout_width="20px"
-                android:layout_height="20px"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_column="1" />
 
             <TextView
                 android:id="@+id/respiratory_rate_val"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textAlignment="viewEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:layout_gravity="center_vertical|end"
                 android:layout_column="2" />
             <TextView
                 android:id="@+id/respiratory_rate_units"
@@ -56,17 +58,16 @@
                 android:layout_column="0" />
 
             <Space
-                android:layout_width="20px"
-                android:layout_height="20px"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_column="1" />
 
             <TextView
                 android:id="@+id/pm10_val"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textAlignment="viewEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:layout_gravity="center_vertical|end"
                 android:layout_column="2" />
             <TextView
                 android:id="@+id/pm10_units"
@@ -91,17 +92,16 @@
                 android:layout_column="0" />
 
             <Space
-                android:layout_width="20px"
-                android:layout_height="20px"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_column="1" />
 
             <TextView
                 android:id="@+id/pm2_5_val"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textAlignment="viewEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:layout_gravity="center_vertical|end"
                 android:layout_column="2" />
             <TextView
                 android:id="@+id/pm2_5_units"
@@ -114,5 +114,36 @@
         </TableRow>
 
     </TableLayout>
+
+    <TextView
+        android:id="@+id/feedback"
+        android:text="Safe to exercise"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:drawableTop="@drawable/ic_running_man"/>
+
+</RelativeLayout>-->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.specknet.airrespeck.HomeFragment">
+
+    <FrameLayout
+        android:id="@+id/readings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <FrameLayout
+        android:id="@+id/feedback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 
 </FrameLayout>

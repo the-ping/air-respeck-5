@@ -1,60 +1,55 @@
 package com.specknet.airrespeck;
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.specknet.airrespeck.utils.Utils;
+
 import java.util.Properties;
 
 
-public class MainDataFragment extends Fragment {
+public class ReadingsFragment extends Fragment {
 
     enum mReadings {
         RESP_RATE, PM10, PM2_5
     }
 
-    private FragmentActivity mListener;
     private Properties mProperties;
     private TextView mRespRate, mPM10, mPM2_5;
 
-    public MainDataFragment() {
+    public ReadingsFragment() {
         // Required empty public constructor
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof Activity) {
-            mListener = (FragmentActivity) context;
-        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mProperties = Utils.getProperties(mListener);
+        mProperties = Utils.getProperties(getActivity());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_main_data, container, false);
+        return inflater.inflate(R.layout.fragment_readings, container, false);
     }
 
     @Override
@@ -64,19 +59,19 @@ public class MainDataFragment extends Fragment {
         mPM2_5 = (TextView) view.findViewById(R.id.pm2_5_val);
     }
 
-    public void setRespiratoryRate(final String value) {
-        mRespRate.setText(value);
-        updateTextColor(Integer.parseInt(value), mReadings.RESP_RATE, mRespRate);
+    public void setRespiratoryRate(final int value) {
+        mRespRate.setText(String.valueOf(value));
+        updateTextColor(value, mReadings.RESP_RATE, mRespRate);
     }
 
-    public void setPM10(final String value) {
-        mPM10.setText(value);
-        updateTextColor(Integer.parseInt(value), mReadings.PM10, mPM10);
+    public void setPM10(final int value) {
+        mPM10.setText(String.valueOf(value));
+        updateTextColor(value, mReadings.PM10, mPM10);
     }
 
-    public void setPM2_5(final String value) {
-        mPM2_5.setText(value);
-        updateTextColor(Integer.parseInt(value), mReadings.PM2_5, mPM2_5);
+    public void setPM2_5(final int value) {
+        mPM2_5.setText(String.valueOf(value));
+        updateTextColor(value, mReadings.PM2_5, mPM2_5);
     }
 
     private void updateTextColor(final int value, final mReadings reading, TextView tv) {
@@ -94,13 +89,13 @@ public class MainDataFragment extends Fragment {
         }
 
         if (value <= Integer.parseInt(mProperties.getProperty(key + "_green"))) {
-            tv.setTextColor(ContextCompat.getColor(mListener, R.color.colorGreen));
+            tv.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorGreen));
         }
         else if (value > Integer.parseInt(mProperties.getProperty(key + "_orange"))) {
-            tv.setTextColor(ContextCompat.getColor(mListener, R.color.colorRed));
+            tv.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorRed));
         }
         else {
-            tv.setTextColor(ContextCompat.getColor(mListener, R.color.colorOrange));
+            tv.setTextColor(ContextCompat.getColor(getActivity(), R.color.colorOrange));
         }
     }
 }
