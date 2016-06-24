@@ -13,13 +13,13 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_air_speck"
+        android:id="@+id/action_airspeck"
         android:orderInCategory="90"
         android:title="@string/action_air_speck"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_re_speck"
+        android:id="@+id/action_respeck"
         android:orderInCategory="80"
         android:title="@string/action_re_speck"
         app:showAsAction="never" />

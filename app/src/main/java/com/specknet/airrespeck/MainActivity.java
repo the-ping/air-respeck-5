@@ -10,6 +10,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.specknet.airrespeck.airspeck.AirSpeckActivity;
+import com.specknet.airrespeck.fragments.DashboardFragment;
+import com.specknet.airrespeck.fragments.HomeFragment;
+import com.specknet.airrespeck.fragments.MenuFragment;
+import com.specknet.airrespeck.respeck.RESpeckActivity;
+
 import java.util.Date;
 
 
@@ -17,19 +23,22 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
     protected final String TAG_HOME = "HOME";
     protected final String TAG_DASHBOARD = "DASHBOARD";
-    Toolbar toolbar;
+
     private HomeFragment mHomeFragment;
     private DashboardFragment mDashboardFragment;
     private Fragment mCurrentFragment;
+
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        if (savedInstanceState == null) {
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+
+        //if (savedInstanceState == null) {
             mHomeFragment = new HomeFragment();
             mDashboardFragment = new DashboardFragment();
 
@@ -39,11 +48,10 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
             mCurrentFragment = mHomeFragment;
 
-            Thread updateThread = null;
             Runnable runnable = new updateLoop();
-            updateThread = new Thread(runnable);
+            Thread updateThread = new Thread(runnable);
             updateThread.start();
-        }
+        //}
     }
 
     @Override
@@ -70,8 +78,11 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         if (id == R.id.action_settings) {
             return true;
         }
-        else if (id == R.id.action_air_speck) {
+        else if (id == R.id.action_airspeck) {
             startActivity(new Intent(this, AirSpeckActivity.class));
+        }
+        else if (id == R.id.action_respeck) {
+            startActivity(new Intent(this, RESpeckActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -139,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
     class updateLoop implements Runnable {
         // @Override
         public void run() {
-            while(!Thread.currentThread().isInterrupted()){
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     updateValues();
                     Thread.sleep(1000);

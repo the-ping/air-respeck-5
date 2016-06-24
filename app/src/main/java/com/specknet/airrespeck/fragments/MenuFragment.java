@@ -1,4 +1,4 @@
-package com.specknet.airrespeck;
+package com.specknet.airrespeck.fragments;
 
 
 import android.content.Context;
@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.utils.ButtonDesc;
 
 import java.util.ArrayList;

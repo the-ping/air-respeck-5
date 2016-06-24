@@ -1,63 +1,29 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:layout_weight="100"
     android:orientation="horizontal"
-    tools:context="com.specknet.airrespeck.ReadingFragment">
+    tools:context=".fragments.ReadingFragment">
 
     <ImageButton
-        android:id="@+id/prevReading"
+        android:id="@+id/prev_reading"
         android:background="@drawable/ic_left_arrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="5" />
+        android:layout_weight="1" />
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/reading_container"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="90">
-
-        <TextView
-            android:id="@+id/reading_name"
-            android:text="@string/respiratory_rate"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
-
-        <TextView
-            android:id="@+id/reading_val"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/reading_name"
-            android:layout_toStartOf="@+id/space" />
-
-        <Space
-            android:id="@+id/space"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_below="@+id/reading_name"
-            android:layout_centerHorizontal="true" />
-
-        <TextView
-            android:id="@+id/reading_unit"
-            android:text="@string/bpm"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/reading_name"
-            android:layout_toEndOf="@+id/space" />
-
-    </RelativeLayout>
+        android:layout_weight="98" />
 
     <ImageButton
-        android:id="@+id/nextReading"
+        android:id="@+id/next_reading"
         android:background="@drawable/ic_right_arrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="5"  />
+        android:layout_weight="1" />
 
 </LinearLayout>

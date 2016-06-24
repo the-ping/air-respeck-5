@@ -1,4 +1,4 @@
-package com.specknet.airrespeck;
+package com.specknet.airrespeck.fragments;
 
 
 import android.content.Context;
@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.Properties;

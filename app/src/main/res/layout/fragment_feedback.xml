@@ -3,14 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    tools:context="com.specknet.airrespeck.FeedbackFragment">
+    tools:context=".fragments.FeedbackFragment">
 
     <TextView
         android:id="@+id/feedback"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:gravity="center_horizontal" />
 
 </FrameLayout>

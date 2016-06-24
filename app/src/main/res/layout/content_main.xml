@@ -22,10 +22,9 @@
 
     <fragment
         android:id="@+id/menu"
-        android:name="com.specknet.airrespeck.MenuFragment"
+        android:name="com.specknet.airrespeck.fragments.MenuFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
         tools:layout="@layout/fragment_menu" />
 
 </LinearLayout>

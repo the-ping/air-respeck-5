@@ -2,9 +2,9 @@
 <resources>
     <string name="app_name">AirRespeck</string>
 
-    <string name="respiratory_rate">RESPIRATORY RATE:</string>
-    <string name="pm10">PM10:</string>
-    <string name="pm2_5">PM2.5:</string>
+    <string name="respiratory_rate">RESPIRATORY RATE</string>
+    <string name="pm10">PM10</string>
+    <string name="pm2_5">PM2.5</string>
 
     <string name="bpm">bpm</string>
     <string name="ug_m3">µg/m3</string>
