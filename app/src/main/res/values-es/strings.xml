@@ -7,7 +7,7 @@
     <string name="pm2_5">PM2.5</string>
 
     <string name="bpm">resp/min</string>
-    <string name="ug_m3">µg/m3</string>
+    <string name="ug_m3">µg/m³</string>
 
     <string name="menu_home">INICIO</string>
     <string name="menu_dashboard">TABLERO</string>

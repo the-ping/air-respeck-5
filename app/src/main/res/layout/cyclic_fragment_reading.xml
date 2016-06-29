@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:layout_weight="100"
     android:orientation="horizontal"
-    tools:context=".fragments.ReadingFragment">
+    tools:context=".fragments.CyclicReadingFragment">
 
     <ImageButton
         android:id="@+id/prev_reading"

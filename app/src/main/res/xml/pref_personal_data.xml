@@ -1,0 +1,34 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="@string/pref_default_display_name"
+        android:inputType="textCapWords"
+        android:key="user_name"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_display_name" />
+
+    <com.specknet.airrespeck.utils.DatePreference
+        android:key="birth_date"
+        android:title="@string/pref_title_birth_date"
+        android:defaultValue="@string/pref_default_birth_date" />
+
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/pref_gender_list"
+        android:entryValues="@array/pref_gender_list_values"
+        android:key="gender_list"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_gender" />
+
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/pref_region_list"
+        android:entryValues="@array/pref_region_list_values"
+        android:key="region_list"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_region" />
+</PreferenceScreen>

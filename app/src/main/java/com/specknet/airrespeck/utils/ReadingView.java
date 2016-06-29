@@ -2,6 +2,7 @@ package com.specknet.airrespeck.utils;
 
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,25 +14,29 @@ import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.specknet.airrespeck.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class ReadingView extends View {
 
-    Context mContext;
+    // Constants. Relative to canvas height.
+    private final float BAR_THICKNESS_PERCENT = 0.25f;
+    private final float NEEDLE_HEIGHT_PERCENT = 0.20f;
 
     // Canvas
-    private float mWidth, mHeight, mPadding;
+    private float mWidth, mHeight, mPadding = 10;
 
     // Bar
     private float mBarLeft, mBarTop, mBarRight, mBarBottom;
     private boolean mIsGradientColour;
-    private int mBarColour;
+    private int mBarColour = Color.GRAY;
     static int[] mDefaultGradientColours =
             {Color.parseColor("#4DAF51"), Color.parseColor("#FFA500"), Color.parseColor("#FF0000")};
 
-    // Custom scale
+    // Scale
     private boolean mIsScale;
     private float mScaleMin, mScaleMax;
     private List<Float> mScaleValues;
@@ -43,69 +48,81 @@ public class ReadingView extends View {
 
     // Progress needle
     private float mNeedleX, mNeedleY, mNeedleWidth, mNeedleHeight;
-    private int mNeedleColour;
+    private int mNeedleColour = Color.BLACK;
+
+    private int mProgressValue = 0;
 
     // Text
     private boolean mIsTitle, mIsValue, mIsUnits;
     private String mTitle, mValue, mValueUnits;
-    private float mTitleX, mTitleY, mTitleFontSize, mValueX, mValueY, mValueFontSize;
+    private float mTitleX, mTitleY, mTitleFontSize;
+    private float mValueX, mValueY, mValueFontSize;
+    private int mTitleColour = Color.BLACK, mValueColour = Color.BLACK;
 
-    // Drawing objects
-    private Bitmap mBitmap;
-    private Canvas mCanvas;
     private Paint mBarPaint, mNeedlePaint, mTitleTextPaint, mValueTextPaint;
-    private LinearGradient mLinearGradient;
     private Path mPath;
     private Rect mTextBounds;
 
+    public ReadingView(Context context) {
+        super(context);
+        init(null, 0);
+    }
+
     public ReadingView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        mContext = context;
-
-        init();
+        init(attrs, 0);
     }
 
-    private void init() {
+    public ReadingView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(attrs, defStyle);
+    }
+
+    private void init(AttributeSet attrs, int defStyle) {
+        // Load attributes
+        final TypedArray a = getContext().
+                obtainStyledAttributes(attrs, R.styleable.ReadingView, defStyle, 0);
+        // Nothing for now
+        a.recycle();
+
+        // Helper objects
         mScalePositions = new ArrayList<>();
-
-        mBarColour = Color.GRAY;
-        mNeedleColour = Color.BLACK;
-
-        mTitle = mValue = mValueUnits = "";
-        mTitleX = mTitleY = mValueX = mValueY = 0;
-
-        mTitleTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mValueTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mBarPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mNeedlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-        mPath = new Path();
         mTextBounds = new Rect();
-
+        mPath = new Path();
         mPath.setFillType(Path.FillType.EVEN_ODD);
 
-        calculateObjectsDims();
+        // Default BarPaint
+        mBarPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        // Update BarPaint and bar measurements
+        invalidateBarPaintAndMeasurements();
+
+        // Default NeedlePaint
+        mNeedlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        // Update NeedlePaint and needle measurements
+        invalidateNeedlePaintAndMeasurements();
+
+        // Set up a default TextPaint object for the Title
+        mTitleTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        // Update TextPaint and text measurements
+        invalidateTitleTextPaintAndMeasurements();
+
+        // Set up a default TextPaint object for the value
+        mValueTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        // Update TextPaint and text measurements
+        invalidateValueTextPaintAndMeasurements();
     }
 
-    private void calculateObjectsDims() {
-        mPadding = 20;
+    private void invalidateBarPaintAndMeasurements() {
+        float barThickness = mHeight * BAR_THICKNESS_PERCENT;
 
         mBarLeft = mPadding;
-        mBarTop = mPadding + mTitleY*3;
+        mBarTop = (mHeight - barThickness) * 0.5f;
         mBarRight = mWidth - mPadding;
-        mBarBottom = mBarTop + mHeight * 0.25f;
-
-        mNeedleHeight = mHeight * 0.25f;
-        mNeedleWidth = mNeedleHeight * 0.5f;
-        mNeedleX = 0;
-        mNeedleY = mBarTop * 0.5f + mBarBottom * 0.5f;
-
-        mTitleFontSize = mHeight * 0.25f;
-        mValueFontSize = mHeight * 0.2f;
-
-        mTitleTextPaint.setTextSize(mTitleFontSize);
-        mValueTextPaint.setTextSize(mValueFontSize);
+        mBarBottom = mBarTop + barThickness;
 
         if (mIsScale) {
             mScaleMin = mScaleValues.get(0);
@@ -116,6 +133,7 @@ public class ReadingView extends View {
             mScaleMax = mWidth - 2*mPadding;
         }
 
+        LinearGradient linearGradient;
         if (mIsScale) {
             mScalePositions.clear();
             for (int i = 0; i < mScaleValues.size(); ++i) {
@@ -146,10 +164,10 @@ public class ReadingView extends View {
                             }
                         }
 
-                        mLinearGradient = new LinearGradient(mBarLeft, mBarTop, mBarRight, mBarBottom,
+                        linearGradient = new LinearGradient(mBarLeft, mBarTop, mBarRight, mBarBottom,
                                 colours, colourPos, Shader.TileMode.CLAMP);
 
-                        mBarPaint.setShader(mLinearGradient);
+                        mBarPaint.setShader(linearGradient);
                     } else {
                         mBarPaint.setColor(mScaleColours.get(0));
                     }
@@ -163,43 +181,58 @@ public class ReadingView extends View {
                 colours[i] = mScaleColours.get(i);
             }
 
-            mLinearGradient = new LinearGradient(mBarLeft, mBarTop, mBarRight, mBarBottom,
+            linearGradient = new LinearGradient(mBarLeft, mBarTop, mBarRight, mBarBottom,
                     colours, null, Shader.TileMode.CLAMP);
 
-            mBarPaint.setShader(mLinearGradient);
+            mBarPaint.setShader(linearGradient);
         }
         else if (mIsGradientColour) {
-            mLinearGradient = new LinearGradient(mBarLeft, mBarTop, mBarRight, mBarBottom,
+            linearGradient = new LinearGradient(mBarLeft, mBarTop, mBarRight, mBarBottom,
                     mDefaultGradientColours, null, Shader.TileMode.CLAMP);
 
-            mBarPaint.setShader(mLinearGradient);
+            mBarPaint.setShader(linearGradient);
         }
         else {
             mBarPaint.setColor(mBarColour);
         }
+    }
 
+    private void invalidateNeedlePaintAndMeasurements() {
         mNeedlePaint.setColor(mNeedleColour);
 
-        updateTitlePos();
+        mNeedleHeight = mHeight * NEEDLE_HEIGHT_PERCENT;
+        mNeedleWidth = mNeedleHeight * 0.5f;
+        mNeedleX = mProgressValue * (mWidth - 2*mPadding) / mScaleMax + mPadding;
+        mNeedleY = (mBarTop + mBarBottom) * 0.5f;
     }
 
-    private float calculateScalePosition(final float value) {
-        return (value - mScaleMin) * (mWidth - 2*mPadding) / (mScaleMax - mScaleMin) + mPadding;
-    }
-
-    private void updateTitlePos() {
+    private void invalidateTitleTextPaintAndMeasurements() {
         if (!mIsTitle) {
             return;
         }
 
-        mTitleTextPaint.getTextBounds(mTitle, 0, mTitle.length(), mTextBounds);
+        mTitleTextPaint.setTextSize(mTitleFontSize);
+        mTitleTextPaint.setColor(mTitleColour);
 
+        mTitleTextPaint.getTextBounds(mTitle, 0, mTitle.length(), mTextBounds);
         mTitleX = (mWidth - mTextBounds.width()) * 0.5f;
-        mTitleY = mPadding + mTextBounds.height();
+        mTitleY = (mHeight * (1-BAR_THICKNESS_PERCENT) + 2 * mTextBounds.height()) * 0.25f;
     }
 
-    private void updateValuePos(final int value) {
-        mNeedleX = value * (mWidth - 2*mPadding) / mScaleMax + mPadding;
+    private void invalidateValueTextPaintAndMeasurements() {
+        if (!mIsValue) {
+            return;
+        }
+
+        mValueTextPaint.setTextSize(mValueFontSize);
+        mValueTextPaint.setColor(mValueColour);
+
+        if (mIsUnits) {
+            mValue = String.valueOf(mProgressValue) + " " + mValueUnits;
+        }
+        else {
+            mValue = String.valueOf(mProgressValue);
+        }
 
         mValueTextPaint.getTextBounds(mValue, 0, mValue.length(), mTextBounds);
 
@@ -214,52 +247,72 @@ public class ReadingView extends View {
         }
     }
 
+    private float calculateScalePosition(final float value) {
+        return (value - mScaleMin) * (mWidth - 2*mPadding) / (mScaleMax - mScaleMin) + mPadding;
+    }
+
     public void setBarColour(final int colour) {
         mBarColour = colour;
+        invalidateBarPaintAndMeasurements();
     }
 
     public void setNeedleColour(final int colour) {
         mNeedleColour = colour;
+        invalidateNeedlePaintAndMeasurements();
     }
 
     public void setGradientColours(final boolean isGradientColour) {
         mIsGradientColour = isGradientColour;
+        invalidateBarPaintAndMeasurements();
     }
 
-    public void setTitleFontSize( final float fontSize) {
+    public void setTitleFontSize(final float fontSize) {
         mTitleFontSize = fontSize;
-        mTitleTextPaint.setTextSize(mTitleFontSize);
+        invalidateTitleTextPaintAndMeasurements();
+    }
+
+    public void setTitleColour(final int colour) {
+        mTitleColour = colour;
+        invalidateTitleTextPaintAndMeasurements();
     }
 
     public void setValueFontSize( final float fontSize) {
         mValueFontSize = fontSize;
-        mValueTextPaint.setTextSize(mValueFontSize);
+        invalidateValueTextPaintAndMeasurements();
+    }
+
+    public void setValueColour( final int colour) {
+        mValueColour = colour;
+        invalidateValueTextPaintAndMeasurements();
     }
 
     public void setTitle(final String title) {
-        mIsTitle = true;
-        mTitle = title;
-        updateTitlePos();
+        if (title != null && !title.isEmpty()) {
+            mIsTitle = true;
+            mTitle = title;
+            invalidateTitleTextPaintAndMeasurements();
+        }
+        else {
+            mIsTitle = false;
+        }
     }
 
     public void setValue(final int value) {
         mIsValue = true;
-
-        if (mIsUnits) {
-            mValue = String.valueOf(value) + " " + mValueUnits;
-        }
-        else {
-            mValue = String.valueOf(value);
-        }
-
-        updateValuePos(value);
-
+        mProgressValue = value;
+        invalidateNeedlePaintAndMeasurements();
+        invalidateValueTextPaintAndMeasurements();
         invalidate();
     }
 
     public void setValueUnits(final String units) {
-        mIsUnits = true;
-        mValueUnits = units;
+        if (units != null && !units.isEmpty()) {
+            mIsUnits = true;
+            mValueUnits = units;
+        }
+        else {
+            mIsUnits = false;
+        }
     }
 
     public void setScale(final List<Float> scale) {
@@ -270,6 +323,7 @@ public class ReadingView extends View {
 
         mIsScale = true;
         mScaleValues = new ArrayList<>(scale);
+        invalidateBarPaintAndMeasurements();
     }
 
     public void setColours(final List<Integer> colours) {
@@ -280,6 +334,7 @@ public class ReadingView extends View {
 
         mIsCustomGradientColour = true;
         mScaleColours = new ArrayList<>(colours);
+        invalidateBarPaintAndMeasurements();
     }
 
     @Override
@@ -288,10 +343,19 @@ public class ReadingView extends View {
 
         mWidth = w;
         mHeight = w * 0.3f;     // Arbitrary height based on width
-        calculateObjectsDims();
 
-        mBitmap = Bitmap.createBitmap((int)mWidth, (int)mHeight, Bitmap.Config.ARGB_8888);
-        mCanvas = new Canvas(mBitmap);
+        // Default values
+        mPadding = mHeight * 0.01f;
+        mTitleFontSize = mHeight * 0.25f;
+        mValueFontSize = mHeight * 0.2f;
+
+        invalidateBarPaintAndMeasurements();
+        invalidateNeedlePaintAndMeasurements();
+        invalidateTitleTextPaintAndMeasurements();
+        invalidateValueTextPaintAndMeasurements();
+
+        Bitmap mBitmap = Bitmap.createBitmap((int) mWidth, (int) mHeight, Bitmap.Config.ARGB_8888);
+        Canvas mCanvas = new Canvas(mBitmap);
     }
 
     @Override
@@ -315,7 +379,7 @@ public class ReadingView extends View {
                     if (mIsCustomGradientColour && i - 1 < mScaleColours.size()) {
                         mBarPaint.setColor(mScaleColours.get(i - 1));
                     } else {
-                        mBarPaint.setColor(mBarColour);     // TODO add random colour generation
+                        mBarPaint.setColor(mBarColour);
                     }
 
                     canvas.drawRect(mScalePositions.get(i - 1), mBarTop, mScalePositions.get(i), mBarBottom, mBarPaint);
@@ -338,7 +402,5 @@ public class ReadingView extends View {
         if (mIsValue) {
             canvas.drawText(mValue, mValueX, mValueY, mValueTextPaint);
         }
-        /*System.out.println("Canvas width: " + mCanvas.getWidth());
-        System.out.println("Canvas height: " + mCanvas.getHeight());*/
     }
 }

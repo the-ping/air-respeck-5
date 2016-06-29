@@ -2,6 +2,8 @@ package com.specknet.airrespeck;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -16,7 +18,9 @@ import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.respeck.RESpeckActivity;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements MenuFragment.OnMenuSelectedListener {
@@ -63,7 +67,16 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        //menu.getItem(0).setVisible(false); // here pass the index of save menu item
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean respeck_app_access = settings.getBoolean("respeck_app_access", false);
+        boolean airspeck_app_access = settings.getBoolean("airspeck_app_access", false);
+
+        menu.getItem(0).setVisible(respeck_app_access);
+        menu.getItem(1).setVisible(airspeck_app_access);
+
+        //toolbar.getMenu().setGroupVisible(R.id.main_menu_group, true);
+        //toolbar.getMenu().setGroupVisible(R.id.main_menu_group, false);
+        //toolbar.getMenu().clear();
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -76,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
         //noinspection SimplifiableIfStattement
         if (id == R.id.action_settings) {
-            return true;
+            startActivity(new Intent(this, SettingsActivity.class));
         }
         else if (id == R.id.action_airspeck) {
             startActivity(new Intent(this, AirSpeckActivity.class));
@@ -98,12 +111,10 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
             // Dashboard
             case 1:
                 replaceFragment(mDashboardFragment, TAG_DASHBOARD);
-                //toolbar.getMenu().setGroupVisible(R.id.main_menu_group, true);
                 break;
             // Settings
             case 2:
-                //toolbar.getMenu().setGroupVisible(R.id.main_menu_group, false);
-                //toolbar.getMenu().clear();
+                startActivity(new Intent(this, SettingsActivity.class));
                 break;
         }
     }
@@ -139,9 +150,13 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
                     long t = dt.getTime();
                     int seconds = (int) ((t / 1000) % 60);
 
-                    mHomeFragment.setRespiratoryRate(seconds);
-                    mHomeFragment.setPM10(seconds);
-                    mHomeFragment.setPM2_5(seconds);
+                    List<Integer> values = new ArrayList<>();
+                    values.add(seconds);
+                    values.add(seconds);
+                    values.add(seconds);
+
+                    mHomeFragment.setReadingValues(values, seconds);
+
                 } catch (Exception e) {}
             }
         });

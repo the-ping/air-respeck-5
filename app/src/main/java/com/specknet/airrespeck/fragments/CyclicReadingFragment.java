@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ReadingFragment extends Fragment implements View.OnClickListener {
+public class CyclicReadingFragment extends Fragment implements View.OnClickListener {
 
     private FrameLayout mReadingContainer;
     private ReadingView mCurrentReading;
@@ -26,7 +26,7 @@ public class ReadingFragment extends Fragment implements View.OnClickListener {
     private ImageButton mPrevReading;
     private ImageButton mNextReading;
 
-    public ReadingFragment() {
+    public CyclicReadingFragment() {
         // Required empty public constructor
     }
 
@@ -34,7 +34,7 @@ public class ReadingFragment extends Fragment implements View.OnClickListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //mCurrentReading = null;
+        mCurrentReading = null;
         mReadings = new ArrayList<>();
     }
 
@@ -42,7 +42,7 @@ public class ReadingFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_reading, container, false);
+        return inflater.inflate(R.layout.cyclic_fragment_reading, container, false);
     }
 
     @Override
@@ -62,21 +62,10 @@ public class ReadingFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onGlobalLayout() {
                 mReadingContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                // Can get container dimensions here
                 updateReading(0);
             }
         });
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
     }
 
     @Override
@@ -104,7 +93,8 @@ public class ReadingFragment extends Fragment implements View.OnClickListener {
 
     public void addReading(final String title, final String units,
                            final List<Float> scaleVal, final List<Integer> scaleCol) {
-        mCurrentReading = new ReadingView(getContext(), null);
+        mCurrentReading = new ReadingView(getContext());
+        //mCurrentReading.setLayoutParams(new ViewGroup.LayoutParams(600, 200));
 
         mCurrentReading.setTitle(title);
         mCurrentReading.setValueUnits(units);

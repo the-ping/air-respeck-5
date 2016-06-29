@@ -1,0 +1,27 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/pref_main_screen_list"
+        android:entryValues="@array/pref_main_screen_list_values"
+        android:key="main_screen_readings"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_main_screen" />
+
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="airspeck_app_access"
+        android:summary="@string/pref_description_airspeck_app_access"
+        android:title="@string/pref_title_airspeck_app_access" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="respeck_app_access"
+        android:summary="@string/pref_description_respeck_app_access"
+        android:title="@string/pref_title_respeck_app_access" />
+
+
+
+</PreferenceScreen>
