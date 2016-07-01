@@ -20,7 +20,7 @@ import java.util.List;
 public class HomeFragment extends Fragment {
 
     private SharedPreferences mSettings;
-    private int readings_display_mode = -1;
+    private int mReadingsDisplayMode = -1;
 
     private ListReadingFragment mListReadingFragment;
     private CyclicReadingFragment mCyclicReadingFragment;
@@ -39,10 +39,17 @@ public class HomeFragment extends Fragment {
         mFeedbackFragment = new FeedbackFragment();
 
         mSettings = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mReadingsDisplayMode = Integer.valueOf(mSettings.getString("home_screen_readings_display_mode", "0"));
 
         FragmentTransaction trans = getChildFragmentManager().beginTransaction();
         trans.add(R.id.feedback, mFeedbackFragment, "FEEDBACK");
         trans.commit();
+
+        // Setup readings display mode
+        init();
+
+        // Add readings
+        loadData();
     }
 
     @Override
@@ -56,94 +63,117 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        readings_display_mode = Integer.valueOf(mSettings.getString("main_screen_readings", "0"));
+        mReadingsDisplayMode = Integer.valueOf(mSettings.getString("home_screen_readings_display_mode", "0"));
 
-        // Setup reading mode
-        setupReadingMode(readings_display_mode);
-
-        // Add readings
-        loadData(readings_display_mode);
+        switchReadingMode(mReadingsDisplayMode);
     }
 
-    private void setupReadingMode(final int mode_index) {
+    /**
+     * Add the fragments for the reading display mode: {@link #mListReadingFragment} and
+     * {@link #mCyclicReadingFragment}.
+     */
+    private void init() {
         FragmentTransaction trans = getChildFragmentManager().beginTransaction();
 
-        if (mode_index == 0 && !mListReadingFragment.isVisible()) {
-            trans.remove(mCyclicReadingFragment);
-            trans.add(R.id.readings, mListReadingFragment, "READINGS");
+        trans.add(R.id.readings, mListReadingFragment, "READINGS");
+        trans.add(R.id.readings, mCyclicReadingFragment, "READINGS");
+
+        if (mReadingsDisplayMode == 0) {
+            trans.hide(mCyclicReadingFragment);
         }
-        else if (mode_index == 1 && !mCyclicReadingFragment.isVisible()) {
-            trans.remove(mListReadingFragment);
-            trans.add(R.id.readings, mCyclicReadingFragment, "READINGS");
+        else if (mReadingsDisplayMode == 1) {
+            trans.hide(mListReadingFragment);
         }
 
         trans.commit();
     }
 
-    private void loadData(final int mode_index) {
-        // Make sure all transactions have finished
+    /**
+     * Set the readings data in the corresponding fragments: {@link #mListReadingFragment} and
+     * {@link #mCyclicReadingFragment}.
+     */
+    private void loadData() {
+        // Make sure needed fragments are in place
         getChildFragmentManager().executePendingTransactions();
 
-        if (mode_index == 0) {
-            mListReadingFragment.
-                    addReading(getString(R.string.respiratory_rate), 0, getString(R.string.bpm));
-            mListReadingFragment.
-                    addReading(getString(R.string.pm10), 0, getString(R.string.ug_m3));
-            mListReadingFragment.
-                    addReading(getString(R.string.pm2_5), 0, getString(R.string.ug_m3));
-        }
-        else if (mode_index == 1) {
-            List<Integer> scaleCol = new ArrayList<>();
-            List<Float> scaleVal = new ArrayList<>();
+        mListReadingFragment.addReading(getString(R.string.reading_respiratory_rate), 0, getString(R.string.reading_unit_bpm));
+        mListReadingFragment.addReading(getString(R.string.reading_pm10), 0, getString(R.string.reading_unit_ug_m3));
+        mListReadingFragment.addReading(getString(R.string.reading_pm2_5), 0, getString(R.string.reading_unit_ug_m3));
 
-            scaleCol.clear();
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorGreen));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
 
-            scaleVal.clear();
-            scaleVal.add(0f);
-            scaleVal.add(8f);
-            scaleVal.add(12f);
-            scaleVal.add(20f);
-            scaleVal.add(35f);
-            scaleVal.add(60f);
+        List<Integer> scaleCol = new ArrayList<>();
+        List<Float> scaleVal = new ArrayList<>();
 
-            mCyclicReadingFragment.addReading(getString(R.string.respiratory_rate), getString(R.string.bpm),
-                    scaleVal, scaleCol);
+        scaleCol.clear();
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorGreen));
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
 
-            scaleCol.clear();
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorGreen));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
+        scaleVal.clear();
+        scaleVal.add(0f);
+        scaleVal.add(8f);
+        scaleVal.add(12f);
+        scaleVal.add(20f);
+        scaleVal.add(35f);
+        scaleVal.add(60f);
 
-            scaleVal.clear();
-            scaleVal.add(0f);
-            scaleVal.add(35f);
-            scaleVal.add(50f);
-            scaleVal.add(60f);
+        mCyclicReadingFragment.addReading(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), scaleVal, scaleCol);
 
-            mCyclicReadingFragment.addReading(getString(R.string.pm10), getString(R.string.ug_m3),
-                    scaleVal, scaleCol);
+        scaleCol.clear();
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorGreen));
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
+        scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
 
-            scaleVal.clear();
-            scaleVal.add(0f);
-            scaleVal.add(15f);
-            scaleVal.add(35f);
-            scaleVal.add(60f);
+        scaleVal.clear();
+        scaleVal.add(0f);
+        scaleVal.add(35f);
+        scaleVal.add(50f);
+        scaleVal.add(60f);
 
-            mCyclicReadingFragment.addReading(getString(R.string.pm2_5), getString(R.string.ug_m3),
-                    scaleVal, scaleCol);
-        }
+        mCyclicReadingFragment.addReading(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
+
+        scaleVal.clear();
+        scaleVal.add(0f);
+        scaleVal.add(15f);
+        scaleVal.add(35f);
+        scaleVal.add(60f);
+
+        mCyclicReadingFragment.addReading(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
     }
 
+    /**
+     * Switch the readings display mode.
+     * @param mode int Readings display mode index.
+     */
+    private void switchReadingMode(final int mode) {
+        FragmentTransaction trans = getChildFragmentManager().beginTransaction();
+
+        if (mode == 0) {
+            trans.show(mListReadingFragment);
+            trans.hide(mCyclicReadingFragment);
+        }
+        else if (mode == 1) {
+            trans.hide(mListReadingFragment);
+            trans.show(mCyclicReadingFragment);
+        }
+
+        trans.commit();
+    }
+
+    /**
+     * Set the current value / values for the readings.
+     * @param values List<Integer> List with all the current reading values for the
+     *               {@link #mListReadingFragment} fragment.
+     * @param value int Current value for the current reading for the
+     *               {@link #mCyclicReadingFragment} fragment.
+     */
     public void setReadingValues(final List<Integer> values, final int value) {
-        if (readings_display_mode == 0) {
+        if (mReadingsDisplayMode == 0) {
             mListReadingFragment.setListValues(values);
         }
-        else if (readings_display_mode == 1) {
+        else if (mReadingsDisplayMode == 1) {
             mCyclicReadingFragment.setReadingVal(value);
         }
     }

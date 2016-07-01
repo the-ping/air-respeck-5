@@ -60,8 +60,8 @@ public class MenuFragment extends Fragment {
                 R.drawable.ic_home));
         mButtons.add(new ButtonDesc(ButtonDesc.buttonType.DASHBOARD, getString(R.string.menu_dashboard),
                 R.drawable.ic_dashboard));
-        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.SETTINGS, getString(R.string.menu_settings),
-                R.drawable.ic_settings));
+        /*mButtons.add(new ButtonDesc(ButtonDesc.buttonType.SETTINGS, getString(R.string.menu_settings),
+                R.drawable.ic_settings));*/
     }
 
     @Override
@@ -79,7 +79,7 @@ public class MenuFragment extends Fragment {
 
         createButton(mButtons.get(0));
         createButton(mButtons.get(1));
-        createButton(mButtons.get(2));
+        //createButton(mButtons.get(2));
     }
 
     /**
@@ -90,11 +90,19 @@ public class MenuFragment extends Fragment {
         void onButtonSelected(int buttonId);
     }
 
+    /**
+     * Send button click events to the host activity.
+     * @param v View View containing the button.
+     * @param buttonId int Index of button clicked.
+     */
     public void onButtonClick(View v, int buttonId) {
-        // Send events to the host activity
         mListener.onButtonSelected(buttonId);
     }
 
+    /**
+     * Create a button and add it to {@link #mMenuContainer}
+     * @param buttonDesc ButtonDesc Instance of ButtonDesc class with the button data.
+     */
     private void createButton(final ButtonDesc buttonDesc) {
         Button button = new Button(getActivity());
         button.setText(buttonDesc.getLabel());

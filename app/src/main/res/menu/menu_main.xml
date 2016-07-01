@@ -6,26 +6,26 @@
     <group
         android:id="@+id/main_menu_group">
 
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        android:icon="@drawable/ic_settings"
-        app:showAsAction="never" />
+        <item
+            android:id="@+id/action_settings"
+            android:orderInCategory="100"
+            android:title="@string/action_settings"
+            android:icon="@drawable/ic_settings"
+            app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_airspeck"
-        android:orderInCategory="90"
-        android:title="@string/action_air_speck"
-        android:icon="@drawable/ic_air"
-        app:showAsAction="never" />
+        <item
+            android:id="@+id/action_respeck"
+            android:orderInCategory="90"
+            android:title="@string/action_re_speck"
+            android:icon="@drawable/ic_health"
+            app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_respeck"
-        android:orderInCategory="80"
-        android:title="@string/action_re_speck"
-        android:icon="@drawable/ic_health"
-        app:showAsAction="never" />
+        <item
+            android:id="@+id/action_airspeck"
+            android:orderInCategory="80"
+            android:title="@string/action_air_speck"
+            android:icon="@drawable/ic_air"
+            app:showAsAction="never" />
 
     </group>
 

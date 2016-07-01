@@ -5,7 +5,7 @@
     <!-- Strings related to Readings -->
 
     <!-- Readings -->
-    <string name="reading_respiratory_rate">呼吸频率</string>
+    <string name="reading_respiratory_rate">श्वसन दर</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
 
@@ -17,41 +17,41 @@
     <!-- Strings related to Menus -->
 
     <!-- Button/tabs menu -->
-    <string name="menu_home">首页</string>
-    <string name="menu_health">健康</string>
-    <string name="menu_air">空气</string>
-    <string name="menu_dashboard">仪表板</string>
-    <string name="menu_settings">设置</string>
+    <string name="menu_home">घर</string>
+    <string name="menu_health">स्वास्थ्य</string>
+    <string name="menu_air">हवा</string>
+    <string name="menu_dashboard">डैशबोर्ड</string>
+    <string name="menu_settings">सेटिंग्स</string>
 
     <!-- Action Bar menu -->
     <string name="action_air_speck">AirSpeck</string>
     <string name="action_re_speck">RESpeck</string>
-    <string name="action_settings">设置的</string>
+    <string name="action_settings">सेटिंग्स</string>
 
 
     <!-- Strings related to Settings -->
-    <string name="title_activity_settings">设置的</string>
+    <string name="title_activity_settings">सेटिंग्स</string>
 
     <!-- Personal Data settings -->
-    <string name="pref_header_personal_data">个人资料</string>
+    <string name="pref_header_personal_data">व्यक्तिगत डेटा</string>
 
-    <string name="pref_title_display_name">名称</string>
-    <string name="pref_default_display_name">用户</string>
+    <string name="pref_title_display_name">नाम</string>
+    <string name="pref_default_display_name">उपयोगकर्ता</string>
 
-    <string name="pref_title_birth_date">出生日期</string>
+    <string name="pref_title_birth_date">जन्म की तारीख</string>
     <string name="pref_default_birth_date">1991.01.01</string>
 
-    <string name="pref_title_gender">性别</string>
+    <string name="pref_title_gender">लिंग</string>
     <string-array name="pref_gender_list">
-        <item>男</item>
-        <item>女</item>
+        <item>नर</item>
+        <item>महिला</item>
     </string-array>
     <string-array name="pref_gender_list_values">
         <item>0</item>
         <item>1</item>
     </string-array>
 
-    <string name="pref_title_region">地区</string>
+    <string name="pref_title_region">क्षेत्र</string>
     <string-array name="pref_region_list">
         <item>Africa</item>
         <item>Asia</item>
@@ -69,32 +69,32 @@
 
 
     <!-- Example settings for User Interface -->
-    <string name="pref_header_ui">用户界面</string>
+    <string name="pref_header_ui">प्रयोक्ता इंटरफ़ेस</string>
 
-    <string name="pref_title_main_screen_readings_display_mode">读数显示模式</string>
+    <string name="pref_title_main_menu_layout">मुख्य मेनू लेआउट</string>
+    <string name="pref_description_main_menu_layout">बटन और टैब के बीच चुनें</string>
+
+    <string name="pref_title_airspeck_app_access">AirSpeck पहुँच</string>
+    <string name="pref_description_airspeck_app_access">AirSpeck ऐप्स सक्षम</string>
+
+    <string name="pref_title_respeck_app_access">RESpeck पहुँच</string>
+    <string name="pref_description_respeck_app_access">RESpeck ऐप्स सक्षम</string>
+
+    <string name="pref_title_main_screen_readings_display_mode">रीडिंग प्रदर्शन मोड</string>
     <string-array name="pref_home_screen_readings_display_mode_list">
-        <item>名单</item>
-        <item>循环</item>
+        <item>सूची</item>
+        <item>चक्रीय</item>
     </string-array>
     <string-array name="pref_home_screen_readings_display_mode_list_values">
         <item>0</item>
         <item>1</item>
     </string-array>
 
-    <string name="pref_title_main_menu_layout">主菜单布局</string>
-    <string name="pref_description_main_menu_layout">按钮和标签之间进行选择</string>
-
-    <string name="pref_title_airspeck_app_access">AirSpeck 访问</string>
-    <string name="pref_description_airspeck_app_access">启用 AirSpeck 应用</string>
-
-    <string name="pref_title_respeck_app_access">RESpeck 访问</string>
-    <string name="pref_description_respeck_app_access">启用 RESpeck 应用</string>
-
 
     <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">数据与同步</string>
+    <string name="pref_header_data_sync">डेटा और सिंक</string>
 
-    <string name="pref_title_sync_frequency">同步频率</string>
+    <string name="pref_title_sync_frequency">सिंक आवृत्ति</string>
     <string-array name="pref_sync_frequency_titles">
         <item>15 minutes</item>
         <item>30 minutes</item>

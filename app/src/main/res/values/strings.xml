@@ -2,32 +2,43 @@
 <resources>
     <string name="app_name">AirRespeck</string>
 
-    <string name="respiratory_rate">RESPIRATORY RATE</string>
-    <string name="pm10">PM10</string>
-    <string name="pm2_5">PM2.5</string>
+    <!-- Strings related to Readings -->
 
-    <string name="bpm">bpm</string>
-    <string name="ug_m3">µg/m³</string>
+    <!-- Readings -->
+    <string name="reading_respiratory_rate">RESPIRATORY RATE</string>
+    <string name="reading_pm10">PM 10</string>
+    <string name="reading_pm2_5">PM 2.5</string>
 
+    <!-- Reading units -->
+    <string name="reading_unit_bpm">bpm</string>
+    <string name="reading_unit_ug_m3">µg/m³</string>
+
+
+    <!-- Strings related to Menus -->
+
+    <!-- Button/tabs menu -->
     <string name="menu_home">HOME</string>
+    <string name="menu_health">HEALTH</string>
+    <string name="menu_air">AIR</string>
     <string name="menu_dashboard">DASHBOARD</string>
     <string name="menu_settings">SETTINGS</string>
 
-    <string name="action_settings">Settings</string>
+    <!-- Action Bar menu -->
     <string name="action_air_speck">AirSpeck</string>
     <string name="action_re_speck">RESpeck</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="action_settings">Settings</string>
 
 
     <!-- Strings related to Settings -->
+    <string name="title_activity_settings">Settings</string>
 
     <!-- Personal Data settings -->
-    <string name="pref_header_personal_data">Personal Data</string>
+    <string name="pref_header_personal_data">Personal data</string>
 
     <string name="pref_title_display_name">Name</string>
-    <string name="pref_default_display_name">John Doe</string>
+    <string name="pref_default_display_name">User</string>
 
-    <string name="pref_title_birth_date">Birth Date</string>
+    <string name="pref_title_birth_date">Date of birth</string>
     <string name="pref_default_birth_date">1991.01.01</string>
 
     <string name="pref_title_gender">Gender</string>
@@ -58,28 +69,26 @@
 
 
     <!-- Example settings for User Interface -->
-    <string name="pref_header_ui">User Interface</string>
+    <string name="pref_header_ui">User interface</string>
 
-    <string name="pref_title_main_screen">Main Screen Readings</string>
-    <string-array name="pref_main_screen_list">
+    <string name="pref_title_main_screen_readings_display_mode">Readings Display Mode</string>
+    <string-array name="pref_home_screen_readings_display_mode_list">
         <item>List</item>
-        <item>Sequential</item>
+        <item>Cyclic</item>
     </string-array>
-    <string-array name="pref_main_screen_list_values">
+    <string-array name="pref_home_screen_readings_display_mode_list_values">
         <item>0</item>
         <item>1</item>
     </string-array>
 
+    <string name="pref_title_main_menu_layout">Main menu layout</string>
+    <string name="pref_description_main_menu_layout">Choose between buttons and tabs</string>
 
-    <string name="pref_title_airspeck_app_access">Enable AirSpeck App</string>
-    <string name="pref_description_airspeck_app_access">Access to AirSpeck App</string>
+    <string name="pref_title_airspeck_app_access">AirSpeck access</string>
+    <string name="pref_description_airspeck_app_access">Enable AirSpeck App</string>
 
-    <string name="pref_title_respeck_app_access">Enable RESpeck App</string>
-    <string name="pref_description_respeck_app_access">Access to RESpeck App
-    </string>
-
-
-
+    <string name="pref_title_respeck_app_access">RESpeck access</string>
+    <string name="pref_description_respeck_app_access">Enable RESpeck App</string>
 
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>

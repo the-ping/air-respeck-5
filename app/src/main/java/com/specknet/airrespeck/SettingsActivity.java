@@ -206,7 +206,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("main_screen_readings"));
+            bindPreferenceSummaryToValue(findPreference("home_screen_readings_display_mode"));
         }
 
         @Override

@@ -2,13 +2,18 @@
 
     <ListPreference
         android:defaultValue="0"
-        android:entries="@array/pref_main_screen_list"
-        android:entryValues="@array/pref_main_screen_list_values"
-        android:key="main_screen_readings"
+        android:entries="@array/pref_home_screen_readings_display_mode_list"
+        android:entryValues="@array/pref_home_screen_readings_display_mode_list_values"
+        android:key="home_screen_readings_display_mode"
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"
-        android:title="@string/pref_title_main_screen" />
+        android:title="@string/pref_title_main_screen_readings_display_mode" />
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="main_menu_layout"
+        android:summary="@string/pref_description_main_menu_layout"
+        android:title="@string/pref_title_main_menu_layout" />
 
     <SwitchPreference
         android:defaultValue="false"
@@ -21,7 +26,5 @@
         android:key="respeck_app_access"
         android:summary="@string/pref_description_respeck_app_access"
         android:title="@string/pref_title_respeck_app_access" />
-
-
 
 </PreferenceScreen>

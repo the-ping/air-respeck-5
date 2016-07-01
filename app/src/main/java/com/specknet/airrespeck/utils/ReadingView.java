@@ -116,6 +116,10 @@ public class ReadingView extends View {
         invalidateValueTextPaintAndMeasurements();
     }
 
+    /**
+     * Invalidates the previous dimensions and Paint for the bar object, and calculate
+     * the new dimensions and set new Paint attributes.
+     */
     private void invalidateBarPaintAndMeasurements() {
         float barThickness = mHeight * BAR_THICKNESS_PERCENT;
 
@@ -197,6 +201,10 @@ public class ReadingView extends View {
         }
     }
 
+    /**
+     * Invalidates the previous dimensions and Paint for the needle object, and calculate
+     * the new dimensions and set new Paint attributes.
+     */
     private void invalidateNeedlePaintAndMeasurements() {
         mNeedlePaint.setColor(mNeedleColour);
 
@@ -206,6 +214,10 @@ public class ReadingView extends View {
         mNeedleY = (mBarTop + mBarBottom) * 0.5f;
     }
 
+    /**
+     * Invalidates the previous dimensions and Paint for the text title object, and calculate
+     * the new dimensions and set new Paint attributes.
+     */
     private void invalidateTitleTextPaintAndMeasurements() {
         if (!mIsTitle) {
             return;
@@ -219,6 +231,10 @@ public class ReadingView extends View {
         mTitleY = (mHeight * (1-BAR_THICKNESS_PERCENT) + 2 * mTextBounds.height()) * 0.25f;
     }
 
+    /**
+     * Invalidates the previous dimensions and Paint for the text value object, and calculate
+     * the new dimensions and set new Paint attributes.
+     */
     private void invalidateValueTextPaintAndMeasurements() {
         if (!mIsValue) {
             return;
@@ -247,45 +263,83 @@ public class ReadingView extends View {
         }
     }
 
+    /**
+     * Calculate the relative position of the given value in the bar.
+     * @param value float Scale value.
+     * @return float Relative position in the bar.
+     */
     private float calculateScalePosition(final float value) {
         return (value - mScaleMin) * (mWidth - 2*mPadding) / (mScaleMax - mScaleMin) + mPadding;
     }
 
+    /**
+     * The bar colour.
+     * @param colour int Colour integer value.
+     */
     public void setBarColour(final int colour) {
         mBarColour = colour;
         invalidateBarPaintAndMeasurements();
     }
 
+    /**
+     * Set the needle colour.
+     * @param colour int Colour integer value.
+     */
     public void setNeedleColour(final int colour) {
         mNeedleColour = colour;
         invalidateNeedlePaintAndMeasurements();
     }
 
+    /**
+     * Set whether the bar should be drawn using a gradient of colours of with sharp edges.
+     * If {@link #setColours(List)} is not called, a default scale of three colours is used.
+     * @param isGradientColour
+     */
     public void setGradientColours(final boolean isGradientColour) {
         mIsGradientColour = isGradientColour;
         invalidateBarPaintAndMeasurements();
     }
 
+    /**
+     * Set the title font size.
+     * @param fontSize float Font size value.
+     */
     public void setTitleFontSize(final float fontSize) {
         mTitleFontSize = fontSize;
         invalidateTitleTextPaintAndMeasurements();
     }
 
+    /**
+     * Set the title text colour.
+     * @param colour int Colour integer value.
+     */
     public void setTitleColour(final int colour) {
         mTitleColour = colour;
         invalidateTitleTextPaintAndMeasurements();
     }
 
-    public void setValueFontSize( final float fontSize) {
+    /**
+     * Set the value font size.
+     * @param fontSize float Font size value.
+     */
+    public void setValueFontSize(final float fontSize) {
         mValueFontSize = fontSize;
         invalidateValueTextPaintAndMeasurements();
     }
 
-    public void setValueColour( final int colour) {
+    /**
+     * Set the value text colour.
+     * @param colour int Colour integer value.
+     */
+    public void setValueColour(final int colour) {
         mValueColour = colour;
         invalidateValueTextPaintAndMeasurements();
     }
 
+    /**
+     * Set the title of the widget.
+     * @param title String Title value.
+     */
     public void setTitle(final String title) {
         if (title != null && !title.isEmpty()) {
             mIsTitle = true;
@@ -297,6 +351,10 @@ public class ReadingView extends View {
         }
     }
 
+    /**
+     * Set the current value to be displayed along the bar.
+     * @param value int Current value.
+     */
     public void setValue(final int value) {
         mIsValue = true;
         mProgressValue = value;
@@ -305,6 +363,10 @@ public class ReadingView extends View {
         invalidate();
     }
 
+    /**
+     * Set the units for the value to be displayed.
+     * @param units String Units value.
+     */
     public void setValueUnits(final String units) {
         if (units != null && !units.isEmpty()) {
             mIsUnits = true;
@@ -315,6 +377,11 @@ public class ReadingView extends View {
         }
     }
 
+    /**
+     * Set a custom scale for the bar containing ordered values from left to right.
+     * It must contain at least 2 values: min and max.
+     * @param scale List<Float> List containing the values of the custom scale.
+     */
     public void setScale(final List<Float> scale) {
         if (scale.size() < 2) {
             mIsScale = false;
@@ -326,6 +393,10 @@ public class ReadingView extends View {
         invalidateBarPaintAndMeasurements();
     }
 
+    /**
+     * Set colours for the bar.
+     * @param colours List<Integer> List containing the colours ordered from left to right.
+     */
     public void setColours(final List<Integer> colours) {
         if (colours.size() < 2) {
             mIsCustomGradientColour = false;

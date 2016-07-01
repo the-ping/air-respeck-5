@@ -4,8 +4,12 @@ package com.specknet.airrespeck;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -25,8 +29,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MenuFragment.OnMenuSelectedListener {
 
+    private SharedPreferences mSettings;
+    private boolean mTabMode;
+
     protected final String TAG_HOME = "HOME";
     protected final String TAG_DASHBOARD = "DASHBOARD";
+
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager mViewPager;
 
     private HomeFragment mHomeFragment;
     private DashboardFragment mDashboardFragment;
@@ -37,25 +47,46 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        mHomeFragment = new HomeFragment();
+        mDashboardFragment = new DashboardFragment();
+
+        mSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mTabMode = mSettings.getBoolean("main_menu_layout", false);
+
+        if (mTabMode) {
+            setContentView(R.layout.activity_main_tabs);
+        }
+        else {
+            setContentView(R.layout.activity_main);
+        }
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        //if (savedInstanceState == null) {
-            mHomeFragment = new HomeFragment();
-            mDashboardFragment = new DashboardFragment();
+        if (mTabMode) {
+            // Create the adapter that will return a fragment for each of the three
+            // primary sections of the activity.
+            mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
+            // Set up the ViewPager with the sections adapter.
+            mViewPager = (ViewPager) findViewById(R.id.container);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+            tabLayout.setupWithViewPager(mViewPager);
+        }
+        else {
             FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
             trans.add(R.id.content, mHomeFragment, TAG_HOME);
             trans.commit();
 
             mCurrentFragment = mHomeFragment;
+        }
 
-            Runnable runnable = new updateLoop();
-            Thread updateThread = new Thread(runnable);
-            updateThread.start();
-        //}
+        Runnable runnable = new updateLoop();
+        Thread updateThread = new Thread(runnable);
+        updateThread.start();
     }
 
     @Override
@@ -67,16 +98,12 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        boolean respeck_app_access = settings.getBoolean("respeck_app_access", false);
-        boolean airspeck_app_access = settings.getBoolean("airspeck_app_access", false);
+        boolean respeck_app_access = mSettings.getBoolean("respeck_app_access", false);
+        boolean airspeck_app_access = mSettings.getBoolean("airspeck_app_access", false);
 
         menu.getItem(0).setVisible(respeck_app_access);
         menu.getItem(1).setVisible(airspeck_app_access);
 
-        //toolbar.getMenu().setGroupVisible(R.id.main_menu_group, true);
-        //toolbar.getMenu().setGroupVisible(R.id.main_menu_group, false);
-        //toolbar.getMenu().clear();
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -119,10 +146,21 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         }
     }
 
+    /**
+     * Replace the current fragment with the given one.
+     * @param fragment Fragment New fragment.
+     * @param tag String Tag for the new fragment.
+     */
     public void replaceFragment(Fragment fragment, String tag) {
         replaceFragment(fragment, tag, false);
     }
 
+    /**
+     * Replace the current fragment with the given one.
+     * @param fragment Fragment New fragment.
+     * @param tag String Tag for the new fragment.
+     * @param addToBackStack boolean Whether to add the previous fragment to the Back Stack, or not.
+     */
     public void replaceFragment(Fragment fragment, String tag, boolean addToBackStack) {
         if (fragment.isVisible()) {
             return;
@@ -140,7 +178,57 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         mCurrentFragment = fragment;
     }
 
+    /**
+     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+     * one of the sections/tabs/pages.
+     */
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return the relevant fragment per each page.
+            switch (position) {
+                case 0:
+                    return mHomeFragment;
+                case 1:
+                    /*return null;
+                case 2:
+                    return null;
+                case 3:*/
+                    return mDashboardFragment;
+            }
+            return null;
+        }
+
+        @Override
+        public int getCount() {
+            // Show 4 total pages.
+            return 2;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return getString(R.string.menu_home);
+                case 1:
+                    /*return getString(R.string.menu_health);
+                case 2:
+                    return getString(R.string.menu_air);
+                case 3:*/
+                    return getString(R.string.menu_dashboard);
+            }
+            return null;
+        }
+    }
+
+
+    /**********************************************************************************************/
 
     public void updateValues() {
         runOnUiThread(new Runnable() {
