@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.utils.ButtonDesc;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,11 +58,11 @@ public class MenuFragment extends Fragment {
 
         mButtons = new ArrayList<>();
         mButtons.add(new ButtonDesc(ButtonDesc.buttonType.HOME, getString(R.string.menu_home),
-                R.drawable.ic_home));
+                Utils.menuIconsResId[0]));
         mButtons.add(new ButtonDesc(ButtonDesc.buttonType.DASHBOARD, getString(R.string.menu_dashboard),
-                R.drawable.ic_dashboard));
+                Utils.menuIconsResId[3]));
         /*mButtons.add(new ButtonDesc(ButtonDesc.buttonType.SETTINGS, getString(R.string.menu_settings),
-                R.drawable.ic_settings));*/
+                Utils.menuIconsResId[4]));*/
     }
 
     @Override

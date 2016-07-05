@@ -3,6 +3,7 @@
     <string name="app_name">AirRespeck</string>
 
     <!-- Strings related to Readings -->
+    <string name="readings_title">Live Data</string>
 
     <!-- Readings -->
     <string name="reading_respiratory_rate">RESPIRATORY RATE</string>
@@ -32,7 +33,7 @@
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">Settings</string>
 
-    <!-- Personal Data settings -->
+    <!-- Personal Data vec_settings -->
     <string name="pref_header_personal_data">Personal data</string>
 
     <string name="pref_title_display_name">Name</string>
@@ -68,7 +69,7 @@
     </string-array>
 
 
-    <!-- Example settings for User Interface -->
+    <!-- Example vec_settings for User Interface -->
     <string name="pref_header_ui">User interface</string>
 
     <string name="pref_title_main_screen_readings_display_mode">Readings Display Mode</string>
@@ -81,7 +82,7 @@
         <item>1</item>
     </string-array>
 
-    <string name="pref_title_main_menu_layout">Main menu layout</string>
+    <string name="pref_title_main_menu_layout">Advanced main menu layout</string>
     <string name="pref_description_main_menu_layout">Choose between buttons and tabs</string>
 
     <string name="pref_title_airspeck_app_access">AirSpeck access</string>
@@ -90,7 +91,7 @@
     <string name="pref_title_respeck_app_access">RESpeck access</string>
     <string name="pref_description_respeck_app_access">Enable RESpeck App</string>
 
-    <!-- Example settings for Data & Sync -->
+    <!-- Example vec_settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
 
     <string name="pref_title_sync_frequency">Sync frequency</string>

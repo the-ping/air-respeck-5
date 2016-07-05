@@ -32,7 +32,7 @@
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">Ajustes</string>
 
-    <!-- Personal Data settings -->
+    <!-- Personal Data vec_settings -->
     <string name="pref_header_personal_data">Datos personales</string>
 
     <string name="pref_title_display_name">Nombre</string>
@@ -68,7 +68,7 @@
     </string-array>
 
 
-    <!-- Example settings for User Interface -->
+    <!-- Example vec_settings for User Interface -->
     <string name="pref_header_ui">Interfaz de usuario</string>
 
     <string name="pref_title_main_screen_readings_display_mode">Modo de visualización lecturas</string>
@@ -81,7 +81,7 @@
         <item>1</item>
     </string-array>
 
-    <string name="pref_title_main_menu_layout">Diseño del menú principal</string>
+    <string name="pref_title_main_menu_layout">Diseño avanzado del menú principal</string>
     <string name="pref_description_main_menu_layout">Elegir entre botones y pestañas</string>
 
     <string name="pref_title_airspeck_app_access">Acceso a AirSpeck</string>
@@ -91,7 +91,7 @@
     <string name="pref_description_respeck_app_access">Habilitar RESpeck App</string>
 
 
-    <!-- Example settings for Data & Sync -->
+    <!-- Example vec_settings for Data & Sync -->
     <string name="pref_header_data_sync">Datos &amp; sincronización</string>
 
     <string name="pref_title_sync_frequency">Frecuencia de sincronización</string>
@@ -111,5 +111,6 @@
         <item>360</item>
         <item>-1</item>
     </string-array>
+    <string name="readings_title">Datos en tiempo real</string>
 
 </resources>

@@ -3,6 +3,7 @@
     <string name="app_name">AirRespeck</string>
 
     <!-- Strings related to Readings -->
+    <string name="readings_title">सजीव आंकड़ा</string>
 
     <!-- Readings -->
     <string name="reading_respiratory_rate">श्वसन दर</string>
@@ -32,7 +33,7 @@
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">सेटिंग्स</string>
 
-    <!-- Personal Data settings -->
+    <!-- Personal Data vec_settings -->
     <string name="pref_header_personal_data">व्यक्तिगत डेटा</string>
 
     <string name="pref_title_display_name">नाम</string>
@@ -68,10 +69,10 @@
     </string-array>
 
 
-    <!-- Example settings for User Interface -->
+    <!-- Example vec_settings for User Interface -->
     <string name="pref_header_ui">प्रयोक्ता इंटरफ़ेस</string>
 
-    <string name="pref_title_main_menu_layout">मुख्य मेनू लेआउट</string>
+    <string name="pref_title_main_menu_layout">उन्नत मुख्य मेनू लेआउट</string>
     <string name="pref_description_main_menu_layout">बटन और टैब के बीच चुनें</string>
 
     <string name="pref_title_airspeck_app_access">AirSpeck पहुँच</string>
@@ -91,7 +92,7 @@
     </string-array>
 
 
-    <!-- Example settings for Data & Sync -->
+    <!-- Example vec_settings for Data & Sync -->
     <string name="pref_header_data_sync">डेटा और सिंक</string>
 
     <string name="pref_title_sync_frequency">सिंक आवृत्ति</string>

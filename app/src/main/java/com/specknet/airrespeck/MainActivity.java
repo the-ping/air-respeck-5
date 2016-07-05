@@ -1,8 +1,10 @@
 package com.specknet.airrespeck;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -11,7 +13,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import com.specknet.airrespeck.fragments.DashboardFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.respeck.RESpeckActivity;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,45 +31,60 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MenuFragment.OnMenuSelectedListener {
 
-    private SharedPreferences mSettings;
-    private boolean mTabMode;
+    Thread mUpdateThread;
 
-    protected final String TAG_HOME = "HOME";
-    protected final String TAG_DASHBOARD = "DASHBOARD";
-
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    private ViewPager mViewPager;
+    private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
+    private static final String TAG_DASHBOARD_FRAGMENT = "DASHBOARD_FRAGMENT";
 
     private HomeFragment mHomeFragment;
     private DashboardFragment mDashboardFragment;
     private Fragment mCurrentFragment;
 
+    private SharedPreferences mSettings;
+    private boolean mTabMode;
+
     private Toolbar mToolbar;
+
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mHomeFragment = new HomeFragment();
-        mDashboardFragment = new DashboardFragment();
-
+        // Get settings
         mSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mTabMode = mSettings.getBoolean("main_menu_layout", false);
 
-        if (mTabMode) {
-            setContentView(R.layout.activity_main_tabs);
+        // Initialize fragments
+        FragmentManager fm = getSupportFragmentManager();
+
+        if (savedInstanceState != null) {
+            mHomeFragment =
+                    (HomeFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
+            mDashboardFragment =
+                    (DashboardFragment) fm.getFragment(savedInstanceState, TAG_DASHBOARD_FRAGMENT);
         }
         else {
-            setContentView(R.layout.activity_main);
+            mHomeFragment = (HomeFragment) fm.findFragmentByTag(TAG_HOME_FRAGMENT);
+            mDashboardFragment = (DashboardFragment) fm.findFragmentByTag(TAG_DASHBOARD_FRAGMENT);
         }
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+        if (mHomeFragment == null) {
+            mHomeFragment = new HomeFragment();
+        }
+        if (mDashboardFragment == null) {
+            mDashboardFragment = new DashboardFragment();
+        }
 
+        // Choose layout
         if (mTabMode) {
+            setContentView(R.layout.activity_main_tabs);
+
             // Create the adapter that will return a fragment for each of the three
             // primary sections of the activity.
             mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+            mSectionsPagerAdapter.setContext(getApplicationContext());
 
             // Set up the ViewPager with the sections adapter.
             mViewPager = (ViewPager) findViewById(R.id.container);
@@ -75,18 +92,73 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
             TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
             tabLayout.setupWithViewPager(mViewPager);
+
+            tabLayout.getTabAt(0).setIcon(Utils.menuIconsResId[0]);
+            tabLayout.getTabAt(1).setIcon(Utils.menuIconsResId[3]);
         }
         else {
-            FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
-            trans.add(R.id.content, mHomeFragment, TAG_HOME);
-            trans.commit();
+            setContentView(R.layout.activity_main_buttons);
+
+            if (!mHomeFragment.isAdded()) {
+                fm.
+                        beginTransaction().
+                        add(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT).
+                        commit();
+            }
 
             mCurrentFragment = mHomeFragment;
         }
 
+        // Add the toolbar
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+
+
         Runnable runnable = new updateLoop();
-        Thread updateThread = new Thread(runnable);
-        updateThread.start();
+        mUpdateThread = new Thread(runnable);
+        mUpdateThread.start();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        boolean newVal = mSettings.getBoolean("main_menu_layout", false);
+
+        if (mTabMode != newVal) {
+            mTabMode = newVal;
+
+            // Refresh this activity.
+            finish();
+            startActivity(getIntent());
+        }
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        FragmentManager fm = getSupportFragmentManager();
+
+        if (mHomeFragment != null) {
+            try {
+                fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
+            } catch (IllegalStateException e) {}
+        }
+
+        if (mDashboardFragment != null) {
+            try {
+                fm.putFragment(outState, TAG_DASHBOARD_FRAGMENT, mDashboardFragment);
+            } catch (IllegalStateException e) {}
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        System.out.println("******************** Main Activity - DESTROY");
+        mUpdateThread.interrupt();
     }
 
     @Override
@@ -98,11 +170,8 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean respeck_app_access = mSettings.getBoolean("respeck_app_access", false);
-        boolean airspeck_app_access = mSettings.getBoolean("airspeck_app_access", false);
-
-        menu.getItem(0).setVisible(respeck_app_access);
-        menu.getItem(1).setVisible(airspeck_app_access);
+        menu.getItem(0).setVisible(mSettings.getBoolean("respeck_app_access", false));
+        menu.getItem(1).setVisible(mSettings.getBoolean("airspeck_app_access", false));
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -133,11 +202,11 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         switch (buttonId) {
             // Home
             case 0:
-                replaceFragment(mHomeFragment, TAG_HOME);
+                replaceFragment(mHomeFragment, TAG_HOME_FRAGMENT);
                 break;
             // Dashboard
             case 1:
-                replaceFragment(mDashboardFragment, TAG_DASHBOARD);
+                replaceFragment(mDashboardFragment, TAG_DASHBOARD_FRAGMENT);
                 break;
             // Settings
             case 2:
@@ -178,14 +247,20 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         mCurrentFragment = fragment;
     }
 
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        private Context mContext;
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
+        }
+
+        public void setContext(Context context) {
+            mContext = context;
         }
 
         @Override
@@ -216,6 +291,12 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
             switch (position) {
                 case 0:
                     return getString(R.string.menu_home);
+                    /*Drawable image = ContextCompat.getDrawable(mContext, Utils.menuIconsResId[position]);
+                    image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
+                    SpannableString sb = new SpannableString("   " + getString(R.string.menu_home));
+                    ImageSpan imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
+                    sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    return sb;*/
                 case 1:
                     /*return getString(R.string.menu_health);
                 case 2:
@@ -226,7 +307,6 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
             return null;
         }
     }
-
 
     /**********************************************************************************************/
 
@@ -243,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
                     values.add(seconds);
                     values.add(seconds);
 
-                    mHomeFragment.setReadingValues(values, seconds);
+                    mHomeFragment.setReadings(values, seconds);
 
                 } catch (Exception e) {}
             }
