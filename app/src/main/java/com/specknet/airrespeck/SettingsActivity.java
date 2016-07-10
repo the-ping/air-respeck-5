@@ -82,7 +82,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     /**
      * Binds a preference's summary to its value. More specifically, when the
      * preference's value is changed, its summary (line of text below the
-     * preference title) is updated to reflect the value. The summary is also
+     * preference mName) is updated to reflect the value. The summary is also
      * immediately updated upon calling this method. The exact display format is
      * dependent on the type of preference.
      *
@@ -206,7 +206,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("home_screen_readings_display_mode"));
+            bindPreferenceSummaryToValue(findPreference("font_size"));
+            bindPreferenceSummaryToValue(findPreference("readings_display_mode"));
         }
 
         @Override

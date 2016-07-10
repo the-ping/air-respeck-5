@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ReadingView extends View {
+public class HorizontalGauge extends View {
 
     // Constants. Relative to canvas height.
     private final float BAR_THICKNESS_PERCENT = 0.25f;
@@ -53,7 +53,7 @@ public class ReadingView extends View {
     private int mProgressValue = 0;
 
     // Text
-    private boolean mIsTitle, mIsValue, mIsUnits;
+    private boolean mIsTitle, mIsValue, mIsUnits, mCustomTitleFontSize, mCustomValueFontSize;
     private String mTitle, mValue, mValueUnits;
     private float mTitleX, mTitleY, mTitleFontSize;
     private float mValueX, mValueY, mValueFontSize;
@@ -63,17 +63,17 @@ public class ReadingView extends View {
     private Path mPath;
     private Rect mTextBounds;
 
-    public ReadingView(Context context) {
+    public HorizontalGauge(Context context) {
         super(context);
         init(null, 0);
     }
 
-    public ReadingView(Context context, AttributeSet attrs) {
+    public HorizontalGauge(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(attrs, 0);
     }
 
-    public ReadingView(Context context, AttributeSet attrs, int defStyle) {
+    public HorizontalGauge(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(attrs, defStyle);
     }
@@ -81,12 +81,12 @@ public class ReadingView extends View {
     private void init(AttributeSet attrs, int defStyle) {
         // Load attributes
         final TypedArray a = getContext().
-                obtainStyledAttributes(attrs, R.styleable.ReadingView, defStyle, 0);
+                obtainStyledAttributes(attrs, R.styleable.HorizontalGauge, defStyle, 0);
         // Nothing for now
         a.recycle();
 
         // Helper objects
-        mScalePositions = new ArrayList<>();
+        mScalePositions = new ArrayList<Float>();
         mTextBounds = new Rect();
         mPath = new Path();
         mPath.setFillType(Path.FillType.EVEN_ODD);
@@ -215,7 +215,7 @@ public class ReadingView extends View {
     }
 
     /**
-     * Invalidates the previous dimensions and Paint for the text title object, and calculate
+     * Invalidates the previous dimensions and Paint for the text mName object, and calculate
      * the new dimensions and set new Paint attributes.
      */
     private void invalidateTitleTextPaintAndMeasurements() {
@@ -301,16 +301,17 @@ public class ReadingView extends View {
     }
 
     /**
-     * Set the title font size.
+     * Set the mName font size.
      * @param fontSize float Font size value.
      */
     public void setTitleFontSize(final float fontSize) {
+        mCustomTitleFontSize = true;
         mTitleFontSize = fontSize;
         invalidateTitleTextPaintAndMeasurements();
     }
 
     /**
-     * Set the title text colour.
+     * Set the mName text colour.
      * @param colour int Colour integer value.
      */
     public void setTitleColour(final int colour) {
@@ -323,7 +324,8 @@ public class ReadingView extends View {
      * @param fontSize float Font size value.
      */
     public void setValueFontSize(final float fontSize) {
-        mValueFontSize = fontSize;
+        mCustomValueFontSize = true;
+        mValueFontSize = fontSize * 0.75f;  // Scaled down to 75%
         invalidateValueTextPaintAndMeasurements();
     }
 
@@ -337,7 +339,7 @@ public class ReadingView extends View {
     }
 
     /**
-     * Set the title of the widget.
+     * Set the mName of the widget.
      * @param title String Title value.
      */
     public void setTitle(final String title) {
@@ -389,7 +391,7 @@ public class ReadingView extends View {
         }
 
         mIsScale = true;
-        mScaleValues = new ArrayList<>(scale);
+        mScaleValues = new ArrayList<Float>(scale);
         invalidateBarPaintAndMeasurements();
     }
 
@@ -404,7 +406,7 @@ public class ReadingView extends View {
         }
 
         mIsCustomGradientColour = true;
-        mScaleColours = new ArrayList<>(colours);
+        mScaleColours = new ArrayList<Integer>(colours);
         invalidateBarPaintAndMeasurements();
     }
 
@@ -417,8 +419,13 @@ public class ReadingView extends View {
 
         // Default values
         mPadding = mHeight * 0.01f;
-        mTitleFontSize = mHeight * 0.25f;
-        mValueFontSize = mHeight * 0.2f;
+
+        if (!mCustomTitleFontSize) {
+            mTitleFontSize = mHeight * 0.25f;
+        }
+        if (!mCustomValueFontSize) {
+            mValueFontSize = mHeight * 0.2f;
+        }
 
         invalidateBarPaintAndMeasurements();
         invalidateNeedlePaintAndMeasurements();

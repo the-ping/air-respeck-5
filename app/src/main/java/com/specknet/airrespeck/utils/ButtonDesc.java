@@ -2,7 +2,7 @@ package com.specknet.airrespeck.utils;
 
 public class ButtonDesc {
     public enum buttonType {
-        HOME, DASHBOARD, SETTINGS
+        HOME, AIR_QUALITY, DASHBOARD
     }
 
     private buttonType type;

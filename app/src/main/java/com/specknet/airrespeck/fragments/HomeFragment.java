@@ -1,12 +1,9 @@
 package com.specknet.airrespeck.fragments;
 
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,32 +11,28 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.utils.ReadingView;
+import com.specknet.airrespeck.fragments.items.ReadingItem;
+import com.specknet.airrespeck.fragments.items.ReadingItemArrayAdapter;
+import com.specknet.airrespeck.utils.HorizontalGauge;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
-public class HomeFragment extends Fragment implements View.OnClickListener {
-
-    // Preferences
-    private SharedPreferences mSettings;
-    private int mReadingsDisplayMode = -1;
+public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
     // List display mode
     private ListView mListView;
-    private List<HashMap<String, String>> mListReadingsData;
-    private SimpleAdapter mSimpleAdapter;
+    private ArrayList<ReadingItem> mListReadingsData;
+    private ReadingItemArrayAdapter mListViewAdapter;
 
-    // Cyclic display mode
+    // Graphical display mode
     private FrameLayout mFrameLayout;
-    private ArrayList<ReadingView> mCyclicReadingsData;
-    private ReadingView mCurrentReading;
+    private ArrayList<HorizontalGauge> mGraphicalReadingsData;
+    private HorizontalGauge mCurrentReading;
 
     private ImageButton mPrevReading;
     private ImageButton mNextReading;
@@ -47,16 +40,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     // Feedback
     private TextView mFeedback;
 
+    /**
+     * Required empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
+     */
     public HomeFragment() {
-        // Required empty public constructor
-    }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        mSettings = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mReadingsDisplayMode = Integer.valueOf(mSettings.getString("home_screen_readings_display_mode", "0"));
     }
 
     @Override
@@ -71,14 +60,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
             view = inflater.inflate(R.layout.fragment_home_list_view, container, false);
 
+            // Attach the adapter to a ListView
             mListView = (ListView) view.findViewById(R.id.readings_list);
-            mListView.setAdapter(mSimpleAdapter);
+            mListView.setAdapter(mListViewAdapter);
         }
         else if (mReadingsDisplayMode == 1) {
-            initCyclicView();
-            loadCyclicViewData();
+            initGraphicalView();
+            loadGraphicalViewData();
 
-            view = inflater.inflate(R.layout.fragment_home_cyclic_view, container, false);
+            view = inflater.inflate(R.layout.fragment_home_graphic_view, container, false);
 
             mFrameLayout = (FrameLayout) view.findViewById(R.id.reading_container);
 
@@ -95,7 +85,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                             mFrameLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                             // Once the view layout has finished its setup, we can add views
                             // to the frame layout
-                            setupCyclicView();
+                            setupGraphicalView();
                         }
                     });
         }
@@ -109,24 +99,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        int newVal = Integer.valueOf(mSettings.getString("home_screen_readings_display_mode", "0"));
-
-        if (mReadingsDisplayMode != newVal) {
-            mReadingsDisplayMode = newVal;
-
-            // Destroy and Re-create this fragment's view.
-            final FragmentManager fm = this.getActivity().getSupportFragmentManager();
-            fm.beginTransaction().
-                    detach(this).
-                    attach(this).
-                    commit();
-        }
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
 
@@ -137,19 +109,19 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (mCyclicReadingsData.isEmpty()) { return; }
+        if (mGraphicalReadingsData.isEmpty()) { return; }
 
-        int index = mCyclicReadingsData.indexOf(mCurrentReading);
+        int index = mGraphicalReadingsData.indexOf(mCurrentReading);
 
         if (v.getId() == R.id.prev_reading) {
             index--;
-            if (index < 0) { index = mCyclicReadingsData.size()-1; }
+            if (index < 0) { index = mGraphicalReadingsData.size()-1; }
         }
         else if (v.getId() == R.id.next_reading) {
             index++;
-            if (index > mCyclicReadingsData.size()-1) { index = 0; }
+            if (index > mGraphicalReadingsData.size()-1) { index = 0; }
         }
-        switchCyclicReading(index);
+        switchGraphicalReading(index);
     }
 
     /**
@@ -160,7 +132,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             setListReadingValues(values);
         }
         else {
-            setCyclicReadingValue(value);
+            setGraphicalReadingValue(value);
         }
     }
 
@@ -175,15 +147,13 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
      */
     private void initListView() {
         if (mListReadingsData == null) {
-            mListReadingsData = new ArrayList<>();
+            // Construct the data source
+            mListReadingsData = new ArrayList<ReadingItem>();
         }
 
-        if (mSimpleAdapter == null) {
-            mSimpleAdapter = new SimpleAdapter(getActivity(), mListReadingsData, R.layout.reading_list_item,
-                    new String[]{"description", "value", "units"},
-                    new int[]{R.id.reading_item_description,
-                            R.id.reading_item_value,
-                            R.id.reading_item_units});
+        if (mListViewAdapter == null) {
+            // Create the adapter to convert the array to views
+            mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mListReadingsData);
         }
     }
 
@@ -192,26 +162,23 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
      */
     private void loadListViewData() {
         if (mListReadingsData != null && mListReadingsData.size() == 0) {
-            addListReading(getString(R.string.reading_respiratory_rate), 0, getString(R.string.reading_unit_bpm));
-            addListReading(getString(R.string.reading_pm10), 0, getString(R.string.reading_unit_ug_m3));
-            addListReading(getString(R.string.reading_pm2_5), 0, getString(R.string.reading_unit_ug_m3));
+            addListReading(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), 0);
+            addListReading(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), 0);
+            addListReading(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), 0);
         }
     }
 
     /**
      * Add a reading to {@link #mListReadingsData} to populate the mData view.
-     * @param description String Reading name.
-     * @param value int Reading value.
+     * @param name String Reading name.
      * @param units String Reading units.
+     * @param value int Reading value.
      */
-    public void addListReading(final String description, final int value, final String units) {
-        HashMap<String, String> map = new HashMap<>();
-        map.put("description", description);
-        map.put("value", (value == 0) ? "" : String.valueOf(value));
-        map.put("units", units);
-
-        mListReadingsData.add(map);
-        mSimpleAdapter.notifyDataSetChanged();
+    public void addListReading(final String name, final String units, final int value) {
+        ReadingItem item;
+        item = new ReadingItem(name, units, value);
+        mListReadingsData.add(item);
+        mListViewAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -225,42 +192,42 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         int count = values.size();
 
         for (int i = 0; i < listDataCount && i < count; ++i) {
-            mListReadingsData.get(i).put("value", String.valueOf(values.get(i)));
+            mListReadingsData.get(i).value = values.get(i);
         }
 
-        mSimpleAdapter.notifyDataSetChanged();
+        mListViewAdapter.notifyDataSetChanged();
     }
 
 
 
     /***********************************************************************************************
-     * CYCLIC VIEW DISPLAY MODE
+     * GRAPHIC VIEW DISPLAY MODE
      ***********************************************************************************************/
 
     /**
-     * Setup data structures for the Cyclic view display mode.
+     * Setup data structures for the Graphical view display mode.
      */
-    private void initCyclicView() {
-        if (mCyclicReadingsData == null) {
-            mCyclicReadingsData = new ArrayList<>();
+    private void initGraphicalView() {
+        if (mGraphicalReadingsData == null) {
+            mGraphicalReadingsData = new ArrayList<HorizontalGauge>();
         }
         mCurrentReading = null;
     }
 
     /**
-     * Setup the data for the Cyclic view display mode in {@link #mCyclicReadingsData}.
+     * Setup the data for the Graphical view display mode in {@link #mGraphicalReadingsData}.
      */
-    private void loadCyclicViewData() {
-        if (mCyclicReadingsData != null && mCyclicReadingsData.size() == 0) {
-            List<Integer> scaleCol = new ArrayList<>();
-            List<Float> scaleVal = new ArrayList<>();
+    private void loadGraphicalViewData() {
+        if (mGraphicalReadingsData != null && mGraphicalReadingsData.size() == 0) {
+            List<Integer> scaleCol = new ArrayList<Integer>();
+            List<Float> scaleVal = new ArrayList<Float>();
 
             scaleCol.clear();
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorGreen));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_red_400));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_orange_400));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_green_400));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_orange_400));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_red_400));
 
             scaleVal.clear();
             scaleVal.add(0f);
@@ -270,12 +237,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             scaleVal.add(35f);
             scaleVal.add(60f);
 
-            addCyclicReading(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), scaleVal, scaleCol);
+            addGraphicalReading(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), scaleVal, scaleCol);
 
             scaleCol.clear();
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorGreen));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorOrange));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.colorRed));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_green_400));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_orange_400));
+            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_red_400));
 
             scaleVal.clear();
             scaleVal.add(0f);
@@ -283,7 +250,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             scaleVal.add(50f);
             scaleVal.add(60f);
 
-            addCyclicReading(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
+            addGraphicalReading(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
 
             scaleVal.clear();
             scaleVal.add(0f);
@@ -291,52 +258,58 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             scaleVal.add(35f);
             scaleVal.add(60f);
 
-            addCyclicReading(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
+            addGraphicalReading(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
         }
     }
 
     /**
-     * Setup the Cyclic view with the data stored in {@link #mCyclicReadingsData}
+     * Setup the Graphical view with the data stored in {@link #mGraphicalReadingsData}
      */
-    private void setupCyclicView() {
-        if (!mCyclicReadingsData.isEmpty()) {
+    private void setupGraphicalView() {
+        if (!mGraphicalReadingsData.isEmpty()) {
             mFrameLayout.removeAllViews();
-            ReadingView rv;
 
-            for (int i = 0; i < mCyclicReadingsData.size(); ++i) {
-                rv = mCyclicReadingsData.get(i);
+            TypedValue fontSizeAttr = new TypedValue();
+            getContext().getTheme().resolveAttribute(android.R.attr.textSize, fontSizeAttr, true);
+
+            HorizontalGauge rv;
+            for (int i = 0; i < mGraphicalReadingsData.size(); ++i) {
+                rv = mGraphicalReadingsData.get(i);
+                rv.setTitleFontSize(getResources().getDimensionPixelSize(fontSizeAttr.resourceId));
+                rv.setValueFontSize(getResources().getDimensionPixelSize(fontSizeAttr.resourceId));
                 rv.setVisibility(View.INVISIBLE);
+
                 mFrameLayout.addView(rv, i);
             }
 
-            mCurrentReading = mCyclicReadingsData.get(0);
+            mCurrentReading = mGraphicalReadingsData.get(0);
             mCurrentReading.setVisibility(View.VISIBLE);
         }
     }
 
     /**
-     * Switch the the reading view in the Cyclic view display mode.
-     * @param index int Reading index in {@link #mCyclicReadingsData}.
+     * Switch the the reading view in the Graphical view display mode.
+     * @param index int Reading index in {@link #mGraphicalReadingsData}.
      */
-    private void switchCyclicReading(int index) {
-        if (mCyclicReadingsData.isEmpty()) { return; }
+    private void switchGraphicalReading(int index) {
+        if (mGraphicalReadingsData.isEmpty()) { return; }
 
         mCurrentReading.setVisibility(View.INVISIBLE);
-        mCurrentReading = mCyclicReadingsData.get(index);
+        mCurrentReading = mGraphicalReadingsData.get(index);
         mCurrentReading.setVisibility(View.VISIBLE);
     }
 
     /**
-     * Add a reading to {@link #mCyclicReadingsData} to be shown in {@link #mFrameLayout}.
-     * @param title String Reading title.
+     * Add a reading to {@link #mGraphicalReadingsData} to be shown in {@link #mFrameLayout}.
+     * @param title String Reading mName.
      * @param units String Reading units.
      * @param scaleVal List<Float> List with the reading scale. Must contain at least 2
      *                 values: min and max.
      * @param scaleCol List<Integer> List with the int colour values for the bar.
      */
-    public void addCyclicReading(final String title, final String units,
+    public void addGraphicalReading(final String title, final String units,
                                  final List<Float> scaleVal, final List<Integer> scaleCol) {
-        ReadingView reading = new ReadingView(getContext());
+        HorizontalGauge reading = new HorizontalGauge(getContext());
         //mCurrentReading.setLayoutParams(new ViewGroup.LayoutParams(600, 200));
 
         reading.setTitle(title);
@@ -345,14 +318,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         reading.setColours(scaleCol);
         reading.setGradientColours(true);
 
-        mCyclicReadingsData.add(reading);
+        mGraphicalReadingsData.add(reading);
     }
 
     /**
      * Set the value in the current reading {@link #mCurrentReading}.
      * @param value int Reading value.
      */
-    public void setCyclicReadingValue(final int value) {
+    public void setGraphicalReadingValue(final int value) {
         mCurrentReading.setValue(value);
     }
 
@@ -363,7 +336,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
      ***********************************************************************************************/
 
     /**
-     * Updates the feedback content
+     * Updates the feedback mName
      */
     public void updateFeedback() {
         // TODO add dynamic feedback based on readings and user profile

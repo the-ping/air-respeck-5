@@ -17,12 +17,24 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <!--<style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
+    <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
         <item name="tabTextAppearance">@style/MyCustomTabTextAppearance</item>
     </style>
 
     <style name="MyCustomTabTextAppearance" parent="TextAppearance.Design.Tab">
         <item name="textAllCaps">false</item>
-    </style>-->
+    </style>
 
+    <style name="FontSizeSmall">
+        <item name="android:textSize">@dimen/font_size_small</item>
+    </style>
+    <style name="FontSizeNormal">
+        <item name="android:textSize">@dimen/font_size_normal</item>
+    </style>
+    <style name="FontSizeLarge">
+        <item name="android:textSize">@dimen/font_size_large</item>
+    </style>
+    <style name="FontSizeHuge">
+        <item name="android:textSize">@dimen/font_size_huge</item>
+    </style>
 </resources>

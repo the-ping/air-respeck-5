@@ -1,27 +1,31 @@
 package com.specknet.airrespeck;
 
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ImageSpan;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-import com.specknet.airrespeck.airspeck.AirSpeckActivity;
 import com.specknet.airrespeck.fragments.DashboardFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
+import com.specknet.airrespeck.fragments.AirQualityFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
-import com.specknet.airrespeck.respeck.RESpeckActivity;
+import com.specknet.airrespeck.fragments.items.ReadingItem;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
@@ -29,32 +33,23 @@ import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements MenuFragment.OnMenuSelectedListener {
+public class MainActivity extends BaseActivity implements
+        MenuFragment.OnMenuSelectedListener {
 
-    Thread mUpdateThread;
+    private Thread mUpdateThread;
 
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
+    private static final String TAG_AIR_QUALITY_FRAGMENT = "AIR_QUALITY_FRAGMENT";
     private static final String TAG_DASHBOARD_FRAGMENT = "DASHBOARD_FRAGMENT";
 
     private HomeFragment mHomeFragment;
+    private AirQualityFragment mAirQualityFragment;
     private DashboardFragment mDashboardFragment;
     private Fragment mCurrentFragment;
-
-    private SharedPreferences mSettings;
-    private boolean mTabMode;
-
-    private Toolbar mToolbar;
-
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Get settings
-        mSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        mTabMode = mSettings.getBoolean("main_menu_layout", false);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -62,77 +57,67 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         if (savedInstanceState != null) {
             mHomeFragment =
                     (HomeFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
+            mAirQualityFragment =
+                    (AirQualityFragment) fm.getFragment(savedInstanceState, TAG_AIR_QUALITY_FRAGMENT);
             mDashboardFragment =
                     (DashboardFragment) fm.getFragment(savedInstanceState, TAG_DASHBOARD_FRAGMENT);
         }
         else {
             mHomeFragment = (HomeFragment) fm.findFragmentByTag(TAG_HOME_FRAGMENT);
+            mAirQualityFragment = (AirQualityFragment) fm.findFragmentByTag(TAG_AIR_QUALITY_FRAGMENT);
             mDashboardFragment = (DashboardFragment) fm.findFragmentByTag(TAG_DASHBOARD_FRAGMENT);
         }
 
         if (mHomeFragment == null) {
             mHomeFragment = new HomeFragment();
         }
+        if (mAirQualityFragment == null) {
+            mAirQualityFragment = new AirQualityFragment();
+        }
         if (mDashboardFragment == null) {
             mDashboardFragment = new DashboardFragment();
         }
 
         // Choose layout
-        if (mTabMode) {
+        if (mTabModePref) {
             setContentView(R.layout.activity_main_tabs);
 
             // Create the adapter that will return a fragment for each of the three
             // primary sections of the activity.
-            mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-            mSectionsPagerAdapter.setContext(getApplicationContext());
+            SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+            sectionsPagerAdapter.setContext(getApplicationContext());
 
             // Set up the ViewPager with the sections adapter.
-            mViewPager = (ViewPager) findViewById(R.id.container);
-            mViewPager.setAdapter(mSectionsPagerAdapter);
+            ViewPager viewPager = (ViewPager) findViewById(R.id.container);
+            if (viewPager != null) {
+                viewPager.setAdapter(sectionsPagerAdapter);
+            }
 
             TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-            tabLayout.setupWithViewPager(mViewPager);
-
-            tabLayout.getTabAt(0).setIcon(Utils.menuIconsResId[0]);
-            tabLayout.getTabAt(1).setIcon(Utils.menuIconsResId[3]);
+            if (tabLayout != null) {
+                tabLayout.setupWithViewPager(viewPager);
+            }
         }
         else {
             setContentView(R.layout.activity_main_buttons);
 
-            if (!mHomeFragment.isAdded()) {
+            if (mCurrentFragment == null) {
                 fm.
                         beginTransaction().
-                        add(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT).
+                        replace(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT).
                         commit();
+                mCurrentFragment = mHomeFragment;
             }
-
-            mCurrentFragment = mHomeFragment;
         }
 
         // Add the toolbar
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
 
         Runnable runnable = new updateLoop();
         mUpdateThread = new Thread(runnable);
         mUpdateThread.start();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        boolean newVal = mSettings.getBoolean("main_menu_layout", false);
-
-        if (mTabMode != newVal) {
-            mTabMode = newVal;
-
-            // Refresh this activity.
-            finish();
-            startActivity(getIntent());
-        }
-
     }
 
     @Override
@@ -147,6 +132,12 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
             } catch (IllegalStateException e) {}
         }
 
+        if (mAirQualityFragment != null) {
+            try {
+                fm.putFragment(outState, TAG_AIR_QUALITY_FRAGMENT, mAirQualityFragment);
+            } catch (IllegalStateException e) {}
+        }
+
         if (mDashboardFragment != null) {
             try {
                 fm.putFragment(outState, TAG_DASHBOARD_FRAGMENT, mDashboardFragment);
@@ -157,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
     @Override
     public void onDestroy() {
         super.onDestroy();
-        System.out.println("******************** Main Activity - DESTROY");
+
         mUpdateThread.interrupt();
     }
 
@@ -170,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.getItem(0).setVisible(mSettings.getBoolean("respeck_app_access", false));
-        menu.getItem(1).setVisible(mSettings.getBoolean("airspeck_app_access", false));
+        menu.getItem(0).setVisible(mRespeckAppAccessPref);
+        menu.getItem(1).setVisible(mAirspeckAppAccessPref);
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -188,10 +179,28 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
             startActivity(new Intent(this, SettingsActivity.class));
         }
         else if (id == R.id.action_airspeck) {
-            startActivity(new Intent(this, AirSpeckActivity.class));
+            try {
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName(
+                        "com.airquality.sepa",
+                        "com.airquality.sepa.DataCollectionActivity"));
+                startActivity(intent);
+            }
+            catch (Exception e) {
+                Toast.makeText(this, R.string.airspeck_not_found, Toast.LENGTH_LONG).show();
+            }
         }
         else if (id == R.id.action_respeck) {
-            startActivity(new Intent(this, RESpeckActivity.class));
+            try {
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName(
+                        "com.pulrehab",
+                        "com.pulrehab.fragments.MainActivity"));
+                startActivity(intent);
+            }
+            catch (Exception e) {
+                Toast.makeText(this, R.string.respeck_not_found, Toast.LENGTH_LONG).show();
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -204,13 +213,13 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
             case 0:
                 replaceFragment(mHomeFragment, TAG_HOME_FRAGMENT);
                 break;
-            // Dashboard
+            // Air Quality
             case 1:
-                replaceFragment(mDashboardFragment, TAG_DASHBOARD_FRAGMENT);
+                replaceFragment(mAirQualityFragment, TAG_AIR_QUALITY_FRAGMENT);
                 break;
-            // Settings
+            // Dashboard
             case 2:
-                startActivity(new Intent(this, SettingsActivity.class));
+                replaceFragment(mDashboardFragment, TAG_DASHBOARD_FRAGMENT);
                 break;
         }
     }
@@ -247,7 +256,6 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
         mCurrentFragment = fragment;
     }
 
-
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -271,10 +279,8 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
                 case 0:
                     return mHomeFragment;
                 case 1:
-                    /*return null;
+                    return mAirQualityFragment;
                 case 2:
-                    return null;
-                case 3:*/
                     return mDashboardFragment;
             }
             return null;
@@ -282,26 +288,46 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
 
         @Override
         public int getCount() {
-            // Show 4 total pages.
-            return 2;
+            // Show 3 total pages.
+            return 3;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
+            Drawable image;
+            SpannableString sb;
+            ImageSpan imageSpan;
+
             switch (position) {
                 case 0:
+                    if (mIconsInTabsPref) {
+                        image = ContextCompat.getDrawable(mContext, R.drawable.vec_home);
+                        image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
+                        sb = new SpannableString("  " + getString(R.string.menu_home));
+                        imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
+                        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        return sb;
+                    }
                     return getString(R.string.menu_home);
-                    /*Drawable image = ContextCompat.getDrawable(mContext, Utils.menuIconsResId[position]);
-                    image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
-                    SpannableString sb = new SpannableString("   " + getString(R.string.menu_home));
-                    ImageSpan imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
-                    sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    return sb;*/
                 case 1:
-                    /*return getString(R.string.menu_health);
+                    if (mIconsInTabsPref) {
+                        image = ContextCompat.getDrawable(mContext, R.drawable.vec_air);
+                        image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
+                        sb = new SpannableString("  " + getString(R.string.menu_air_quality));
+                        imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
+                        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        return sb;
+                    }
+                    return getString(R.string.menu_air_quality);
                 case 2:
-                    return getString(R.string.menu_air);
-                case 3:*/
+                    if (mIconsInTabsPref) {
+                        image = ContextCompat.getDrawable(mContext, R.drawable.vec_dashboard);
+                        image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
+                        sb = new SpannableString("  " + getString(R.string.menu_dashboard));
+                        imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
+                        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        return sb;
+                    }
                     return getString(R.string.menu_dashboard);
             }
             return null;
@@ -318,12 +344,24 @@ public class MainActivity extends AppCompatActivity implements MenuFragment.OnMe
                     long t = dt.getTime();
                     int seconds = (int) ((t / 1000) % 60);
 
-                    List<Integer> values = new ArrayList<>();
+                    List<Integer> values = new ArrayList<Integer>();
                     values.add(seconds);
                     values.add(seconds);
                     values.add(seconds);
 
                     mHomeFragment.setReadings(values, seconds);
+
+                    List<Integer> valuesAir = new ArrayList<Integer>();
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+                    valuesAir.add(seconds);
+
+                    mAirQualityFragment.setReadings(valuesAir);
 
                 } catch (Exception e) {}
             }

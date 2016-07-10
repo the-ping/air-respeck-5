@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.R;
@@ -56,13 +55,13 @@ public class MenuFragment extends Fragment {
         mMenuItemLayoutParameters = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
-        mButtons = new ArrayList<>();
+        mButtons = new ArrayList<ButtonDesc>();
         mButtons.add(new ButtonDesc(ButtonDesc.buttonType.HOME, getString(R.string.menu_home),
                 Utils.menuIconsResId[0]));
+        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
+                Utils.menuIconsResId[2]));
         mButtons.add(new ButtonDesc(ButtonDesc.buttonType.DASHBOARD, getString(R.string.menu_dashboard),
                 Utils.menuIconsResId[3]));
-        /*mButtons.add(new ButtonDesc(ButtonDesc.buttonType.SETTINGS, getString(R.string.menu_settings),
-                Utils.menuIconsResId[4]));*/
     }
 
     @Override
@@ -80,7 +79,7 @@ public class MenuFragment extends Fragment {
 
         createButton(mButtons.get(0));
         createButton(mButtons.get(1));
-        //createButton(mButtons.get(2));
+        createButton(mButtons.get(2));
     }
 
     /**

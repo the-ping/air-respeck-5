@@ -3,6 +3,11 @@ package com.specknet.airrespeck.utils;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.graphics.Point;
+import android.support.v4.content.ContextCompat;
+import android.util.DisplayMetrics;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.specknet.airrespeck.R;
 
@@ -13,6 +18,26 @@ import java.util.Properties;
 
 public final class Utils {
 
+    private Context mContext;
+
+    public Utils(Context context) {
+        mContext = context;
+    }
+
+    public Point getScreenSize() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        return size;
+    }
+
+
+    /**
+     * Static methods / variables
+     */
+
     public static int[] menuIconsResId = {
             R.drawable.ic_home,
             R.drawable.ic_health,
@@ -20,10 +45,6 @@ public final class Utils {
             R.drawable.ic_dashboard,
             R.drawable.ic_settings
     };
-
-    private Utils() {
-
-    }
 
     public static Properties getProperties(Context context) {
         Properties properties = new Properties();

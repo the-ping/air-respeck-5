@@ -5,9 +5,16 @@
     <!-- Strings related to Readings -->
 
     <!-- Readings -->
-    <string name="reading_respiratory_rate">FRECUENCIA RESPIRATORIA</string>
+    <string name="reading_respiratory_rate">Frecuencia Respiratoria</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
+
+    <string name="reading_pm1_0">PM 1.0</string>
+    <string name="reading_temp">Temperatura</string>
+    <string name="reading_rel_humidity">Humedad </string>
+    <string name="reading_o3">O3</string>
+    <string name="reading_no2">NO2</string>
+    <string name="reading_bins">Bins</string>
 
     <!-- Reading units -->
     <string name="reading_unit_bpm">resp/min</string>
@@ -19,7 +26,7 @@
     <!-- Button/tabs menu -->
     <string name="menu_home">INICIO</string>
     <string name="menu_health">SALUD</string>
-    <string name="menu_air">AIRE</string>
+    <string name="menu_air_quality">CALIDAD DEL AIRE</string>
     <string name="menu_dashboard">TABLERO</string>
     <string name="menu_settings">AJUSTES</string>
 
@@ -29,10 +36,15 @@
     <string name="action_settings">Ajustes</string>
 
 
+    <!-- Strings related to AirSpeck and RESpeck apps -->
+    <string name="airspeck_not_found">Aplicación AirSpeck no encontrada</string>
+    <string name="respeck_not_found">Aplicación RESpeck no encontrada</string>
+
+
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">Ajustes</string>
 
-    <!-- Personal Data vec_settings -->
+    <!-- Personal Data settings -->
     <string name="pref_header_personal_data">Datos personales</string>
 
     <string name="pref_title_display_name">Nombre</string>
@@ -68,21 +80,40 @@
     </string-array>
 
 
-    <!-- Example vec_settings for User Interface -->
+    <!-- Example settings for User Interface -->
     <string name="pref_header_ui">Interfaz de usuario</string>
 
-    <string name="pref_title_main_screen_readings_display_mode">Modo de visualización lecturas</string>
-    <string-array name="pref_home_screen_readings_display_mode_list">
+    <string name="pref_category_ui_general">General</string>
+
+    <string name="pref_title_font_size">Tamaño de fuente</string>
+    <string-array name="pref_font_size_list">
+        <item>Pequeño</item>
+        <item>Normal</item>
+        <item>Grande</item>
+        <item>Enorme</item>
+    </string-array>
+    <string-array name="pref_font_size_list_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string name="pref_title_readings_display_mode">Modo de visualización lecturas</string>
+    <string-array name="pref_readings_display_mode_list">
         <item>Listado</item>
         <item>Cíclico</item>
     </string-array>
-    <string-array name="pref_home_screen_readings_display_mode_list_values">
+    <string-array name="pref_readings_display_mode_list_values">
         <item>0</item>
         <item>1</item>
     </string-array>
 
     <string name="pref_title_main_menu_layout">Diseño avanzado del menú principal</string>
     <string name="pref_description_main_menu_layout">Elegir entre botones y pestañas</string>
+
+    <string name="pref_title_icons_in_tabs">Enable icons</string>
+    <string name="pref_description_icons_in_tabs">Show icons in tabs</string>
 
     <string name="pref_title_airspeck_app_access">Acceso a AirSpeck</string>
     <string name="pref_description_airspeck_app_access">Habilitar AirSpeck App</string>
@@ -91,7 +122,7 @@
     <string name="pref_description_respeck_app_access">Habilitar RESpeck App</string>
 
 
-    <!-- Example vec_settings for Data & Sync -->
+    <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Datos &amp; sincronización</string>
 
     <string name="pref_title_sync_frequency">Frecuencia de sincronización</string>

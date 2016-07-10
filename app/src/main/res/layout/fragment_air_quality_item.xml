@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="15sp"
+    android:paddingLeft="5sp"
+    android:paddingRight="5sp"
+    android:paddingTop="5sp">
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal"
+        android:textStyle="bold"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <com.specknet.airrespeck.utils.CircularGauge
+        android:id="@+id/gauge"
+        android:layout_width="200sp"
+        android:layout_height="150sp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/name"
+        app:cg_start_angle="135"
+        app:cg_sweep_angle="270"
+        app:cg_draw_width="20sp"
+        app:cg_model_bg_enabled="true"
+        app:cg_rounded="true"
+        app:cg_shadowed="false" />
+
+    <TextView
+        android:id="@+id/value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal"
+        android:textSize="33sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/units"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/gauge"
+        android:gravity="center_horizontal"
+        android:textSize="23sp"
+        android:textStyle="bold" />
+
+</RelativeLayout>

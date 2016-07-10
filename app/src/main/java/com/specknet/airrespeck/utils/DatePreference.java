@@ -2,8 +2,8 @@
 package com.specknet.airrespeck.utils;
 
 /*
-import android.content.Context;
-import android.content.res.TypedArray;
+import android.mName.Context;
+import android.mName.res.TypedArray;
 import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
