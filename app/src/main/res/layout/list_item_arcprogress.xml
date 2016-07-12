@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingBottom="15sp"
-    android:paddingLeft="5sp"
-    android:paddingRight="5sp"
-    android:paddingTop="5sp">
+    android:paddingBottom="20sp"
+    android:paddingLeft="15sp"
+    android:paddingRight="15sp"
+    android:paddingTop="15sp">
 
     <TextView
         android:id="@+id/name"
@@ -19,18 +19,18 @@
         android:textStyle="bold"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <com.specknet.airrespeck.utils.CircularGauge
-        android:id="@+id/gauge"
+    <com.specknet.airrespeck.lib.ArcProgress
+        android:id="@+id/arc_progress"
         android:layout_width="200sp"
-        android:layout_height="150sp"
+        android:layout_height="200sp"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/name"
-        app:cg_start_angle="135"
-        app:cg_sweep_angle="270"
-        app:cg_draw_width="20sp"
-        app:cg_model_bg_enabled="true"
-        app:cg_rounded="true"
-        app:cg_shadowed="false" />
+        app:ap_start_angle="135"
+        app:ap_sweep_angle="270"
+        app:ap_draw_width="20sp"
+        app:ap_model_bg_enabled="true"
+        app:ap_rounded="true"
+        app:ap_shadowed="false" />
 
     <TextView
         android:id="@+id/value"
@@ -43,11 +43,11 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/units"
+        android:id="@+id/unit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_alignBottom="@id/gauge"
+        android:layout_alignBottom="@id/arc_progress"
         android:gravity="center_horizontal"
         android:textSize="23sp"
         android:textStyle="bold" />

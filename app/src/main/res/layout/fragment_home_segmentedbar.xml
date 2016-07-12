@@ -13,13 +13,13 @@
             android:id="@+id/readings_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="center_horizontal"
             android:text="@string/readings_title" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:orientation="horizontal">
 
             <ImageButton
@@ -29,11 +29,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <FrameLayout
-                android:id="@+id/reading_container"
+            <TextView
+                android:id="@+id/current_reading_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="98" />
+                android:layout_weight="98"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <ImageButton
                 android:id="@+id/next_reading"
@@ -44,12 +48,18 @@
 
         </LinearLayout>
 
+        <FrameLayout
+            android:id="@+id/reading_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
         <TextView
             android:id="@+id/feedback"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center_horizontal" />
+            android:layout_weight="2"
+            android:gravity="center" />
 
     </LinearLayout>
 

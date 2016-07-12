@@ -1,4 +1,4 @@
-package com.specknet.airrespeck.utils;
+package com.specknet.airrespeck.lib;
 
 /**
  * Source https://github.com/GIGAMOLE/ArcProgressStackView
@@ -37,7 +37,7 @@ import java.util.Random;
 
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class CircularGauge extends View {
+public class ArcProgress extends View {
 
     // Default values
     private final static float DEFAULT_START_ANGLE = 270.0f;
@@ -147,15 +147,15 @@ public class CircularGauge extends View {
     // Is >= VERSION_CODES.HONEYCOMB
     private boolean mIsFeaturesAvailable;
 
-    public CircularGauge(final Context context) {
+    public ArcProgress(final Context context) {
         this(context, null);
     }
 
-    public CircularGauge(final Context context, final AttributeSet attrs) {
+    public ArcProgress(final Context context, final AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public CircularGauge(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+    public ArcProgress(final Context context, final AttributeSet attrs, final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         // Init CPSV
 
@@ -166,86 +166,86 @@ public class CircularGauge extends View {
         mIsFeaturesAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
 
         // Retrieve attributes from xml
-        final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CircularGauge);
+        final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ArcProgress);
         try {
             setIsAnimated(
-                    typedArray.getBoolean(R.styleable.CircularGauge_cg_animated, true)
+                    typedArray.getBoolean(R.styleable.ArcProgress_ap_animated, true)
             );
             setIsShadowed(
-                    typedArray.getBoolean(R.styleable.CircularGauge_cg_shadowed, true)
+                    typedArray.getBoolean(R.styleable.ArcProgress_ap_shadowed, true)
             );
             setIsRounded(
-                    typedArray.getBoolean(R.styleable.CircularGauge_cg_rounded, false)
+                    typedArray.getBoolean(R.styleable.ArcProgress_ap_rounded, false)
             );
             setIsDragged(
-                    typedArray.getBoolean(R.styleable.CircularGauge_cg_dragged, false)
+                    typedArray.getBoolean(R.styleable.ArcProgress_ap_dragged, false)
             );
             setTypeface(
-                    typedArray.getString(R.styleable.CircularGauge_cg_typeface)
+                    typedArray.getString(R.styleable.ArcProgress_ap_typeface)
             );
             setTextColor(
                     typedArray.getColor(
-                            R.styleable.CircularGauge_cg_text_color,
+                            R.styleable.ArcProgress_ap_text_color,
                             Color.WHITE
                     )
             );
             setShadowRadius(
                     typedArray.getDimension(
-                            R.styleable.CircularGauge_cg_shadow_radius,
+                            R.styleable.ArcProgress_ap_shadow_radius,
                             DEFAULT_SHADOW_RADIUS
                     )
             );
             setShadowDistance(
                     typedArray.getDimension(
-                            R.styleable.CircularGauge_cg_shadow_distance,
+                            R.styleable.ArcProgress_ap_shadow_distance,
                             DEFAULT_SHADOW_DISTANCE
                     )
             );
             setShadowAngle(
                     typedArray.getInteger(
-                            R.styleable.CircularGauge_cg_shadow_angle,
+                            R.styleable.ArcProgress_ap_shadow_angle,
                             (int) DEFAULT_SHADOW_ANGLE
                     )
             );
             setShadowColor(
                     typedArray.getColor(
-                            R.styleable.CircularGauge_cg_shadow_color,
+                            R.styleable.ArcProgress_ap_shadow_color,
                             DEFAULT_SHADOW_COLOR
                     )
             );
             setAnimationDuration(
                     typedArray.getInteger(
-                            R.styleable.CircularGauge_cg_animation_duration,
+                            R.styleable.ArcProgress_ap_animation_duration,
                             DEFAULT_ANIMATION_DURATION
                     )
             );
             setStartAngle(
                     typedArray.getInteger(
-                            R.styleable.CircularGauge_cg_start_angle,
+                            R.styleable.ArcProgress_ap_start_angle,
                             (int) DEFAULT_START_ANGLE
                     )
             );
             setSweepAngle(
                     typedArray.getInteger(
-                            R.styleable.CircularGauge_cg_sweep_angle,
+                            R.styleable.ArcProgress_ap_sweep_angle,
                             (int) DEFAULT_SWEEP_ANGLE
                     )
             );
             setProgressModelOffset(
                     typedArray.getDimension(
-                            R.styleable.CircularGauge_cg_model_offset,
+                            R.styleable.ArcProgress_ap_model_offset,
                             DEFAULT_MODEL_OFFSET
                     )
             );
             setModelBgEnabled(
                     typedArray.getBoolean(
-                            R.styleable.CircularGauge_cg_model_bg_enabled, false
+                            R.styleable.ArcProgress_ap_model_bg_enabled, false
                     )
             );
 
             // Set orientation
             final int orientationOrdinal =
-                    typedArray.getInt(R.styleable.CircularGauge_cg_indicator_orientation, 0);
+                    typedArray.getInt(R.styleable.ArcProgress_ap_indicator_orientation, 0);
             setIndicatorOrientation(
                     orientationOrdinal == 0 ? IndicatorOrientation.VERTICAL : IndicatorOrientation.HORIZONTAL
             );
@@ -254,7 +254,7 @@ public class CircularGauge extends View {
             Interpolator interpolator = null;
             try {
                 final int interpolatorId = typedArray.getResourceId(
-                        R.styleable.CircularGauge_cg_interpolator, 0
+                        R.styleable.ArcProgress_cg_interpolator, 0
                 );
                 interpolator = interpolatorId == 0 ? null :
                         AnimationUtils.loadInterpolator(context, interpolatorId);
@@ -281,9 +281,9 @@ public class CircularGauge extends View {
             }
 
             // Check whether draw width dimension or fraction
-            if (typedArray.hasValue(R.styleable.CircularGauge_cg_draw_width)) {
+            if (typedArray.hasValue(R.styleable.ArcProgress_ap_draw_width)) {
                 final TypedValue drawWidth = new TypedValue();
-                typedArray.getValue(R.styleable.CircularGauge_cg_draw_width, drawWidth);
+                typedArray.getValue(R.styleable.ArcProgress_ap_draw_width, drawWidth);
                 if (drawWidth.type == TypedValue.TYPE_DIMENSION)
                     setDrawWidthDimension(
                             drawWidth.getDimension(context.getResources().getDisplayMetrics())
@@ -296,7 +296,7 @@ public class CircularGauge extends View {
                 String[] preview = null;
                 try {
                     final int previewId = typedArray.getResourceId(
-                            R.styleable.CircularGauge_cg_preview_colors, 0
+                            R.styleable.ArcProgress_ap_preview_colors, 0
                     );
                     preview = previewId == 0 ? null : typedArray.getResources().getStringArray(previewId);
                 } catch (Exception exception) {
@@ -304,7 +304,7 @@ public class CircularGauge extends View {
                     exception.printStackTrace();
                 } finally {
                     if (preview == null)
-                        preview = typedArray.getResources().getStringArray(R.array.default_preview);
+                        preview = typedArray.getResources().getStringArray(R.array.ap_default_preview);
 
                     final Random random = new Random();
                     for (String previewColor : preview)
@@ -316,7 +316,7 @@ public class CircularGauge extends View {
 
                 // Set preview model bg color
                 mPreviewModelBgColor = typedArray.getColor(
-                        R.styleable.CircularGauge_cg_preview_bg,
+                        R.styleable.ArcProgress_ap_preview_bg,
                         Color.LTGRAY
                 );
             }
@@ -540,6 +540,8 @@ public class CircularGauge extends View {
     }
 
     public void setTypeface(final String typeface) {
+        if (typeface == null)
+            return;
         Typeface tempTypeface;
         try {
             if (isInEditMode())

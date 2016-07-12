@@ -6,6 +6,8 @@
     <string name="readings_title">Live Data</string>
 
     <!-- Readings -->
+    <string name="reading_no_data">No data available</string>
+
     <string name="reading_respiratory_rate">Respiratory Rate</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
@@ -17,7 +19,7 @@
     <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins</string>
 
-    <!-- Reading units -->
+    <!-- Reading unit -->
     <string name="reading_unit_bpm">bpm</string>
     <string name="reading_unit_ug_m3">µg/m³</string>
     <string name="reading_unit_c" translatable="false">°C</string>
@@ -32,7 +34,7 @@
     <string name="menu_home">HOME</string>
     <string name="menu_health">HEALTH</string>
     <string name="menu_air_quality">AIR QUALITY</string>
-    <string name="menu_dashboard">DASHBOARD</string>
+    <string name="menu_graphs">GRAPHS</string>
     <string name="menu_settings">SETTINGS</string>
 
     <!-- Action Bar menu -->
@@ -104,22 +106,24 @@
         <item>3</item>
     </string-array>
 
-    <string name="pref_category_ui_readings">Readings</string>
+    <string name="pref_category_ui_readings">Air quality readings</string>
 
     <string name="pref_title_readings_display_mode">Readings Display Mode</string>
     <string-array name="pref_readings_display_mode_list">
         <item>List</item>
-        <item>Graphical</item>
+        <item>Graphic: Bar</item>
+        <item>Graphic: Arc</item>
     </string-array>
     <string-array name="pref_readings_display_mode_list_values">
         <item>0</item>
         <item>1</item>
+        <item>2</item>
     </string-array>
 
     <string name="pref_category_ui_advanced">Advanced</string>
 
     <string name="pref_title_main_menu_layout">Advanced main menu layout</string>
-    <string name="pref_description_main_menu_layout">Choose between buttons and tabs</string>
+    <string name="pref_description_main_menu_layout">Enable tabbed menu</string>
 
     <string name="pref_title_icons_in_tabs">Enable icons</string>
     <string name="pref_description_icons_in_tabs">Show icons in tabs</string>
@@ -152,4 +156,8 @@
         <item>-1</item>
     </string-array>
 
+
+    <!-- Strings related to SegmentedBar -->
+    <string name="sb_empty">Empty</string>
+    <string name="sb_value_segment">Current Value</string>
 </resources>

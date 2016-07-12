@@ -9,7 +9,7 @@
         android:singleLine="true"
         android:title="@string/pref_title_display_name" />
 
-    <com.specknet.airrespeck.utils.DatePreference
+    <com.specknet.airrespeck.lib.DatePreference
         android:key="birth_date"
         android:title="@string/pref_title_birth_date"
         android:defaultValue="@string/pref_default_birth_date" />

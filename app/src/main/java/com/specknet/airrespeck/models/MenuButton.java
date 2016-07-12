@@ -1,6 +1,6 @@
-package com.specknet.airrespeck.utils;
+package com.specknet.airrespeck.models;
 
-public class ButtonDesc {
+public class MenuButton {
     public enum buttonType {
         HOME, AIR_QUALITY, DASHBOARD
     }
@@ -9,7 +9,7 @@ public class ButtonDesc {
     private String label;
     private int image;
 
-    public ButtonDesc(final buttonType type, final String label, final int image) {
+    public MenuButton(final buttonType type, final String label, final int image) {
         this.type = type;
         this.label = label;
         this.image = image;

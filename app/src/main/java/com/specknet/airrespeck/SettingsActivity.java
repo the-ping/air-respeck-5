@@ -4,10 +4,8 @@ package com.specknet.airrespeck;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -16,12 +14,8 @@ import android.preference.PreferenceActivity;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
-
-import com.specknet.airrespeck.utils.DatePreference;
 
 import java.util.List;
 
@@ -58,10 +52,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         index >= 0
                                 ? listPreference.getEntries()[index]
                                 : null);
-
-            } else if (preference instanceof DatePreference) {
-                // Do Nothing. DatePreference handles the summary text setting.
-            } else {
+            }
+            else {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);
@@ -104,6 +96,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActionBar();
+
+        checkFontSize();
     }
 
     /**
@@ -174,7 +168,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // updated to reflect the new value, per the Android Design
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("user_name"));
-            bindPreferenceSummaryToValue(findPreference("birth_date"));
             bindPreferenceSummaryToValue(findPreference("gender_list"));
             bindPreferenceSummaryToValue(findPreference("region_list"));
         }
@@ -248,6 +241,35 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return true;
             }
             return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void checkFontSize() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        try {
+            // Get the font size option.
+            // We specify "Normal" with key "1" as the default value, if it does not exist.
+            int fontSizePref = Integer.valueOf(settings.getString("font_size", "1"));
+
+            // Select the proper theme ID.
+            // These will correspond to the theme names as defined in themes.xml.
+            int themeID = R.style.FontSizeNormal;
+            if (fontSizePref == 0) {
+                themeID = R.style.FontSizeSmall;
+            }
+            else if (fontSizePref == 2) {
+                themeID = R.style.FontSizeLarge;
+            }
+            else if (fontSizePref == 3) {
+                themeID = R.style.FontSizeHuge;
+            }
+
+            // Set the theme for the activity.
+            setTheme(themeID);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

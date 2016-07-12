@@ -5,6 +5,8 @@
     <!-- Strings related to Readings -->
 
     <!-- Readings -->
+    <string name="reading_no_data">No data available</string>
+
     <string name="reading_respiratory_rate">呼吸频率</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
@@ -16,7 +18,7 @@
     <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins</string>
 
-    <!-- Reading units -->
+    <!-- Reading unit -->
     <string name="reading_unit_bpm">bpm</string>
     <string name="reading_unit_ug_m3">µg/m³</string>
 
@@ -27,7 +29,7 @@
     <string name="menu_home">首页</string>
     <string name="menu_health">健康</string>
     <string name="menu_air_quality">空气质量</string>
-    <string name="menu_dashboard">仪表板</string>
+    <string name="menu_graphs">图的</string>
     <string name="menu_settings">设置</string>
 
     <!-- Action Bar menu -->
@@ -102,15 +104,17 @@
     <string name="pref_title_readings_display_mode">读数显示模式</string>
     <string-array name="pref_readings_display_mode_list">
         <item>名单</item>
-        <item>图形</item>
+        <item>图文：酒吧</item>
+        <item>图文：圆弧</item>
     </string-array>
     <string-array name="pref_readings_display_mode_list_values">
         <item>0</item>
         <item>1</item>
+        <item>2</item>
     </string-array>
 
     <string name="pref_title_main_menu_layout">先进的主菜单布局</string>
-    <string name="pref_description_main_menu_layout">按钮和标签之间进行选择</string>
+    <string name="pref_description_main_menu_layout">启用选项卡菜单</string>
 
     <string name="pref_title_icons_in_tabs">Enable icons</string>
     <string name="pref_description_icons_in_tabs">Show icons in tabs</string>
@@ -143,5 +147,11 @@
         <item>-1</item>
     </string-array>
     <string name="readings_title">实时数据</string>
+    <string name="pref_category_ui_advanced">高级</string>
+    <string name="pref_category_ui_readings">空气质量读数</string>
 
+
+    <!-- Strings related to SegmentedBar -->
+    <string name="sb_empty">空</string>
+    <string name="sb_value_segment">当前值</string>
 </resources>

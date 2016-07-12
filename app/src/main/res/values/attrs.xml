@@ -4,35 +4,70 @@
         // Nothing for now
     </declare-styleable>
 
-    <declare-styleable name="CircularGauge">
-        <attr name="cg_animated" format="boolean"/>
-        <attr name="cg_shadowed" format="boolean"/>
-        <attr name="cg_rounded" format="boolean"/>
-        <attr name="cg_dragged" format="boolean"/>
+    <declare-styleable name="ArcProgress">
+        <attr name="ap_animated" format="boolean"/>
+        <attr name="ap_shadowed" format="boolean"/>
+        <attr name="ap_rounded" format="boolean"/>
+        <attr name="ap_dragged" format="boolean"/>
 
-        <attr name="cg_typeface" format="string"/>
-        <attr name="cg_text_color" format="color"/>
+        <attr name="ap_typeface" format="string"/>
+        <attr name="ap_text_color" format="color"/>
 
-        <attr name="cg_shadow_distance" format="dimension"/>
-        <attr name="cg_shadow_angle" format="integer"/>
-        <attr name="cg_shadow_radius" format="dimension"/>
-        <attr name="cg_shadow_color" format="color"/>
+        <attr name="ap_shadow_distance" format="dimension"/>
+        <attr name="ap_shadow_angle" format="integer"/>
+        <attr name="ap_shadow_radius" format="dimension"/>
+        <attr name="ap_shadow_color" format="color"/>
 
-        <attr name="cg_animation_duration" format="integer"/>
+        <attr name="ap_animation_duration" format="integer"/>
         <attr name="cg_interpolator" format="reference"/>
 
-        <attr name="cg_draw_width" format="fraction|dimension"/>
-        <attr name="cg_model_offset" format="dimension"/>
-        <attr name="cg_model_bg_enabled" format="boolean"/>
+        <attr name="ap_draw_width" format="fraction|dimension"/>
+        <attr name="ap_model_offset" format="dimension"/>
+        <attr name="ap_model_bg_enabled" format="boolean"/>
 
-        <attr name="cg_start_angle" format="integer"/>
-        <attr name="cg_sweep_angle" format="integer"/>
-        <attr name="cg_indicator_orientation" format="enum">
+        <attr name="ap_start_angle" format="integer"/>
+        <attr name="ap_sweep_angle" format="integer"/>
+        <attr name="ap_indicator_orientation" format="enum">
             <enum name="vertical" value="0"/>
             <enum name="horizontal" value="1"/>
         </attr>
 
-        <attr name="cg_preview_colors" format="reference"/>
-        <attr name="cg_preview_bg" format="color"/>
+        <attr name="ap_preview_colors" format="reference"/>
+        <attr name="ap_preview_bg" format="color"/>
+    </declare-styleable>
+
+    <declare-styleable name="SegmentedBar">
+        <attr name="sb_show_description_text" format="boolean" />
+        <attr name="sb_show_segment_text" format="boolean" />
+
+        <attr name="sb_empty_segment_text" format="string" />
+        <attr name="sb_value_segment_text" format="string" />
+
+        <attr name="sb_value_sign_background" format="color" />
+        <attr name="sb_empty_segment_background" format="color" />
+
+        <attr name="sb_description_text_size" format="dimension" />
+        <attr name="sb_value_text_size" format="dimension" />
+        <attr name="sb_segment_text_size" format="dimension" />
+
+        <attr name="sb_bar_height" format="dimension" />
+        <attr name="sb_value_sign_height" format="dimension" />
+        <attr name="sb_value_sign_width" format="dimension" />
+        <attr name="sb_arrow_height" format="dimension" />
+        <attr name="sb_arrow_width" format="dimension" />
+        <attr name="sb_description_box_height" format="dimension" />
+
+        <attr name="sb_segment_gap_width" format="dimension" />
+        <attr name="sb_value_sign_round" format="dimension" />
+
+        <attr name="sb_side_style" format="enum">
+            <enum name="normal" value="0" />
+            <enum name="rounded" value="1" />
+            <enum name="angle" value="2" />
+        </attr>
+        <attr name="sb_side_text_style" format="enum">
+            <enum name="oneSided" value="0" />
+            <enum name="twoSided" value="1" />
+        </attr>
     </declare-styleable>
 </resources>

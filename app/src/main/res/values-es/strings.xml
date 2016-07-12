@@ -5,6 +5,8 @@
     <!-- Strings related to Readings -->
 
     <!-- Readings -->
+    <string name="reading_no_data">No data available</string>
+
     <string name="reading_respiratory_rate">Frecuencia Respiratoria</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
@@ -16,7 +18,7 @@
     <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins</string>
 
-    <!-- Reading units -->
+    <!-- Reading unit -->
     <string name="reading_unit_bpm">resp/min</string>
     <string name="reading_unit_ug_m3">µg/m³</string>
 
@@ -27,7 +29,7 @@
     <string name="menu_home">INICIO</string>
     <string name="menu_health">SALUD</string>
     <string name="menu_air_quality">CALIDAD DEL AIRE</string>
-    <string name="menu_dashboard">TABLERO</string>
+    <string name="menu_graphs">GRÁFICAS</string>
     <string name="menu_settings">AJUSTES</string>
 
     <!-- Action Bar menu -->
@@ -102,15 +104,17 @@
     <string name="pref_title_readings_display_mode">Modo de visualización lecturas</string>
     <string-array name="pref_readings_display_mode_list">
         <item>Listado</item>
-        <item>Cíclico</item>
+        <item>Gráfico: Barra</item>
+        <item>Gráfico: Arco</item>
     </string-array>
     <string-array name="pref_readings_display_mode_list_values">
         <item>0</item>
         <item>1</item>
+        <item>2</item>
     </string-array>
 
     <string name="pref_title_main_menu_layout">Diseño avanzado del menú principal</string>
-    <string name="pref_description_main_menu_layout">Elegir entre botones y pestañas</string>
+    <string name="pref_description_main_menu_layout">Habilitar menú de pestañas</string>
 
     <string name="pref_title_icons_in_tabs">Enable icons</string>
     <string name="pref_description_icons_in_tabs">Show icons in tabs</string>
@@ -143,5 +147,11 @@
         <item>-1</item>
     </string-array>
     <string name="readings_title">Datos en tiempo real</string>
+    <string name="pref_category_ui_advanced">Avanzado</string>
+    <string name="pref_category_ui_readings">Lecturas de calidad del aire</string>
 
+
+    <!-- Strings related to SegmentedBar -->
+    <string name="sb_empty">Vacío</string>
+    <string name="sb_value_segment">Valor actual</string>
 </resources>

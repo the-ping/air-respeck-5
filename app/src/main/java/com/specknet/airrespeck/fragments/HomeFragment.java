@@ -10,13 +10,16 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.fragments.items.ReadingItem;
-import com.specknet.airrespeck.fragments.items.ReadingItemArrayAdapter;
-import com.specknet.airrespeck.utils.HorizontalGauge;
+import com.specknet.airrespeck.lib.Segment;
+import com.specknet.airrespeck.lib.SegmentedBar;
+import com.specknet.airrespeck.lib.SegmentedBarSideTextStyle;
+import com.specknet.airrespeck.models.ReadingItem;
+import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,18 +27,16 @@ import java.util.List;
 
 public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
-    // List display mode
-    private ListView mListView;
-    private ArrayList<ReadingItem> mListReadingsData;
+    private ArrayList<ReadingItem> mReadingItems;
+
+    // List View
     private ReadingItemArrayAdapter mListViewAdapter;
 
-    // Graphical display mode
+    // Segmented Bar
+    private TextView mCurrentReadingName;
     private FrameLayout mFrameLayout;
-    private ArrayList<HorizontalGauge> mGraphicalReadingsData;
-    private HorizontalGauge mCurrentReading;
-
-    private ImageButton mPrevReading;
-    private ImageButton mNextReading;
+    private ArrayList<SegmentedBar> mSegmentedBars;
+    private SegmentedBar mCurrentSegmentedBar;
 
     // Feedback
     private TextView mFeedback;
@@ -49,31 +50,35 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        init();
+        loadData();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = null;
 
         if (mReadingsDisplayMode == 0) {
-            initListView();
-            loadListViewData();
-
-            view = inflater.inflate(R.layout.fragment_home_list_view, container, false);
+            view = inflater.inflate(R.layout.fragment_home_listview, container, false);
 
             // Attach the adapter to a ListView
-            mListView = (ListView) view.findViewById(R.id.readings_list);
+            ListView mListView = (ListView) view.findViewById(R.id.readings_list);
             mListView.setAdapter(mListViewAdapter);
         }
-        else if (mReadingsDisplayMode == 1) {
-            initGraphicalView();
-            loadGraphicalViewData();
+        else if (mReadingsDisplayMode == 1 || mReadingsDisplayMode == 2) {
+            view = inflater.inflate(R.layout.fragment_home_segmentedbar, container, false);
 
-            view = inflater.inflate(R.layout.fragment_home_graphic_view, container, false);
+            mCurrentReadingName = (TextView) view.findViewById(R.id.current_reading_name);
 
             mFrameLayout = (FrameLayout) view.findViewById(R.id.reading_container);
 
-            mPrevReading = (ImageButton) view.findViewById(R.id.prev_reading);
-            mNextReading = (ImageButton) view.findViewById(R.id.next_reading);
+            ImageButton mPrevReading = (ImageButton) view.findViewById(R.id.prev_reading);
+            ImageButton mNextReading = (ImageButton) view.findViewById(R.id.next_reading);
 
             mPrevReading.setOnClickListener(this);
             mNextReading.setOnClickListener(this);
@@ -85,7 +90,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
                             mFrameLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                             // Once the view layout has finished its setup, we can add views
                             // to the frame layout
-                            setupGraphicalView();
+                            setupSegmentedBars();
                         }
                     });
         }
@@ -109,224 +114,152 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (mGraphicalReadingsData.isEmpty()) { return; }
+        if (mSegmentedBars.isEmpty()) { return; }
 
-        int index = mGraphicalReadingsData.indexOf(mCurrentReading);
+        int index = mSegmentedBars.indexOf(mCurrentSegmentedBar);
 
         if (v.getId() == R.id.prev_reading) {
             index--;
-            if (index < 0) { index = mGraphicalReadingsData.size()-1; }
+            if (index < 0) { index = mSegmentedBars.size()-1; }
         }
         else if (v.getId() == R.id.next_reading) {
             index++;
-            if (index > mGraphicalReadingsData.size()-1) { index = 0; }
+            if (index > mSegmentedBars.size()-1) { index = 0; }
         }
-        switchGraphicalReading(index);
-    }
-
-    /**
-     * Helper setter
-     */
-    public void setReadings(final List<Integer> values, final int value) {
-        if (mReadingsDisplayMode == 0) {
-            setListReadingValues(values);
-        }
-        else {
-            setGraphicalReadingValue(value);
-        }
+        switchSegmentedBar(index);
     }
 
 
 
     /***********************************************************************************************
-     * LIST VIEW DISPLAY MODE
+     * READINGS
      ***********************************************************************************************/
 
     /**
-     * Setup data structures for the List view display mode.
+     * Initialize data structures and view adapters.
      */
-    private void initListView() {
-        if (mListReadingsData == null) {
+    private void init() {
+        if (mReadingItems == null) {
             // Construct the data source
-            mListReadingsData = new ArrayList<ReadingItem>();
+            mReadingItems = new ArrayList<ReadingItem>();
         }
 
         if (mListViewAdapter == null) {
             // Create the adapter to convert the array to views
-            mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mListReadingsData);
+            mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
+        }
+
+        if (mSegmentedBars == null) {
+            mSegmentedBars = new ArrayList<SegmentedBar>();
+        }
+        mCurrentSegmentedBar = null;
+    }
+
+    /**
+     * Load reading data in {@link #mReadingItems}.
+     */
+    private void loadData() {
+        if (mReadingItems != null && mReadingItems.size() == 0) {
+            ReadingItem item;
+            ArrayList<Segment> segments;
+
+            segments = new ArrayList<>();
+            segments.add(new Segment(0f, 12f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+            segments.add(new Segment(12f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
+            segments.add(new Segment(20f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+            item = new ReadingItem(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), 0, segments);
+            mReadingItems.add(item);
+
+            segments = new ArrayList<>();
+            segments.add(new Segment(0, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
+            segments.add(new Segment(36f, 53f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+            segments.add(new Segment(54f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+            item = new ReadingItem(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), 0, segments);
+            mReadingItems.add(item);
+
+            segments = new ArrayList<>();
+            segments.add(new Segment(0, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
+            segments.add(new Segment(51f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+            segments.add(new Segment(76f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+            item = new ReadingItem(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), 0, segments);
+            mReadingItems.add(item);
         }
     }
 
     /**
-     * Setup the data for the List view display mode in {@link #mListReadingsData}.
+     * Setup the segmented bars in {@link #mSegmentedBars}
      */
-    private void loadListViewData() {
-        if (mListReadingsData != null && mListReadingsData.size() == 0) {
-            addListReading(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), 0);
-            addListReading(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), 0);
-            addListReading(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), 0);
-        }
-    }
-
-    /**
-     * Add a reading to {@link #mListReadingsData} to populate the mData view.
-     * @param name String Reading name.
-     * @param units String Reading units.
-     * @param value int Reading value.
-     */
-    public void addListReading(final String name, final String units, final int value) {
-        ReadingItem item;
-        item = new ReadingItem(name, units, value);
-        mListReadingsData.add(item);
-        mListViewAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Set the value field in {@link #mListReadingsData} and notifies the adaptor to show the
-     * changes in the mData view.
-     * @param values List<Integer>() List with the new values for all readings. NOTE: This mData
-     *               must be of the same size as the number of readings added to {@link #mListReadingsData}.
-     */
-    public void setListReadingValues(final List<Integer> values) {
-        int listDataCount = mListReadingsData.size();
-        int count = values.size();
-
-        for (int i = 0; i < listDataCount && i < count; ++i) {
-            mListReadingsData.get(i).value = values.get(i);
-        }
-
-        mListViewAdapter.notifyDataSetChanged();
-    }
-
-
-
-    /***********************************************************************************************
-     * GRAPHIC VIEW DISPLAY MODE
-     ***********************************************************************************************/
-
-    /**
-     * Setup data structures for the Graphical view display mode.
-     */
-    private void initGraphicalView() {
-        if (mGraphicalReadingsData == null) {
-            mGraphicalReadingsData = new ArrayList<HorizontalGauge>();
-        }
-        mCurrentReading = null;
-    }
-
-    /**
-     * Setup the data for the Graphical view display mode in {@link #mGraphicalReadingsData}.
-     */
-    private void loadGraphicalViewData() {
-        if (mGraphicalReadingsData != null && mGraphicalReadingsData.size() == 0) {
-            List<Integer> scaleCol = new ArrayList<Integer>();
-            List<Float> scaleVal = new ArrayList<Float>();
-
-            scaleCol.clear();
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_red_400));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_orange_400));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_green_400));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_orange_400));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_red_400));
-
-            scaleVal.clear();
-            scaleVal.add(0f);
-            scaleVal.add(8f);
-            scaleVal.add(12f);
-            scaleVal.add(20f);
-            scaleVal.add(35f);
-            scaleVal.add(60f);
-
-            addGraphicalReading(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), scaleVal, scaleCol);
-
-            scaleCol.clear();
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_green_400));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_orange_400));
-            scaleCol.add(ContextCompat.getColor(getContext(), R.color.md_red_400));
-
-            scaleVal.clear();
-            scaleVal.add(0f);
-            scaleVal.add(35f);
-            scaleVal.add(50f);
-            scaleVal.add(60f);
-
-            addGraphicalReading(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
-
-            scaleVal.clear();
-            scaleVal.add(0f);
-            scaleVal.add(15f);
-            scaleVal.add(35f);
-            scaleVal.add(60f);
-
-            addGraphicalReading(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), scaleVal, scaleCol);
-        }
-    }
-
-    /**
-     * Setup the Graphical view with the data stored in {@link #mGraphicalReadingsData}
-     */
-    private void setupGraphicalView() {
-        if (!mGraphicalReadingsData.isEmpty()) {
-            mFrameLayout.removeAllViews();
-
-            TypedValue fontSizeAttr = new TypedValue();
-            getContext().getTheme().resolveAttribute(android.R.attr.textSize, fontSizeAttr, true);
-
-            HorizontalGauge rv;
-            for (int i = 0; i < mGraphicalReadingsData.size(); ++i) {
-                rv = mGraphicalReadingsData.get(i);
-                rv.setTitleFontSize(getResources().getDimensionPixelSize(fontSizeAttr.resourceId));
-                rv.setValueFontSize(getResources().getDimensionPixelSize(fontSizeAttr.resourceId));
-                rv.setVisibility(View.INVISIBLE);
-
-                mFrameLayout.addView(rv, i);
+    private void setupSegmentedBars() {
+        if (mSegmentedBars.isEmpty()) {
+            SegmentedBar bar;
+            for (int i = 0; i < mReadingItems.size(); ++i) {
+                bar = new SegmentedBar(getContext());
+                bar.setValueWithUnit(mReadingItems.get(i).value, mReadingItems.get(i).unit);
+                bar.setSegments(mReadingItems.get(i).segments);
+                bar.setSideTextStyle(SegmentedBarSideTextStyle.TWO_SIDED);
+                bar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                bar.setPadding(10, 10, 10, 10);
+                mSegmentedBars.add(bar);
             }
+        }
 
-            mCurrentReading = mGraphicalReadingsData.get(0);
-            mCurrentReading.setVisibility(View.VISIBLE);
+        mFrameLayout.removeAllViews();
+
+        TypedValue fontSizeAttr = new TypedValue();
+        getContext().getTheme().resolveAttribute(android.R.attr.textSize, fontSizeAttr, true);
+
+        SegmentedBar rv;
+        for (int i = 0; i < mSegmentedBars.size(); ++i) {
+            rv = mSegmentedBars.get(i);
+
+            rv.setVisibility(View.INVISIBLE);
+
+            mFrameLayout.addView(rv, i);
+        }
+
+        mCurrentSegmentedBar = mSegmentedBars.get(0);
+        mCurrentSegmentedBar.setVisibility(View.VISIBLE);
+
+        mCurrentReadingName.setText(mReadingItems.get(0).name);
+    }
+
+    /**
+     * Look for the current segmented bar and updates its value with the data from the data set
+     */
+    private void notifySegmentedBarDataSetChange() {
+        for (int i = 0; i < mSegmentedBars.size(); ++i) {
+            if (mCurrentSegmentedBar.equals(mSegmentedBars.get(i))) {
+                mCurrentSegmentedBar.setValue(mReadingItems.get(i).value);
+            }
         }
     }
 
     /**
      * Switch the the reading view in the Graphical view display mode.
-     * @param index int Reading index in {@link #mGraphicalReadingsData}.
+     * @param index int Reading index in {@link #mSegmentedBars}.
      */
-    private void switchGraphicalReading(int index) {
-        if (mGraphicalReadingsData.isEmpty()) { return; }
+    private void switchSegmentedBar(int index) {
+        if (mSegmentedBars.isEmpty()) { return; }
 
-        mCurrentReading.setVisibility(View.INVISIBLE);
-        mCurrentReading = mGraphicalReadingsData.get(index);
-        mCurrentReading.setVisibility(View.VISIBLE);
+        mCurrentSegmentedBar.setVisibility(View.INVISIBLE);
+        mCurrentSegmentedBar = mSegmentedBars.get(index);
+        mCurrentSegmentedBar.setVisibility(View.VISIBLE);
+
+        mCurrentReadingName.setText(mReadingItems.get(index).name);
     }
 
-    /**
-     * Add a reading to {@link #mGraphicalReadingsData} to be shown in {@link #mFrameLayout}.
-     * @param title String Reading mName.
-     * @param units String Reading units.
-     * @param scaleVal List<Float> List with the reading scale. Must contain at least 2
-     *                 values: min and max.
-     * @param scaleCol List<Integer> List with the int colour values for the bar.
-     */
-    public void addGraphicalReading(final String title, final String units,
-                                 final List<Float> scaleVal, final List<Integer> scaleCol) {
-        HorizontalGauge reading = new HorizontalGauge(getContext());
-        //mCurrentReading.setLayoutParams(new ViewGroup.LayoutParams(600, 200));
-
-        reading.setTitle(title);
-        reading.setValueUnits(units);
-        reading.setScale(scaleVal);
-        reading.setColours(scaleCol);
-        reading.setGradientColours(true);
-
-        mGraphicalReadingsData.add(reading);
-    }
 
     /**
-     * Set the value in the current reading {@link #mCurrentReading}.
-     * @param value int Reading value.
+     * Helper setter
      */
-    public void setGraphicalReadingValue(final int value) {
-        mCurrentReading.setValue(value);
+    public void setReadings(final List<Float> values) {
+        if (mReadingItems != null) {
+            for (int i = 0; i < mReadingItems.size() && i < values.size(); ++i) {
+                mReadingItems.get(i).value = values.get(i);
+            }
+            mListViewAdapter.notifyDataSetChanged();
+            notifySegmentedBarDataSetChange();
+        }
     }
 
 

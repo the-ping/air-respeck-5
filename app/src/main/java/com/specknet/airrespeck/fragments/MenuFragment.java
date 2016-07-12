@@ -14,7 +14,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.utils.ButtonDesc;
+import com.specknet.airrespeck.models.MenuButton;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
@@ -23,15 +23,19 @@ import java.util.List;
 
 public class MenuFragment extends Fragment {
 
-    private List<ButtonDesc> mButtons;
+    private List<MenuButton> mButtons;
 
     private OnMenuSelectedListener mListener;
 
     private LinearLayout mMenuContainer;
     private LinearLayout.LayoutParams mMenuItemLayoutParameters;
 
+    /**
+     * Required empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
+     */
     public MenuFragment() {
-        // Required empty public constructor
+
     }
 
     @Override
@@ -55,12 +59,12 @@ public class MenuFragment extends Fragment {
         mMenuItemLayoutParameters = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
-        mButtons = new ArrayList<ButtonDesc>();
-        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.HOME, getString(R.string.menu_home),
+        mButtons = new ArrayList<MenuButton>();
+        mButtons.add(new MenuButton(MenuButton.buttonType.HOME, getString(R.string.menu_home),
                 Utils.menuIconsResId[0]));
-        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
+        mButtons.add(new MenuButton(MenuButton.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
                 Utils.menuIconsResId[2]));
-        mButtons.add(new ButtonDesc(ButtonDesc.buttonType.DASHBOARD, getString(R.string.menu_dashboard),
+        mButtons.add(new MenuButton(MenuButton.buttonType.DASHBOARD, getString(R.string.menu_graphs),
                 Utils.menuIconsResId[3]));
     }
 
@@ -101,15 +105,15 @@ public class MenuFragment extends Fragment {
 
     /**
      * Create a button and add it to {@link #mMenuContainer}
-     * @param buttonDesc ButtonDesc Instance of ButtonDesc class with the button data.
+     * @param menuButton MenuButton Instance of MenuButton class with the button data.
      */
-    private void createButton(final ButtonDesc buttonDesc) {
+    private void createButton(final MenuButton menuButton) {
         Button button = new Button(getActivity());
-        button.setText(buttonDesc.getLabel());
+        button.setText(menuButton.getLabel());
         button.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        //button.setCompoundDrawablesWithIntrinsicBounds(0, buttonDesc.getImage(), 0, 0);
+        //button.setCompoundDrawablesWithIntrinsicBounds(0, menuButton.getImage(), 0, 0);
 
-        Drawable drawable = ContextCompat.getDrawable(getContext(), buttonDesc.getImage());
+        Drawable drawable = ContextCompat.getDrawable(getContext(), menuButton.getImage());
         drawable.setBounds(0, 0, (int)(drawable.getIntrinsicWidth() * 1.0f),
                                  (int)(drawable.getIntrinsicHeight() * 1.0f));
         //ScaleDrawable sd = new ScaleDrawable(drawable, 0, scaleWidth, scaleHeight);
@@ -119,7 +123,7 @@ public class MenuFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onButtonClick(v, buttonDesc.getType().ordinal());
+                onButtonClick(v, menuButton.getType().ordinal());
             }
         });
 

@@ -4,8 +4,6 @@ package com.specknet.airrespeck.utils;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Point;
-import android.support.v4.content.ContextCompat;
-import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -42,7 +40,7 @@ public final class Utils {
             R.drawable.ic_home,
             R.drawable.ic_health,
             R.drawable.ic_air,
-            R.drawable.ic_dashboard,
+            R.drawable.ic_graphs,
             R.drawable.ic_settings
     };
 

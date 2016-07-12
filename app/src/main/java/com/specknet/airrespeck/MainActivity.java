@@ -4,28 +4,22 @@ package com.specknet.airrespeck;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ImageSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.specknet.airrespeck.fragments.DashboardFragment;
+import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
-import com.specknet.airrespeck.fragments.AirQualityFragment;
+import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
-import com.specknet.airrespeck.fragments.items.ReadingItem;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
@@ -39,12 +33,12 @@ public class MainActivity extends BaseActivity implements
     private Thread mUpdateThread;
 
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
-    private static final String TAG_AIR_QUALITY_FRAGMENT = "AIR_QUALITY_FRAGMENT";
-    private static final String TAG_DASHBOARD_FRAGMENT = "DASHBOARD_FRAGMENT";
+    private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
+    private static final String TAG_AQGRAPHS_FRAGMENT = "AQGRAPHS_FRAGMENT";
 
     private HomeFragment mHomeFragment;
-    private AirQualityFragment mAirQualityFragment;
-    private DashboardFragment mDashboardFragment;
+    private AQReadingsFragment mAQReadingsFragment;
+    private GraphsFragment mGraphsFragment;
     private Fragment mCurrentFragment;
 
     @Override
@@ -57,25 +51,25 @@ public class MainActivity extends BaseActivity implements
         if (savedInstanceState != null) {
             mHomeFragment =
                     (HomeFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
-            mAirQualityFragment =
-                    (AirQualityFragment) fm.getFragment(savedInstanceState, TAG_AIR_QUALITY_FRAGMENT);
-            mDashboardFragment =
-                    (DashboardFragment) fm.getFragment(savedInstanceState, TAG_DASHBOARD_FRAGMENT);
+            mAQReadingsFragment =
+                    (AQReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
+            mGraphsFragment =
+                    (GraphsFragment) fm.getFragment(savedInstanceState, TAG_AQGRAPHS_FRAGMENT);
         }
         else {
             mHomeFragment = (HomeFragment) fm.findFragmentByTag(TAG_HOME_FRAGMENT);
-            mAirQualityFragment = (AirQualityFragment) fm.findFragmentByTag(TAG_AIR_QUALITY_FRAGMENT);
-            mDashboardFragment = (DashboardFragment) fm.findFragmentByTag(TAG_DASHBOARD_FRAGMENT);
+            mAQReadingsFragment = (AQReadingsFragment) fm.findFragmentByTag(TAG_AQREADINGS_FRAGMENT);
+            mGraphsFragment = (GraphsFragment) fm.findFragmentByTag(TAG_AQGRAPHS_FRAGMENT);
         }
 
         if (mHomeFragment == null) {
             mHomeFragment = new HomeFragment();
         }
-        if (mAirQualityFragment == null) {
-            mAirQualityFragment = new AirQualityFragment();
+        if (mAQReadingsFragment == null) {
+            mAQReadingsFragment = new AQReadingsFragment();
         }
-        if (mDashboardFragment == null) {
-            mDashboardFragment = new DashboardFragment();
+        if (mGraphsFragment == null) {
+            mGraphsFragment = new GraphsFragment();
         }
 
         // Choose layout
@@ -96,6 +90,12 @@ public class MainActivity extends BaseActivity implements
             TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
             if (tabLayout != null) {
                 tabLayout.setupWithViewPager(viewPager);
+            }
+
+            if (mIconsInTabsPref) {
+                tabLayout.getTabAt(0).setIcon(Utils.menuIconsResId[0]);
+                tabLayout.getTabAt(1).setIcon(Utils.menuIconsResId[2]);
+                tabLayout.getTabAt(2).setIcon(Utils.menuIconsResId[3]);
             }
         }
         else {
@@ -128,19 +128,25 @@ public class MainActivity extends BaseActivity implements
 
         if (mHomeFragment != null) {
             try {
-                fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
+                if (fm.findFragmentByTag(TAG_HOME_FRAGMENT) != null) {
+                    fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
+                }
             } catch (IllegalStateException e) {}
         }
 
-        if (mAirQualityFragment != null) {
+        if (mAQReadingsFragment != null) {
             try {
-                fm.putFragment(outState, TAG_AIR_QUALITY_FRAGMENT, mAirQualityFragment);
+                if (fm.findFragmentByTag(TAG_AQREADINGS_FRAGMENT) != null) {
+                    fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mAQReadingsFragment);
+                }
             } catch (IllegalStateException e) {}
         }
 
-        if (mDashboardFragment != null) {
+        if (mGraphsFragment != null) {
             try {
-                fm.putFragment(outState, TAG_DASHBOARD_FRAGMENT, mDashboardFragment);
+                if (fm.findFragmentByTag(TAG_AQGRAPHS_FRAGMENT) != null) {
+                    fm.putFragment(outState, TAG_AQGRAPHS_FRAGMENT, mGraphsFragment);
+                }
             } catch (IllegalStateException e) {}
         }
     }
@@ -215,11 +221,11 @@ public class MainActivity extends BaseActivity implements
                 break;
             // Air Quality
             case 1:
-                replaceFragment(mAirQualityFragment, TAG_AIR_QUALITY_FRAGMENT);
+                replaceFragment(mAQReadingsFragment, TAG_AQREADINGS_FRAGMENT);
                 break;
             // Dashboard
             case 2:
-                replaceFragment(mDashboardFragment, TAG_DASHBOARD_FRAGMENT);
+                replaceFragment(mGraphsFragment, TAG_AQGRAPHS_FRAGMENT);
                 break;
         }
     }
@@ -279,9 +285,9 @@ public class MainActivity extends BaseActivity implements
                 case 0:
                     return mHomeFragment;
                 case 1:
-                    return mAirQualityFragment;
+                    return mAQReadingsFragment;
                 case 2:
-                    return mDashboardFragment;
+                    return mGraphsFragment;
             }
             return null;
         }
@@ -294,41 +300,13 @@ public class MainActivity extends BaseActivity implements
 
         @Override
         public CharSequence getPageTitle(int position) {
-            Drawable image;
-            SpannableString sb;
-            ImageSpan imageSpan;
-
             switch (position) {
                 case 0:
-                    if (mIconsInTabsPref) {
-                        image = ContextCompat.getDrawable(mContext, R.drawable.vec_home);
-                        image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
-                        sb = new SpannableString("  " + getString(R.string.menu_home));
-                        imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
-                        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        return sb;
-                    }
                     return getString(R.string.menu_home);
                 case 1:
-                    if (mIconsInTabsPref) {
-                        image = ContextCompat.getDrawable(mContext, R.drawable.vec_air);
-                        image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
-                        sb = new SpannableString("  " + getString(R.string.menu_air_quality));
-                        imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
-                        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        return sb;
-                    }
                     return getString(R.string.menu_air_quality);
                 case 2:
-                    if (mIconsInTabsPref) {
-                        image = ContextCompat.getDrawable(mContext, R.drawable.vec_dashboard);
-                        image.setBounds(0, 0, image.getIntrinsicWidth(), image.getIntrinsicHeight());
-                        sb = new SpannableString("  " + getString(R.string.menu_dashboard));
-                        imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM);
-                        sb.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        return sb;
-                    }
-                    return getString(R.string.menu_dashboard);
+                    return getString(R.string.menu_graphs);
             }
             return null;
         }
@@ -342,16 +320,16 @@ public class MainActivity extends BaseActivity implements
                 try {
                     Date dt = new Date();
                     long t = dt.getTime();
-                    int seconds = (int) ((t / 1000) % 60);
+                    float seconds = ((t / 1000) % 60);
 
-                    List<Integer> values = new ArrayList<Integer>();
+                    List<Float> values = new ArrayList<Float>();
                     values.add(seconds);
                     values.add(seconds);
                     values.add(seconds);
 
-                    mHomeFragment.setReadings(values, seconds);
+                    mHomeFragment.setReadings(values);
 
-                    List<Integer> valuesAir = new ArrayList<Integer>();
+                    List<Float> valuesAir = new ArrayList<Float>();
                     valuesAir.add(seconds);
                     valuesAir.add(seconds);
                     valuesAir.add(seconds);
@@ -361,7 +339,7 @@ public class MainActivity extends BaseActivity implements
                     valuesAir.add(seconds);
                     valuesAir.add(seconds);
 
-                    mAirQualityFragment.setReadings(valuesAir);
+                    mAQReadingsFragment.setReadings(valuesAir);
 
                 } catch (Exception e) {}
             }

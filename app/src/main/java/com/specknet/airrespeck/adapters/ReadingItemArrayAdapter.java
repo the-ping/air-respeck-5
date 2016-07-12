@@ -1,4 +1,4 @@
-package com.specknet.airrespeck.fragments.items;
+package com.specknet.airrespeck.adapters;
 
 
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.models.ReadingItem;
 
 
 public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
@@ -18,13 +19,13 @@ public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
     // View lookup cache
     private static class ViewHolder {
         TextView name;
-        TextView units;
+        TextView unit;
         TextView value;
     }
 
     public ReadingItemArrayAdapter(Context context,
                                    ArrayList<ReadingItem> items) {
-        super(context, R.layout.reading_list_view_item, items);
+        super(context, R.layout.list_item_listview, items);
     }
 
     @Override
@@ -39,11 +40,11 @@ public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
         if (convertView == null) {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(getContext());
-            convertView = inflater.inflate(R.layout.reading_list_view_item, parent, false);
+            convertView = inflater.inflate(R.layout.list_item_listview, parent, false);
 
             // Lookup view for data population
             viewHolder.name = (TextView) convertView.findViewById(R.id.name);
-            viewHolder.units = (TextView) convertView.findViewById(R.id.units);
+            viewHolder.unit = (TextView) convertView.findViewById(R.id.unit);
             viewHolder.value = (TextView) convertView.findViewById(R.id.value);
 
             convertView.setTag(viewHolder);
@@ -54,7 +55,7 @@ public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
 
         // Populate the data into the template view using the data object
         viewHolder.name.setText(item.name);
-        viewHolder.units.setText(item.units);
+        viewHolder.unit.setText(item.unit);
         viewHolder.value.setText(String.valueOf(item.value));
 
         // Return the completed view to render on screen
