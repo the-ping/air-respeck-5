@@ -15,7 +15,7 @@ import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.models.MenuButton;
-import com.specknet.airrespeck.utils.Utils;
+import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,11 +61,11 @@ public class MenuFragment extends Fragment {
 
         mButtons = new ArrayList<MenuButton>();
         mButtons.add(new MenuButton(MenuButton.buttonType.HOME, getString(R.string.menu_home),
-                Utils.menuIconsResId[0]));
+                Constants.menuIconsResId[0]));
         mButtons.add(new MenuButton(MenuButton.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
-                Utils.menuIconsResId[2]));
+                Constants.menuIconsResId[2]));
         mButtons.add(new MenuButton(MenuButton.buttonType.DASHBOARD, getString(R.string.menu_graphs),
-                Utils.menuIconsResId[3]));
+                Constants.menuIconsResId[3]));
     }
 
     @Override

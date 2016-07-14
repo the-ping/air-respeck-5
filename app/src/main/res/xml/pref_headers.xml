@@ -3,17 +3,17 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-        android:fragment="com.specknet.airrespeck.SettingsActivity$PersonalDataPreferenceFragment"
+        android:fragment="com.specknet.airrespeck.activities.SettingsActivity$PersonalDataPreferenceFragment"
         android:icon="@drawable/ic_info_black_24dp"
         android:title="@string/pref_header_personal_data" />
 
     <header
-        android:fragment="com.specknet.airrespeck.SettingsActivity$UserInterfacePreferenceFragment"
+        android:fragment="com.specknet.airrespeck.activities.SettingsActivity$UserInterfacePreferenceFragment"
         android:icon="@drawable/ic_web_black_24dp"
         android:title="@string/pref_header_ui" />
 
     <header
-        android:fragment="com.specknet.airrespeck.SettingsActivity$DataSyncPreferenceFragment"
+        android:fragment="com.specknet.airrespeck.activities.SettingsActivity$DataSyncPreferenceFragment"
         android:icon="@drawable/ic_sync_black_24dp"
         android:title="@string/pref_header_data_sync" />
 

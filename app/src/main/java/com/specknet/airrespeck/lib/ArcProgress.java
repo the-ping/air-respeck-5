@@ -51,7 +51,7 @@ public class ArcProgress extends View {
     private final static int DEFAULT_ACTION_MOVE_ANIMATION_DURATION = 150;
 
     // Max and min progress values
-    private final static float MAX_PROGRESS = 60;//TODO add setters for min and max values
+    private final static float MAX_PROGRESS = 100;
     private final static float MIN_PROGRESS = 0;
 
     // Max and min fraction values
@@ -126,6 +126,7 @@ public class ArcProgress extends View {
     private boolean mIsRounded;
     private boolean mIsDragged;
     private boolean mIsModelBgEnabled;
+    private boolean mShowProgressText;
 
     // Colors
     private int mShadowColor;
@@ -179,6 +180,9 @@ public class ArcProgress extends View {
             );
             setIsDragged(
                     typedArray.getBoolean(R.styleable.ArcProgress_ap_dragged, false)
+            );
+            setShowProgressText(
+                    typedArray.getBoolean(R.styleable.ArcProgress_ap_show_progress, false)
             );
             setTypeface(
                     typedArray.getString(R.styleable.ArcProgress_ap_typeface)
@@ -443,6 +447,10 @@ public class ArcProgress extends View {
         mIsDragged = isDragged;
     }
 
+    public void setShowProgressText(final boolean showProgressText) {
+        mShowProgressText = showProgressText;
+    }
+
     public Interpolator getInterpolator() {
         return (Interpolator) mProgressAnimator.getInterpolator();
     }
@@ -540,13 +548,14 @@ public class ArcProgress extends View {
     }
 
     public void setTypeface(final String typeface) {
-        if (typeface == null)
-            return;
         Typeface tempTypeface;
         try {
             if (isInEditMode())
                 return;
-            tempTypeface = Typeface.createFromAsset(getContext().getAssets(), typeface);
+            if (typeface != null)
+                tempTypeface = Typeface.createFromAsset(getContext().getAssets(), typeface);
+            else
+                tempTypeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
         } catch (Exception e) {
             tempTypeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
             e.printStackTrace();
@@ -713,7 +722,8 @@ public class ArcProgress extends View {
         }
 
         // Set model progress and invalidate
-        float touchProgress = Math.round(MAX_PROGRESS / mSweepAngle * currentAngle);
+        //float touchProgress = Math.round(MAX_PROGRESS / mSweepAngle * currentAngle);
+        float touchProgress = Math.round(model.getMaxProgress() / mSweepAngle * currentAngle);
         model.setProgress(touchProgress);
     }
 
@@ -829,11 +839,16 @@ public class ArcProgress extends View {
         for (int i = 0; i < mModels.size(); i++) {
             final Model model = mModels.get(i);
             // Get progress for current model
-            float progressFraction = mIsAnimated && !isInEditMode() ? (model.mLastProgress + (mAnimatedFraction *
+            /*float progressFraction = mIsAnimated && !isInEditMode() ? (model.mLastProgress + (mAnimatedFraction *
                     (model.getProgress() - model.mLastProgress))) / MAX_PROGRESS :
-                    model.getProgress() / MAX_PROGRESS;
-            if (i != mActionMoveModelIndex && mActionMoveModelIndex != ANIMATE_ALL_INDEX)
-                progressFraction = model.getProgress() / MAX_PROGRESS;
+                    model.getProgress() / MAX_PROGRESS;*/
+            float progressFraction = mIsAnimated && !isInEditMode() ? (model.mLastProgress + (mAnimatedFraction *
+                    (model.getProgress() - model.mLastProgress))) / model.getMaxProgress() :
+                    model.getProgress() / model.getMaxProgress();
+            if (i != mActionMoveModelIndex && mActionMoveModelIndex != ANIMATE_ALL_INDEX) {
+                //progressFraction = model.getProgress() / MAX_PROGRESS;
+                progressFraction = model.getProgress() / model.getMaxProgress();
+            }
             final float progress = progressFraction * mSweepAngle;
 
             // Check if model have gradient
@@ -957,16 +972,17 @@ public class ArcProgress extends View {
                 }
 
                 // Draw progress value
-                // TODO add a setter to control whether the progress value is drawn or not
-                /*canvas.save();
-                canvas.rotate(indicatorProgressAngle, model.mPos[0], model.mPos[1]);
-                canvas.drawText(
-                        percentProgress,
-                        model.mPos[0] - model.mTextBounds.exactCenterX(),
-                        model.mPos[1] - model.mTextBounds.exactCenterY(),
-                        mTextPaint
-                );
-                canvas.restore();*/
+                if (mShowProgressText) {
+                    canvas.save();
+                    canvas.rotate(indicatorProgressAngle, model.mPos[0], model.mPos[1]);
+                    canvas.drawText(
+                            percentProgress,
+                            model.mPos[0] - model.mTextBounds.exactCenterX(),
+                            model.mPos[1] - model.mTextBounds.exactCenterY(),
+                            mTextPaint
+                    );
+                    canvas.restore();
+                }
             }
 
             // Check if gradient and have rounded corners, because we must to create elevation effect
@@ -1002,6 +1018,9 @@ public class ArcProgress extends View {
         private float mLastProgress;
         private float mProgress;
 
+        private float mMinProgress = MIN_PROGRESS;
+        private float mMaxProgress = MAX_PROGRESS;
+
         private int mColor;
         private int mBgColor;
         private int[] mColors;
@@ -1022,8 +1041,22 @@ public class ArcProgress extends View {
             setColor(color);
         }
 
+        public Model(final String title, final float min, final float max, final float progress, final int color) {
+            setTitle(title);
+            setRange(min, max);
+            setProgress(progress);
+            setColor(color);
+        }
+
         public Model(final String title, final float progress, final int[] colors) {
             setTitle(title);
+            setProgress(progress);
+            setColors(colors);
+        }
+
+        public Model(final String title, final float min, final float max, final float progress, final int[] colors) {
+            setTitle(title);
+            setRange(min, max);
             setProgress(progress);
             setColors(colors);
         }
@@ -1035,8 +1068,24 @@ public class ArcProgress extends View {
             setBgColor(bgColor);
         }
 
+        public Model(final String title, final float min, final float max, final float progress, final int bgColor, final int color) {
+            setTitle(title);
+            setRange(min, max);
+            setProgress(progress);
+            setColor(color);
+            setBgColor(bgColor);
+        }
+
         public Model(final String title, final float progress, final int bgColor, final int[] colors) {
             setTitle(title);
+            setProgress(progress);
+            setColors(colors);
+            setBgColor(bgColor);
+        }
+
+        public Model(final String title, final float min, final float max, final float progress, final int bgColor, final int[] colors) {
+            setTitle(title);
+            setRange(min, max);
             setProgress(progress);
             setColors(colors);
             setBgColor(bgColor);
@@ -1054,10 +1103,28 @@ public class ArcProgress extends View {
             return mProgress;
         }
 
-        @FloatRange
+        /*@FloatRange
         public void setProgress(@FloatRange(from = MIN_PROGRESS, to = MAX_PROGRESS) final float progress) {
             mLastProgress = mProgress;
             mProgress = (int) Math.max(MIN_PROGRESS, Math.min(progress, MAX_PROGRESS));
+        }*/
+
+        public void setProgress(final float progress) {
+            mLastProgress = mProgress;
+            mProgress = (int) Math.max(mMinProgress, Math.min(progress, mMaxProgress));
+        }
+
+        public void setRange(final float min, final float max) {
+            mMinProgress = min;
+            mMaxProgress = max;
+        }
+
+        public float getMinProgress() {
+            return mMinProgress;
+        }
+
+        public float getMaxProgress() {
+            return mMaxProgress;
         }
 
         public int getColor() {

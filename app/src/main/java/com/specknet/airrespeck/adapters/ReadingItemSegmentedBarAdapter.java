@@ -51,9 +51,9 @@ public class ReadingItemSegmentedBarAdapter extends
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mName.setText(mValues.get(position).name);
-        holder.mSegmentedBar.setValueWithUnit(mValues.get(position).value, mValues.get(position).unit);
-        holder.mSegmentedBar.setSegments(mValues.get(position).segments);
+        holder.mName.setText(holder.mItem.name);
+        holder.mSegmentedBar.setValueWithUnit(holder.mItem.value, holder.mItem.unit);
+        holder.mSegmentedBar.setSegments(holder.mItem.segments);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override

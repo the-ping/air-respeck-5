@@ -150,7 +150,7 @@ public class AQReadingsFragment extends BaseFragment {
                 mColumnCount = 1;
                 break;
             case 2:
-                Utils mUtils = new Utils(getContext());
+                Utils mUtils = Utils.getInstance(getContext());
                 mColumnCount = (int) Math.floor(mUtils.getScreenSize().x /
                         getResources().getDimension(R.dimen.arc_progress_item_width));
                 break;

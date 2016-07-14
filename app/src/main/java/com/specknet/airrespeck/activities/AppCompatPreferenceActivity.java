@@ -1,4 +1,4 @@
-package com.specknet.airrespeck;
+package com.specknet.airrespeck.activities;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

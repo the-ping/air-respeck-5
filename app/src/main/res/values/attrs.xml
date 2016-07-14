@@ -9,6 +9,7 @@
         <attr name="ap_shadowed" format="boolean"/>
         <attr name="ap_rounded" format="boolean"/>
         <attr name="ap_dragged" format="boolean"/>
+        <attr name="ap_show_progress" format="boolean"/>
 
         <attr name="ap_typeface" format="string"/>
         <attr name="ap_text_color" format="color"/>

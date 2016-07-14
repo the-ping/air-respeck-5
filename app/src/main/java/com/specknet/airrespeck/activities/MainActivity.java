@@ -1,4 +1,4 @@
-package com.specknet.airrespeck;
+package com.specknet.airrespeck.activities;
 
 
 import android.content.ComponentName;
@@ -16,11 +16,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
-import com.specknet.airrespeck.utils.Utils;
+import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +36,7 @@ public class MainActivity extends BaseActivity implements
 
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
-    private static final String TAG_AQGRAPHS_FRAGMENT = "AQGRAPHS_FRAGMENT";
+    private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
 
     private HomeFragment mHomeFragment;
     private AQReadingsFragment mAQReadingsFragment;
@@ -54,12 +56,12 @@ public class MainActivity extends BaseActivity implements
             mAQReadingsFragment =
                     (AQReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mGraphsFragment =
-                    (GraphsFragment) fm.getFragment(savedInstanceState, TAG_AQGRAPHS_FRAGMENT);
+                    (GraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
         }
         else {
             mHomeFragment = (HomeFragment) fm.findFragmentByTag(TAG_HOME_FRAGMENT);
             mAQReadingsFragment = (AQReadingsFragment) fm.findFragmentByTag(TAG_AQREADINGS_FRAGMENT);
-            mGraphsFragment = (GraphsFragment) fm.findFragmentByTag(TAG_AQGRAPHS_FRAGMENT);
+            mGraphsFragment = (GraphsFragment) fm.findFragmentByTag(TAG_GRAPHS_FRAGMENT);
         }
 
         if (mHomeFragment == null) {
@@ -77,7 +79,7 @@ public class MainActivity extends BaseActivity implements
             setContentView(R.layout.activity_main_tabs);
 
             // Create the adapter that will return a fragment for each of the three
-            // primary sections of the activity.
+            // primary sections of the mActivity.
             SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
             sectionsPagerAdapter.setContext(getApplicationContext());
 
@@ -93,9 +95,9 @@ public class MainActivity extends BaseActivity implements
             }
 
             if (mIconsInTabsPref) {
-                tabLayout.getTabAt(0).setIcon(Utils.menuIconsResId[0]);
-                tabLayout.getTabAt(1).setIcon(Utils.menuIconsResId[2]);
-                tabLayout.getTabAt(2).setIcon(Utils.menuIconsResId[3]);
+                tabLayout.getTabAt(0).setIcon(Constants.menuIconsResId[0]);
+                tabLayout.getTabAt(1).setIcon(Constants.menuIconsResId[2]);
+                tabLayout.getTabAt(2).setIcon(Constants.menuIconsResId[3]);
             }
         }
         else {
@@ -115,6 +117,9 @@ public class MainActivity extends BaseActivity implements
         setSupportActionBar(mToolbar);
 
 
+        /**
+         * Temp dummy thread for updating values in fragments
+         */
         Runnable runnable = new updateLoop();
         mUpdateThread = new Thread(runnable);
         mUpdateThread.start();
@@ -126,28 +131,29 @@ public class MainActivity extends BaseActivity implements
 
         FragmentManager fm = getSupportFragmentManager();
 
-        if (mHomeFragment != null) {
-            try {
-                if (fm.findFragmentByTag(TAG_HOME_FRAGMENT) != null) {
-                    fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
-                }
-            } catch (IllegalStateException e) {}
+        if (mHomeFragment != null && mHomeFragment.isAdded()) {
+            fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
         }
 
-        if (mAQReadingsFragment != null) {
-            try {
-                if (fm.findFragmentByTag(TAG_AQREADINGS_FRAGMENT) != null) {
-                    fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mAQReadingsFragment);
-                }
-            } catch (IllegalStateException e) {}
+        if (mAQReadingsFragment != null && mAQReadingsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mAQReadingsFragment);
         }
 
-        if (mGraphsFragment != null) {
-            try {
-                if (fm.findFragmentByTag(TAG_AQGRAPHS_FRAGMENT) != null) {
-                    fm.putFragment(outState, TAG_AQGRAPHS_FRAGMENT, mGraphsFragment);
-                }
-            } catch (IllegalStateException e) {}
+        if (mGraphsFragment != null && mGraphsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mGraphsFragment);
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        NetworkUtils networkUtils = NetworkUtils.getInstance(getApplicationContext());
+        if (networkUtils.isNetworkAvailable()) {
+
+        }
+        else {
+            Toast.makeText(this, "INTERNET NOT AVAILABLE", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -177,7 +183,7 @@ public class MainActivity extends BaseActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // as you specify a parent mActivity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStattement
@@ -225,7 +231,7 @@ public class MainActivity extends BaseActivity implements
                 break;
             // Dashboard
             case 2:
-                replaceFragment(mGraphsFragment, TAG_AQGRAPHS_FRAGMENT);
+                replaceFragment(mGraphsFragment, TAG_GRAPHS_FRAGMENT);
                 break;
         }
     }

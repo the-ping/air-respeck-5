@@ -1,7 +1,8 @@
-package com.specknet.airrespeck;
+package com.specknet.airrespeck.activities;
 
 
 import android.annotation.TargetApi;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,14 +18,18 @@ import android.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
+import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.utils.ThemeUtils;
+
 import java.util.List;
+import java.util.StringTokenizer;
 
 
 /**
- * A {@link PreferenceActivity} that presents a set of application settings. On
- * handset devices, settings are presented as a single mData. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the mData of settings.
+ * A {@link PreferenceActivity} that presents a set of application mSettings. On
+ * handset devices, mSettings are presented as a single mData. On tablets,
+ * mSettings are split by category, with category headers shown to the left of
+ * the mData of mSettings.
  * <p/>
  * See <a href="http://developer.android.com/design/patterns/settings.html">
  * Android Design: Settings</a> for design guidelines and the <a
@@ -32,11 +37,15 @@ import java.util.List;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends AppCompatPreferenceActivity {
+    SharedPreferences mSettings;
+    int mFontSizePref;
+
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      */
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener =
+            new Preference.OnPreferenceChangeListener() {
         @Override
         public boolean onPreferenceChange(Preference preference, Object value) {
             String stringValue = value.toString();
@@ -97,7 +106,27 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         super.onCreate(savedInstanceState);
         setupActionBar();
 
-        checkFontSize();
+        mSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mFontSizePref = Integer.valueOf(mSettings.getString("font_size", "1"));
+        ThemeUtils themeUtils = ThemeUtils.getInstance();
+        themeUtils.setTheme(mFontSizePref);
+        themeUtils.onActivityCreateSetTheme(this);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        try {
+            int newVal = Integer.valueOf(mSettings.getString("font_size", "1"));
+
+            if (mFontSizePref != newVal) {
+                finish();
+                startActivity(getIntent());
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -153,7 +182,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     /**
      * This fragment shows personal data preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
+     * mActivity is showing a two-pane mSettings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static class PersonalDataPreferenceFragment extends PreferenceFragment {
@@ -185,10 +214,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     /**
      * This fragment shows user interface preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
+     * mActivity is showing a two-pane mSettings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class UserInterfacePreferenceFragment extends PreferenceFragment {
+    public static class UserInterfacePreferenceFragment extends PreferenceFragment
+            implements SharedPreferences.OnSharedPreferenceChangeListener {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -212,11 +242,44 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return super.onOptionsItemSelected(item);
         }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            // Set up a listener whenever a key changes
+            getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            // Unregister the listener whenever a key changes
+            getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals("font_size")) {
+                Preference pref = findPreference(key);
+                ListPreference listPref = (ListPreference) pref;
+
+                ThemeUtils themeUtils = ThemeUtils.getInstance();
+                themeUtils.setTheme(Integer.parseInt(listPref.getValue()));
+                themeUtils.onActivityCreateSetTheme(this.getActivity());
+
+                final FragmentManager fm = this.getActivity().getFragmentManager();
+                fm.
+                        beginTransaction().
+                        detach(this).
+                        attach(this).
+                        commit();
+            }
+        }
     }
 
     /**
      * This fragment shows data and sync preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
+     * mActivity is showing a two-pane mSettings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static class DataSyncPreferenceFragment extends PreferenceFragment {
@@ -241,35 +304,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return true;
             }
             return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void checkFontSize() {
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
-        try {
-            // Get the font size option.
-            // We specify "Normal" with key "1" as the default value, if it does not exist.
-            int fontSizePref = Integer.valueOf(settings.getString("font_size", "1"));
-
-            // Select the proper theme ID.
-            // These will correspond to the theme names as defined in themes.xml.
-            int themeID = R.style.FontSizeNormal;
-            if (fontSizePref == 0) {
-                themeID = R.style.FontSizeSmall;
-            }
-            else if (fontSizePref == 2) {
-                themeID = R.style.FontSizeLarge;
-            }
-            else if (fontSizePref == 3) {
-                themeID = R.style.FontSizeHuge;
-            }
-
-            // Set the theme for the activity.
-            setTheme(themeID);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

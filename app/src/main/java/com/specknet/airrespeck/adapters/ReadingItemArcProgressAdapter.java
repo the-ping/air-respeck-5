@@ -47,10 +47,30 @@ public class ReadingItemArcProgressAdapter extends
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mName.setText(mValues.get(position).name);
-        holder.mUnit.setText(mValues.get(position).unit);
-        holder.mValue.setText(String.valueOf(mValues.get(position).value));
-        holder.mArcProgress.getModels().get(0).setProgress(mValues.get(position).value);
+        holder.mName.setText(holder.mItem.name);
+        holder.mUnit.setText(holder.mItem.unit);
+        holder.mValue.setText(String.valueOf(holder.mItem.value));
+
+        final ArrayList<ArcProgress.Model> models = new ArrayList<ArcProgress.Model>();
+        if (holder.mItem.colors == null) {
+            models.add(new ArcProgress.Model(
+                    "",
+                    holder.mItem.minVal,
+                    holder.mItem.maxVal,
+                    holder.mItem.value,
+                    holder.mItem.bgColor,
+                    holder.mItem.defaultColor));
+        }
+        else {
+            models.add(new ArcProgress.Model(
+                    "",
+                    holder.mItem.minVal,
+                    holder.mItem.maxVal,
+                    holder.mItem.value,
+                    holder.mItem.bgColor,
+                    holder.mItem.colors));
+        }
+        holder.mArcProgress.setModels(models);
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,18 +104,6 @@ public class ReadingItemArcProgressAdapter extends
             mUnit = (TextView) view.findViewById(R.id.unit);
             mValue = (TextView) view.findViewById(R.id.value);
             mArcProgress = (ArcProgress) view.findViewById(R.id.arc_progress);
-
-            // Get colors
-            int bgColor = ContextCompat.getColor(mContext, R.color.md_grey_500);
-            int[] colors = {
-                    ContextCompat.getColor(mContext, R.color.md_green_400),
-                    ContextCompat.getColor(mContext, R.color.md_red_400)
-            };
-
-            // Set model(s)
-            final ArrayList<ArcProgress.Model> models = new ArrayList<ArcProgress.Model>();
-            models.add(new ArcProgress.Model("", 0, bgColor, colors));
-            mArcProgress.setModels(models);
         }
 
         @Override

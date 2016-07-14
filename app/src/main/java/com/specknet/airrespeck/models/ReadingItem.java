@@ -16,8 +16,15 @@ public class ReadingItem {
     public float maxVal;
     public float value;
 
-    // Only for Segmented Bar
+    // Valid only for Segmented Bar
     public List<Segment> segments = null;
+
+    // Valid only for Arc Progress
+    public int colors[];
+    public int bgColor = Color.parseColor("#9e9e9e");
+
+    // Valid for both
+    public int defaultColor = Color.parseColor("#2baf2b");
 
     public ReadingItem(String name, String unit, float value) {
         this.name = name;
@@ -32,7 +39,7 @@ public class ReadingItem {
         this.maxVal = maxVal;
         this.value = value;
         this.segments = new ArrayList<Segment>();
-        this.segments.add(new Segment(this.minVal, this.maxVal, "", Color.parseColor("#2baf2b")));
+        this.segments.add(new Segment(this.minVal, this.maxVal, "", defaultColor));
     }
 
     public ReadingItem(String name, String unit, float value, List<Segment> segments) {
@@ -40,6 +47,18 @@ public class ReadingItem {
         this.unit = unit;
         this.value = value;
         this.segments = segments;
+
+        if (this.segments !=  null) {
+            this.minVal = this.segments.get(0).getMinValue();
+            this.maxVal = this.segments.get(this.segments.size()-1).getMaxValue();
+
+            if (this.segments.size() >= 2) {
+                this.colors = new int[this.segments.size()];
+                for (int i = 0; i < this.segments.size(); ++i) {
+                    this.colors[i] = this.segments.get(i).getColor();
+                }
+            }
+        }
     }
 
     @Override

@@ -16,12 +16,33 @@ import java.util.Properties;
 
 public final class Utils {
 
-    private Context mContext;
+    private static Utils mUtils;
+    private final Context mContext;
 
-    public Utils(Context context) {
+    /**
+     * Private constructor for singleton class.
+     * @param context Context Application context.
+     */
+    private Utils(Context context) {
         mContext = context;
     }
 
+    /**
+     * Get singleton class instance.
+     * @param context Context Application context.
+     * @return Utils Singleton class instance.
+     */
+    public static Utils getInstance(Context context) {
+        if (mUtils == null) {
+            mUtils = new Utils(context);
+        }
+        return mUtils;
+    }
+
+    /**
+     * Get screen size.
+     * @return Point Screen size i.e. Point(x, y).
+     */
     public Point getScreenSize() {
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
@@ -31,36 +52,36 @@ public final class Utils {
         return size;
     }
 
-
     /**
-     * Static methods / variables
+     * Get all properties.
+     * @return Properties All properties.
      */
-
-    public static int[] menuIconsResId = {
-            R.drawable.ic_home,
-            R.drawable.ic_health,
-            R.drawable.ic_air,
-            R.drawable.ic_graphs,
-            R.drawable.ic_settings
-    };
-
-    public static Properties getProperties(Context context) {
+    public Properties getProperties() {
         Properties properties = new Properties();
-        AssetManager assetManager = context.getAssets();
+        AssetManager assetManager = mContext.getAssets();
+
         try {
             InputStream inputStream = assetManager.open("config.properties");
             properties.load(inputStream);
         } catch (IOException e) { }
+
         return properties;
     }
 
-    public static String getProperty(String key, Context context) {
+    /**
+     * Get a property value by its key.
+     * @param key String Property key.
+     * @return String Proverty value.
+     */
+    public String getProperty(String key) {
         Properties properties = new Properties();
-        AssetManager assetManager = context.getAssets();
+        AssetManager assetManager = mContext.getAssets();
+
         try {
             InputStream inputStream = assetManager.open("config.properties");
             properties.load(inputStream);
         } catch (IOException e) { }
+
         return properties.getProperty(key);
     }
 }

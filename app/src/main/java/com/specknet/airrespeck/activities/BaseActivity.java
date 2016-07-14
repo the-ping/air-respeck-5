@@ -1,4 +1,4 @@
-package com.specknet.airrespeck;
+package com.specknet.airrespeck.activities;
 
 
 import android.content.SharedPreferences;
@@ -6,9 +6,11 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 
+import com.specknet.airrespeck.utils.ThemeUtils;
+
 
 /**
- * Base Activity class to handle all settings related preferences.
+ * Base Activity class to handle all mSettings related preferences.
  */
 public class BaseActivity extends AppCompatActivity {
 
@@ -44,25 +46,11 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         try {
-            // Get the font size option.
-            // We specify "Normal" with key "1" as the default value, if it does not exist.
             mFontSizePref = Integer.valueOf(mSettings.getString("font_size", "1"));
 
-            // Select the proper theme ID.
-            // These will correspond to the theme names as defined in themes.xml.
-            int themeID = R.style.FontSizeNormal;
-            if (mFontSizePref == 0) {
-                themeID = R.style.FontSizeSmall;
-            }
-            else if (mFontSizePref == 2) {
-                themeID = R.style.FontSizeLarge;
-            }
-            else if (mFontSizePref == 3) {
-                themeID = R.style.FontSizeHuge;
-            }
-
-            // Set the theme for the activity.
-            setTheme(themeID);
+            ThemeUtils themeUtils = ThemeUtils.getInstance();
+            themeUtils.setTheme(mFontSizePref);
+            themeUtils.onActivityCreateSetTheme(this);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -77,8 +65,6 @@ public class BaseActivity extends AppCompatActivity {
             boolean newVal = mSettings.getBoolean("main_menu_layout", false);
 
             if (mTabModePref != newVal) {
-                mTabModePref = newVal;
-
                 // Preference change requires full refresh.
                 restartActivity();
             }
@@ -91,8 +77,6 @@ public class BaseActivity extends AppCompatActivity {
             boolean newVal = mSettings.getBoolean("icons_in_tabs", false);
 
             if (mIconsInTabsPref != newVal) {
-                mIconsInTabsPref = newVal;
-
                 // Preference change requires full refresh.
                 restartActivity();
             }
@@ -102,13 +86,9 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         try {
-            // Get the font size option.
-            // We specify "Normal" with key "1" as the default value, if it does not exist.
             int newVal = Integer.valueOf(mSettings.getString("font_size", "1"));
 
             if (mFontSizePref != newVal) {
-                mFontSizePref = newVal;
-
                 // Preference change requires full refresh.
                 restartActivity();
             }
