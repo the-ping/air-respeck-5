@@ -7,7 +7,6 @@
     <string name="new_user_title">用户详细信息</string>
     <string name="new_user_register">寄存器</string>
     <string name="new_user_empty_fields">必须完成所有领域</string>
-    <string name="no_network">没有网络连接</string>
 
     <string name="new_user_first_name">名字</string>
     <string name="new_user_last_name">姓</string>
@@ -31,6 +30,23 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+
+
+    <!-- Strings related to login issues -->
+    <string name="no_network">没有网络连接</string>
+    <string name="network_required">需要设置用户的互联网连接</string>
+    <string name="loading_data">需要设置用户的互联网连接</string>
+
+
+    <!-- Strings related to User Profile -->
+    <string name="title_activity_user_profile">用户资料</string>
+    <string name="user_profile_name">名称:</string>
+    <string name="user_profile_birth_date">生日:</string>
+    <string name="user_profile_gender">性别:</string>
+    <string name="user_profile_user_type">用户类型:</string>
+    <string name="user_profile_illiterate">文盲:</string>
+    <string name="user_profile_yes">是</string>
+    <string name="user_profile_no">没有</string>
 
 
     <!-- Strings related to SegmentedBar -->

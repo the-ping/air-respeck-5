@@ -44,4 +44,7 @@ dependencies {
 
     // FloatLabeledEditText
     compile 'com.nineoldandroids:library:2.4.0'
+
+    // CircularProgressBar
+    compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
 }

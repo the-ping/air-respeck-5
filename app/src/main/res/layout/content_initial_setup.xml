@@ -12,12 +12,20 @@
     tools:context="com.specknet.airrespeck.activities.InitialSetupActivity"
     tools:showIn="@layout/activity_initial_setup">
 
+    <fr.castorflex.android.circularprogressbar.CircularProgressBar
+        android:id="@+id/circular_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        app:cpb_colors="@array/pocket_background_colors"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/circular_progress"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Checking / loading user data"
-        android:id="@+id/textView"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:text="@string/loading_data" />
+
 </RelativeLayout>

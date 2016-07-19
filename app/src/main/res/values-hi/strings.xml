@@ -7,7 +7,6 @@
     <string name="new_user_title">उपयोगकर्ता विवरण</string>
     <string name="new_user_register">रजिस्टर</string>
     <string name="new_user_empty_fields">क्षेत्र को पूरा करना चाहिए</string>
-    <string name="no_network">कोई इंटरनेट कनेक्शन नहीं</string>
 
     <string name="new_user_first_name">पहला नाम</string>
     <string name="new_user_last_name">अंतिम नाम</string>
@@ -31,6 +30,23 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+
+
+    <!-- Strings related to login issues -->
+    <string name="no_network">कोई इंटरनेट कनेक्शन नहीं</string>
+    <string name="network_required">इंटरनेट कनेक्शन सेटअप उपयोगकर्ता के लिए आवश्यक</string>
+    <string name="loading_data">लोड हो रहा है उपयोगकर्ता डेटा</string>
+
+
+    <!-- Strings related to User Profile -->
+    <string name="title_activity_user_profile">उपयोगकर्ता प्रोफ़ाइलe</string>
+    <string name="user_profile_name">नाम:</string>
+    <string name="user_profile_birth_date">जन्म दिन:</string>
+    <string name="user_profile_gender">लिंग:</string>
+    <string name="user_profile_user_type">इस्तेमाल करने वाले का प्रकार:</string>
+    <string name="user_profile_illiterate">निरक्षर:</string>
+    <string name="user_profile_yes">हाँ</string>
+    <string name="user_profile_no">नहीं</string>
 
 
     <!-- Strings related to SegmentedBar -->

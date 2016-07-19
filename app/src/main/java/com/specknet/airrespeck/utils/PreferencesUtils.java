@@ -28,6 +28,8 @@ public class PreferencesUtils {
      * Class for keeping all the keys used for shared preferences in one place.
      */
     public static class Key {
+        public static final String IS_APP_INITIAL_STARTUP = "is_app_initial_startup";
+
         public static final String USER_ID = "user_id";
 
         public static final String FONT_SIZE = "font_size";

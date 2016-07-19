@@ -12,6 +12,7 @@ import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.internal.LinkedTreeMap;
@@ -40,7 +41,8 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
     private Spinner mUsertype;
     private Spinner mGender;
     private CheckBox mIlliterate;
-    private Button mRegisterButton;
+    private Button mRegisterBtn;
+    private TextView mMessage;
 
     private DatePickerDialog mBirthDatePickerDialog;
     private DateFormat mDateFormatter;
@@ -48,8 +50,8 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
 
     private User mUser;
 
-    HashMap<String,String> mGenderMap;
-    HashMap<String,String> mUsertypeMap;
+    private HashMap<String,String> mGenderMap;
+    private HashMap<String,String> mUsertypeMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +66,14 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
         mUsertype = (Spinner) findViewById(R.id.new_user_usertype);
         mGender = (Spinner) findViewById(R.id.new_user_gender);
         mIlliterate = (CheckBox) findViewById(R.id.new_user_illiterate);
-        mRegisterButton = (Button) findViewById(R.id.new_user_register);
+        mRegisterBtn = (Button) findViewById(R.id.new_user_register);
+        mMessage = (TextView) findViewById(R.id.new_user_message);
 
-        if (mRegisterButton != null) {
-            mRegisterButton.setOnClickListener(this);
+        if (mRegisterBtn != null) {
+            mRegisterBtn.setOnClickListener(this);
+        }
+        if (mMessage != null) {
+            mMessage.setText("");
         }
         setupHashMaps();
         setupDatePicker();
@@ -78,7 +84,7 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
         if(v.equals(mBirthDate)) {
             mBirthDatePickerDialog.show();
         }
-        else if (v.equals(mRegisterButton)) {
+        else if (v.equals(mRegisterBtn)) {
             if (mFirstName.getText().toString().isEmpty() ||
                     mLastName.getText().toString().isEmpty() ||
                     mBirthDate.getText().toString().isEmpty()) {
@@ -221,6 +227,7 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
             @Override
             public void onFailure(Call<LinkedTreeMap> call, Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                mMessage.setText(R.string.network_required);
             }
         });
     }
@@ -244,6 +251,7 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
         if (mUser.getUserType() == 2) {
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, true);
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, true);
+            PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
         }
 
         // Go to Main Activity

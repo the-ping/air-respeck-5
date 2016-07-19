@@ -53,7 +53,7 @@ public class MenuFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mMenuItemLayoutParameters = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        mMenuItemLayoutParameters = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
 
         mButtons = new ArrayList<MenuButton>();
         mButtons.add(new MenuButton(MenuButton.buttonType.HOME, getString(R.string.menu_home),

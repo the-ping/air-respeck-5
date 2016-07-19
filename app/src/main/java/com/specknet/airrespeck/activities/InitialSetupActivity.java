@@ -9,6 +9,7 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.http.HttpApi;
+import com.specknet.airrespeck.utils.PreferencesUtils;
 
 import java.io.IOException;
 
@@ -33,13 +34,23 @@ public class InitialSetupActivity extends BaseActivity {
 
         if (User.isTableEmpty()) {
             // No user found, go to New user Activity
-            startActivity(new Intent(this, NewUserActivity.class));
-            this.finish();
+            goToNewUserScreen();
         }
         else {
             // User found, get user data from the server
-            User user = User.getUser();
-            getUserDataApiRequest(user.getUniqueId());
+            PreferencesUtils.getInstance(getApplicationContext());
+
+            // Get user profile only on initial app startup
+            if (PreferencesUtils.getInstance().getBoolean(PreferencesUtils.Key.IS_APP_INITIAL_STARTUP)) {
+                User user = User.getUser();
+                getUserDataApiRequest(user.getUniqueId());
+
+                // Update flag
+                PreferencesUtils.getInstance().put(PreferencesUtils.Key.IS_APP_INITIAL_STARTUP, false);
+            }
+            else {
+                goToMainScreen();
+            }
         }
     }
 
@@ -87,7 +98,9 @@ public class InitialSetupActivity extends BaseActivity {
              */
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                // Error during the request, go to Main Activity without updating the user profile
+                goToMainScreen();
             }
         });
     }
@@ -99,12 +112,27 @@ public class InitialSetupActivity extends BaseActivity {
     private void processResponse(User user) {
         if (user.isActive()) {
             // No deletion request, go to Main Activity
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            this.finish();
+            goToMainScreen();
         }
         else {
             // TODO handle user deletion
         }
+    }
+
+    /**
+     * Go to new user activity and finish the current activity.
+     */
+    private void goToNewUserScreen() {
+        startActivity(new Intent(this, NewUserActivity.class));
+        this.finish();
+    }
+
+    /**
+     * Go to main activity and finish the current activity.
+     */
+    private void goToMainScreen() {
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        this.finish();
     }
 
 }

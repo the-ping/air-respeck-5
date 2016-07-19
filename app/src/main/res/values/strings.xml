@@ -7,7 +7,6 @@
     <string name="new_user_title">User details</string>
     <string name="new_user_register">Register</string>
     <string name="new_user_empty_fields">Must complete all fields</string>
-    <string name="no_network">No Internet connection</string>
 
     <string name="new_user_first_name">First name</string>
     <string name="new_user_last_name">Last name</string>
@@ -33,8 +32,21 @@
     </string-array>
 
 
+    <!-- Strings related to login issues -->
+    <string name="no_network">No Internet connection</string>
+    <string name="network_required">Internet connection required to setup the user</string>
+    <string name="loading_data">Loading user data</string>
+
+
     <!-- Strings related to User Profile -->
     <string name="title_activity_user_profile">User Profile</string>
+    <string name="user_profile_name">Name:</string>
+    <string name="user_profile_birth_date">Birth date:</string>
+    <string name="user_profile_gender">Gender:</string>
+    <string name="user_profile_user_type">User type:</string>
+    <string name="user_profile_illiterate">Illiterate:</string>
+    <string name="user_profile_yes">Yes</string>
+    <string name="user_profile_no">No</string>
 
 
     <!-- Strings related to SegmentedBar -->
