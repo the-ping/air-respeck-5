@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,11 +23,11 @@ import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 
 public class MainActivity extends BaseActivity implements
@@ -37,6 +38,7 @@ public class MainActivity extends BaseActivity implements
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
     private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
+    private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
 
     private HomeFragment mHomeFragment;
     private AQReadingsFragment mAQReadingsFragment;
@@ -57,29 +59,52 @@ public class MainActivity extends BaseActivity implements
                     (AQReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mGraphsFragment =
                     (GraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
+            mCurrentFragment = fm.getFragment(savedInstanceState, TAG_CURRENT_FRAGMENT);
+
+            if (mHomeFragment == null) {
+                mHomeFragment = new HomeFragment();
+            }
+            if (mAQReadingsFragment == null) {
+                mAQReadingsFragment = new AQReadingsFragment();
+            }
+            if (mGraphsFragment == null) {
+                mGraphsFragment = new GraphsFragment();
+            }
         }
         else {
-            mHomeFragment = (HomeFragment) fm.findFragmentByTag(TAG_HOME_FRAGMENT);
-            mAQReadingsFragment = (AQReadingsFragment) fm.findFragmentByTag(TAG_AQREADINGS_FRAGMENT);
-            mGraphsFragment = (GraphsFragment) fm.findFragmentByTag(TAG_GRAPHS_FRAGMENT);
-        }
-
-        if (mHomeFragment == null) {
             mHomeFragment = new HomeFragment();
-        }
-        if (mAQReadingsFragment == null) {
             mAQReadingsFragment = new AQReadingsFragment();
-        }
-        if (mGraphsFragment == null) {
             mGraphsFragment = new GraphsFragment();
+            mCurrentFragment = mHomeFragment;
         }
 
         // Choose layout
-        if (mTabModePref) {
+        if (mMenuModePref == 0) {
+            setContentView(R.layout.activity_main_buttons);
+
+            FragmentTransaction trans = fm.beginTransaction();
+
+            if (mCurrentFragment instanceof HomeFragment) {
+                trans.replace(R.id.content, mCurrentFragment, TAG_HOME_FRAGMENT);
+            }
+            else if (mCurrentFragment instanceof AQReadingsFragment) {
+                trans.replace(R.id.content, mCurrentFragment, TAG_AQREADINGS_FRAGMENT);
+            }
+            else if (mCurrentFragment instanceof GraphsFragment) {
+                trans.replace(R.id.content, mCurrentFragment, TAG_GRAPHS_FRAGMENT);
+            }
+            else {
+                trans.replace(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT);
+                mCurrentFragment = mHomeFragment;
+            }
+
+            trans.commit();
+        }
+        else if (mMenuModePref == 1) {
             setContentView(R.layout.activity_main_tabs);
 
             // Create the adapter that will return a fragment for each of the three
-            // primary sections of the mActivity.
+            // primary sections of the activity.
             SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
             sectionsPagerAdapter.setContext(getApplicationContext());
 
@@ -94,21 +119,10 @@ public class MainActivity extends BaseActivity implements
                 tabLayout.setupWithViewPager(viewPager);
             }
 
-            if (mIconsInTabsPref) {
+            if (mMenuTabIconsPref) {
                 tabLayout.getTabAt(0).setIcon(Constants.menuIconsResId[0]);
                 tabLayout.getTabAt(1).setIcon(Constants.menuIconsResId[2]);
                 tabLayout.getTabAt(2).setIcon(Constants.menuIconsResId[3]);
-            }
-        }
-        else {
-            setContentView(R.layout.activity_main_buttons);
-
-            if (mCurrentFragment == null) {
-                fm.
-                        beginTransaction().
-                        replace(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT).
-                        commit();
-                mCurrentFragment = mHomeFragment;
             }
         }
 
@@ -142,18 +156,9 @@ public class MainActivity extends BaseActivity implements
         if (mGraphsFragment != null && mGraphsFragment.isAdded()) {
             fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mGraphsFragment);
         }
-    }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        NetworkUtils networkUtils = NetworkUtils.getInstance(getApplicationContext());
-        if (networkUtils.isNetworkAvailable()) {
-
-        }
-        else {
-            Toast.makeText(this, "INTERNET NOT AVAILABLE", Toast.LENGTH_SHORT).show();
+        if (mCurrentFragment != null && mCurrentFragment.isAdded()) {
+            fm.putFragment(outState, TAG_CURRENT_FRAGMENT, mCurrentFragment);
         }
     }
 
@@ -176,6 +181,13 @@ public class MainActivity extends BaseActivity implements
         menu.getItem(0).setVisible(mRespeckAppAccessPref);
         menu.getItem(1).setVisible(mAirspeckAppAccessPref);
 
+        if (Objects.equals(mCurrentUser.getGender(), "M")) {
+            menu.getItem(3).setIcon(R.drawable.ic_user_male);
+        }
+        else if (Objects.equals(mCurrentUser.getGender(), "F")) {
+            menu.getItem(3).setIcon(R.drawable.ic_user_female);
+        }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -183,12 +195,18 @@ public class MainActivity extends BaseActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent mActivity in AndroidManifest.xml.
+        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStattement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
+        if (id == R.id.action_user_profile) {
+            startActivity(new Intent(this, UserProfileActivity.class));
+        }
+        else if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.SettingsFragment.class.getName());
+            intent.putExtra(PreferenceActivity.EXTRA_NO_HEADERS, true);
+            startActivity(intent);
         }
         else if (id == R.id.action_airspeck) {
             try {

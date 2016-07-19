@@ -1,11 +1,12 @@
 package com.specknet.airrespeck.fragments;
 
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+
+import com.specknet.airrespeck.datamodels.User;
+import com.specknet.airrespeck.utils.PreferencesUtils;
 
 
 /**
@@ -14,28 +15,44 @@ import android.support.v4.app.FragmentManager;
 public class BaseFragment extends Fragment {
 
     // Preferences
-    protected SharedPreferences mSettings;
-    protected int mReadingsDisplayMode = -1;
+    protected User mCurrentUser;
+    protected int mReadingsModeHomeScreen;
+    protected int mReadingsModeAQReadingsScreen;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mSettings = PreferenceManager.getDefaultSharedPreferences(getContext());
-        mReadingsDisplayMode = Integer.valueOf(mSettings.getString("readings_display_mode", "0"));
+        PreferencesUtils.getInstance(getContext());
+
+        mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.USER_ID));
+
+        mReadingsModeHomeScreen = Integer.valueOf(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0"));
+        mReadingsModeAQReadingsScreen = Integer.valueOf(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0"));
     }
 
     @Override
     public void onStart() {
         super.onStart();
 
-        int newVal = Integer.valueOf(mSettings.getString("readings_display_mode", "0"));
+        if (this instanceof HomeFragment) {
+            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0"));
 
-        if (mReadingsDisplayMode != newVal) {
-            mReadingsDisplayMode = newVal;
+            if (mReadingsModeHomeScreen != newVal) {
+                restartFragment();
+            }
+        }
+        else if (this instanceof AQReadingsFragment) {
+            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0"));
 
-            // Preference change requires full refresh.
-            restartFragment();
+            if (mReadingsModeAQReadingsScreen != newVal) {
+                restartFragment();
+            }
         }
     }
 

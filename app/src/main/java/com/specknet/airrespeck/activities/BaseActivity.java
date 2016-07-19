@@ -1,22 +1,22 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 
+import com.specknet.airrespeck.datamodels.User;
+import com.specknet.airrespeck.utils.PreferencesUtils;
 import com.specknet.airrespeck.utils.ThemeUtils;
 
 
 /**
- * Base Activity class to handle all mSettings related preferences.
+ * Base Activity class to handle all settings related preferences.
  */
 public class BaseActivity extends AppCompatActivity {
 
-    protected SharedPreferences mSettings;
-    protected boolean mTabModePref;
-    protected boolean mIconsInTabsPref;
+    protected User mCurrentUser;
+    protected int mMenuModePref;
+    protected boolean mMenuTabIconsPref;
     protected boolean mRespeckAppAccessPref;
     protected boolean mAirspeckAppAccessPref;
     protected int mFontSizePref;
@@ -25,28 +25,38 @@ public class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        PreferencesUtils.getInstance(getApplicationContext());
+
+        if ( !(this instanceof InitialSetupActivity) && !(this instanceof NewUserActivity) ) {
+            mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance().
+                    getString(PreferencesUtils.Key.USER_ID));
+        }
 
         // Enclose everything in a try block so that the default view
         // can be used if anything goes wrong.
         try {
-            mTabModePref = mSettings.getBoolean("main_menu_layout", false);
-            mIconsInTabsPref = mSettings.getBoolean("icons_in_tabs", false);
+            mMenuModePref = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.MENU_MODE, "0"));
+            mMenuTabIconsPref = PreferencesUtils.getInstance()
+                    .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
-            mRespeckAppAccessPref = mSettings.getBoolean("respeck_app_access", false);
-            mAirspeckAppAccessPref = mSettings.getBoolean("airspeck_app_access", false);
+            mRespeckAppAccessPref = PreferencesUtils.getInstance()
+                    .getBoolean(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
+            mAirspeckAppAccessPref = PreferencesUtils.getInstance()
+                    .getBoolean(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
-            mFontSizePref = Integer.valueOf(mSettings.getString("font_size", "1"));
+            mFontSizePref = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.FONT_SIZE, "1"));
 
             ThemeUtils themeUtils = ThemeUtils.getInstance();
             themeUtils.setTheme(mFontSizePref);
@@ -62,10 +72,10 @@ public class BaseActivity extends AppCompatActivity {
         super.onStart();
 
         try {
-            boolean newVal = mSettings.getBoolean("main_menu_layout", false);
+            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.MENU_MODE, "0"));
 
-            if (mTabModePref != newVal) {
-                // Preference change requires full refresh.
+            if (mMenuModePref != newVal) {
                 restartActivity();
             }
         }
@@ -74,10 +84,10 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         try {
-            boolean newVal = mSettings.getBoolean("icons_in_tabs", false);
+            boolean newVal = PreferencesUtils.getInstance()
+                    .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
 
-            if (mIconsInTabsPref != newVal) {
-                // Preference change requires full refresh.
+            if (mMenuTabIconsPref != newVal) {
                 restartActivity();
             }
         }
@@ -86,10 +96,10 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         try {
-            int newVal = Integer.valueOf(mSettings.getString("font_size", "1"));
+            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.FONT_SIZE, "1"));
 
             if (mFontSizePref != newVal) {
-                // Preference change requires full refresh.
                 restartActivity();
             }
         }

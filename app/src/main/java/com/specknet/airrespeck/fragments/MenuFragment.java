@@ -2,10 +2,7 @@ package com.specknet.airrespeck.fragments;
 
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MenuFragment extends Fragment {
+public class MenuFragment extends BaseFragment {
 
     private List<MenuButton> mButtons;
 
@@ -56,8 +53,7 @@ public class MenuFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mMenuItemLayoutParameters = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        mMenuItemLayoutParameters = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
         mButtons = new ArrayList<MenuButton>();
         mButtons.add(new MenuButton(MenuButton.buttonType.HOME, getString(R.string.menu_home),
@@ -83,7 +79,9 @@ public class MenuFragment extends Fragment {
 
         createButton(mButtons.get(0));
         createButton(mButtons.get(1));
-        createButton(mButtons.get(2));
+        if (mCurrentUser.getUserType() == 2) {
+            createButton(mButtons.get(2));
+        }
     }
 
     /**
@@ -111,14 +109,7 @@ public class MenuFragment extends Fragment {
         Button button = new Button(getActivity());
         button.setText(menuButton.getLabel());
         button.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        //button.setCompoundDrawablesWithIntrinsicBounds(0, menuButton.getImage(), 0, 0);
-
-        Drawable drawable = ContextCompat.getDrawable(getContext(), menuButton.getImage());
-        drawable.setBounds(0, 0, (int)(drawable.getIntrinsicWidth() * 1.0f),
-                                 (int)(drawable.getIntrinsicHeight() * 1.0f));
-        //ScaleDrawable sd = new ScaleDrawable(drawable, 0, scaleWidth, scaleHeight);
-        //button.setCompoundDrawables(sd.getDrawable(), null, null, null);
-        button.setCompoundDrawables(null, drawable, null, null);
+        button.setCompoundDrawablesWithIntrinsicBounds(0, menuButton.getImage(), 0, 0);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override

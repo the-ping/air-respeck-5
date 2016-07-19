@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="HorizontalGauge">
-        // Nothing for now
-    </declare-styleable>
-
     <declare-styleable name="ArcProgress">
         <attr name="ap_animated" format="boolean"/>
         <attr name="ap_shadowed" format="boolean"/>
@@ -70,5 +66,15 @@
             <enum name="oneSided" value="0" />
             <enum name="twoSided" value="1" />
         </attr>
+    </declare-styleable>
+
+    <declare-styleable name="FloatLabeledEditText">
+        <attr name="flet_text_appearance" format="reference" />
+        <attr name="flet_padding" format="reference|dimension" />
+        <attr name="flet_padding_left" format="reference|dimension" />
+        <attr name="flet_padding_top" format="reference|dimension" />
+        <attr name="flet_padding_right" format="reference|dimension" />
+        <attr name="flet_padding_bottom" format="reference|dimension" />
+        <attr name="flet_background" format="reference|color" />
     </declare-styleable>
 </resources>

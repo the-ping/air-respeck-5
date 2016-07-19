@@ -43,7 +43,7 @@ public class ThemeUtils {
      * Set theme id.
      * @param theme int Theme id.
      */
-    public static void setTheme(int theme) {
+    public void setTheme(int theme) {
         mTheme = theme;
     }
 
@@ -52,7 +52,7 @@ public class ThemeUtils {
      * @param activity Activity Activity instance.
      * @param theme int Theme id.
      */
-    public static void changeToTheme(Activity activity, int theme) {
+    public void changeToTheme(Activity activity, int theme) {
         mTheme = theme;
 
         activity.finish();
@@ -63,7 +63,7 @@ public class ThemeUtils {
      * Set activity theme.
      * @param activity Activity Activity instance.
      */
-    public static void onActivityCreateSetTheme(Activity activity) {
+    public void onActivityCreateSetTheme(Activity activity) {
         switch (mTheme) {
             case SMALL_FONT_SIZE:
                 activity.setTheme(R.style.FontSizeSmall);

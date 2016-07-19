@@ -58,7 +58,7 @@ public class AQReadingsFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        calculateColumnSize(mReadingsDisplayMode);
+        calculateColumnSize(mReadingsModeAQReadingsScreen);
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
@@ -70,34 +70,34 @@ public class AQReadingsFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(getLayout(mReadingsDisplayMode), container, false);
+        View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
 
         Context context = view.getContext();
 
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            }
-            else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-
-            if (mReadingsDisplayMode == 1) {
-                mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
-                recyclerView.setAdapter(mSegmentedBarAdapter);
-            }
-            else if (mReadingsDisplayMode == 2) {
-                mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
-                recyclerView.setAdapter(mArcProgressAdapter);
-            }
-        }
-        else if (view instanceof ListView) {
-            if (mReadingsDisplayMode == 0) {
+        if (mReadingsModeAQReadingsScreen == 0) {
+            if (view instanceof ListView) {
                 ListView listView = (ListView) view;
                 mListViewAdapter = new ReadingItemArrayAdapter(context, getReadingItems());
                 listView.setAdapter(mListViewAdapter);
+            }
+        }
+        else {
+            if (view instanceof RecyclerView) {
+                RecyclerView recyclerView = (RecyclerView) view;
+                if (mColumnCount <= 1) {
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                } else {
+                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                }
+
+                if (mReadingsModeAQReadingsScreen == 1) {
+                    mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
+                    recyclerView.setAdapter(mSegmentedBarAdapter);
+                } else if (mReadingsModeAQReadingsScreen == 2) {
+                    mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
+                    recyclerView.setAdapter(mArcProgressAdapter);
+                }
             }
         }
         return view;
@@ -127,7 +127,7 @@ public class AQReadingsFragment extends BaseFragment {
     public void onStart() {
         super.onStart();
 
-        calculateColumnSize(mReadingsDisplayMode);
+        calculateColumnSize(mReadingsModeAQReadingsScreen);
     }
 
     /**
@@ -267,7 +267,7 @@ public class AQReadingsFragment extends BaseFragment {
             for (int i = 0; i < mReadingItems.size() && i < values.size(); ++i) {
                 mReadingItems.get(i).value = values.get(i);
             }
-            notifyDataSetChange(mReadingsDisplayMode);
+            notifyDataSetChange(mReadingsModeAQReadingsScreen);
         }
     }
 }
