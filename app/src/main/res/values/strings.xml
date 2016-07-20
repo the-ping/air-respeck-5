@@ -92,6 +92,7 @@
     <string name="action_re_speck">RESpeck</string>
     <string name="action_settings">Settings</string>
     <string name="action_user_profile">Profile</string>
+    <string name="action_connect">Connect</string>
 
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
