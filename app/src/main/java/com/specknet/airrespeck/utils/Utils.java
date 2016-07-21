@@ -11,6 +11,7 @@ import com.specknet.airrespeck.R;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.Properties;
 
 
@@ -50,6 +51,15 @@ public final class Utils {
         display.getSize(size);
 
         return size;
+    }
+
+    /**
+     * Round a float number to 2 digits.
+     * @param value float The value to be rounded.
+     * @return float The rounded value.
+     */
+    public float roundToTwoDigits(final float value) {
+        return Float.valueOf(String.format("%.2f%n", value));
     }
 
     /**

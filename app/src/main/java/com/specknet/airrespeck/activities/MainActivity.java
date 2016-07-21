@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -25,7 +26,6 @@ import android.preference.PreferenceActivity;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
@@ -35,27 +35,31 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 
-public class MainActivity extends BaseActivity implements
-        MenuFragment.OnMenuSelectedListener {
+public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSelectedListener {
 
-    private Thread mUpdateThread;
+    // UTILS
+    Utils mUtils;
 
+
+    // FRAGMENTS
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
     private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
@@ -66,42 +70,165 @@ public class MainActivity extends BaseActivity implements
     private GraphsFragment mGraphsFragment;
     private Fragment mCurrentFragment;
 
-    //BLUETOOTH
-    private BluetoothAdapter mBluetoothAdapter;
-    private int REQUEST_ENABLE_BT = 1;
-    private BluetoothLeScanner mLEScanner;
-    private ScanSettings settings;
-    private List<ScanFilter> filters;
-    private static String RESPECK_UUID = "F5:85:7D:EA:61:F9";
-    private static String QOE_UUID = "FC:A6:33:A2:A4:5A";
-    private int DEVICES_CONNECTED = 1;
-    private BluetoothGatt mGatt, mGatt2;
-    public final static String ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-    private final static String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
-    private final static String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";//Service
 
-    //CODIGO MANTAS
+    // READING VALUES
+    HashMap<String, Float> mRespeckSensorReadings;
+    private static final String RESPECK_BREATHING_RATE = "breathing_rate";
+
+    HashMap<String, Float> mQOESensorReadings;
+    private static final String QOE_PM1 = "pm1";
+    private static final String QOE_PM2_5 = "pm2_5";
+    private static final String QOE_PM10 = "pm10";
+    private static final String QOE_TEMPERATURE = "temperature";
+    private static final String QOE_REL_HUMIDITY = "rel_hum";
+    private static final String QOE_O3 = "o3";
+    private static final String QOE_NO2 = "no2";
+    private static final String QOE_BINS_0 = "bins0";
+    private static final String QOE_BINS_1 = "bins1";
+    private static final String QOE_BINS_2 = "bins2";
+    private static final String QOE_BINS_3 = "bins3";
+    private static final String QOE_BINS_4 = "bins4";
+    private static final String QOE_BINS_5 = "bins5";
+    private static final String QOE_BINS_6 = "bins6";
+    private static final String QOE_BINS_7 = "bins7";
+    private static final String QOE_BINS_8 = "bins8";
+    private static final String QOE_BINS_9 = "bins9";
+    private static final String QOE_BINS_10 = "bins10";
+    private static final String QOE_BINS_11 = "bins11";
+    private static final String QOE_BINS_12 = "bins12";
+    private static final String QOE_BINS_13 = "bins13";
+    private static final String QOE_BINS_14 = "bins14";
+    private static final String QOE_BINS_15 = "bins15";
+    private static final String QOE_BINS_TOTAL = "bins_total";
+
+
+    // BLUETOOTH
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothLeScanner mLEScanner;
+    private ScanSettings mScanSettings;
+    private List<ScanFilter> mScanFilters;
+    private BluetoothGatt mGattRespeck, mGattQOE;
+    private BluetoothDevice mDeviceRespeck, mDeviceQOE;
+
+    private int REQUEST_ENABLE_BT = 1;
+    private int DEVICES_CONNECTED = 1;
+    private static final String RESPECK_UUID = "F5:85:7D:EA:61:F9";
+    private static final String QOE_UUID = "FC:A6:33:A2:A4:5A";
+    private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
+    private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
+
+    // CODIGO MANTAS
     private static byte[][] lastPackets_1  = new byte[4][];
     private static byte[][] lastPackets_2  = new byte[5][];
-    int lastSample = 0;
     private static int[] sampleIDs_1 = {0, 0, 0, 0};
     private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
+    int lastSample = 0;
 
 
+    // UI HANDLER
+    private final static int UPDATE_BREATHING_RATE = 0;
+    private final static int UPDATE_QOE_READINGS = 1;
 
-    List<Float> mHomeScreenReadingValues = new ArrayList<Float>();
-    List<Float> mAQReadingValues = new ArrayList<Float>();
+    // Static inner class doesn't hold an implicit reference to the outer class
+    private static class UIHandler extends Handler {
+        // Using a weak reference means you won't prevent garbage collection
+        private final WeakReference<MainActivity> mService;
 
-
-    private final Handler myHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            doUpdate();
+        public UIHandler(MainActivity service) {
+            mService = new WeakReference<MainActivity>(service);
         }
-    };
+
+        @Override
+        public void handleMessage(Message msg) {
+            final int what = msg.what;
+
+            MainActivity service = mService.get();
+
+            if (service != null) {
+                switch(what) {
+                    case UPDATE_BREATHING_RATE:
+                        service.updateRespeckReadings( (HashMap<String, Float>) msg.obj );
+                        break;
+                    case UPDATE_QOE_READINGS:
+                        service.updateQOEReadings( (HashMap<String, Float>) msg.obj );
+                        break;
+                }
+            }
+        }
+    }
+
+    // A getter for the UI handler
+    public Handler getHandler() {
+        return new UIHandler(this);
+    }
+
+    private final Handler mUIHandler = getHandler();
+
+
+
+    /**
+     *
+     * @param newValues HashMap<String, Float> The Respeck sensor readings.
+     */
+    private void updateRespeckReadings(HashMap<String, Float> newValues) {
+        // Update local values
+        mRespeckSensorReadings = newValues;
+
+        // Update the UI
+        updateUI();
+    }
+
+    /**
+     *
+     * @param newValues HashMap<String, Float> The QOE sensor readings.
+     */
+    private void updateQOEReadings(HashMap<String, Float> newValues) {
+        // Update local values
+        mQOESensorReadings = newValues;
+
+        // Update the UI
+        updateUI();
+    }
+
+
+    private void updateUI() {
+        // Air Quality fragment UI
+        try {
+            ArrayList<Float> listValues = new ArrayList<Float>();
+
+            listValues.add(mUtils.roundToTwoDigits(15f));//mRespeckSensorReadings.get(RESPECK_BREATHING_RATE)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM2_5)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM10)));
+
+            mHomeFragment.setReadings(listValues);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+
+        // Home fragment UI
+        try {
+            ArrayList<Float> listValues = new ArrayList<Float>();
+
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_TEMPERATURE)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_REL_HUMIDITY)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_O3)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_NO2)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM1)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM2_5)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM10)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_BINS_TOTAL)));
+
+            mAQReadingsFragment.setReadings(listValues);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Utils
+        mUtils = Utils.getInstance(this);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -159,8 +286,10 @@ public class MainActivity extends BaseActivity implements
 
             // Create the adapter that will return a fragment for each of the three
             // primary sections of the activity.
-            SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-            sectionsPagerAdapter.setContext(getApplicationContext());
+            SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), getApplicationContext());
+            sectionsPagerAdapter.addFragment(mHomeFragment);
+            sectionsPagerAdapter.addFragment(mAQReadingsFragment);
+            sectionsPagerAdapter.addFragment(mGraphsFragment);
 
             // Set up the ViewPager with the sections adapter.
             ViewPager viewPager = (ViewPager) findViewById(R.id.container);
@@ -183,20 +312,51 @@ public class MainActivity extends BaseActivity implements
         // Add the toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+
+        // Initialize Reading hash maps
+        mRespeckSensorReadings = new HashMap<String, Float>();
+        mQOESensorReadings = new HashMap<String, Float>();
+
+        // Bluetooth initialization
+        initBluetooth();
     }
 
-    protected void onResume() {
+    @Override
+    public void onResume() {
         super.onResume();
-        if (mGatt2 != null)
-            System.out.println("BT: " + mGatt2.toString());
+
+        // Bluetooth startup
+        startBluetooth();
     }
 
-    protected void onPause() {
+    @Override
+    public void onPause() {
         super.onPause();
-        if (mGatt2 != null)
-            System.out.println("BT: " + mGatt2.toString());
+
+        // Stop Bluetooth scanning
+        if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+            scanLeDevice(false);
+        }
     }
 
+    @Override
+    public void onDestroy() {
+        if (mGattRespeck == null && mGattQOE == null) {
+            return;
+        }
+
+        if (mGattRespeck != null) {
+            mGattRespeck.close();
+            mGattRespeck = null;
+        }
+
+        if (mGattQOE != null) {
+            mGattQOE.close();
+            mGattQOE = null;
+        }
+
+        super.onDestroy();
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -251,10 +411,7 @@ public class MainActivity extends BaseActivity implements
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStattement
-        if (id == R.id.action_connect) {
-            connect();
-        }
-        else if (id == R.id.action_user_profile) {
+        if (id == R.id.action_user_profile) {
             startActivity(new Intent(this, UserProfileActivity.class));
         }
         else if (id == R.id.action_settings) {
@@ -341,142 +498,151 @@ public class MainActivity extends BaseActivity implements
         mCurrentFragment = fragment;
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        private Context mContext;
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
+
+    //----------------------------------------------------------------------------------------------
+    // BLUETOOTH METHODS ---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
+    private void initBluetooth() {
+        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
+        // BluetoothAdapter through BluetoothManager.
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+    }
+
+    private void startBluetooth() {
+        // Check if Bluetooth is supported on the device
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(getApplicationContext(), "This device does not support Bluetooth",
+                    Toast.LENGTH_LONG).show();
+            return;
         }
 
-        public void setContext(Context context) {
-            mContext = context;
+        // Check if Bluetooth is enabled
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
+        else {
+            if (Build.VERSION.SDK_INT >= 21) {
+                mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
+                mScanSettings = new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .build();
 
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return the relevant fragment per each page.
-            switch (position) {
-                case 0:
-                    return mHomeFragment;
-                case 1:
-                    return mAQReadingsFragment;
-                case 2:
-                    return mGraphsFragment;
+                // Add the devices's addresses that we need for scanning
+                mScanFilters = new ArrayList<ScanFilter>();
+                mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(RESPECK_UUID).build());
+                mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
             }
-            return null;
-        }
 
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return getString(R.string.menu_home);
-                case 1:
-                    return getString(R.string.menu_air_quality);
-                case 2:
-                    return getString(R.string.menu_graphs);
-            }
-            return null;
+            // Start Bluetooth scanning
+            scanLeDevice(true);
         }
     }
 
-    //-------------------------------------------------------------------------------------------------------------
-    //BLUETOOTH METHODS--------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------
-
-    private void connect() {
-        //Initializing Bluetooth adapter
-        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-        Toast.makeText(getApplicationContext(), "Turning on Bluetooth!", Toast.LENGTH_SHORT).show();
-
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else {
-            if (Build.VERSION.SDK_INT >= 21) {
-                mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
-                settings = new ScanSettings.Builder()
-                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                        .build();
-                filters = new ArrayList<ScanFilter>();
-                ScanFilter filter = new ScanFilter.Builder().setDeviceAddress(RESPECK_UUID).build();
-                ScanFilter filtertwo = new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build();
-                filters.add(filter);
-                filters.add(filtertwo);
+    private void scanLeDevice(final boolean enable) {
+        if (enable) {
+            if (Build.VERSION.SDK_INT < 21) {
+                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                mBluetoothAdapter.startLeScan(mLeScanCallback);
             }
-            Log.i("Bluetooth Adapter", "Starting Scan of Devices");
-            mLEScanner.startScan(filters, settings, mScanCallback);
+            else {
+                mLEScanner.stopScan(mScanCallback);
+                mLEScanner.startScan(mScanFilters, mScanSettings, mScanCallback);
+            }
+        }
+        else {
+            if (Build.VERSION.SDK_INT < 21) {
+                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            }
+            else {
+                mLEScanner.stopScan(mScanCallback);
+            }
         }
     }
 
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
+            String deviceName = result.getDevice().getName();
 
-            BluetoothDevice btDevice = result.getDevice();
-            Toast.makeText(getApplicationContext(),"Reaching to "+btDevice.getName(),Toast.LENGTH_SHORT).show();
-            connectToDevice(btDevice);
-            DEVICES_CONNECTED = DEVICES_CONNECTED+1;
-
-            if(DEVICES_CONNECTED == 2){
-                Toast.makeText(getApplicationContext(),"Scanner Off",Toast.LENGTH_SHORT).show();
-                mLEScanner.stopScan(mScanCallback);
+            if (deviceName != null) {
+                //Toast.makeText(getApplicationContext(), deviceName + " found", Toast.LENGTH_SHORT).show();
+                Log.i("[Bluetooth]", "Device found: " + deviceName);
+                BluetoothDevice btDevice = result.getDevice();
+                connectToDevice(btDevice);
             }
-
-
         }
-
-
 
         @Override
         public void onScanFailed(int errorCode) {
-            Toast.makeText(getApplicationContext(),"Bluetooth Search Fail",Toast.LENGTH_SHORT).show();
+            Log.e("[Bluetooth]", "Scan Failed. Error Code: " + errorCode);
+        }
+    };
+
+    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i("[Bluetooth]", "onLeScan: " + device.toString());
+                    connectToDevice(device);
+                }
+            });
         }
     };
 
     public void connectToDevice(BluetoothDevice device) {
-        //if (mGatt == null) {
+        /*if (mGattRespeck == null && device.getName().equals("Respeck_LNT18")) {
+            Log.i("[Bluetooth]", "Connecting to " + device.getName());
+            mDeviceRespeck = device;
+            mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
+            DEVICES_CONNECTED++;
+        }*/
 
-        if(device.getName().equals("Respeck_LNT18")){
-            //Toast.makeText(getApplicationContext(),"Connecting to "+device.getName(),Toast.LENGTH_SHORT).show();
-            //mGatt = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
-        }else if(device.getName().equals("QOE")){
-            Toast.makeText(getApplicationContext(),"Connecting to "+device.getName(),Toast.LENGTH_SHORT).show();
-            mGatt2 = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
+        if (mGattQOE == null && device.getName().equals("QOE")) {
+            Log.i("[Bluetooth]", "Connecting to " + device.getName());
+            mDeviceQOE = device;
+            mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
+            DEVICES_CONNECTED++;
         }
 
-        //scanLeDevice(false);will stop after first device detection
-        // }
+        if (mGattQOE != null /*&& mGattRespeck != null*/) {
+            Log.i("[Bluetooth]", "Devices connected. Scanner turned off.");
+            scanLeDevice(false);
+        }
     }
-
 
     private final BluetoothGattCallback mGattCallbackQOE = new BluetoothGattCallback() {
         @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status,int newState) {
-            Log.i("QOE", "Discovering Services");
-            gatt.discoverServices();
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Log.i("[QOE]", "onConnectionStateChange - Status: " + status);
+
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    Log.i("[QOE] - gattCallback", "STATE_CONNECTED");
+                    gatt.discoverServices();
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    Log.e("[QOE] - gattCallback", "STATE_DISCONNECTED");
+                    Log.i("[QOE] - gattCallback", "reconnecting...");
+                    BluetoothDevice device = gatt.getDevice();
+                    mGattQOE = null;
+                    connectToDevice(device);
+                    break;
+                default:
+                    Log.e("[QOE] - gattCallback", "STATE_OTHER");
+            }
         }
 
         @Override
-        // New services discovered
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            Log.i("QOE", "Services Discovered");
-
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 List<BluetoothGattService> services = gatt.getServices();
-                Log.i("onServicesDiscoveredQOE", services.toString());
+                Log.i("[QOE]", "onServicesDiscovered - " + services.toString());
                 //gatt.readCharacteristic(services.get(1).getCharacteristics().get(0));
 
                 for (BluetoothGattService s : services) {
@@ -484,42 +650,31 @@ public class MainActivity extends BaseActivity implements
 
                     if (characteristic != null) {
                         gatt.setCharacteristicNotification(characteristic, true);
-                        BluetoothGattDescriptor descriptor3 = characteristic.getDescriptor(UUID.fromString(QOE_CLIENT_CHARACTERISTIC));
-                        descriptor3.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        gatt.writeDescriptor(descriptor3);
+                        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(QOE_CLIENT_CHARACTERISTIC));
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        gatt.writeDescriptor(descriptor);
                     }
                 }
-
-
             }
         }
 
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(QOE_LIVE_CHARACTERISTIC))) {
-                Log.i("QOE", "Descriptor Write Success");
+                Log.i("[QOE]", "onDescriptorWrite - " + status);
             }
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
-            BluetoothGattCharacteristic characteristic_alpha_2;
-            characteristic_alpha_2 = characteristic;
-            int sampleId2 = characteristic_alpha_2.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+            int sampleId2 = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+            int packetNumber2 = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1);
 
-            int packetNumber2 = characteristic_alpha_2.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1);
-
-
-            lastPackets_2[packetNumber2] = characteristic_alpha_2.getValue();
+            lastPackets_2[packetNumber2] = characteristic.getValue();
             sampleIDs_2[packetNumber2] = sampleId2;
+
             if (characteristic.getUuid().equals(UUID.fromString(QOE_LIVE_CHARACTERISTIC))) {
                 if ((sampleIDs_2[0] == sampleIDs_2[1]) && lastSample != sampleIDs_2[0] && (sampleIDs_2[1] == sampleIDs_2[2] && (sampleIDs_2[2] == sampleIDs_2[3]) && (sampleIDs_2[3] == sampleIDs_2[4]))) {
-
-
-                    //CODIGO MANTAS
-                    SimpleDateFormat formater1 = new SimpleDateFormat("yyyyMMddkkmmss");
-                    Date date = new Date();
-                    String time1 = formater1.format(date);
 
                     byte[] finalPacket = {};
                     int size = 5;
@@ -566,7 +721,6 @@ public class MainActivity extends BaseActivity implements
                     double temperature = -1;
                     double hum = -1;
 
-
                     float pm1 = -1;
                     float pm2_5 = -1;
                     float pm10 = -1;
@@ -589,6 +743,7 @@ public class MainActivity extends BaseActivity implements
                     packetBufferLittleEnd.getInt();
                     // uint16_t checksum ????
                     packetBufferLittleEnd.getShort();
+
                     pm1 = packetBufferLittleEnd.getFloat();
                     pm2_5 = packetBufferLittleEnd.getFloat();
                     pm10 = packetBufferLittleEnd.getFloat();
@@ -607,56 +762,48 @@ public class MainActivity extends BaseActivity implements
 
                     temperature = ((temp - 3960) / 100.0);
                     hum = (-2.0468 + (0.0367 * humidity) + (-0.0000015955 * humidity * humidity));
-                    Log.i("QOE", "PM1: " + pm1);
 
-                    Log.i("QOE", "PM2.5: " + pm2_5);
-                    Log.i("QOE", "PM10: " + pm10);
-
-                    mHomeScreenReadingValues.clear();
-                    mHomeScreenReadingValues.add(0f);
-                    mHomeScreenReadingValues.add(pm2_5);
-                    mHomeScreenReadingValues.add(pm10);
+                    Log.i("[QOE", "PM1: " + pm1);
+                    Log.i("[QOE", "PM2.5: " + pm2_5);
+                    Log.i("[QOE", "PM10: " + pm10);
 
 
-                    mAQReadingValues.clear();
-                    mAQReadingValues.add((float)temperature);
-                    mAQReadingValues.add((float)hum);
-                    mAQReadingValues.add((float)o3_ae);
-                    mAQReadingValues.add((float)no2_ae);
-                    mAQReadingValues.add(pm1);
-                    mAQReadingValues.add(pm2_5);
-                    mAQReadingValues.add(pm10);
-                    mAQReadingValues.add((float)total);
+                    HashMap<String, Float> values = new HashMap<String, Float>();
+                    values.put(QOE_PM1, pm1);
+                    values.put(QOE_PM2_5, pm2_5);
+                    values.put(QOE_PM10, pm10);
+                    values.put(QOE_TEMPERATURE, (float)temperature);
+                    values.put(QOE_REL_HUMIDITY, (float)hum);
+                    values.put(QOE_O3, (float)o3_ae);
+                    values.put(QOE_NO2, (float)no2_ae);
+                    values.put(QOE_BINS_0, (float)bin0);
+                    values.put(QOE_BINS_1, (float)bin1);
+                    values.put(QOE_BINS_2, (float)bin2);
+                    values.put(QOE_BINS_3, (float)bin3);
+                    values.put(QOE_BINS_4, (float)bin4);
+                    values.put(QOE_BINS_5, (float)bin5);
+                    values.put(QOE_BINS_6, (float)bin6);
+                    values.put(QOE_BINS_7, (float)bin7);
+                    values.put(QOE_BINS_8, (float)bin8);
+                    values.put(QOE_BINS_9, (float)bin9);
+                    values.put(QOE_BINS_10, (float)bin10);
+                    values.put(QOE_BINS_11, (float)bin11);
+                    values.put(QOE_BINS_12, (float)bin12);
+                    values.put(QOE_BINS_13, (float)bin13);
+                    values.put(QOE_BINS_14, (float)bin14);
+                    values.put(QOE_BINS_15, (float)bin15);
+                    values.put(QOE_BINS_TOTAL, (float)total);
 
-
-                    /*
-                    bin0Value = Float.valueOf(bin0);
-                    bin1Value = Float.valueOf(bin1);
-                    bin2Value = Float.valueOf(bin2);
-                    bin3Value = Float.valueOf(bin3);
-                    bin4Value = Float.valueOf(bin4);
-                    bin5Value = Float.valueOf(bin5);
-                    bin6Value = Float.valueOf(bin6);
-                    bin7Value = Float.valueOf(bin7);
-                    bin8Value = Float.valueOf(bin8);
-                    bin9Value = Float.valueOf(bin9);
-                    bin10Value = Float.valueOf(bin10);
-                    bin11Value = Float.valueOf(bin11);
-                    bin12Value = Float.valueOf(bin12);
-                    bin13Value = Float.valueOf(bin13);
-                    bin14Value = Float.valueOf(bin14);
-                    bin15Value = Float.valueOf(bin15);
-                    */
-                    myHandler.sendEmptyMessage(0);
+                    // Update the UI
+                    Message msg = Message.obtain();
+                    msg.obj = values;
+                    msg.what = UPDATE_QOE_READINGS;
+                    msg.setTarget(mUIHandler);
+                    msg.sendToTarget();
 
                     lastSample = sampleIDs_2[0];
                 }
             }
         }
     };
-    private float doUpdate(){
-        mHomeFragment.setReadings(mHomeScreenReadingValues);
-        mAQReadingsFragment.setReadings(mAQReadingValues);
-        return 0;
-    }
 }

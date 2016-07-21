@@ -5,6 +5,8 @@ import com.specknet.airrespeck.R;
 
 
 public class Constants {
+    public static final String BASE_URL = "http://www.mocky.io";
+
     public static int[] menuIconsResId = {
             R.drawable.ic_home,
             R.drawable.ic_health,
