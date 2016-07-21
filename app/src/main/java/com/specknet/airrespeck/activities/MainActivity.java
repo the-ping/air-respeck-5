@@ -18,7 +18,6 @@ import android.bluetooth.le.ScanSettings;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -111,7 +110,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private BluetoothDevice mDeviceRespeck, mDeviceQOE;
 
     private int REQUEST_ENABLE_BT = 1;
-    private int DEVICES_CONNECTED = 1;
     private static final String RESPECK_UUID = "F5:85:7D:EA:61:F9";
     private static final String QOE_UUID = "FC:A6:33:A2:A4:5A";
     private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
@@ -126,10 +124,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
 
     // UI HANDLER
-    private final static int UPDATE_BREATHING_RATE = 0;
+    private final static int UPDATE_RESPECK_READINGS = 0;
     private final static int UPDATE_QOE_READINGS = 1;
 
-    // Static inner class doesn't hold an implicit reference to the outer class
+    /**
+     * Static inner class doesn't hold an implicit reference to the outer class
+     */
     private static class UIHandler extends Handler {
         // Using a weak reference means you won't prevent garbage collection
         private final WeakReference<MainActivity> mService;
@@ -146,7 +146,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
             if (service != null) {
                 switch(what) {
-                    case UPDATE_BREATHING_RATE:
+                    case UPDATE_RESPECK_READINGS:
                         service.updateRespeckReadings( (HashMap<String, Float>) msg.obj );
                         break;
                     case UPDATE_QOE_READINGS:
@@ -157,7 +157,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
     }
 
-    // A getter for the UI handler
+    /**
+     * A getter for the UI handler
+     * @return UIHandler The handler.
+     */
     public Handler getHandler() {
         return new UIHandler(this);
     }
@@ -165,9 +168,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private final Handler mUIHandler = getHandler();
 
 
-
     /**
-     *
+     * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
      * @param newValues HashMap<String, Float> The Respeck sensor readings.
      */
     private void updateRespeckReadings(HashMap<String, Float> newValues) {
@@ -179,7 +181,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
     /**
-     *
+     * Update {@link #mQOESensorReadings} with the latest values sent from the QOE sensor.
      * @param newValues HashMap<String, Float> The QOE sensor readings.
      */
     private void updateQOEReadings(HashMap<String, Float> newValues) {
@@ -191,6 +193,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
 
+    /**
+     * Update reading values in fragments' UIs.
+     */
     private void updateUI() {
         // Air Quality fragment UI
         try {
@@ -503,6 +508,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     //----------------------------------------------------------------------------------------------
     // BLUETOOTH METHODS ---------------------------------------------------------------------------
     //----------------------------------------------------------------------------------------------
+
+    /**
+     * Initiate Bluetooth adapter.
+     */
     private void initBluetooth() {
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
@@ -511,6 +520,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mBluetoothAdapter = bluetoothManager.getAdapter();
     }
 
+    /**
+     * Check Bluetooth availability and initiate devices scanning.
+     */
     private void startBluetooth() {
         // Check if Bluetooth is supported on the device
         if (mBluetoothAdapter == null) {
@@ -525,53 +537,45 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
         else {
-            if (Build.VERSION.SDK_INT >= 21) {
-                mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
-                mScanSettings = new ScanSettings.Builder()
-                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                        .build();
+            // For API level 21 and above
+            mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
+            mScanSettings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build();
 
-                // Add the devices's addresses that we need for scanning
-                mScanFilters = new ArrayList<ScanFilter>();
-                mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(RESPECK_UUID).build());
-                mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
-            }
+            // Add the devices's addresses that we need for scanning
+            mScanFilters = new ArrayList<ScanFilter>();
+            mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(RESPECK_UUID).build());
+            mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
 
             // Start Bluetooth scanning
             scanLeDevice(true);
         }
     }
 
-    private void scanLeDevice(final boolean enable) {
-        if (enable) {
-            if (Build.VERSION.SDK_INT < 21) {
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                mBluetoothAdapter.startLeScan(mLeScanCallback);
-            }
-            else {
-                mLEScanner.stopScan(mScanCallback);
-                mLEScanner.startScan(mScanFilters, mScanSettings, mScanCallback);
-            }
+    /**
+     * Start or stop scanning for devices.
+     * @param start boolean If true start scanning, else stop scanning.
+     */
+    private void scanLeDevice(final boolean start) {
+        if (start) {
+            mLEScanner.startScan(mScanFilters, mScanSettings, mScanCallback);
         }
         else {
-            if (Build.VERSION.SDK_INT < 21) {
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            }
-            else {
-                mLEScanner.stopScan(mScanCallback);
-            }
+            mLEScanner.stopScan(mScanCallback);
         }
     }
 
+    /**
+     * Scan callback to handle found devices.
+     */
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            String deviceName = result.getDevice().getName();
+            BluetoothDevice btDevice = result.getDevice();
 
-            if (deviceName != null) {
-                //Toast.makeText(getApplicationContext(), deviceName + " found", Toast.LENGTH_SHORT).show();
-                Log.i("[Bluetooth]", "Device found: " + deviceName);
-                BluetoothDevice btDevice = result.getDevice();
+            if (btDevice != null) {
+                Log.i("[Bluetooth]", "Device found: " + btDevice.getName());
                 connectToDevice(btDevice);
             }
         }
@@ -582,32 +586,21 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
     };
 
-    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i("[Bluetooth]", "onLeScan: " + device.toString());
-                    connectToDevice(device);
-                }
-            });
-        }
-    };
-
+    /**
+     * Connect to Bluetooth devices.
+     * @param device BluetoothDevice The device.
+     */
     public void connectToDevice(BluetoothDevice device) {
         /*if (mGattRespeck == null && device.getName().equals("Respeck_LNT18")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
-            DEVICES_CONNECTED++;
         }*/
 
         if (mGattQOE == null && device.getName().equals("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
             mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
-            DEVICES_CONNECTED++;
         }
 
         if (mGattQOE != null /*&& mGattRespeck != null*/) {
@@ -616,6 +609,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
     }
 
+    /**
+     * Bluetooth Gatt callback to handle data interchange with Bluetooth devices.
+     */
     private final BluetoothGattCallback mGattCallbackQOE = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
