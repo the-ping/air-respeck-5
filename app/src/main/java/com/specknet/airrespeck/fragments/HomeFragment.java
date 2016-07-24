@@ -3,7 +3,6 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,6 +95,8 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
         }
 
         if (view != null) {
+            mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+
             mFeedback = (TextView) view.findViewById(R.id.feedback);
             updateFeedback();
         }
@@ -205,16 +206,12 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
         mFrameLayout.removeAllViews();
 
-        TypedValue fontSizeAttr = new TypedValue();
-        getContext().getTheme().resolveAttribute(android.R.attr.textSize, fontSizeAttr, true);
-
-        SegmentedBar rv;
         for (int i = 0; i < mSegmentedBars.size(); ++i) {
-            rv = mSegmentedBars.get(i);
+            SegmentedBar sb = mSegmentedBars.get(i);
 
-            rv.setVisibility(View.INVISIBLE);
+            sb.setVisibility(View.INVISIBLE);
 
-            mFrameLayout.addView(rv, i);
+            mFrameLayout.addView(sb, i);
         }
 
         mCurrentSegmentedBar = mSegmentedBars.get(0);

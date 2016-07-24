@@ -36,6 +36,7 @@
     <string name="no_network">No Internet connection</string>
     <string name="network_required">Internet connection required to setup the user</string>
     <string name="loading_data">Loading user data</string>
+    <string name="connecting_to_devices">Connecting to devices</string>
 
 
     <!-- Strings related to User Profile -->

@@ -2,13 +2,11 @@ package com.specknet.airrespeck.fragments;
 
 
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -16,8 +14,6 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.FillFormatter;
-import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.Utils;
@@ -27,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class GraphsFragment extends Fragment {
+public class GraphsFragment extends BaseFragment {
 
     public static class PMs {
         public final static int PMS_NUM = 3;
@@ -86,6 +82,8 @@ public class GraphsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_graphs, container, false);
+
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
         mPMsLineChart = (LineChart) view.findViewById(R.id.pms_line_chart);
         mBinsLineChart = (LineChart) view.findViewById(R.id.bins_line_chart);
@@ -209,8 +207,10 @@ public class GraphsFragment extends Fragment {
      * @param pMs PMs The new values.
      */
     public void addPMsChartData(final PMs pMs) {
-        mPMsData.add(pMs);
-        addEntries(pMs);
+        if (mPMsData != null && mPMsLineChart != null) {
+            mPMsData.add(pMs);
+            addEntries(pMs);
+        }
     }
 
 
@@ -297,7 +297,9 @@ public class GraphsFragment extends Fragment {
      * @param binsData List<Float> The new values.
      */
     public void setBinsChartData(List<Float> binsData) {
-        mBinsData = binsData;
-        updateBinsChartData();
+        if (mBinsData != null && mBinsLineChart != null) {
+            mBinsData = binsData;
+            updateBinsChartData();
+        }
     }
 }

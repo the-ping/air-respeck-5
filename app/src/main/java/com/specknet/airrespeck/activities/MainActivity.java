@@ -83,6 +83,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private BluetoothGatt mGattRespeck, mGattQOE;
     private BluetoothDevice mDeviceRespeck, mDeviceQOE;
 
+    private boolean mQOEConnectionComplete;
+    private boolean mRespeckConnectionComplete;
     private int REQUEST_ENABLE_BT = 1;
     private static final String RESPECK_UUID = "F5:85:7D:EA:61:F9";
     private static final String QOE_UUID = "FC:A6:33:A2:A4:5A";
@@ -171,6 +173,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * Update reading values in fragments' UIs.
      */
     private void updateUI() {
+        // Update connection loading layout
+        mHomeFragment.showConnecting(!mQOEConnectionComplete);
+        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete);
+        mGraphsFragment.showConnecting(!mQOEConnectionComplete);
+
         // Home fragment UI
         try {
             ArrayList<Float> listValues = new ArrayList<Float>();
@@ -522,6 +529,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
+
+        mQOEConnectionComplete = false;
+        mRespeckConnectionComplete = false;
     }
 
     /**
@@ -623,13 +633,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
+                    mQOEConnectionComplete = true;
                     Log.i("[QOE] - gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
+                    mQOEConnectionComplete = false;
                     Log.e("[QOE] - gattCallback", "STATE_DISCONNECTED");
                     Log.i("[QOE] - gattCallback", "reconnecting...");
                     BluetoothDevice device = gatt.getDevice();
+                    mGattQOE.close();
                     mGattQOE = null;
                     connectToDevice(device);
                     break;

@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
@@ -75,37 +76,42 @@ public class AQReadingsFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
 
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+
         Context context = view.getContext();
 
         // Set the adapter
         if (mReadingsModeAQReadingsScreen == 0) {
-            if (view instanceof ListView) {
-                ListView listView = (ListView) view;
-                mListViewAdapter = new ReadingItemArrayAdapter(context, getReadingItems());
-                listView.setAdapter(mListViewAdapter);
-            }
+            ListView listView = (ListView) view.findViewById(R.id.listView_item_list);
+            mListViewAdapter = new ReadingItemArrayAdapter(context, getReadingItems());
+            listView.setAdapter(mListViewAdapter);
         }
-        else {
-            if (view instanceof RecyclerView) {
-                RecyclerView recyclerView = (RecyclerView) view;
-                if (mColumnCount <= 1) {
-                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                } else {
-                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-                }
+        else if (mReadingsModeAQReadingsScreen == 1) {
+            RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
 
-                if (mReadingsModeAQReadingsScreen == 1) {
-                    mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
-                    recyclerView.setAdapter(mSegmentedBarAdapter);
-                } else if (mReadingsModeAQReadingsScreen == 2) {
-                    mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
-                    recyclerView.setAdapter(mArcProgressAdapter);
-                }
+            if (mColumnCount <= 1) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            } else {
+                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
+
+            mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
+            recyclerView.setAdapter(mSegmentedBarAdapter);
+        }
+        else if (mReadingsModeAQReadingsScreen == 2) {
+            RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.ap_item_list);
+
+            if (mColumnCount <= 1) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            } else {
+                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+            }
+
+            mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
+            recyclerView.setAdapter(mArcProgressAdapter);
         }
         return view;
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -293,112 +299,116 @@ public class AQReadingsFragment extends BaseFragment {
         if (temperature <= 21f) {
             segments.add(new Segment(0f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
         }
-        else if (temperature == 22) {
-            segments.add(new Segment(0f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-        }
-        else if (temperature == 23) {
-            segments.add(new Segment(0f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-        }
-        else if (temperature == 24) {
-            segments.add(new Segment(0f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-        }
-        else if (temperature == 25) {
-            segments.add(new Segment(0f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(55f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-        }
-        else if (temperature == 26) {
-            segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(45f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(95f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-        }
-        else if (temperature == 27) {
-            segments.add(new Segment(0f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(40f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-        }
-        else if (temperature == 28) {
-            segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-            segments.add(new Segment(30f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-        }
-        else if (temperature == 29) {
-            segments.add(new Segment(0f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-        }
-        else if (temperature == 30) {
-            segments.add(new Segment(0f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(60f, 90f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(90f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-        }
-        else if (temperature == 31) {
-            segments.add(new Segment(0f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(50f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(80f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-        }
-        else if (temperature == 32) {
-            segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(45f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(70f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-        }
-        else if (temperature == 33) {
-            segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(35f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(65f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(95f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 34) {
-            segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(30f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(55f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 35) {
-            segments.add(new Segment(0f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-            segments.add(new Segment(25f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(50f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(80f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 36) {
-            segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(45f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(70f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 37) {
-            segments.add(new Segment(0f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(40f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 38) {
-            segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(35f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(60f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 39) {
-            segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(30f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(50f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 40) {
-            segments.add(new Segment(0f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(25f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(45f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 41) {
-            segments.add(new Segment(0f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(20f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(40f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
-        else if (temperature == 42) {
-            segments.add(new Segment(0f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-            segments.add(new Segment(20f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(40f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
-        }
         else if (temperature >= 43) {
             segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
             segments.add(new Segment(35f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+        }
+        else {
+            switch (temperature) {
+                case 22:
+                    segments.add(new Segment(0f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    break;
+                case 23:
+                    segments.add(new Segment(0f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    break;
+                case 24:
+                    segments.add(new Segment(0f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    break;
+                case 25:
+                    segments.add(new Segment(0f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(55f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    break;
+                case 26:
+                    segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(45f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(95f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    break;
+                case 27:
+                    segments.add(new Segment(0f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(40f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    break;
+                case 28:
+                    segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
+                    segments.add(new Segment(30f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    break;
+                case 29:
+                    segments.add(new Segment(0f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    break;
+                case 30:
+                    segments.add(new Segment(0f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(60f, 90f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(90f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    break;
+                case 31:
+                    segments.add(new Segment(0f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(50f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(80f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    break;
+                case 32:
+                    segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(45f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(70f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    break;
+                case 33:
+                    segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(35f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(65f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(95f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 34:
+                    segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(30f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(55f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 35:
+                    segments.add(new Segment(0f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(25f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(50f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(80f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 36:
+                    segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(45f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(70f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 37:
+                    segments.add(new Segment(0f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(40f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 38:
+                    segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(35f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(60f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 39:
+                    segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(30f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(50f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 40:
+                    segments.add(new Segment(0f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(25f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(45f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 41:
+                    segments.add(new Segment(0f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(20f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(40f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+                case 42:
+                    segments.add(new Segment(0f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(20f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(40f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    break;
+            }
         }
         return segments;
     }
@@ -407,7 +417,7 @@ public class AQReadingsFragment extends BaseFragment {
      * Helper setter
      */
     public void setReadings(final HashMap<String, Float> values) {
-        if (mReadingItems != null) {
+        if (mReadingItems != null && getContext() != null) {
             int i = 0;
             for (String key : Constants.READINGS_ORDER) {
                 mReadingItems.get(i).value = values.get(key);

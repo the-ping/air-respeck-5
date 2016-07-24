@@ -36,6 +36,7 @@
     <string name="no_network">कोई इंटरनेट कनेक्शन नहीं</string>
     <string name="network_required">इंटरनेट कनेक्शन सेटअप उपयोगकर्ता के लिए आवश्यक</string>
     <string name="loading_data">लोड हो रहा है उपयोगकर्ता डेटा</string>
+    <string name="connecting_to_devices">उपकरणों से कनेक्ट करना</string>
 
 
     <!-- Strings related to User Profile -->
