@@ -25,7 +25,6 @@ import com.specknet.airrespeck.utils.Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 
 public class AQReadingsFragment extends BaseFragment {
@@ -247,7 +246,7 @@ public class AQReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_REL_HUMIDITY:
+                    case Constants.QOE_HUMIDITY:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 29f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
                         segments.add(new Segment(29f, 39f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
@@ -424,7 +423,7 @@ public class AQReadingsFragment extends BaseFragment {
                 i++;
             }
 
-            int index = Arrays.asList(Constants.READINGS_ORDER).indexOf(Constants.QOE_REL_HUMIDITY);
+            int index = Arrays.asList(Constants.READINGS_ORDER).indexOf(Constants.QOE_HUMIDITY);
             mReadingItems.get(index).segments = buildRelativeHumidityScale(Math.round(values.get(Constants.QOE_TEMPERATURE)));
 
             notifyDataSetChange(mReadingsModeAQReadingsScreen);

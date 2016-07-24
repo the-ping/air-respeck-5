@@ -39,6 +39,8 @@ import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
+import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
+import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
@@ -97,6 +99,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private static int[] sampleIDs_1 = {0, 0, 0, 0};
     private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
     int lastSample = 0;
+
+
+    // UPLOAD SERVICES
+    RespeckRemoteUploadService mRespeckRemoteUploadService;
+    QOERemoteUploadService mQOERemoteUploadService;
 
 
     // UI HANDLER
@@ -195,7 +202,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             HashMap<String, Float> values = new HashMap<String, Float>();
 
             values.put(Constants.QOE_TEMPERATURE, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
-            values.put(Constants.QOE_REL_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_REL_HUMIDITY)));
+            values.put(Constants.QOE_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
             values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
             values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
             values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
@@ -776,9 +783,53 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     temperature = ((temp - 3960) / 100.0);
                     hum = (-2.0468 + (0.0367 * humidity) + (-0.0000015955 * humidity * humidity));
 
-                    Log.i("[QOE", "PM1: " + pm1);
-                    Log.i("[QOE", "PM2.5: " + pm2_5);
-                    Log.i("[QOE", "PM10: " + pm10);
+                    Log.i("[QOE]", "PM1: " + pm1);
+                    Log.i("[QOE]", "PM2.5: " + pm2_5);
+                    Log.i("[QOE]", "PM10: " + pm10);
+
+
+                    // Send message
+                    /*JSONObject json = new JSONObject();
+                    try {
+                        json.put("messagetype", "respeck_processed");
+                        //json.put("timestamp", base_ts/1000);
+                        json.put("activity", 0);
+
+                        json.put(QOE_PM1, pm1);
+                        json.put(QOE_PM2_5, pm2_5);
+                        json.put(QOE_PM10, pm10);
+                        json.put(QOE_TEMPERATURE, temperature);
+                        json.put(QOE_HUMIDITY, hum);
+                        json.put(QOE_O3, o3_ae);
+                        json.put(QOE_NO2, no2_ae);
+                        json.put(QOE_BINS_0, bin0);
+                        json.put(QOE_BINS_1, bin1);
+                        json.put(QOE_BINS_2, bin2);
+                        json.put(QOE_BINS_3, bin3);
+                        json.put(QOE_BINS_4, bin4);
+                        json.put(QOE_BINS_5, bin5);
+                        json.put(QOE_BINS_6, bin6);
+                        json.put(QOE_BINS_7, bin7);
+                        json.put(QOE_BINS_8, bin8);
+                        json.put(QOE_BINS_9, bin9);
+                        json.put(QOE_BINS_10, bin10);
+                        json.put(QOE_BINS_11, bin11);
+                        json.put(QOE_BINS_12, bin12);
+                        json.put(QOE_BINS_13, bin13);
+                        json.put(QOE_BINS_14, bin14);
+                        json.put(QOE_BINS_15, bin15);
+                        json.put(QOE_BINS_TOTAL, total);
+
+                        json.put("stored", 0);
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
+                    intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
+                    sendBroadcast(intent);
+                    Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());*/
 
 
                     HashMap<String, Float> values = new HashMap<String, Float>();
@@ -786,7 +837,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     values.put(Constants.QOE_PM2_5, pm2_5);
                     values.put(Constants.QOE_PM10, pm10);
                     values.put(Constants.QOE_TEMPERATURE, (float)temperature);
-                    values.put(Constants.QOE_REL_HUMIDITY, (float)hum);
+                    values.put(Constants.QOE_HUMIDITY, (float)hum);
                     values.put(Constants.QOE_O3, (float)o3_ae);
                     values.put(Constants.QOE_NO2, (float)no2_ae);
                     values.put(Constants.QOE_BINS_0, (float)bin0);

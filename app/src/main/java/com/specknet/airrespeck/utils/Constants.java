@@ -3,8 +3,6 @@ package com.specknet.airrespeck.utils;
 
 import com.specknet.airrespeck.R;
 
-import java.util.List;
-
 
 public class Constants {
     /**
@@ -34,7 +32,7 @@ public class Constants {
     public static final String QOE_PM2_5 = "pm2_5";
     public static final String QOE_PM10 = "pm10";
     public static final String QOE_TEMPERATURE = "temperature";
-    public static final String QOE_REL_HUMIDITY = "rel_hum";
+    public static final String QOE_HUMIDITY = "humidity";
     public static final String QOE_O3 = "o3";
     public static final String QOE_NO2 = "no2";
     public static final String QOE_BINS_0 = "bins0";
@@ -61,7 +59,7 @@ public class Constants {
      */
     public static String[] READINGS_ORDER = {
             QOE_TEMPERATURE,
-            QOE_REL_HUMIDITY,
+            QOE_HUMIDITY,
             QOE_O3,
             QOE_NO2,
             QOE_PM1,
