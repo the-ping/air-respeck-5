@@ -72,33 +72,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     // READING VALUES
     HashMap<String, Float> mRespeckSensorReadings;
-    private static final String RESPECK_BREATHING_RATE = "breathing_rate";
-
     HashMap<String, Float> mQOESensorReadings;
-    private static final String QOE_PM1 = "pm1";
-    private static final String QOE_PM2_5 = "pm2_5";
-    private static final String QOE_PM10 = "pm10";
-    private static final String QOE_TEMPERATURE = "temperature";
-    private static final String QOE_REL_HUMIDITY = "rel_hum";
-    private static final String QOE_O3 = "o3";
-    private static final String QOE_NO2 = "no2";
-    private static final String QOE_BINS_0 = "bins0";
-    private static final String QOE_BINS_1 = "bins1";
-    private static final String QOE_BINS_2 = "bins2";
-    private static final String QOE_BINS_3 = "bins3";
-    private static final String QOE_BINS_4 = "bins4";
-    private static final String QOE_BINS_5 = "bins5";
-    private static final String QOE_BINS_6 = "bins6";
-    private static final String QOE_BINS_7 = "bins7";
-    private static final String QOE_BINS_8 = "bins8";
-    private static final String QOE_BINS_9 = "bins9";
-    private static final String QOE_BINS_10 = "bins10";
-    private static final String QOE_BINS_11 = "bins11";
-    private static final String QOE_BINS_12 = "bins12";
-    private static final String QOE_BINS_13 = "bins13";
-    private static final String QOE_BINS_14 = "bins14";
-    private static final String QOE_BINS_15 = "bins15";
-    private static final String QOE_BINS_TOTAL = "bins_total";
 
 
     // BLUETOOTH
@@ -197,32 +171,62 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * Update reading values in fragments' UIs.
      */
     private void updateUI() {
-        // Air Quality fragment UI
+        // Home fragment UI
         try {
             ArrayList<Float> listValues = new ArrayList<Float>();
 
             listValues.add(mUtils.roundToTwoDigits(15f));//mRespeckSensorReadings.get(RESPECK_BREATHING_RATE)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM2_5)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM10)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
 
             mHomeFragment.setReadings(listValues);
         }
         catch (Exception e) { e.printStackTrace(); }
 
-        // Home fragment UI
+        // Air Quality fragment UI
+        try {
+            HashMap<String, Float> values = new HashMap<String, Float>();
+
+            values.put(Constants.QOE_TEMPERATURE, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
+            values.put(Constants.QOE_REL_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_REL_HUMIDITY)));
+            values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
+            values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
+            values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
+            values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+            values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+            values.put(Constants.QOE_BINS_TOTAL, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
+
+            mAQReadingsFragment.setReadings(values);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+
+        // Graphs fragment UI
         try {
             ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_TEMPERATURE)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_REL_HUMIDITY)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_O3)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_NO2)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM1)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM2_5)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_PM10)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(QOE_BINS_TOTAL)));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
 
-            mAQReadingsFragment.setReadings(listValues);
+            mGraphsFragment.setBinsChartData(listValues);
+
+            mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
+                    mQOESensorReadings.get(Constants.QOE_PM1),
+                    mQOESensorReadings.get(Constants.QOE_PM2_5),
+                    mQOESensorReadings.get(Constants.QOE_PM10)));
         }
         catch (Exception e) { e.printStackTrace(); }
     }
@@ -346,6 +350,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
+
         if (mGattRespeck == null && mGattQOE == null) {
             return;
         }
@@ -359,8 +365,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             mGattQOE.close();
             mGattQOE = null;
         }
-
-        super.onDestroy();
     }
 
     @Override
@@ -765,30 +769,30 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
 
                     HashMap<String, Float> values = new HashMap<String, Float>();
-                    values.put(QOE_PM1, pm1);
-                    values.put(QOE_PM2_5, pm2_5);
-                    values.put(QOE_PM10, pm10);
-                    values.put(QOE_TEMPERATURE, (float)temperature);
-                    values.put(QOE_REL_HUMIDITY, (float)hum);
-                    values.put(QOE_O3, (float)o3_ae);
-                    values.put(QOE_NO2, (float)no2_ae);
-                    values.put(QOE_BINS_0, (float)bin0);
-                    values.put(QOE_BINS_1, (float)bin1);
-                    values.put(QOE_BINS_2, (float)bin2);
-                    values.put(QOE_BINS_3, (float)bin3);
-                    values.put(QOE_BINS_4, (float)bin4);
-                    values.put(QOE_BINS_5, (float)bin5);
-                    values.put(QOE_BINS_6, (float)bin6);
-                    values.put(QOE_BINS_7, (float)bin7);
-                    values.put(QOE_BINS_8, (float)bin8);
-                    values.put(QOE_BINS_9, (float)bin9);
-                    values.put(QOE_BINS_10, (float)bin10);
-                    values.put(QOE_BINS_11, (float)bin11);
-                    values.put(QOE_BINS_12, (float)bin12);
-                    values.put(QOE_BINS_13, (float)bin13);
-                    values.put(QOE_BINS_14, (float)bin14);
-                    values.put(QOE_BINS_15, (float)bin15);
-                    values.put(QOE_BINS_TOTAL, (float)total);
+                    values.put(Constants.QOE_PM1, pm1);
+                    values.put(Constants.QOE_PM2_5, pm2_5);
+                    values.put(Constants.QOE_PM10, pm10);
+                    values.put(Constants.QOE_TEMPERATURE, (float)temperature);
+                    values.put(Constants.QOE_REL_HUMIDITY, (float)hum);
+                    values.put(Constants.QOE_O3, (float)o3_ae);
+                    values.put(Constants.QOE_NO2, (float)no2_ae);
+                    values.put(Constants.QOE_BINS_0, (float)bin0);
+                    values.put(Constants.QOE_BINS_1, (float)bin1);
+                    values.put(Constants.QOE_BINS_2, (float)bin2);
+                    values.put(Constants.QOE_BINS_3, (float)bin3);
+                    values.put(Constants.QOE_BINS_4, (float)bin4);
+                    values.put(Constants.QOE_BINS_5, (float)bin5);
+                    values.put(Constants.QOE_BINS_6, (float)bin6);
+                    values.put(Constants.QOE_BINS_7, (float)bin7);
+                    values.put(Constants.QOE_BINS_8, (float)bin8);
+                    values.put(Constants.QOE_BINS_9, (float)bin9);
+                    values.put(Constants.QOE_BINS_10, (float)bin10);
+                    values.put(Constants.QOE_BINS_11, (float)bin11);
+                    values.put(Constants.QOE_BINS_12, (float)bin12);
+                    values.put(Constants.QOE_BINS_13, (float)bin13);
+                    values.put(Constants.QOE_BINS_14, (float)bin14);
+                    values.put(Constants.QOE_BINS_15, (float)bin15);
+                    values.put(Constants.QOE_BINS_TOTAL, (float)total);
 
                     // Update the UI
                     Message msg = Message.obtain();

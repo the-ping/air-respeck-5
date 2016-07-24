@@ -228,9 +228,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
      */
     private void notifySegmentedBarDataSetChange() {
         for (int i = 0; i < mSegmentedBars.size(); ++i) {
-            if (mCurrentSegmentedBar.equals(mSegmentedBars.get(i))) {
-                mCurrentSegmentedBar.setValue(mReadingItems.get(i).value);
-            }
+            mSegmentedBars.get(i).setValue(mReadingItems.get(i).value);
         }
     }
 

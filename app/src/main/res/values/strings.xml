@@ -69,7 +69,7 @@
     <string name="reading_rel_humidity">Humidity</string>
     <string name="reading_o3">O3</string>
     <string name="reading_no2">NO2</string>
-    <string name="reading_bins">Bins</string>
+    <string name="reading_bins">Bins total</string>
 
     <!-- Reading unit -->
     <string name="reading_unit_bpm">bpm</string>
@@ -77,6 +77,10 @@
     <string name="reading_unit_c" translatable="false">°C</string>
     <string name="reading_unit_f" translatable="false">°F</string>
     <string name="reading_unit_percent" translatable="false">%</string>
+
+    <!-- Graphs -->
+    <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
+    <string name="graphs_bins_title">Bins: 0 – 15</string>
 
 
     <!-- Strings related to Menus -->
