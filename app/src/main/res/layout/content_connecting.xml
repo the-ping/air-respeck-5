@@ -8,8 +8,8 @@
     android:layout_centerVertical="true"
     android:layout_centerHorizontal="true"
     android:orientation="vertical"
-    android:visibility="visible"
-    android:background="@color/md_grey_200">
+    android:visibility="visible">
+    <!--android:background="#cceeeeee">-->
 
     <fr.castorflex.android.circularprogressbar.CircularProgressBar
         android:layout_width="wrap_content"
@@ -17,7 +17,7 @@
         android:layout_gravity="center_horizontal"
         app:cpb_colors="@array/pocket_background_colors"/>
 
-    <android.support.v4.widget.Space
+    <!--<android.support.v4.widget.Space
         android:layout_width="match_parent"
         android:layout_height="25dp" />
 
@@ -26,6 +26,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/connecting_to_devices" />
+        android:text="@string/connecting_to_devices" />-->
 
 </LinearLayout>

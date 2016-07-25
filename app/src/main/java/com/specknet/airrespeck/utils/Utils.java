@@ -11,6 +11,7 @@ import android.view.WindowManager;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.datamodels.User;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -151,5 +152,26 @@ public final class Utils {
      */
     public String getAppVersionName() {
         return BuildConfig.VERSION_NAME;
+    }
+
+    /**
+     * Method to configure the UI preferences based on the user details
+     * (i.e. user type (subject, researcher), age).
+     * @param user User the user instance.
+     */
+    public void setupUI(User user) {
+        PreferencesUtils.getInstance(mContext);
+        PreferencesUtils.getInstance().put(PreferencesUtils.Key.USER_ID, user.getUniqueId());
+
+        // Users of type "Researcher" will have as default the tabbed main menu,
+        // options to launch AirSpeck and RESpeck applications (these should be
+        // installed in the mobile device).
+        if (user.getUserType() == 2) {
+            PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, true);
+            PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, true);
+            PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
+        }
+
+        
     }
 }

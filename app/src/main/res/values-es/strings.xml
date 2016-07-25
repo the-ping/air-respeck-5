@@ -37,6 +37,8 @@
     <string name="network_required">Se requiere de conexión a Internet para configurar el usuario</string>
     <string name="loading_data">Cargando datos de usuario</string>
     <string name="connecting_to_devices">Conectando con dispositivos</string>
+    <string name="device_connected">conectado</string>
+    <string name="waiting_for_data">Esperando datos</string>
 
 
     <!-- Strings related to User Profile -->
@@ -167,27 +169,6 @@
         <item>0</item>
         <item>1</item>
         <item>2</item>
-    </string-array>
-
-    <!-- Strings related to Data & Sync Settings -->
-    <string name="pref_category_ui_advanced">Avanzado</string>
-
-    <string name="pref_title_sync_frequency">Frecuencia de sincronización</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutos</item>
-        <item>30 minutos</item>
-        <item>1 hora</item>
-        <item>3 horas</item>
-        <item>6 horas</item>
-        <item>Nunca</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
     </string-array>
 
 </resources>

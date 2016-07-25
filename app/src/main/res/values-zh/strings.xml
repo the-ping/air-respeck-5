@@ -37,6 +37,8 @@
     <string name="network_required">需要设置用户的互联网连接</string>
     <string name="loading_data">需要设置用户的互联网连接</string>
     <string name="connecting_to_devices">连接到设备</string>
+    <string name="device_connected">连接的</string>
+    <string name="waiting_for_data">等待数据</string>
 
 
     <!-- Strings related to User Profile -->
@@ -167,27 +169,6 @@
         <item>0</item>
         <item>1</item>
         <item>2</item>
-    </string-array>
-
-    <!-- Strings related to Data & Sync Settings -->
-    <string name="pref_category_ui_advanced">高级</string>
-
-    <string name="pref_title_sync_frequency">同步频率</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 分钟</item>
-        <item>30 分钟</item>
-        <item>1 小时</item>
-        <item>3 小时</item>
-        <item>6 小时</item>
-        <item>决不</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
     </string-array>
 
 </resources>

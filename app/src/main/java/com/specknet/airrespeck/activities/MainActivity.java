@@ -22,6 +22,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceActivity;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -58,56 +60,6 @@ import java.util.UUID;
 
 
 public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSelectedListener {
-
-    // UTILS
-    Utils mUtils;
-
-
-    // FRAGMENTS
-    private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
-    private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
-    private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
-    private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
-
-    private HomeFragment mHomeFragment;
-    private AQReadingsFragment mAQReadingsFragment;
-    private GraphsFragment mGraphsFragment;
-    private Fragment mCurrentFragment;
-
-
-    // READING VALUES
-    HashMap<String, Float> mRespeckSensorReadings;
-    HashMap<String, Float> mQOESensorReadings;
-
-
-    // BLUETOOTH
-    private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothLeScanner mLEScanner;
-    private ScanSettings mScanSettings;
-    private List<ScanFilter> mScanFilters;
-    private BluetoothGatt mGattRespeck, mGattQOE;
-    private BluetoothDevice mDeviceRespeck, mDeviceQOE;
-
-    private boolean mQOEConnectionComplete;
-    private boolean mRespeckConnectionComplete;
-    private int REQUEST_ENABLE_BT = 1;
-    private static final String RESPECK_UUID = "F5:85:7D:EA:61:F9";
-    private static final String QOE_UUID = "FC:A6:33:A2:A4:5A";
-    private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
-    private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
-
-    // CODIGO MANTAS
-    private static byte[][] lastPackets_1  = new byte[4][];
-    private static byte[][] lastPackets_2  = new byte[5][];
-    private static int[] sampleIDs_1 = {0, 0, 0, 0};
-    private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
-    int lastSample = 0;
-
-
-    // UPLOAD SERVICES
-    RespeckRemoteUploadService mRespeckRemoteUploadService;
-    QOERemoteUploadService mQOERemoteUploadService;
-
 
     // UI HANDLER
     private final static int UPDATE_RESPECK_READINGS = 0;
@@ -154,99 +106,59 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private final Handler mUIHandler = getHandler();
 
 
-    /**
-     * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
-     * @param newValues HashMap<String, Float> The Respeck sensor readings.
-     */
-    private void updateRespeckReadings(HashMap<String, Float> newValues) {
-        // Update local values
-        mRespeckSensorReadings = newValues;
+    // FRAGMENTS
+    private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
+    private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
+    private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
+    private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
 
-        // Update the UI
-        updateUI();
-    }
-
-    /**
-     * Update {@link #mQOESensorReadings} with the latest values sent from the QOE sensor.
-     * @param newValues HashMap<String, Float> The QOE sensor readings.
-     */
-    private void updateQOEReadings(HashMap<String, Float> newValues) {
-        // Update local values
-        mQOESensorReadings = newValues;
-
-        // Update the UI
-        updateUI();
-    }
+    private HomeFragment mHomeFragment;
+    private AQReadingsFragment mAQReadingsFragment;
+    private GraphsFragment mGraphsFragment;
+    private Fragment mCurrentFragment;
 
 
-    /**
-     * Update reading values in fragments' UIs.
-     */
-    private void updateUI() {
-        // Update connection loading layout
-        mHomeFragment.showConnecting(!mQOEConnectionComplete);
-        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete);
-        mGraphsFragment.showConnecting(!mQOEConnectionComplete);
+    // UTILS
+    Utils mUtils;
 
-        // Home fragment UI
-        try {
-            ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mUtils.roundToTwoDigits(15f));//mRespeckSensorReadings.get(RESPECK_BREATHING_RATE)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+    // Layout view for snack bar
+    private CoordinatorLayout mCoordinatorLayout;
 
-            mHomeFragment.setReadings(listValues);
-        }
-        catch (Exception e) { e.printStackTrace(); }
 
-        // Air Quality fragment UI
-        try {
-            HashMap<String, Float> values = new HashMap<String, Float>();
+    // READING VALUES
+    HashMap<String, Float> mRespeckSensorReadings;
+    HashMap<String, Float> mQOESensorReadings;
 
-            values.put(Constants.QOE_TEMPERATURE, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
-            values.put(Constants.QOE_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
-            values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
-            values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
-            values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
-            values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-            values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-            values.put(Constants.QOE_BINS_TOTAL, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
 
-            mAQReadingsFragment.setReadings(values);
-        }
-        catch (Exception e) { e.printStackTrace(); }
+    // UPLOAD SERVICES
+    RespeckRemoteUploadService mRespeckRemoteUploadService;
+    QOERemoteUploadService mQOERemoteUploadService;
 
-        // Graphs fragment UI
-        try {
-            ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
+    // BLUETOOTH
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothLeScanner mLEScanner;
+    private ScanSettings mScanSettings;
+    private List<ScanFilter> mScanFilters;
+    private BluetoothGatt mGattRespeck, mGattQOE;
+    private BluetoothDevice mDeviceRespeck, mDeviceQOE;
 
-            mGraphsFragment.setBinsChartData(listValues);
+    private boolean mQOEConnectionComplete;
+    private boolean mRespeckConnectionComplete;
+    private int REQUEST_ENABLE_BT = 1;
+    private static final String RESPECK_UUID = "F5:85:7D:EA:61:F9";
+    private static final String QOE_UUID = "FC:A6:33:A2:A4:5A";
+    private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
+    private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
 
-            mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
-                    mQOESensorReadings.get(Constants.QOE_PM1),
-                    mQOESensorReadings.get(Constants.QOE_PM2_5),
-                    mQOESensorReadings.get(Constants.QOE_PM10)));
-        }
-        catch (Exception e) { e.printStackTrace(); }
-    }
+    // CODIGO MANTAS
+    private static byte[][] lastPackets_1  = new byte[4][];
+    private static byte[][] lastPackets_2  = new byte[5][];
+    private static int[] sampleIDs_1 = {0, 0, 0, 0};
+    private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
+    int lastSample = 0;
+
 
 
     @Override
@@ -338,6 +250,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // Add the toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+
+        // For use with snack bar
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
 
         // Initialize Readings hash maps
         mRespeckSensorReadings = new HashMap<String, Float>();
@@ -529,6 +445,106 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
 
+
+    //----------------------------------------------------------------------------------------------
+    // UI ------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Update reading values in fragments' UIs.
+     */
+    private void updateUI() {
+        // Update connection loading layout
+        mHomeFragment.showConnecting(!mQOEConnectionComplete);
+        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete);
+        mGraphsFragment.showConnecting(!mQOEConnectionComplete);
+
+        // Home fragment UI
+        try {
+            ArrayList<Float> listValues = new ArrayList<Float>();
+
+            listValues.add(mUtils.roundToTwoDigits(15f));//mRespeckSensorReadings.get(RESPECK_BREATHING_RATE)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+
+            mHomeFragment.setReadings(listValues);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+
+        // Air Quality fragment UI
+        try {
+            HashMap<String, Float> values = new HashMap<String, Float>();
+
+            values.put(Constants.QOE_TEMPERATURE, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
+            values.put(Constants.QOE_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
+            values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
+            values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
+            values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
+            values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+            values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+            values.put(Constants.QOE_BINS_TOTAL, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
+
+            mAQReadingsFragment.setReadings(values);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+
+        // Graphs fragment UI
+        try {
+            ArrayList<Float> listValues = new ArrayList<Float>();
+
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
+            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
+
+            mGraphsFragment.setBinsChartData(listValues);
+
+            mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
+                    mQOESensorReadings.get(Constants.QOE_PM1),
+                    mQOESensorReadings.get(Constants.QOE_PM2_5),
+                    mQOESensorReadings.get(Constants.QOE_PM10)));
+        }
+        catch (Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
+     * @param newValues HashMap<String, Float> The Respeck sensor readings.
+     */
+    private void updateRespeckReadings(HashMap<String, Float> newValues) {
+        // Update local values
+        mRespeckSensorReadings = newValues;
+
+        // Update the UI
+        updateUI();
+    }
+
+    /**
+     * Update {@link #mQOESensorReadings} with the latest values sent from the QOE sensor.
+     * @param newValues HashMap<String, Float> The QOE sensor readings.
+     */
+    private void updateQOEReadings(HashMap<String, Float> newValues) {
+        // Update local values
+        mQOESensorReadings = newValues;
+
+        // Update the UI
+        updateUI();
+    }
+
+
+
     //----------------------------------------------------------------------------------------------
     // UPLOAD SERVICES -----------------------------------------------------------------------------
     //----------------------------------------------------------------------------------------------
@@ -561,7 +577,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
         intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
         intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
-        sendBroadcast(intent);
+        //sendBroadcast(intent);
     }
 
     private void initQOEUploadService() {
@@ -592,8 +608,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         intent.putExtra(QOERemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
         intent.putExtra(QOERemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
         intent.putExtra(QOERemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
-        sendBroadcast(intent);
+        //sendBroadcast(intent);
     }
+
 
 
     //----------------------------------------------------------------------------------------------
@@ -716,6 +733,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     mQOEConnectionComplete = true;
                     Log.i("[QOE] - gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
+
+                    Snackbar.make(mCoordinatorLayout, "QOE "
+                            + getString(R.string.device_connected)
+                            + ". " + getString(R.string.waiting_for_data)
+                            + ".", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mQOEConnectionComplete = false;
@@ -898,9 +921,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         e.printStackTrace();
                     }
 
-                    /*Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
+                    Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
                     intent.putExtra(QOERemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                    sendBroadcast(intent);*/
+                    //sendBroadcast(intent);
                     Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
 
 

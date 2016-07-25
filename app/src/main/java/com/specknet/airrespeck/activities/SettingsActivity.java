@@ -130,16 +130,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     break;
                 case 2:
                     addPreferencesFromResource(R.xml.pref_settings_advanced_profile);
-
+                    // Available only for advanced users
                     bindPreferenceSummaryToValue(findPreference("menu_mode"));
-                    bindPreferenceSummaryToValue(findPreference("sync_frequency"));
                     break;
             }
 
+            // Available for all
             bindPreferenceSummaryToValue(findPreference("font_size"));
             bindPreferenceSummaryToValue(findPreference("readings_mode_home_screen"));
             bindPreferenceSummaryToValue(findPreference("readings_mode_aqreadings_screen"));
-
         }
 
         @Override
