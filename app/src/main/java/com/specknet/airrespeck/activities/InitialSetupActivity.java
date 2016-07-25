@@ -116,6 +116,9 @@ public class InitialSetupActivity extends BaseActivity {
         }
         else {
             // TODO handle user deletion
+            // First, check with Tape lib that everything has been uploaded to the server.
+            // Then, delete user form local database
+            //User.deleteUserByUniqueId(user.getUniqueId());
         }
     }
 
