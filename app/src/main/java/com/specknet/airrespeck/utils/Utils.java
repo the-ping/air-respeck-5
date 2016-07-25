@@ -4,11 +4,17 @@ package com.specknet.airrespeck.utils;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Point;
+import android.os.Environment;
+import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
+import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
@@ -19,6 +25,7 @@ public final class Utils {
 
     private static Utils mUtils;
     private final Context mContext;
+    private static Properties mProperties = null;
 
     /**
      * Private constructor for singleton class.
@@ -63,10 +70,10 @@ public final class Utils {
     }
 
     /**
-     * Get all properties.
-     * @return Properties All properties.
+     * Get all the configuration properties.
+     * @return Properties All configuration properties.
      */
-    public Properties getProperties() {
+    public Properties getConfigProperties() {
         Properties properties = new Properties();
         AssetManager assetManager = mContext.getAssets();
 
@@ -79,11 +86,11 @@ public final class Utils {
     }
 
     /**
-     * Get a property value by its key.
-     * @param key String Property key.
-     * @return String Proverty value.
+     * Get a configuration property value by its key.
+     * @param key String Configuration property key.
+     * @return String Configuration property value.
      */
-    public String getProperty(String key) {
+    public String getConfigProperty(String key) {
         Properties properties = new Properties();
         AssetManager assetManager = mContext.getAssets();
 
@@ -93,5 +100,56 @@ public final class Utils {
         } catch (IOException e) { }
 
         return properties.getProperty(key);
+    }
+
+    /**
+     * Load properties file from the external storage directory.
+     * @param fileName String Properties file name.
+     */
+    private void loadPropertiesFile(final String fileName) {
+        try {
+            // Load file
+            File file = new File(Environment.getExternalStorageDirectory(), fileName);
+            InputStream inputStream = new FileInputStream(file);
+
+            // Load file stream
+            mProperties = new Properties();
+            mProperties.load(inputStream);
+        }
+        catch (FileNotFoundException e) {
+            Log.e("AirRespeck Properties", "Properties file not found.");
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            Log.e("AirRespeck Properties", "Cannot load properties file.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Get a properties object from a file from the external storage directory.
+     * @return Properties The properties object.
+     */
+    public Properties getProperties () {
+        if (mProperties == null) {
+            loadPropertiesFile(Constants.PROPERTIES_FILE_NAME);
+        }
+        return mProperties;
+    }
+
+    /**
+     * Get app version code.
+     * @return int The version code.
+     */
+    public int getAppVersionCode() {
+        return BuildConfig.VERSION_CODE;
+    }
+
+    /**
+     * Get app version name.
+     * @return String The version name.
+     */
+    public String getAppVersionName() {
+        return BuildConfig.VERSION_NAME;
     }
 }

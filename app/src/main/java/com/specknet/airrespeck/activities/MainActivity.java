@@ -44,6 +44,9 @@ import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -336,12 +339,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        // Initialize Reading hash maps
+        // Initialize Readings hash maps
         mRespeckSensorReadings = new HashMap<String, Float>();
         mQOESensorReadings = new HashMap<String, Float>();
 
         // Bluetooth initialization
         initBluetooth();
+
+        // Initialize Upload services
+        initRespeckUploadService();
+        initQOEUploadService();
     }
 
     @Override
@@ -521,6 +528,72 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mCurrentFragment = fragment;
     }
 
+
+    //----------------------------------------------------------------------------------------------
+    // UPLOAD SERVICES -----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
+
+    private void initRespeckUploadService() {
+        mRespeckRemoteUploadService = new RespeckRemoteUploadService();
+        mRespeckRemoteUploadService.onCreate(this);
+        Intent intent = new Intent(RespeckRemoteUploadService.MSG_CONFIG);
+
+        JSONObject json = new JSONObject();
+        try {
+            /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
+            json.put("airrespeck_key", mUtils.getProperties().getProperty("AirRESpeckKey"));
+            json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
+            json.put("app_version", mUtils.getAppVersionCode());*/
+
+            json.put("patient_id", "test_id");
+            json.put("respeck_uuid", "test_respeck_uuid");
+            json.put("qoe_uuid", "test_qoe_uuid");
+            json.put("airrespeck_key", "test_airrespeck_key");
+            json.put("tablet_serial", "test_tablet_serial");
+            json.put("app_version", mUtils.getAppVersionCode());
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
+        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
+        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
+        sendBroadcast(intent);
+    }
+
+    private void initQOEUploadService() {
+        mQOERemoteUploadService = new QOERemoteUploadService();
+        mQOERemoteUploadService.onCreate(this);
+        Intent intent = new Intent(QOERemoteUploadService.MSG_CONFIG);
+
+        JSONObject json = new JSONObject();
+        try {
+            /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
+            json.put("airrespeck_key", mUtils.getProperties().getProperty("AirRESpeckKey"));
+            json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
+            json.put("app_version", mUtils.getAppVersionCode());*/
+
+            json.put("patient_id", "test_id");
+            json.put("respeck_uuid", "test_respeck_uuid");
+            json.put("qoe_uuid", "test_qoe_uuid");
+            json.put("airrespeck_key", "test_airrespeck_key");
+            json.put("tablet_serial", "test_tablet_serial");
+            json.put("app_version", mUtils.getAppVersionCode());
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
+        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
+        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
+        sendBroadcast(intent);
+    }
 
 
     //----------------------------------------------------------------------------------------------
@@ -787,59 +860,59 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     Log.i("[QOE]", "PM2.5: " + pm2_5);
                     Log.i("[QOE]", "PM10: " + pm10);
 
+                    lastSample = sampleIDs_2[0];
+
 
                     // Send message
-                    /*JSONObject json = new JSONObject();
+                    JSONObject json = new JSONObject();
                     try {
-                        json.put("messagetype", "respeck_processed");
-                        //json.put("timestamp", base_ts/1000);
-                        json.put("activity", 0);
-
-                        json.put(QOE_PM1, pm1);
-                        json.put(QOE_PM2_5, pm2_5);
-                        json.put(QOE_PM10, pm10);
-                        json.put(QOE_TEMPERATURE, temperature);
-                        json.put(QOE_HUMIDITY, hum);
-                        json.put(QOE_O3, o3_ae);
-                        json.put(QOE_NO2, no2_ae);
-                        json.put(QOE_BINS_0, bin0);
-                        json.put(QOE_BINS_1, bin1);
-                        json.put(QOE_BINS_2, bin2);
-                        json.put(QOE_BINS_3, bin3);
-                        json.put(QOE_BINS_4, bin4);
-                        json.put(QOE_BINS_5, bin5);
-                        json.put(QOE_BINS_6, bin6);
-                        json.put(QOE_BINS_7, bin7);
-                        json.put(QOE_BINS_8, bin8);
-                        json.put(QOE_BINS_9, bin9);
-                        json.put(QOE_BINS_10, bin10);
-                        json.put(QOE_BINS_11, bin11);
-                        json.put(QOE_BINS_12, bin12);
-                        json.put(QOE_BINS_13, bin13);
-                        json.put(QOE_BINS_14, bin14);
-                        json.put(QOE_BINS_15, bin15);
-                        json.put(QOE_BINS_TOTAL, total);
-
-                        json.put("stored", 0);
+                        json.put("messagetype", "qoe_data");
+                        json.put(Constants.QOE_PM1, pm1);
+                        json.put(Constants.QOE_PM2_5, pm2_5);
+                        json.put(Constants.QOE_PM10, pm10);
+                        json.put(Constants.QOE_TEMPERATURE, temperature);
+                        json.put(Constants.QOE_HUMIDITY, hum);
+                        json.put(Constants.QOE_S1ae_NO2, no2_ae);
+                        json.put(Constants.QOE_S1we_NO2, no2_we);
+                        json.put(Constants.QOE_S2ae_O3, o3_ae);
+                        json.put(Constants.QOE_S2we_O3, o3_we);
+                        json.put(Constants.QOE_BINS_0, bin0);
+                        json.put(Constants.QOE_BINS_1, bin1);
+                        json.put(Constants.QOE_BINS_2, bin2);
+                        json.put(Constants.QOE_BINS_3, bin3);
+                        json.put(Constants.QOE_BINS_4, bin4);
+                        json.put(Constants.QOE_BINS_5, bin5);
+                        json.put(Constants.QOE_BINS_6, bin6);
+                        json.put(Constants.QOE_BINS_7, bin7);
+                        json.put(Constants.QOE_BINS_8, bin8);
+                        json.put(Constants.QOE_BINS_9, bin9);
+                        json.put(Constants.QOE_BINS_10, bin10);
+                        json.put(Constants.QOE_BINS_11, bin11);
+                        json.put(Constants.QOE_BINS_12, bin12);
+                        json.put(Constants.QOE_BINS_13, bin13);
+                        json.put(Constants.QOE_BINS_14, bin14);
+                        json.put(Constants.QOE_BINS_15, bin15);
+                        json.put(Constants.QOE_BINS_TOTAL, total);
                     }
                     catch (JSONException e) {
                         e.printStackTrace();
                     }
 
-                    Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
-                    intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                    sendBroadcast(intent);
-                    Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());*/
+                    /*Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
+                    intent.putExtra(QOERemoteUploadService.MSG_UPLOAD_DATA, json.toString());
+                    sendBroadcast(intent);*/
+                    Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
 
 
+                    // Update the UI
                     HashMap<String, Float> values = new HashMap<String, Float>();
                     values.put(Constants.QOE_PM1, pm1);
                     values.put(Constants.QOE_PM2_5, pm2_5);
                     values.put(Constants.QOE_PM10, pm10);
                     values.put(Constants.QOE_TEMPERATURE, (float)temperature);
                     values.put(Constants.QOE_HUMIDITY, (float)hum);
-                    values.put(Constants.QOE_O3, (float)o3_ae);
                     values.put(Constants.QOE_NO2, (float)no2_ae);
+                    values.put(Constants.QOE_O3, (float)o3_ae);
                     values.put(Constants.QOE_BINS_0, (float)bin0);
                     values.put(Constants.QOE_BINS_1, (float)bin1);
                     values.put(Constants.QOE_BINS_2, (float)bin2);
@@ -858,14 +931,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     values.put(Constants.QOE_BINS_15, (float)bin15);
                     values.put(Constants.QOE_BINS_TOTAL, (float)total);
 
-                    // Update the UI
                     Message msg = Message.obtain();
                     msg.obj = values;
                     msg.what = UPDATE_QOE_READINGS;
                     msg.setTarget(mUIHandler);
                     msg.sendToTarget();
-
-                    lastSample = sampleIDs_2[0];
                 }
             }
         }
