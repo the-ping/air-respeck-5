@@ -25,6 +25,15 @@ public class Constants {
 
 
     /**
+     * Google play: Location Manager
+     */
+    public static final Long UPDATE_INTERVAL = 5000L;
+    public static final Long FASTEST_INTERVAL = 1000L;
+    public static final String LOC_LATITUDE = "latitude";
+    public static final String LOC_LONGITUDE = "longitude";
+
+
+    /**
      * Menu icons
      */
     public static int[] menuIconsResId = {
