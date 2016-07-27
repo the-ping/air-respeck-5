@@ -10,7 +10,6 @@ import android.view.Display;
 import android.view.WindowManager;
 
 import com.specknet.airrespeck.BuildConfig;
-import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
 
 import java.io.File;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Properties;
 
 
@@ -218,7 +216,7 @@ public final class Utils {
         }
         else if ( age >= Integer.parseInt(getConfigProperty("elderly_adult_min")) &&
                 age <= Integer.parseInt(getConfigProperty("elderly_adult_max")) ) {
-            return Constants.UGA_EDERLY_ADULT;
+            return Constants.UGA_ELDERLY_ADULT;
         }
         return -1;
     }
@@ -287,7 +285,7 @@ public final class Utils {
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
                     break;
-                case Constants.UGA_EDERLY_ADULT:
+                case Constants.UGA_ELDERLY_ADULT:
                     // Menu type: Buttons
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "0");
                     // Font size: Large

@@ -560,17 +560,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         JSONObject json = new JSONObject();
         try {
             /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
             json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
-            json.put("airrespeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
+            json.put("respeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
             json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
             json.put("app_version", mUtils.getAppVersionCode());*/
 
-            json.put("patient_id", "test_id");
-            json.put("qoe_uuid", "test_qoe_uuid");
-            json.put("respeck_uuid", "test_respeck_uuid");
-            json.put("respeck_key", "test_airrespeck_key");
-            json.put("tablet_serial", "test_tablet_serial");
+            json.put("patient_id", "999");
+            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
+            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
+            json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
+            json.put("tablet_serial", "Q8G12151102193");
             json.put("app_version", mUtils.getAppVersionCode());
         }
         catch (JSONException e) {
@@ -580,7 +580,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
         intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
         intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
-        //sendBroadcast(intent);
+        sendBroadcast(intent);
     }
 
     private void initQOEUploadService() {
@@ -591,17 +591,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         JSONObject json = new JSONObject();
         try {
             /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
             json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
-            json.put("airrespeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
+            json.put("respeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
             json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
             json.put("app_version", mUtils.getAppVersionCode());*/
 
-            json.put("patient_id", "test_id");
-            json.put("qoe_uuid", "test_qoe_uuid");
-            json.put("respeck_uuid", "test_respeck_uuid");
-            json.put("respeck_key", "test_airrespeck_key");
-            json.put("tablet_serial", "test_tablet_serial");
+            json.put("patient_id", "999");
+            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
+            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
+            json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
+            json.put("tablet_serial", "Q8G12151102193");
             json.put("app_version", mUtils.getAppVersionCode());
         }
         catch (JSONException e) {
@@ -611,7 +611,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         intent.putExtra(QOERemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
         intent.putExtra(QOERemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
         intent.putExtra(QOERemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
-        //sendBroadcast(intent);
+        sendBroadcast(intent);
     }
 
 
@@ -926,9 +926,27 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                     Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
                     intent.putExtra(QOERemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                    //sendBroadcast(intent);
+                    sendBroadcast(intent);
                     Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
 
+                    /*JSONObject json = new JSONObject();
+                    try {
+                        json.put("messagetype", "respeck_processed");
+                        json.put("timestamp", "123456");
+                        json.put("activity", 1.23456);
+                        json.put("breathing_rate", 1.23456);
+                        json.put("n_breaths", 10);
+                        json.put("sd_br", 1.23456);
+                        json.put("stored", 1);
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
+                    intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
+                    sendBroadcast(intent2);
+                    Log.d("[RESpeck]", "Sent LIVE JSON to upload service: " + json.toString());*/
 
                     // Update the UI
                     HashMap<String, Float> values = new HashMap<String, Float>();

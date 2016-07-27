@@ -92,5 +92,5 @@ public class Constants {
     public static final int UGA_ADOLESCENT = 1;
     public static final int UGA_YOUNG_ADULT = 2;
     public static final int UGA_MIDDLEAGED_ADULT = 3;
-    public static final int UGA_EDERLY_ADULT = 4;
+    public static final int UGA_ELDERLY_ADULT = 4;
 }
