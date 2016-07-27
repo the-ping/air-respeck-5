@@ -14,7 +14,7 @@ import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.datamodels.User;
+import com.specknet.airrespeck.lib.SeekBarListPreference;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 import com.specknet.airrespeck.utils.ThemeUtils;
 
@@ -84,8 +84,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        int fontSizePref = Integer.valueOf(PreferencesUtils.getInstance(getApplicationContext())
-                .getString(PreferencesUtils.Key.FONT_SIZE, "1"));
+        PreferencesUtils preferencesUtils = PreferencesUtils.getInstance(getApplicationContext());
+        int fontSizePref = Integer.valueOf(preferencesUtils.getString(PreferencesUtils.Key.FONT_SIZE, "1"));
         ThemeUtils themeUtils = ThemeUtils.getInstance();
         themeUtils.setTheme(fontSizePref);
         themeUtils.onActivityCreateSetTheme(this);
@@ -120,25 +120,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.pref_settings);
 
-            User user = User.getUserByUniqueId(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.USER_ID));
-
-            switch (user.getUserType()) {
-                case 1:
-                    addPreferencesFromResource(R.xml.pref_settings_basic_profile);
-                    break;
-                case 2:
-                    addPreferencesFromResource(R.xml.pref_settings_advanced_profile);
-                    // Available only for advanced users
-                    bindPreferenceSummaryToValue(findPreference("menu_mode"));
-                    break;
-            }
-
-            // Available for all
             bindPreferenceSummaryToValue(findPreference("font_size"));
+            bindPreferenceSummaryToValue(findPreference("menu_mode"));
+            bindPreferenceSummaryToValue(findPreference("menu_buttons_padding"));
             bindPreferenceSummaryToValue(findPreference("readings_mode_home_screen"));
             bindPreferenceSummaryToValue(findPreference("readings_mode_aqreadings_screen"));
+
+            checkMenuModePref();
         }
 
         @Override
@@ -172,15 +162,22 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         commit();
             }
             else if (key.equals("menu_mode")) {
-                ListPreference listPref = (ListPreference) findPreference(key);
-                SwitchPreference switchPref = (SwitchPreference) findPreference("menu_tab_icons");
+                checkMenuModePref();
+            }
+        }
 
-                if (listPref.getValue().equals("1")) {
-                    switchPref.setEnabled(true);
-                }
-                else {
-                    switchPref.setEnabled(false);
-                }
+        private void checkMenuModePref() {
+            ListPreference listPref = (ListPreference) findPreference("menu_mode");
+            SeekBarListPreference seekPref = (SeekBarListPreference) findPreference("menu_buttons_padding");
+            SwitchPreference switchPref = (SwitchPreference) findPreference("menu_tab_icons");
+
+            if (listPref.getValue().equals("0")) {
+                seekPref.setEnabled(true);
+                switchPref.setEnabled(false);
+            }
+            else {
+                seekPref.setEnabled(false);
+                switchPref.setEnabled(true);
             }
         }
     }

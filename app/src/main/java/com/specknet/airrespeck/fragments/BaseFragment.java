@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.datamodels.User;
+import com.specknet.airrespeck.models.MenuButton;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 
 
@@ -20,6 +21,8 @@ public class BaseFragment extends Fragment {
     protected User mCurrentUser;
     protected int mReadingsModeHomeScreen;
     protected int mReadingsModeAQReadingsScreen;
+    protected boolean mGraphsScreen;
+    protected int mButtonsPadding;
 
     // Connecting layout
     protected LinearLayout mConnectingLayout;
@@ -37,6 +40,12 @@ public class BaseFragment extends Fragment {
                 .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0"));
         mReadingsModeAQReadingsScreen = Integer.valueOf(PreferencesUtils.getInstance()
                 .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0"));
+
+        mGraphsScreen = PreferencesUtils.getInstance()
+                .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+
+        mButtonsPadding = Integer.valueOf(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, "5"));
     }
 
     @Override
@@ -56,6 +65,14 @@ public class BaseFragment extends Fragment {
                     .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0"));
 
             if (mReadingsModeAQReadingsScreen != newVal) {
+                restartFragment();
+            }
+        }
+        else if (this instanceof MenuFragment) {
+            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, "5"));
+
+            if (mButtonsPadding != newVal) {
                 restartFragment();
             }
         }

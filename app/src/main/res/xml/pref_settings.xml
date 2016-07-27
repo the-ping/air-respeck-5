@@ -1,32 +1,53 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="@string/pref_category_ui_general">
+    <PreferenceCategory
+        android:key="pref_category_general"
+        android:title="@string/pref_category_ui_general">
+
         <ListPreference
             android:defaultValue="1"
             android:entries="@array/pref_font_size_list"
             android:entryValues="@array/pref_font_size_list_values"
             android:key="font_size"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
             android:title="@string/pref_title_font_size" />
+
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_category_ui_menu">
+    <PreferenceCategory
+        android:key="pref_category_menu"
+        android:title="@string/pref_category_ui_menu">
+
         <ListPreference
             android:defaultValue="1"
             android:entries="@array/pref_menu_mode_list"
             android:entryValues="@array/pref_menu_mode_list_values"
             android:key="menu_mode"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
             android:title="@string/pref_title_menu_mode" />
+
+        <com.specknet.airrespeck.lib.SeekBarListPreference
+            android:defaultValue="5"
+            android:entries="@array/pref_menu_buttons_padding_list"
+            android:entryValues="@array/pref_menu_buttons_padding_list_values"
+            android:key="menu_buttons_padding"
+            android:title="@string/pref_title_menu_buttons_padding" />
 
         <SwitchPreference
             android:defaultValue="false"
-            android:dependency="menu_mode"
             android:key="menu_tab_icons"
             android:summary="@string/pref_description_menu_tab_icons"
             android:title="@string/pref_title_menu_tab_icons" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="menu_graphs_screen"
+            android:summary="@string/pref_description_menu_graphs_screen"
+            android:title="@string/pref_title_menu_graphs_screen" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="pref_category_apps"
+        android:title="@string/pref_category_ui_apps">
 
         <SwitchPreference
             android:defaultValue="false"
@@ -42,14 +63,15 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_category_ui_readings">
+    <PreferenceCategory
+        android:key="pref_category_readings"
+        android:title="@string/pref_category_ui_readings">
+
         <ListPreference
             android:defaultValue="0"
             android:entries="@array/pref_readings_mode_home_screen_list"
             android:entryValues="@array/pref_readings_mode_home_screen_list_values"
             android:key="readings_mode_home_screen"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
             android:title="@string/pref_title_readings_mode_home_screen" />
 
         <ListPreference
@@ -57,9 +79,8 @@
             android:entries="@array/pref_readings_mode_aqreadings_screen_list"
             android:entryValues="@array/pref_readings_mode_aqreadings_screen_list_values"
             android:key="readings_mode_aqreadings_screen"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
             android:title="@string/pref_title_readings_mode_aqreadings_screen" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

@@ -3,6 +3,7 @@ package com.specknet.airrespeck.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,12 +14,15 @@ import android.widget.LinearLayout;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.models.MenuButton;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class MenuFragment extends BaseFragment {
+
+    private Utils mUtils;
 
     private List<MenuButton> mButtons;
 
@@ -60,8 +64,10 @@ public class MenuFragment extends BaseFragment {
                 Constants.menuIconsResId[0]));
         mButtons.add(new MenuButton(MenuButton.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
                 Constants.menuIconsResId[2]));
-        mButtons.add(new MenuButton(MenuButton.buttonType.DASHBOARD, getString(R.string.menu_graphs),
+        mButtons.add(new MenuButton(MenuButton.buttonType.GRAPHS, getString(R.string.menu_graphs),
                 Constants.menuIconsResId[3]));
+
+        mUtils = Utils.getInstance(getContext());
     }
 
     @Override
@@ -79,7 +85,7 @@ public class MenuFragment extends BaseFragment {
 
         createButton(mButtons.get(0));
         createButton(mButtons.get(1));
-        if (mCurrentUser.getUserType() == 2) {
+        if (mGraphsScreen) {
             createButton(mButtons.get(2));
         }
     }
@@ -117,6 +123,9 @@ public class MenuFragment extends BaseFragment {
                 onButtonClick(v, menuButton.getType().ordinal());
             }
         });
+
+        int padding_dp = (int) (mButtonsPadding * mUtils.getScreenDensity() + 0.5f);
+        mMenuItemLayoutParameters.setMargins(padding_dp, padding_dp, padding_dp, padding_dp);
 
         mMenuContainer.addView(button, mMenuItemLayoutParameters);
     }

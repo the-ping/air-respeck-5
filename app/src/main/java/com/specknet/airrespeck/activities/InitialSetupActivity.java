@@ -1,7 +1,6 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -10,13 +9,11 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.http.HttpApi;
-import com.specknet.airrespeck.utils.PreferencesUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.IOException;
 import java.util.Calendar;
 
-import okhttp3.internal.Util;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -36,13 +33,13 @@ public class InitialSetupActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
 
-        //setupUser();
+        setupUser();
 
         // NOTE: This will not be used on initial deployment of the application. Instead, a user
         // will be created using data from the properties configuration file stored in the external
         // storage directory. The above temporal method will handle this.
 
-        if (User.isTableEmpty()) {
+        /*if (User.isTableEmpty()) {
             // No user found, go to New user Activity
             goToNewUserScreen();
         }
@@ -61,7 +58,7 @@ public class InitialSetupActivity extends BaseActivity {
             else {
                 goToMainScreen();
             }
-        }
+        }*/
     }
 
     /**
@@ -165,9 +162,9 @@ public class InitialSetupActivity extends BaseActivity {
 
         try {
             // Get properties
-            String id = utils.getProperties().getProperty("user_id");
-            int age = Integer.parseInt(utils.getProperties().getProperty("user_age"));
-            int type = Integer.parseInt(utils.getProperties().getProperty("user_type"));
+            String id = "101";//utils.getProperties().getProperty("user_id");
+            int age = 30;//Integer.parseInt(utils.getProperties().getProperty("user_age"));
+            int type = 2;//Integer.parseInt(utils.getProperties().getProperty("user_type"));
 
             // Parse data
             String firstName = (type == 1) ? "Subject" : "Researcher";
@@ -187,11 +184,7 @@ public class InitialSetupActivity extends BaseActivity {
             else {
                 // Check for changes in the id
                 User currentUser = User.getUser();
-                if (currentUser.getUniqueId().equalsIgnoreCase(id)) {
-                    // No changes, go to main activity
-                    goToMainScreen();
-                }
-                else {
+                if ( !currentUser.getUniqueId().equalsIgnoreCase(id) ) {
                     // The id has been change, delete current user and create a new user
                     User.deleteUserByUniqueId(currentUser.getUniqueId());
 
@@ -203,6 +196,9 @@ public class InitialSetupActivity extends BaseActivity {
                     utils.setupUI(newUser);
                 }
             }
+
+            // Go to main activity
+            goToMainScreen();
         }
         catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Error reading properties file.", Toast.LENGTH_LONG).show();

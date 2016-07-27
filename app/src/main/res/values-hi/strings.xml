@@ -32,6 +32,7 @@
     </string-array>
 
 
+
     <!-- Strings related to login issues -->
     <string name="no_network">कोई इंटरनेट कनेक्शन नहीं</string>
     <string name="network_required">इंटरनेट कनेक्शन सेटअप उपयोगकर्ता के लिए आवश्यक</string>
@@ -52,9 +53,11 @@
     <string name="user_profile_no">नहीं</string>
 
 
+
     <!-- Strings related to SegmentedBar -->
     <string name="sb_empty">खाली</string>
     <string name="sb_value_segment">वर्तमान मूल्य</string>
+
 
 
     <!-- Strings related to Readings -->
@@ -78,9 +81,12 @@
     <string name="reading_unit_bpm">bpm</string>
     <string name="reading_unit_ug_m3">µg/m³</string>
 
+
+
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
     <string name="graphs_bins_title">Bins: 0 – 15</string>
+
 
 
     <!-- Strings related to Menus -->
@@ -99,13 +105,16 @@
     <string name="action_connect">जुडिये</string>
 
 
+
     <!-- Strings related to AirSpeck and RESpeck apps -->
     <string name="airspeck_not_found">AirSpeck एप्लिकेशन नहीं मिला</string>
     <string name="respeck_not_found">RESpeck एप्लिकेशन नहीं मिला</string>
 
 
+
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">सेटिंग्स</string>
+
 
     <!-- Strings related to General Settings -->
     <string name="pref_category_ui_general">सामान्य</string>
@@ -124,6 +133,7 @@
         <item>3</item>
     </string-array>
 
+
     <!-- Strings related to Menu Settings -->
     <string name="pref_category_ui_menu">Menus</string>
 
@@ -137,14 +147,70 @@
         <item>1</item>
     </string-array>
 
-    <string name="pref_title_icons_in_tabs">माउस को सक्रिय करें</string>
+    <string name="pref_title_menu_buttons_padding">बटन गद्दी</string>
+    <string-array name="pref_menu_buttons_padding_list">
+        <item>0 dp</item>
+        <item>1 dp</item>
+        <item>2 dp</item>
+        <item>3 dp</item>
+        <item>4 dp</item>
+        <item>5 dp</item>
+        <item>6 dp</item>
+        <item>7 dp</item>
+        <item>8 dp</item>
+        <item>9 dp</item>
+        <item>10 dp</item>
+        <item>11 dp</item>
+        <item>12 dp</item>
+        <item>13 dp</item>
+        <item>14 dp</item>
+        <item>15 dp</item>
+        <item>16 dp</item>
+        <item>17 dp</item>
+        <item>18 dp</item>
+        <item>19 dp</item>
+        <item>20 dp</item>
+    </string-array>
+    <string-array name="pref_menu_buttons_padding_list_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+    </string-array>
+
+    <string name="pref_title_icons_in_tabs">टैब माउसें</string>
     <string name="pref_description_icons_in_tabs">टैब में प्रतीक दिखाएँ</string>
+
+    <string name="pref_title_menu_graphs_screen">रेखांकन स्क्रीन</string>
+    <string name="pref_description_menu_graphs_screen">रेखांकन स्क्रीन करने के लिए पहुँच सक्षम करें</string>
+
+
+    <!-- Strings related to Apps Settings -->
+    <string name="pref_category_ui_apps">दूसरे एप्लिकेशन</string>
 
     <string name="pref_title_airspeck_app_access">AirSpeck</string>
     <string name="pref_description_airspeck_app_access">AirSpeck अनुप्रयोग के लिए पहुँच सक्षम</string>
 
     <string name="pref_title_respeck_app_access">RESpeck</string>
     <string name="pref_description_respeck_app_access">RESpeck अनुप्रयोग के लिए पहुँच सक्षम</string>
+
 
     <!-- Strings related to Readings Settings -->
     <string name="pref_category_ui_readings">हवा की गुणवत्ता रीडिंग</string>

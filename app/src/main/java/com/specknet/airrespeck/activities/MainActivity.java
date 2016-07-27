@@ -227,8 +227,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), getApplicationContext());
             sectionsPagerAdapter.addFragment(mHomeFragment);
             sectionsPagerAdapter.addFragment(mAQReadingsFragment);
-            sectionsPagerAdapter.addFragment(mGraphsFragment);
-
+            if (mGraphsScreen) {
+                sectionsPagerAdapter.addFragment(mGraphsFragment);
+            }
             // Set up the ViewPager with the sections adapter.
             ViewPager viewPager = (ViewPager) findViewById(R.id.container);
             if (viewPager != null) {
@@ -243,7 +244,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             if (mMenuTabIconsPref) {
                 tabLayout.getTabAt(0).setIcon(Constants.menuIconsResId[0]);
                 tabLayout.getTabAt(1).setIcon(Constants.menuIconsResId[2]);
-                tabLayout.getTabAt(2).setIcon(Constants.menuIconsResId[3]);
+                if (mGraphsScreen) {
+                    tabLayout.getTabAt(2).setIcon(Constants.menuIconsResId[3]);
+                }
             }
         }
 
@@ -559,14 +562,14 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
             json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
             json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
-            json.put("airrespeck_key", mUtils.getProperties().getProperty("AirRESpeckKey"));
+            json.put("airrespeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
             json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
             json.put("app_version", mUtils.getAppVersionCode());*/
 
             json.put("patient_id", "test_id");
-            json.put("respeck_uuid", "test_respeck_uuid");
             json.put("qoe_uuid", "test_qoe_uuid");
-            json.put("airrespeck_key", "test_airrespeck_key");
+            json.put("respeck_uuid", "test_respeck_uuid");
+            json.put("respeck_key", "test_airrespeck_key");
             json.put("tablet_serial", "test_tablet_serial");
             json.put("app_version", mUtils.getAppVersionCode());
         }
@@ -590,14 +593,14 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
             json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
             json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
-            json.put("airrespeck_key", mUtils.getProperties().getProperty("AirRESpeckKey"));
+            json.put("airrespeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
             json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
             json.put("app_version", mUtils.getAppVersionCode());*/
 
             json.put("patient_id", "test_id");
-            json.put("respeck_uuid", "test_respeck_uuid");
             json.put("qoe_uuid", "test_qoe_uuid");
-            json.put("airrespeck_key", "test_airrespeck_key");
+            json.put("respeck_uuid", "test_respeck_uuid");
+            json.put("respeck_key", "test_airrespeck_key");
             json.put("tablet_serial", "test_tablet_serial");
             json.put("app_version", mUtils.getAppVersionCode());
         }

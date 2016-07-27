@@ -84,4 +84,13 @@ public class Constants {
             QOE_PM10,
             QOE_BINS_TOTAL
     };
+
+
+    /**
+     * USERS' GROUP AGES
+     */
+    public static final int UGA_ADOLESCENT = 1;
+    public static final int UGA_YOUNG_ADULT = 2;
+    public static final int UGA_MIDDLEAGED_ADULT = 3;
+    public static final int UGA_EDERLY_ADULT = 4;
 }
