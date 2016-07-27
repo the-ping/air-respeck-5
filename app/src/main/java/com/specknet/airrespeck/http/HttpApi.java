@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.specknet.airrespeck.datamodels.User;
+import com.specknet.airrespeck.utils.Constants;
 
 import retrofit2.Call;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -13,7 +14,7 @@ import retrofit2.http.*;
 
 
 public class HttpApi {
-    public static final String ENDPOINT = "http://www.mocky.io";
+    public static final String ENDPOINT = Constants.BASE_URL;
 
     private static HttpApi mInstance = null;
     private HttpApi.service mService;

@@ -17,6 +17,7 @@ public class BaseActivity extends AppCompatActivity {
     protected User mCurrentUser;
     protected int mMenuModePref;
     protected boolean mMenuTabIconsPref;
+    protected boolean mGraphsScreen;
     protected boolean mRespeckAppAccessPref;
     protected boolean mAirspeckAppAccessPref;
     protected int mFontSizePref;
@@ -39,6 +40,8 @@ public class BaseActivity extends AppCompatActivity {
                     .getString(PreferencesUtils.Key.MENU_MODE, "0"));
             mMenuTabIconsPref = PreferencesUtils.getInstance()
                     .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
+            mGraphsScreen = PreferencesUtils.getInstance()
+                    .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -88,6 +91,18 @@ public class BaseActivity extends AppCompatActivity {
                     .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
 
             if (mMenuTabIconsPref != newVal) {
+                restartActivity();
+            }
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        try {
+            boolean newVal = PreferencesUtils.getInstance()
+                    .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+
+            if (mGraphsScreen != newVal) {
                 restartActivity();
             }
         }

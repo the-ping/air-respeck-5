@@ -4,63 +4,75 @@
     android:layout_height="match_parent"
     tools:context=".fragments.HomeFragment">
 
-    <LinearLayout
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/readings_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:text="@string/readings_title" />
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <ImageButton
-                android:id="@+id/prev_reading"
-                android:background="@drawable/ic_left_arrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/current_reading_name"
-                android:layout_width="0dp"
+                android:id="@+id/readings_title"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="98"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textStyle="bold"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:gravity="center_horizontal"
+                android:text="@string/readings_title" />
 
-            <ImageButton
-                android:id="@+id/next_reading"
-                android:background="@drawable/ic_right_arrow"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/prev_reading"
+                    android:background="@drawable/ic_left_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/current_reading_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="98"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                <ImageButton
+                    android:id="@+id/next_reading"
+                    android:background="@drawable/ic_right_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/reading_container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_weight="1" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:gravity="center">
+
+                <include layout="@layout/content_feedback" />
+
+            </FrameLayout>
 
         </LinearLayout>
 
-        <FrameLayout
-            android:id="@+id/reading_container"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+        <include layout="@layout/content_connecting" />
 
-        <TextView
-            android:id="@+id/feedback"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="2"
-            android:gravity="center" />
-
-    </LinearLayout>
+    </RelativeLayout>
 
 </FrameLayout>

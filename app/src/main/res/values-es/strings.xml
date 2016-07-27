@@ -32,10 +32,14 @@
     </string-array>
 
 
+
     <!-- Strings related to login issues -->
     <string name="no_network">Sin conexión a Internet</string>
     <string name="network_required">Se requiere de conexión a Internet para configurar el usuario</string>
     <string name="loading_data">Cargando datos de usuario</string>
+    <string name="connecting_to_devices">Conectando con dispositivos</string>
+    <string name="device_connected">conectado</string>
+    <string name="waiting_for_data">Esperando datos</string>
 
 
     <!-- Strings related to User Profile -->
@@ -49,9 +53,11 @@
     <string name="user_profile_no">No</string>
 
 
+
     <!-- Strings related to SegmentedBar -->
     <string name="sb_empty">Vacío</string>
     <string name="sb_value_segment">Valor actual</string>
+
 
 
     <!-- Strings related to Readings -->
@@ -69,11 +75,18 @@
     <string name="reading_rel_humidity">Humedad</string>
     <string name="reading_o3">O3</string>
     <string name="reading_no2">NO2</string>
-    <string name="reading_bins">Bins</string>
+    <string name="reading_bins">Bins total</string>
 
     <!-- Reading unit -->
     <string name="reading_unit_bpm">resp/min</string>
     <string name="reading_unit_ug_m3">µg/m³</string>
+
+
+
+    <!-- Graphs -->
+    <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
+    <string name="graphs_bins_title">Bins: 0 – 15</string>
+
 
 
     <!-- Strings related to Menus -->
@@ -89,6 +102,8 @@
     <string name="action_re_speck">RESpeck</string>
     <string name="action_settings">Ajustes</string>
     <string name="action_user_profile">Perfil</string>
+    <string name="action_connect">Conectar</string>
+
 
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
@@ -96,8 +111,10 @@
     <string name="respeck_not_found">Aplicación RESpeck no encontrada</string>
 
 
+
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">Ajustes</string>
+
 
     <!-- Strings related to General Settings -->
     <string name="pref_category_ui_general">General</string>
@@ -116,6 +133,7 @@
         <item>3</item>
     </string-array>
 
+
     <!-- Strings related to Menu Settings -->
     <string name="pref_category_ui_menu">Menús</string>
 
@@ -129,14 +147,70 @@
         <item>1</item>
     </string-array>
 
-    <string name="pref_title_icons_in_tabs">Habilitar iconos</string>
+    <string name="pref_title_menu_buttons_padding">Espacio entre botones</string>
+    <string-array name="pref_menu_buttons_padding_list">
+        <item>0 dp</item>
+        <item>1 dp</item>
+        <item>2 dp</item>
+        <item>3 dp</item>
+        <item>4 dp</item>
+        <item>5 dp</item>
+        <item>6 dp</item>
+        <item>7 dp</item>
+        <item>8 dp</item>
+        <item>9 dp</item>
+        <item>10 dp</item>
+        <item>11 dp</item>
+        <item>12 dp</item>
+        <item>13 dp</item>
+        <item>14 dp</item>
+        <item>15 dp</item>
+        <item>16 dp</item>
+        <item>17 dp</item>
+        <item>18 dp</item>
+        <item>19 dp</item>
+        <item>20 dp</item>
+    </string-array>
+    <string-array name="pref_menu_buttons_padding_list_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+    </string-array>
+
+    <string name="pref_title_icons_in_tabs">Iconos en pestañas</string>
     <string name="pref_description_icons_in_tabs">Mostrar iconos en pestañas</string>
+
+    <string name="pref_title_menu_graphs_screen">Pantalla de Gráficas</string>
+    <string name="pref_description_menu_graphs_screen">Habilitar acceso a la Pantalla de Gráficas</string>
+
+
+    <!-- Strings related to Apps Settings -->
+    <string name="pref_category_ui_apps">Otras Aplicaciones</string>
 
     <string name="pref_title_airspeck_app_access">AirSpeck</string>
     <string name="pref_description_airspeck_app_access">Habilitar acceso a la aplicación AirSpeck</string>
 
     <string name="pref_title_respeck_app_access">RESpeck</string>
     <string name="pref_description_respeck_app_access">Habilitar acceso a la aplicación RESpeck</string>
+
 
     <!-- Strings related to Readings Settings -->
     <string name="pref_category_ui_readings">Lecturas de calidad del aire</string>
@@ -161,27 +235,6 @@
         <item>0</item>
         <item>1</item>
         <item>2</item>
-    </string-array>
-
-    <!-- Strings related to Data & Sync Settings -->
-    <string name="pref_category_ui_advanced">Avanzado</string>
-
-    <string name="pref_title_sync_frequency">Frecuencia de sincronización</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutos</item>
-        <item>30 minutos</item>
-        <item>1 hora</item>
-        <item>3 horas</item>
-        <item>6 horas</item>
-        <item>Nunca</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
     </string-array>
 
 </resources>

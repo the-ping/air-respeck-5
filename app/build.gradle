@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 23
@@ -21,6 +22,9 @@ android {
 
     productFlavors {
     }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 dependencies {
@@ -35,6 +39,16 @@ dependencies {
     compile 'com.google.code.gson:gson:2.6.2'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+
+    // Tape
+    compile 'com.squareup:tape:1.2.3'
+
+    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'io.reactivex:rxjava:1.1.0'
+
+    // Kotlin
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     // Active Android SQLite lib
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
@@ -47,4 +61,7 @@ dependencies {
 
     // CircularProgressBar
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
+}
+repositories {
+    mavenCentral()
 }

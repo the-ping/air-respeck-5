@@ -9,9 +9,10 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.http.HttpApi;
-import com.specknet.airrespeck.utils.PreferencesUtils;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,7 +33,13 @@ public class InitialSetupActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
 
-        if (User.isTableEmpty()) {
+        setupUser();
+
+        // NOTE: This will not be used on initial deployment of the application. Instead, a user
+        // will be created using data from the properties configuration file stored in the external
+        // storage directory. The above temporal method will handle this.
+
+        /*if (User.isTableEmpty()) {
             // No user found, go to New user Activity
             goToNewUserScreen();
         }
@@ -51,7 +58,7 @@ public class InitialSetupActivity extends BaseActivity {
             else {
                 goToMainScreen();
             }
-        }
+        }*/
     }
 
     /**
@@ -116,6 +123,11 @@ public class InitialSetupActivity extends BaseActivity {
         }
         else {
             // TODO handle user deletion
+            // First, check with Tape lib that everything has been uploaded to the server.
+            // Then, delete user from local database
+            //User.deleteUserByUniqueId(user.getUniqueId());
+            // Finally, restart this activity to prompt user creation
+            //this.recreate();
         }
     }
 
@@ -135,4 +147,61 @@ public class InitialSetupActivity extends BaseActivity {
         this.finish();
     }
 
+
+    /**
+     * Method to handle user creation on startup using data from the properties configuration
+     * file stored in the external storage directory.
+     *
+     * Data needed to create a user:
+     *  - user_id
+     *  - user_age
+     *  - user_type [Values: Subject (1), Researcher (2)]
+     */
+    private void setupUser() {
+        Utils utils = Utils.getInstance(getApplicationContext());
+
+        try {
+            // Get properties
+            String id = "101";//utils.getProperties().getProperty("user_id");
+            int age = 30;//Integer.parseInt(utils.getProperties().getProperty("user_age"));
+            int type = 2;//Integer.parseInt(utils.getProperties().getProperty("user_type"));
+
+            // Parse data
+            String firstName = (type == 1) ? "Subject" : "Researcher";
+            Calendar now = Calendar.getInstance();
+            now.add(Calendar.YEAR, -age);
+
+            // No user found
+            if (User.isTableEmpty()) {
+                // Create user
+                User newUser = new User(id, firstName, id, now.getTime(), "M", type, false);
+                newUser.save();
+
+                // Setup UI
+                utils.setupUI(newUser);
+            }
+            // User found
+            else {
+                // Check for changes in the id
+                User currentUser = User.getUser();
+                if ( !currentUser.getUniqueId().equalsIgnoreCase(id) ) {
+                    // The id has been change, delete current user and create a new user
+                    User.deleteUserByUniqueId(currentUser.getUniqueId());
+
+                    // Create user
+                    User newUser = new User(id, firstName, id, now.getTime(), "M", type, false);
+                    newUser.save();
+
+                    // Setup UI
+                    utils.setupUI(newUser);
+                }
+            }
+
+            // Go to main activity
+            goToMainScreen();
+        }
+        catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Error reading properties file.", Toast.LENGTH_LONG).show();
+        }
+    }
 }

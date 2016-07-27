@@ -2,7 +2,7 @@ package com.specknet.airrespeck.models;
 
 public class MenuButton {
     public enum buttonType {
-        HOME, AIR_QUALITY, DASHBOARD
+        HOME, AIR_QUALITY, GRAPHS
     }
 
     private buttonType type;

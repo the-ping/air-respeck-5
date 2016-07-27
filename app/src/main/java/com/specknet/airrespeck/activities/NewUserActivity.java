@@ -21,6 +21,7 @@ import com.specknet.airrespeck.http.HttpApi;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.utils.NetworkUtils;
 import com.specknet.airrespeck.utils.PreferencesUtils;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -241,18 +242,8 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
         mUser.save();
 
         // Setup UI
-        PreferencesUtils.getInstance(getApplicationContext());
-        PreferencesUtils.getInstance().put(PreferencesUtils.Key.USER_ID, mUser.getUniqueId());
-        if (mUser.isIlliterate()) {
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "1");
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "1");
-        }
-
-        if (mUser.getUserType() == 2) {
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, true);
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, true);
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
-        }
+        Utils utils = Utils.getInstance(getApplicationContext());
+        utils.setupUI(mUser);
 
         // Go to Main Activity
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
