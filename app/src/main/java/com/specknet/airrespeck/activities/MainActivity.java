@@ -189,7 +189,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         // Utils
         mUtils = Utils.getInstance(this);
-        mLocationUtils = LocationUtils.getInstance(this);
+        //mLocationUtils = LocationUtils.getInstance(this);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -284,8 +284,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         initBreathing();
 
         // Initialize Readings hash maps
-        mRespeckSensorReadings = new HashMap<String, Float>();
-        mQOESensorReadings = new HashMap<String, Float>();
+        initReadingMaps();
 
         // Bluetooth initialization
         initBluetooth();
@@ -303,7 +302,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         startBluetooth();
 
         // Start location manager
-        mLocationUtils.startLocationManager();
+        //mLocationUtils.startLocationManager();
     }
 
     @Override
@@ -316,7 +315,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
 
         // Stop location manager
-        mLocationUtils.stopLocationManager();
+        //mLocationUtils.stopLocationManager();
     }
 
     @Override
@@ -339,7 +338,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
 
         // Stop location manager
-        mLocationUtils.stopLocationManager();
+        //mLocationUtils.stopLocationManager();
     }
 
     @Override
@@ -489,19 +488,57 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     //----------------------------------------------------------------------------------------------
 
     /**
+     * Initialize hashmaps for sensor reading values
+     */
+    private void initReadingMaps() {
+        mRespeckSensorReadings = new HashMap<String, Float>();
+        mQOESensorReadings = new HashMap<String, Float>();
+
+        mQOESensorReadings.put(Constants.QOE_PM1, 0f);
+        mQOESensorReadings.put(Constants.QOE_PM2_5, 0f);
+        mQOESensorReadings.put(Constants.QOE_PM10, 0f);
+        mQOESensorReadings.put(Constants.QOE_TEMPERATURE, 0f);
+        mQOESensorReadings.put(Constants.QOE_HUMIDITY, 0f);
+        mQOESensorReadings.put(Constants.QOE_NO2, 0f);
+        mQOESensorReadings.put(Constants.QOE_O3, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_0, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_1, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_2, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_3, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_4, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_5, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_6, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_7, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_8, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_9, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_10, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_11, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_12, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_13, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_14, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
+        mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
+
+        mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_RATE, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
+    }
+    /**
      * Update reading values in fragments' UIs.
      */
     private void updateUI() {
          // Update connection loading layout
-        mHomeFragment.showConnecting(!mQOEConnectionComplete);
-        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete);
-        mGraphsFragment.showConnecting(!mQOEConnectionComplete);
+        mHomeFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
+        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
+        mGraphsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
 
         // Home fragment UI
         try {
             ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mUtils.roundToTwoDigits(15f));//mRespeckSensorReadings.get(RESPECK_BREATHING_RATE)));
+            listValues.add(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
             listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
             listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
 
@@ -931,9 +968,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     double longitude = 0;
                     double altitude = 0;
                     try {
-                        latitude = mLocationUtils.getLatitude();
+                        /*latitude = mLocationUtils.getLatitude();
                         longitude = mLocationUtils.getLongitude();
-                        altitude = mLocationUtils.getAltitude();
+                        altitude = mLocationUtils.getAltitude();*/
                     }
                     catch (Exception e) {
                         Log.e("[QOE]", "Location permissions not granted.");
@@ -983,24 +1020,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     sendBroadcast(intent);
                     Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
 
-                    /*JSONObject json = new JSONObject();
-                    try {
-                        json.put("messagetype", "respeck_processed");
-                        json.put("timestamp", "123456");
-                        json.put("activity", 1.23456);
-                        json.put("breathing_rate", 1.23456);
-                        json.put("n_breaths", 10);
-                        json.put("sd_br", 1.23456);
-                        json.put("stored", 1);
-                    }
-                    catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
-                    intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                    sendBroadcast(intent2);
-                    Log.d("[RESpeck]", "Sent LIVE JSON to upload service: " + json.toString());*/
 
                     // Update the UI
                     HashMap<String, Float> values = new HashMap<String, Float>();
@@ -1151,10 +1170,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         live_rs_timestamp = new_rs_timestamp;
                         live_seq = 0;
 
-                        while (!stored_queue.isEmpty()) {
+                        /*while (!stored_queue.isEmpty()) {
                             RESpeckStoredSample s = stored_queue.remove();
                             Long current_time_offset = live_bs_timestamp / 1000 - live_rs_timestamp;
-                        }
+                        }*/
                     }
                     else if (start_byte == -2 && live_seq >= 0) {
                         try{
@@ -1175,6 +1194,14 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             float nBreaths = getNBreaths();
                             float breathActivity = getActivity();
 
+                            Log.i("Breathing Rate: ", String.valueOf(breathingRate));
+                            Log.i("Breathing Signal: ", String.valueOf(breathingSignal));
+                            Log.i("Breathing Angle: ", String.valueOf(breathingAngle));
+                            Log.i("BRA: ", String.valueOf(averageBreathingRate));
+                            Log.i("STDBR: ", String.valueOf(stdDevBreathingRate));
+                            Log.i("NBreaths: " , String.valueOf(nBreaths));
+                            Log.i("Activity: " , String.valueOf(breathActivity));
+
 
                             // Send message
                             JSONObject json = new JSONObject();
@@ -1183,8 +1210,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 json.put(Constants.RESPECK_X, x);
                                 json.put(Constants.RESPECK_Y, y);
                                 json.put(Constants.RESPECK_Z, z);
-                                json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
-                                json.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                                if(Float.isNaN(breathingRate)){
+                                    json.put(Constants.RESPECK_BREATHING_RATE, null);
+                                } else {
+                                    json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                                }
+                                if (Float.isNaN(breathingSignal)) {
+                                    json.put(Constants.RESPECK_BREATHING_RATE, null);
+                                } else {
+                                    json.put(Constants.RESPECK_BREATHING_RATE, breathingSignal);
+                                }
                             }
                             catch (JSONException e) {
                                 e.printStackTrace();
@@ -1201,8 +1236,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             values.put(Constants.RESPECK_X, x);
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
-                            values.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
-                            values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            if (Float.isNaN(breathingRate)) {
+                                values.put(Constants.RESPECK_BREATHING_RATE, 0f);
+                            } else {
+                                values.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                            }
+                            if (Float.isNaN(breathingSignal)) {
+                                values.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
+                            } else {
+                                values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            }
 
 
 
@@ -1212,7 +1255,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             msg.setTarget(mUIHandler);
                             msg.sendToTarget();
 
-                            RESpeckStoredSample s = stored_queue.remove();
+                            //RESpeckStoredSample s = stored_queue.remove();
 
 
                             live_seq += 1;
