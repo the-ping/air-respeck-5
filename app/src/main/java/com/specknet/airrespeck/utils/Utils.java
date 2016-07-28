@@ -48,6 +48,12 @@ public final class Utils {
         return mUtils;
     }
 
+
+
+    /***********************************************************************************************
+     * GENERAL UTIL METHODS
+     **********************************************************************************************/
+
     /**
      * Get screen size.
      * @return Point Screen size i.e. Point(x, y).
@@ -67,6 +73,15 @@ public final class Utils {
      */
     public float getScreenDensity() {
         return mContext.getResources().getDisplayMetrics().density;
+    }
+
+
+    /**
+     * Get unix timestamp.
+     * @return long The timestamp.
+     */
+    public long getUnixTimestamp() {
+        return System.currentTimeMillis() / 1000L;
     }
 
     /**
@@ -162,6 +177,11 @@ public final class Utils {
         return BuildConfig.VERSION_NAME;
     }
 
+
+
+    /***********************************************************************************************
+     * USER CREATION UTIL METHODS
+     **********************************************************************************************/
 
     /**
      * Get the current age given the birth date.

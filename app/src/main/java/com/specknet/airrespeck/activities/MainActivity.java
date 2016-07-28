@@ -901,12 +901,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                     lastSample = sampleIDs_2[0];
 
+                    // Get timestamp
+                    long unixTimestamp = mUtils.getUnixTimestamp();
+
                     // Get location
                     double latitude = 0;
                     double longitude = 0;
+                    double altitude = 0;
                     try {
                         latitude = mLocationUtils.getLatitude();
                         longitude = mLocationUtils.getLongitude();
+                        altitude = mLocationUtils.getAltitude();
                     }
                     catch (Exception e) {
                         Log.e("[QOE]", "Location permissions not granted.");
@@ -944,6 +949,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         json.put(Constants.QOE_BINS_TOTAL, total);
                         json.put(Constants.LOC_LATITUDE, latitude);
                         json.put(Constants.LOC_LONGITUDE, longitude);
+                        json.put(Constants.LOC_ALTITUDE, altitude);
+                        json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);
                     }
                     catch (JSONException e) {
                         e.printStackTrace();

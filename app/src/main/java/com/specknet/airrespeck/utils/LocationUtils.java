@@ -141,4 +141,8 @@ public class LocationUtils implements
     public double getLongitude() {
         return mLocation.getLongitude();
     }
+
+    public double getAltitude() {
+        return mLocation.hasAltitude() ? mLocation.getAltitude() : 0;
+    }
 }
