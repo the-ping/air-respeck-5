@@ -131,31 +131,31 @@ public class GraphsFragment extends BaseFragment {
         set1.setLineWidth(2.5f);
         set1.setCircleRadius(4.5f);
         set1.setHighLightColor(Color.rgb(244, 117, 117));
-        set1.setColor(ColorTemplate.VORDIPLOM_COLORS[0]);
-        set1.setCircleColor(ColorTemplate.VORDIPLOM_COLORS[0]);
+        set1.setColor(Color.rgb(255, 255, 255));
+        set1.setCircleColor(Color.rgb(255, 255, 255));
         set1.setDrawValues(false);
         set1.setDrawFilled(true);
-        set1.setFillColor(ColorTemplate.VORDIPLOM_COLORS[0]);
+        set1.setFillColor(Color.rgb(255, 255, 255));
 
         LineDataSet set2 = new LineDataSet(v2, "PM 2.5");
         set2.setLineWidth(2.5f);
         set2.setCircleRadius(4.5f);
         set2.setHighLightColor(Color.rgb(244, 117, 117));
-        set2.setColor(ColorTemplate.VORDIPLOM_COLORS[1]);
-        set2.setCircleColor(ColorTemplate.VORDIPLOM_COLORS[1]);
+        set2.setColor(Color.rgb(255, 0, 0));
+        set2.setCircleColor(Color.rgb(255, 0, 0));
         set2.setDrawValues(false);
         set2.setDrawFilled(true);
-        set2.setFillColor(ColorTemplate.VORDIPLOM_COLORS[1]);
+        set2.setFillColor(Color.rgb(255, 0, 0));
 
         LineDataSet set3 = new LineDataSet(v3, "PM 10");
         set3.setLineWidth(2.5f);
         set3.setCircleRadius(4.5f);
         set3.setHighLightColor(Color.rgb(244, 117, 117));
-        set3.setColor(ColorTemplate.VORDIPLOM_COLORS[2]);
-        set3.setCircleColor(ColorTemplate.VORDIPLOM_COLORS[2]);
+        set3.setColor(Color.rgb(0, 0, 255));
+        set3.setCircleColor(Color.rgb(0, 0, 255));
         set3.setDrawValues(false);
         set3.setDrawFilled(true);
-        set3.setFillColor(ColorTemplate.VORDIPLOM_COLORS[2]);
+        set3.setFillColor(Color.rgb(0, 0, 255));
 
         ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
         dataSets.add(set1);

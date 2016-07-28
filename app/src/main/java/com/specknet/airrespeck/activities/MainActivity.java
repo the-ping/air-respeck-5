@@ -156,8 +156,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
     private int REQUEST_ENABLE_BT = 1;
-    private static final String RESPECK_UUID = "F5:85:7D:EA:61:F9";
-    private static final String QOE_UUID = "FC:A6:33:A2:A4:5A";
+    private static String RESPECK_UUID = "F5:85:7D:EA:61:F9";
+    private static String QOE_UUID;// = "FC:A6:33:A2:A4:5A";
     private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
     private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
 
@@ -193,6 +193,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mUtils = Utils.getInstance(this);
         //mLocationUtils = LocationUtils.getInstance(this);
         mLocationUtils = LocationHelper.getInstance(this);
+
+        // Get Bluetooth address
+        QOE_UUID = mUtils.getProperties().getProperty("QoEUUID");
+        //RESPECK_UUID = mUtils.getProperties().getProperty("RESpeckUUID");
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -528,15 +532,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_RATE, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
     }
-    /**
-     * Update reading values in fragments' UIs.
-     */
-    private void updateUI() {
-         // Update connection loading layout
-        mHomeFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
-        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
-        mGraphsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
 
+    /**
+     * Update Respeck reading values
+     * We need to separate Respeck and QOE values as both update at different rates
+     */
+    private void updateRespeckUI() {
         // Home fragment UI
         try {
             ArrayList<Float> listValues = new ArrayList<Float>();
@@ -548,6 +549,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             mHomeFragment.setReadings(listValues);
         }
         catch (Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Update QOE reading values
+     * We need to separate Respeck and QOE values as both update at different rates
+     */
+    private void updateQOEUI() {
+        // Update connection loading layout
+        mHomeFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
+        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
+        mGraphsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
 
         // Air Quality fragment UI
         try {
@@ -606,7 +618,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mRespeckSensorReadings = newValues;
 
         // Update the UI
-        updateUI();
+        updateRespeckUI();
     }
 
     /**
@@ -618,7 +630,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mQOESensorReadings = newValues;
 
         // Update the UI
-        updateUI();
+        updateQOEUI();
     }
 
 
@@ -634,19 +646,19 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         JSONObject json = new JSONObject();
         try {
-            /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
+            json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty("QoEUUID"));
             json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
             json.put("respeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
             json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
-            json.put("app_version", mUtils.getAppVersionCode());*/
+            json.put("app_version", mUtils.getAppVersionCode());
 
-            json.put("patient_id", "999");
+            /*json.put("patient_id", "999");
             json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
             json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
             json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
             json.put("tablet_serial", "Q8G12151102193");
-            json.put("app_version", mUtils.getAppVersionCode());
+            json.put("app_version", mUtils.getAppVersionCode());*/
         }
         catch (JSONException e) {
             e.printStackTrace();
@@ -665,19 +677,19 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         JSONObject json = new JSONObject();
         try {
-            /*json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty("QOEUUID"));
+            json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty("QoEUUID"));
             json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
             json.put("respeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
             json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
-            json.put("app_version", mUtils.getAppVersionCode());*/
+            json.put("app_version", mUtils.getAppVersionCode());
 
-            json.put("patient_id", "999");
+            /*json.put("patient_id", "999");
             json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
             json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
             json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
             json.put("tablet_serial", "Q8G12151102193");
-            json.put("app_version", mUtils.getAppVersionCode());
+            json.put("app_version", mUtils.getAppVersionCode());*/
         }
         catch (JSONException e) {
             e.printStackTrace();
@@ -780,13 +792,13 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * @param device BluetoothDevice The device.
      */
     public void connectToDevice(BluetoothDevice device) {
-        if (mGattRespeck == null && device.getName().equals("Respeck_LNT18")) {
+        if (mGattRespeck == null /*&& device.getName().equals("Respeck_LNT18")*/) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
         }
 
-        if (mGattQOE == null && device.getName().equals("QOE")) {
+        if (mGattQOE == null /*&& device.getName().equals("QOE")*/) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
             mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
@@ -1204,6 +1216,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             Log.i("Activity: " , String.valueOf(breathActivity));
 
 
+                            // Get timestamp
+                            long unixTimestamp = mUtils.getUnixTimestamp();
+
                             // Send message
                             JSONObject json = new JSONObject();
                             try {
@@ -1217,10 +1232,38 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                     json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
                                 }
                                 if (Float.isNaN(breathingSignal)) {
-                                    json.put(Constants.RESPECK_BREATHING_RATE, null);
+                                    json.put(Constants.RESPECK_BREATHING_SIGNAL, null);
                                 } else {
-                                    json.put(Constants.RESPECK_BREATHING_RATE, breathingSignal);
+                                    json.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                                 }
+                                /*if (Float.isNaN(breathingAngle)) {
+                                    json.put(Constants.RESPECK_BREATHING_ANGLE, null);
+                                } else {
+                                    json.put(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
+                                }
+                                if (Float.isNaN(averageBreathingRate)) {
+                                    json.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, null);
+                                } else {
+                                    json.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
+                                }
+                                if (Float.isNaN(stdDevBreathingRate)) {
+                                    json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, null);
+                                } else {
+                                    json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, stdDevBreathingRate);
+                                }
+                                if(Float.isNaN(nBreaths)){
+                                    json.put(Constants.RESPECK_N_BREATHS, null);
+                                } else {
+                                    json.put(Constants.RESPECK_N_BREATHS, nBreaths);
+                                }
+                                if(Float.isNaN(breathActivity)){
+                                    json.put(Constants.RESPECK_ACTIVITY, null);
+                                } else {
+                                    json.put(Constants.RESPECK_ACTIVITY, breathActivity);
+                                }
+                                json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
+                                json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);
+                                json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);*/
                             }
                             catch (JSONException e) {
                                 e.printStackTrace();

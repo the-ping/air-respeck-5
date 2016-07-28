@@ -12,6 +12,9 @@ android {
         versionCode 1
         versionName "1.0"
 
+        // Enabling multidex support.
+        multiDexEnabled true
+
         ndk {
             moduleName "respeck-jni"
         }
@@ -59,8 +62,10 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
     // CircularProgressBar
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
-    //DateUtils
+    // DateUtils
     compile 'org.apache.commons:commons-lang3:3.0'
+    // Multidex support
+    compile 'com.android.support:multidex:1.0.0'
 }
 repositories {
     mavenCentral()

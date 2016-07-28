@@ -8,7 +8,7 @@ public class Constants {
     /**
      * APP PROPERTIES FILE
      */
-    public static final String PROPERTIES_FILE_NAME = "AirRespeck.config";
+    public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
 
 
     /**
@@ -51,6 +51,13 @@ public class Constants {
     public static final String RESPECK_Z = "z";
     public static final String RESPECK_BREATHING_RATE = "breathing_rate";
     public static final String RESPECK_BREATHING_SIGNAL = "breathing_signal";
+    public static final String RESPECK_BREATHING_ANGLE = "breathing_angle";
+    public static final String RESPECK_AVERAGE_BREATHING_RATE = "average_breathing_rate";
+    public static final String RESPECK_STD_DEV_BREATHING_RATE = "std_dev_breathing_rate";
+    public static final String RESPECK_N_BREATHS = "n_breaths";
+    public static final String RESPECK_ACTIVITY = "activity";
+    public static final String RESPECK_LIVE_SEQ = "live_seq";
+    public static final String RESPECK_LIVE_RS_TIMESTAMP = "live_rs_timestamp";
 
     public static final String QOE_PM1 = "pm1";
     public static final String QOE_PM2_5 = "pm2_5";

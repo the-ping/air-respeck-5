@@ -162,9 +162,9 @@ public class InitialSetupActivity extends BaseActivity {
 
         try {
             // Get properties
-            String id = "101";//utils.getProperties().getProperty("user_id");
-            int age = 30;//Integer.parseInt(utils.getProperties().getProperty("user_age"));
-            int type = 2;//Integer.parseInt(utils.getProperties().getProperty("user_type"));
+            String id = utils.getProperties().getProperty("PatientID");
+            int age = Integer.parseInt(utils.getProperties().getProperty("PatientAge"));
+            int type = Integer.parseInt(utils.getProperties().getProperty("UserType"));
 
             // Parse data
             String firstName = (type == 1) ? "Subject" : "Researcher";

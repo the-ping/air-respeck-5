@@ -7,7 +7,7 @@ import com.activeandroid.ActiveAndroid;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 
 
-public class App extends Application{
+public class App extends android.support.multidex.MultiDexApplication {
     @Override
     public void onCreate()
     {
