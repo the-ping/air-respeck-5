@@ -11,6 +11,10 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+        ndk {
+            moduleName "respeck-jni"
+        }
     }
 
     buildTypes {
@@ -61,6 +65,10 @@ dependencies {
 
     // CircularProgressBar
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
+
+    //DateUtils
+    compile 'org.apache.commons:commons-lang3:3.0'
+
 }
 repositories {
     mavenCentral()

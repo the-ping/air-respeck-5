@@ -35,6 +35,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.time.DateUtils;
+
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.GraphsFragment;
@@ -53,9 +55,12 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.UUID;
 
 
@@ -152,12 +157,27 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
     private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
 
-    // CODIGO MANTAS
+    private final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
+    private final static String RESPECK_LIVE_CHARACTERISTIC = "00002010-0000-1000-8000-00805f9b34fb";
+    private final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
+    private final static String RESPECK_BREATH_INTERVALS_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
+
+    //QOE CODE
     private static byte[][] lastPackets_1  = new byte[4][];
     private static byte[][] lastPackets_2  = new byte[5][];
     private static int[] sampleIDs_1 = {0, 0, 0, 0};
     private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
     int lastSample = 0;
+
+    //RESPECK CODE
+    int latest_live_respeck_seq = -1;
+    long live_bs_timestamp = -1;
+    long live_rs_timestamp = -1;
+    Queue<RESpeckStoredSample> stored_queue;
+
+    long latestProcessedMinute = 0l;
+    int live_seq = -1;
+
 
 
 
@@ -257,6 +277,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // For use with snack bar
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
+        //Initialize Breathing Functions
+        initBreathing();
 
         // Initialize Readings hash maps
         mRespeckSensorReadings = new HashMap<String, Float>();
@@ -705,11 +727,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * @param device BluetoothDevice The device.
      */
     public void connectToDevice(BluetoothDevice device) {
-        /*if (mGattRespeck == null && device.getName().equals("Respeck_LNT18")) {
+        if (mGattRespeck == null && device.getName().equals("Respeck_LNT18")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
-        }*/
+        }
 
         if (mGattQOE == null && device.getName().equals("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
@@ -717,7 +739,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
         }
 
-        if (mGattQOE != null /*&& mGattRespeck != null*/) {
+        if (mGattQOE != null && mGattRespeck != null) {
             Log.i("[Bluetooth]", "Devices connected. Scanner turned off.");
             scanLeDevice(false);
         }
@@ -734,7 +756,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
                     mQOEConnectionComplete = true;
-                    Log.i("[QOE] - gattCallback", "STATE_CONNECTED");
+                    Log.i("QOE-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
 
                     Snackbar.make(mCoordinatorLayout, "QOE "
@@ -745,15 +767,15 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mQOEConnectionComplete = false;
-                    Log.e("[QOE] - gattCallback", "STATE_DISCONNECTED");
-                    Log.i("[QOE] - gattCallback", "reconnecting...");
+                    Log.e("QOE-gattCallback", "STATE_DISCONNECTED");
+                    Log.i("QOE-gattCallback", "reconnecting...");
                     BluetoothDevice device = gatt.getDevice();
                     mGattQOE.close();
                     mGattQOE = null;
                     connectToDevice(device);
                     break;
                 default:
-                    Log.e("[QOE] - gattCallback", "STATE_OTHER");
+                    Log.e("QOE-gattCallback", "STATE_OTHER");
             }
         }
 
@@ -984,4 +1006,256 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             }
         }
     };
+
+    private final BluetoothGattCallback mGattCallbackRespeck = new BluetoothGattCallback(){
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status,int newState) {
+
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    mRespeckConnectionComplete = true;
+                    Log.i("Respeck-gattCallback", "STATE_CONNECTED");
+                    gatt.discoverServices();
+
+                    Snackbar.make(mCoordinatorLayout, "Respeck "
+                            + getString(R.string.device_connected)
+                            + ". " + getString(R.string.waiting_for_data)
+                            + ".", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    mRespeckConnectionComplete = false;
+                    Log.e("Respeck-gattCallback", "STATE_DISCONNECTED");
+                    Log.i("Respeck-gattCallback", "reconnecting...");
+                    BluetoothDevice device = gatt.getDevice();
+                    mGattRespeck.close();
+                    mGattRespeck = null;
+                    connectToDevice(device);
+                    break;
+                default:
+                    Log.e("Respeck-gattCallback", "STATE_OTHER");
+            }
+        }
+
+        @Override
+        // New services discovered
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                List<BluetoothGattService> services = gatt.getServices();
+                Log.i("Respeck", "onServicesDiscovered - " + services.toString());
+                //gatt.readCharacteristic(services.get(1).getCharacteristics().get(0));
+
+                for (BluetoothGattService s : services) {
+                    BluetoothGattCharacteristic characteristic = s.getCharacteristic(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC));
+
+                    if (characteristic != null) {
+                        gatt.setCharacteristicNotification(characteristic, true);
+                        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG));
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        gatt.writeDescriptor(descriptor);
+                    }
+                }
+
+
+            }
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
+                Log.i("Respeck", "RESPECK_LIVE_CHARACTERISTIC");
+                //updateTextBox("Notifying RESpeck Live characteristic...");
+
+                BluetoothGattService s = descriptor.getCharacteristic().getService();
+
+                BluetoothGattCharacteristic characteristic = s.getCharacteristic(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC));
+
+
+                if (characteristic != null) {
+                    gatt.setCharacteristicNotification(characteristic, true);
+                    BluetoothGattDescriptor descriptor2 = characteristic.getDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG));
+                    descriptor2.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                    gatt.writeDescriptor(descriptor2);
+                }
+            }
+
+            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATH_INTERVALS_CHARACTERISTIC))) {
+                Log.i("Respeck", "RESPECK_BREATH_INTERVALS_CHARACTERISTIC");
+
+            }
+
+            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
+            if (characteristic.getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
+                final byte[] accelBytes = characteristic.getValue();
+
+                final int len = accelBytes.length;
+                final int seq = accelBytes[0] & 0xFF;
+
+                if (seq == latest_live_respeck_seq) {
+                    return;
+                } else {
+                    latest_live_respeck_seq = seq;
+                }
+
+                for (int i = 1; i < len; i += 7) {
+                    Byte start_byte = accelBytes[i];
+                    if(start_byte == -1){
+                        Byte ts_1 = accelBytes[i + 1];
+                        Byte ts_2 = accelBytes[i + 2];
+                        Byte ts_3 = accelBytes[i + 3];
+                        Byte ts_4 = accelBytes[i + 4];
+
+                        live_bs_timestamp = System.currentTimeMillis();
+                        Long new_rs_timestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
+                        if (new_rs_timestamp == live_rs_timestamp) {
+                            return;
+                        }
+                        live_rs_timestamp = new_rs_timestamp;
+                        live_seq = 0;
+
+                        while (!stored_queue.isEmpty()) {
+                            RESpeckStoredSample s = stored_queue.remove();
+                            Long current_time_offset = live_bs_timestamp / 1000 - live_rs_timestamp;
+                        }
+                    }
+                    else if (start_byte == -2 && live_seq >= 0) {
+                        try{
+                            final float x = combineAccelBytes(Byte.valueOf(accelBytes[i+1]),
+                                    Byte.valueOf(accelBytes[i+2]));
+                            float y = combineAccelBytes(Byte.valueOf(accelBytes[i+3]),
+                                    Byte.valueOf(accelBytes[i+4]));
+                            float z = combineAccelBytes(Byte.valueOf(accelBytes[i+5]),
+                                    Byte.valueOf(accelBytes[i+6]));
+
+                            updateBreathing(x, y, z);
+
+                            float breathingRate = getBreathingRate();
+                            float breathingSignal = getBreathingSignal();
+                            float breathingAngle = getBreathingAngle();
+                            float averageBreathingRate = getAverageBreathingRate();
+                            float stdDevBreathingRate = getStdDevBreathingRate();
+                            float nBreaths = getNBreaths();
+                            float breathActivity = getActivity();
+
+
+                            // Send message
+                            JSONObject json = new JSONObject();
+                            try {
+                                json.put("messagetype", "respeck_data");
+                                json.put(Constants.RESPECK_X, x);
+                                json.put(Constants.RESPECK_Y, y);
+                                json.put(Constants.RESPECK_Z, z);
+                                json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                                json.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            }
+                            catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                            Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
+                            intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
+                            sendBroadcast(intent);
+                            Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
+
+
+                            //UPDATE THE UI
+                            HashMap<String, Float> values = new HashMap<String, Float>();
+                            values.put(Constants.RESPECK_X, x);
+                            values.put(Constants.RESPECK_Y, y);
+                            values.put(Constants.RESPECK_Z, z);
+                            values.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                            values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+
+
+
+                            Message msg = Message.obtain();
+                            msg.obj = values;
+                            msg.what = UPDATE_RESPECK_READINGS;
+                            msg.setTarget(mUIHandler);
+                            msg.sendToTarget();
+
+                            RESpeckStoredSample s = stored_queue.remove();
+
+
+                            live_seq += 1;
+
+
+
+                            long ts_minute = DateUtils.truncate(new Date(live_bs_timestamp), Calendar.MINUTE).getTime();
+
+                            if (ts_minute > latestProcessedMinute) {
+                                calculateMA();
+
+                                float ave_br = getAverageBreathingRate();
+                                float sd_br = getStdDevBreathingRate();
+                                //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
+                                int n_breaths = getNBreaths();
+                                float act = getActivity();
+
+                                resetMA();
+
+
+
+                                latestProcessedMinute = ts_minute;
+
+
+                            }
+
+
+                        }catch (IndexOutOfBoundsException e) {
+
+                        }
+
+                    }
+                }
+            }
+        }
+    };
+
+    private long combineTimestampBytes(Byte upper, Byte upper_middle, Byte lower_middle, Byte lower) {
+        short unsigned_upper = (short) (upper & 0xFF);
+        short unsigned_upper_middle = (short) (upper_middle & 0xFF);
+        short unsigned_lower_middle = (short) (lower_middle & 0xFF);
+        short unsigned_lower = (short) (lower & 0xFF);
+        int value = (int) ((unsigned_upper << 24) | (unsigned_upper_middle << 16) | (unsigned_lower_middle << 8) | unsigned_lower);
+        long uValue = value & 0xffffffffL;
+        return uValue;
+    }
+
+    private float combineAccelBytes(Byte upper, Byte lower) {
+        short unsigned_lower = (short) (lower & 0xFF);
+        short value = (short) ((upper << 8) | unsigned_lower);
+        float fValue = (value) / 16384.0f;
+        return fValue;
+    }
+    private float combineActBytes(Byte upper, Byte lower) {
+        short unsigned_lower = (short) (lower & 0xFF);
+        short unsigned_upper = (short) (upper & 0xFF);
+        short value = (short) ((unsigned_upper << 8) | unsigned_lower);
+        float fValue = (value) / 1000.0f;
+        return fValue;
+    }
+
+    static {
+        System.loadLibrary("respeck-jni");
+    }
+    //public native String getMsgFromJni();
+    public native void initBreathing();
+    public native void updateBreathing(float x, float y, float z);
+    public native float getBreathingSignal();
+    public native float getBreathingRate();
+    public native float getAverageBreathingRate();
+    public native float getActivity();
+    public native int getNBreaths();
+    public native float getBreathingAngle();
+    //public native String stringfromJNI();
+    public native void resetMA();
+    public native void calculateMA();
+    public native float getStdDevBreathingRate();
 }

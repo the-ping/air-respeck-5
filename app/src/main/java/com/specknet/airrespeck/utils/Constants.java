@@ -39,7 +39,11 @@ public class Constants {
     /**
      * Readings
      */
+    public static final String RESPECK_X = "x";
+    public static final String RESPECK_Y = "y";
+    public static final String RESPECK_Z = "z";
     public static final String RESPECK_BREATHING_RATE = "breathing_rate";
+    public static final String RESPECK_BREATHING_SIGNAL = "breathing_signal";
 
     public static final String QOE_PM1 = "pm1";
     public static final String QOE_PM2_5 = "pm2_5";
