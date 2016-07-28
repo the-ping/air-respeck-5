@@ -54,6 +54,9 @@ dependencies {
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
+    // Google location services
+    compile 'com.google.android.gms:play-services:9.2.1'
+
     // Active Android SQLite lib
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
 

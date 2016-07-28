@@ -46,6 +46,7 @@ import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.json.JSONException;
@@ -125,6 +126,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     // UTILS
     Utils mUtils;
+    LocationUtils mLocationUtils;
 
 
     // Layout view for snack bar
@@ -187,6 +189,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         // Utils
         mUtils = Utils.getInstance(this);
+        mLocationUtils = LocationUtils.getInstance(this);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -298,6 +301,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         // Bluetooth startup
         startBluetooth();
+
+        // Start location manager
+        mLocationUtils.startLocationManager();
     }
 
     @Override
@@ -308,12 +314,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
             scanLeDevice(false);
         }
+
+        // Stop location manager
+        mLocationUtils.stopLocationManager();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
+        // Cleanup Bluetooth handlers
         if (mGattRespeck == null && mGattQOE == null) {
             return;
         }
@@ -327,6 +337,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             mGattQOE.close();
             mGattQOE = null;
         }
+
+        // Stop location manager
+        mLocationUtils.stopLocationManager();
     }
 
     @Override
@@ -479,7 +492,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * Update reading values in fragments' UIs.
      */
     private void updateUI() {
-        // Update connection loading layout
+         // Update connection loading layout
         mHomeFragment.showConnecting(!mQOEConnectionComplete);
         mAQReadingsFragment.showConnecting(!mQOEConnectionComplete);
         mGraphsFragment.showConnecting(!mQOEConnectionComplete);
@@ -910,6 +923,21 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                     lastSample = sampleIDs_2[0];
 
+                    // Get timestamp
+                    long unixTimestamp = mUtils.getUnixTimestamp();
+
+                    // Get location
+                    double latitude = 0;
+                    double longitude = 0;
+                    double altitude = 0;
+                    try {
+                        latitude = mLocationUtils.getLatitude();
+                        longitude = mLocationUtils.getLongitude();
+                        altitude = mLocationUtils.getAltitude();
+                    }
+                    catch (Exception e) {
+                        Log.e("[QOE]", "Location permissions not granted.");
+                    }
 
                     // Send message
                     JSONObject json = new JSONObject();
@@ -941,6 +969,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         json.put(Constants.QOE_BINS_14, bin14);
                         json.put(Constants.QOE_BINS_15, bin15);
                         json.put(Constants.QOE_BINS_TOTAL, total);
+                        json.put(Constants.LOC_LATITUDE, latitude);
+                        json.put(Constants.LOC_LONGITUDE, longitude);
+                        json.put(Constants.LOC_ALTITUDE, altitude);
+                        json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);
                     }
                     catch (JSONException e) {
                         e.printStackTrace();

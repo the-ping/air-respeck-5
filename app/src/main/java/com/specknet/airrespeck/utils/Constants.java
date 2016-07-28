@@ -25,6 +25,13 @@ public class Constants {
 
 
     /**
+     * Google play: Location Manager
+     */
+    public static final Long UPDATE_INTERVAL = 5000L;
+    public static final Long FASTEST_INTERVAL = 1000L;
+
+
+    /**
      * Menu icons
      */
     public static int[] menuIconsResId = {
@@ -73,6 +80,15 @@ public class Constants {
     public static final String QOE_BINS_14 = "bins14";
     public static final String QOE_BINS_15 = "bins15";
     public static final String QOE_BINS_TOTAL = "bins_total";
+
+
+    /**
+     * Additional data for uploading to the server
+     */
+    public static final String LOC_LATITUDE = "latitude";
+    public static final String LOC_LONGITUDE = "longitude";
+    public static final String LOC_ALTITUDE = "altitude";
+    public static final String UNIX_TIMESTAMP = "timestamp";
 
 
     /**
