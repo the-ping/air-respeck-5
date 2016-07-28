@@ -9,6 +9,7 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.http.HttpApi;
+import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.IOException;
@@ -162,9 +163,9 @@ public class InitialSetupActivity extends BaseActivity {
 
         try {
             // Get properties
-            String id = utils.getProperties().getProperty("PatientID");
-            int age = Integer.parseInt(utils.getProperties().getProperty("PatientAge"));
-            int type = Integer.parseInt(utils.getProperties().getProperty("UserType"));
+            String id = utils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID);
+            int age = Integer.parseInt(utils.getProperties().getProperty(Constants.PFIELD_PATIENT_AGE));
+            int type = Integer.parseInt(utils.getProperties().getProperty(Constants.PFIELD_USER_TYPE));
 
             // Parse data
             String firstName = (type == 1) ? "Subject" : "Researcher";

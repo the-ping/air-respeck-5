@@ -195,8 +195,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mLocationUtils = LocationHelper.getInstance(this);
 
         // Get Bluetooth address
-        QOE_UUID = mUtils.getProperties().getProperty("QoEUUID");
-        //RESPECK_UUID = mUtils.getProperties().getProperty("RESpeckUUID");
+        QOE_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID);
+        //RESPECK_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -498,9 +498,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * Initialize hashmaps for sensor reading values
      */
     private void initReadingMaps() {
-        mRespeckSensorReadings = new HashMap<String, Float>();
         mQOESensorReadings = new HashMap<String, Float>();
-
         mQOESensorReadings.put(Constants.QOE_PM1, 0f);
         mQOESensorReadings.put(Constants.QOE_PM2_5, 0f);
         mQOESensorReadings.put(Constants.QOE_PM10, 0f);
@@ -526,6 +524,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
+        mRespeckSensorReadings = new HashMap<String, Float>();
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -646,21 +645,21 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         JSONObject json = new JSONObject();
         try {
-            json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty("QoEUUID"));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
-            json.put("respeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
-            json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
+            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
+            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
+            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
             json.put("app_version", mUtils.getAppVersionCode());
 
             /*json.put("patient_id", "999");
-            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
-            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
             json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
+            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
+            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
             json.put("tablet_serial", "Q8G12151102193");
             json.put("app_version", mUtils.getAppVersionCode());*/
         }
-        catch (JSONException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -677,21 +676,21 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         JSONObject json = new JSONObject();
         try {
-            json.put("patient_id", mUtils.getProperties().getProperty("PatientID"));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty("QoEUUID"));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty("RESpeckUUID"));
-            json.put("respeck_key", mUtils.getProperties().getProperty("RESpeckKey"));
-            json.put("tablet_serial", mUtils.getProperties().getProperty("TabletSerial"));
+            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
+            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
+            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
             json.put("app_version", mUtils.getAppVersionCode());
 
             /*json.put("patient_id", "999");
-            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
-            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
             json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
+            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
+            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
             json.put("tablet_serial", "Q8G12151102193");
             json.put("app_version", mUtils.getAppVersionCode());*/
         }
-        catch (JSONException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -1128,12 +1127,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
                 Log.i("Respeck", "RESPECK_LIVE_CHARACTERISTIC");
-                //updateTextBox("Notifying RESpeck Live characteristic...");
 
                 BluetoothGattService s = descriptor.getCharacteristic().getService();
 
                 BluetoothGattCharacteristic characteristic = s.getCharacteristic(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC));
-
 
                 if (characteristic != null) {
                     gatt.setCharacteristicNotification(characteristic, true);
@@ -1142,12 +1139,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     gatt.writeDescriptor(descriptor2);
                 }
             }
-
             else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATH_INTERVALS_CHARACTERISTIC))) {
                 Log.i("Respeck", "RESPECK_BREATH_INTERVALS_CHARACTERISTIC");
 
             }
-
             else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
 
             }
@@ -1291,7 +1286,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                             }
 
-
                             Message msg = Message.obtain();
                             msg.obj = values;
                             msg.what = UPDATE_RESPECK_READINGS;
@@ -1342,6 +1336,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         float fValue = (value) / 16384.0f;
         return fValue;
     }
+
     private float combineActBytes(Byte upper, Byte lower) {
         short unsigned_lower = (short) (lower & 0xFF);
         short unsigned_upper = (short) (upper & 0xFF);
@@ -1353,6 +1348,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     static {
         System.loadLibrary("respeck-jni");
     }
+
     //public native String getMsgFromJni();
     public native void initBreathing();
     public native void updateBreathing(float x, float y, float z);

@@ -9,7 +9,13 @@ public class Constants {
      * APP PROPERTIES FILE
      */
     public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
-
+    public static final String PFIELD_RESPECK_KEY = "RESpeckKey";
+    public static final String PFIELD_RESPECK_UUID = "RESpeckUUID";
+    public static final String PFIELD_QOEUUID = "QoEUUID";
+    public static final String PFIELD_TABLET_SERIAL = "TabletSerial";
+    public static final String PFIELD_PATIENT_ID = "PatientID";
+    public static final String PFIELD_PATIENT_AGE = "PatientAge";
+    public static final String PFIELD_USER_TYPE = "UserType";
 
     /**
      * UPLOAD SERVICES
