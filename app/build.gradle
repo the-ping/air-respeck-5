@@ -32,46 +32,35 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:support-v4:23.4.0'
     compile 'com.android.support:design:23.4.0'
     compile 'com.android.support:recyclerview-v7:23.4.0'
-
     // Retrofit REST client
     compile 'com.google.code.gson:gson:2.6.2'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
     compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-
     // Tape
     compile 'com.squareup:tape:1.2.3'
-
     compile 'io.reactivex:rxandroid:1.1.0'
     compile 'io.reactivex:rxjava:1.1.0'
-
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
     // Google location services
     compile 'com.google.android.gms:play-services:9.2.1'
-
     // Active Android SQLite lib
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
-
     // Chart graphs
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.0-beta1'
-
     // FloatLabeledEditText
     compile 'com.nineoldandroids:library:2.4.0'
-
     // CircularProgressBar
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
-
     //DateUtils
     compile 'org.apache.commons:commons-lang3:3.0'
-
 }
 repositories {
     mavenCentral()
