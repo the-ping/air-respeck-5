@@ -13,18 +13,18 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-/*import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;*/
+import com.google.android.gms.location.LocationServices;
 
 
-public class LocationUtils/* implements
+public class LocationUtils implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener*/ {
+        com.google.android.gms.location.LocationListener {
 
-/*    private static LocationUtils mLocationUtils;
+    private static LocationUtils mLocationUtils;
     private final Context mContext;
 
     private GoogleApiClient mGoogleApiClient;
@@ -144,5 +144,5 @@ public class LocationUtils/* implements
 
     public double getAltitude() {
         return mLocation.hasAltitude() ? mLocation.getAltitude() : 0;
-    }*/
+    }
 }

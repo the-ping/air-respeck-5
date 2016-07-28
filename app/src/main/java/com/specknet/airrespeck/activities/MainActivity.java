@@ -46,6 +46,7 @@ import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.LocationHelper;
 import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
@@ -126,7 +127,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     // UTILS
     Utils mUtils;
-    LocationUtils mLocationUtils;
+    //LocationUtils mLocationUtils;
+    LocationHelper mLocationUtils;
 
 
     // Layout view for snack bar
@@ -190,6 +192,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // Utils
         mUtils = Utils.getInstance(this);
         //mLocationUtils = LocationUtils.getInstance(this);
+        mLocationUtils = LocationHelper.getInstance(this);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -968,9 +971,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     double longitude = 0;
                     double altitude = 0;
                     try {
-                        /*latitude = mLocationUtils.getLatitude();
+                        latitude = mLocationUtils.getLatitude();
                         longitude = mLocationUtils.getLongitude();
-                        altitude = mLocationUtils.getAltitude();*/
+                        altitude = mLocationUtils.getAltitude();
                     }
                     catch (Exception e) {
                         Log.e("[QOE]", "Location permissions not granted.");
@@ -1106,8 +1109,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         gatt.writeDescriptor(descriptor);
                     }
                 }
-
-
             }
         }
 
@@ -1248,7 +1249,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             }
 
 
-
                             Message msg = Message.obtain();
                             msg.obj = values;
                             msg.what = UPDATE_RESPECK_READINGS;
@@ -1257,10 +1257,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                             //RESpeckStoredSample s = stored_queue.remove();
 
-
                             live_seq += 1;
-
-
 
                             long ts_minute = DateUtils.truncate(new Date(live_bs_timestamp), Calendar.MINUTE).getTime();
 
@@ -1275,18 +1272,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                                 resetMA();
 
-
-
                                 latestProcessedMinute = ts_minute;
-
-
                             }
-
-
-                        }catch (IndexOutOfBoundsException e) {
-
+                        } catch (IndexOutOfBoundsException e) {
+                            e.printStackTrace();
                         }
-
                     }
                 }
             }
