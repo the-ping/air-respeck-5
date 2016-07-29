@@ -1231,7 +1231,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 } else {
                                     json.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                                 }
-                                /*if (Float.isNaN(breathingAngle)) {
+                                if (Float.isNaN(breathingAngle)) {
                                     json.put(Constants.RESPECK_BREATHING_ANGLE, null);
                                 } else {
                                     json.put(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
@@ -1258,7 +1258,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 }
                                 json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
                                 json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);
-                                json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);*/
+                                json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);
                             }
                             catch (JSONException e) {
                                 e.printStackTrace();

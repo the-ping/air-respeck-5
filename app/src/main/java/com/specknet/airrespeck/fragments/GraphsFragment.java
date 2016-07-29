@@ -271,11 +271,11 @@ public class GraphsFragment extends BaseFragment {
             set1.setLineWidth(2.5f);
             set1.setCircleRadius(4.5f);
             set1.setHighLightColor(Color.rgb(244, 117, 117));
-            set1.setColor(ColorTemplate.VORDIPLOM_COLORS[0]);
-            set1.setCircleColor(ColorTemplate.VORDIPLOM_COLORS[0]);
+            set1.setColor(Color.rgb(0, 255, 0));
+            set1.setCircleColor(Color.rgb(0, 255, 0));
             set1.setDrawValues(false);
             set1.setDrawFilled(true);
-            set1.setFillColor(ColorTemplate.VORDIPLOM_COLORS[0]);
+            set1.setFillColor(Color.rgb(0, 255, 0));
 
             // add the datasets
             ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
