@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
+import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.http.HttpApi;
@@ -22,12 +23,18 @@ import retrofit2.Response;
 
 public class InitialSetupActivity extends BaseActivity {
 
+    private AutoUpdateApk aua;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initial_setup);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        aua = new AutoUpdateApk(getApplicationContext());
+        aua.enableMobileUpdates();
+        //aua.checkUpdatesManually();
     }
 
     @Override

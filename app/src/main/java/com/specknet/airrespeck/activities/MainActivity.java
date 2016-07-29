@@ -156,7 +156,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
     private int REQUEST_ENABLE_BT = 1;
-    private static String RESPECK_UUID = "F5:85:7D:EA:61:F9";
+    private static String RESPECK_UUID;// = "F5:85:7D:EA:61:F9";
     private static String QOE_UUID;// = "FC:A6:33:A2:A4:5A";
     private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
     private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
@@ -196,7 +196,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         // Get Bluetooth address
         QOE_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID);
-        //RESPECK_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID);
+        RESPECK_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID);
 
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
@@ -791,13 +791,13 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * @param device BluetoothDevice The device.
      */
     public void connectToDevice(BluetoothDevice device) {
-        if (mGattRespeck == null /*&& device.getName().equals("Respeck_LNT18")*/) {
+        if (mGattRespeck == null && device.getName().contains("Respeck")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
         }
 
-        if (mGattQOE == null /*&& device.getName().equals("QOE")*/) {
+        if (mGattQOE == null && device.getName().contains("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
             mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
