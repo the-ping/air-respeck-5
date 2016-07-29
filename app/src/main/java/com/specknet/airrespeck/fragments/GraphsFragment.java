@@ -79,7 +79,6 @@ public class GraphsFragment extends BaseFragment {
         }
 
         mBreathingSignalData = new ArrayList<Float>();
-        mBreathingSignalData.add(0f);
     }
 
     @Override
@@ -310,12 +309,16 @@ public class GraphsFragment extends BaseFragment {
         }
     }
 
+
     /**
      * Setup Breathing Signal chart.
      */
     private void setupBreathingSignalChart() {
         mBreathingSignalChart.setDrawGridBackground(false);
+
+        // no description text
         mBreathingSignalChart.setDescription("");
+        mBreathingSignalChart.setDrawGridBackground(false);
 
         XAxis xAxis = mBreathingSignalChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -331,56 +334,58 @@ public class GraphsFragment extends BaseFragment {
         rightAxis.setDrawGridLines(false);
         rightAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
-        // initial data
-        // IMPORTANT: must have exactly 1 data sets
-        ArrayList<Entry> v1 = new ArrayList<Entry>();
+        // set data
+        updateBreathingSignalChartData();
 
-        for (int i = 0; i < mBreathingSignalData.size(); ++i) {
-            v1.add(new Entry(i, mBreathingSignalData.get(i)));
-        }
-
-        LineDataSet set1 = new LineDataSet(v1, getString(R.string.graphs_breathing_signal_title));
-        set1.setLineWidth(2.5f);
-        set1.setCircleRadius(4.5f);
-        set1.setHighLightColor(Color.rgb(244, 117, 117));
-        set1.setColor(Color.rgb(0, 0, 255));
-        set1.setCircleColor(Color.rgb(0, 0, 255));
-        set1.setDrawValues(false);
-        set1.setDrawFilled(true);
-        set1.setFillColor(Color.rgb(0, 0, 255));
-
-        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-        dataSets.add(set1);
-
-        // add data object
-        mBreathingSignalChart.setData(new LineData(dataSets));
+        mBreathingSignalChart.animateX(750);
     }
 
     /**
-     * Add new entries to the line graphs Breathing Signal chart
-     * @param newValue float The new value.
+     * Update the dataset for the Breathing Signal chart.
      */
-    private void addBreathingSignalEntries(final float newValue) {
-        LineData data = mBreathingSignalChart.getData();
+    private void updateBreathingSignalChartData() {
+        int count = mBreathingSignalData.size();
 
-        if (data.getDataSetByIndex(0).getEntryCount() >= Constants.NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART) {
-            data.getDataSetByIndex(0).clear();
+        ArrayList<Entry> values = new ArrayList<Entry>();
 
-            mBreathingSignalData.clear();
+        for (int i = 0; i < count; ++i) {
+            values.add(new Entry(i, mBreathingSignalData.get(i)));
         }
 
-        // Add new entry y value to the first (only) line data set
-        data.addEntry(new Entry(data.getDataSetByIndex(0).getEntryCount(), newValue), 0);
-        data.notifyDataChanged();
+        LineDataSet set1;
 
-        // let the chart know it's data has changed
-        mBreathingSignalChart.notifyDataSetChanged();
+        if (mBreathingSignalChart.getData() != null && mBreathingSignalChart.getData().getDataSetCount() > 0) {
+            set1 = (LineDataSet) mBreathingSignalChart.getData().getDataSetByIndex(0);
+            set1.setValues(values);
+            mBreathingSignalChart.getData().notifyDataChanged();
+            mBreathingSignalChart.notifyDataSetChanged();
+        }
+        else {
+            // create a dataset and give it a type
+            set1 = new LineDataSet(values, getString(R.string.graphs_breathing_signal_title));
 
-        mBreathingSignalChart.setVisibleXRangeMaximum(10);
-        //mChart.setVisibleYRangeMaximum(15, AxisDependency.LEFT);
+            set1.setLineWidth(2.5f);
+            set1.setCircleRadius(4.5f);
+            set1.setHighLightColor(Color.rgb(244, 117, 117));
+            set1.setColor(Color.rgb(0, 0, 255));
+            set1.setCircleColor(Color.rgb(0, 0, 255));
+            set1.setDrawValues(false);
+            set1.setDrawFilled(true);
+            set1.setFillColor(Color.rgb(0, 0, 255));
 
-        // this automatically refreshes the chart (calls invalidate())
-        mBreathingSignalChart.moveViewTo(data.getEntryCount() - 7, 50f, YAxis.AxisDependency.LEFT);
+            // add the datasets
+            ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+            dataSets.add(set1);
+
+            // create a data object with the datasets
+            LineData data = new LineData(dataSets);
+
+            // set data
+            mBreathingSignalChart.setData(data);
+        }
+
+        // refresh the drawing
+        mBreathingSignalChart.invalidate();
     }
 
     /**
@@ -389,9 +394,13 @@ public class GraphsFragment extends BaseFragment {
      */
     public void addBreathingSignalData(final float newValue) {
         if (mBreathingSignalData != null && mBreathingSignalChart != null) {
-            if (newValue != 0.0f) {
-                mBreathingSignalData.add(newValue);
-                addBreathingSignalEntries(newValue);
+            //if (newValue != 0.0f) {
+            mBreathingSignalData.add(newValue);
+
+            if (mBreathingSignalData.size() == Constants.NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART) {
+                updateBreathingSignalChartData();
+
+                mBreathingSignalData.clear();
             }
         }
     }
