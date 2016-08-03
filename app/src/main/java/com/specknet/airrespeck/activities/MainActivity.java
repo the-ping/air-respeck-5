@@ -181,6 +181,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     long latestProcessedMinute = 0l;
     int live_seq = -1;
+    long brav_bs_timestamp = -1;
+    long brav_rs_timestamp = -1;
+    int brav_seq = -1;
+    int latest_stored_respeck_seq = -1;
 
 
 
@@ -1152,11 +1156,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             if (characteristic.getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
                 final byte[] accelBytes = characteristic.getValue();
-
                 final int len = accelBytes.length;
                 final int seq = accelBytes[0] & 0xFF;
 
+                //Check if the reading is not repeated
                 if (seq == latest_live_respeck_seq) {
+                    Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(seq));
                     return;
                 } else {
                     latest_live_respeck_seq = seq;
@@ -1173,24 +1178,32 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         live_bs_timestamp = System.currentTimeMillis();
                         Long new_rs_timestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
                         if (new_rs_timestamp == live_rs_timestamp) {
+                            Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
                             return;
                         }
                         live_rs_timestamp = new_rs_timestamp;
                         live_seq = 0;
 
-                        /*while (!stored_queue.isEmpty()) {
+                        while (!stored_queue.isEmpty()) {
                             RESpeckStoredSample s = stored_queue.remove();
+
                             Long current_time_offset = live_bs_timestamp / 1000 - live_rs_timestamp;
-                        }*/
+
+                            //MANDA AL SERVIDOR PERO NO ACTUALIZA EN PANTALLA
+                            Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: "+current_time_offset);
+                            Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: "+s.getRs_timestamp());
+                            Log.i("1", "EXTRA_RESPECK_SEQ: "+s.getSeq());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_AVE_BR: "+s.getMeanBr());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_N_BR: "+s.getNBreaths());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_SD_BR: "+s.getSdBr());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY "+s.getActivity());
+                        }
                     }
                     else if (start_byte == -2 && live_seq >= 0) {
                         try{
-                            final float x = combineAccelBytes(Byte.valueOf(accelBytes[i+1]),
-                                    Byte.valueOf(accelBytes[i+2]));
-                            float y = combineAccelBytes(Byte.valueOf(accelBytes[i+3]),
-                                    Byte.valueOf(accelBytes[i+4]));
-                            float z = combineAccelBytes(Byte.valueOf(accelBytes[i+5]),
-                                    Byte.valueOf(accelBytes[i+6]));
+                            final float x = combineAccelBytes(Byte.valueOf(accelBytes[i+1]),Byte.valueOf(accelBytes[i+2]));
+                            float y = combineAccelBytes(Byte.valueOf(accelBytes[i+3]), Byte.valueOf(accelBytes[i+4]));
+                            float z = combineAccelBytes(Byte.valueOf(accelBytes[i+5]),Byte.valueOf(accelBytes[i+6]));
 
                             updateBreathing(x, y, z);
 
@@ -1202,13 +1215,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             float nBreaths = getNBreaths();
                             float breathActivity = getActivity();
 
-                            Log.i("Breathing Rate: ", String.valueOf(breathingRate));
-                            Log.i("Breathing Signal: ", String.valueOf(breathingSignal));
-                            Log.i("Breathing Angle: ", String.valueOf(breathingAngle));
-                            Log.i("BRA: ", String.valueOf(averageBreathingRate));
-                            Log.i("STDBR: ", String.valueOf(stdDevBreathingRate));
-                            Log.i("NBreaths: " , String.valueOf(nBreaths));
-                            Log.i("Activity: " , String.valueOf(breathActivity));
+                            Log.i("2", "BS TIMESTAMP "+String.valueOf(live_bs_timestamp));
+                            Log.i("2", "RS_TIMESTAMP "+String.valueOf(live_rs_timestamp));
+                            Log.i("2", "EXTRA_RESPECK_SEQ "+String.valueOf(live_seq));
+                            Log.i("2", "Breathing Rate "+String.valueOf(breathingRate));
+                            Log.i("2", "Breathing Signal "+String.valueOf(breathingSignal));
+                            Log.i("2", "Breathing Angle "+String.valueOf(breathingAngle));
+                            Log.i("2", "BRA "+String.valueOf(averageBreathingRate));
+                            Log.i("2", "STDBR "+String.valueOf(stdDevBreathingRate));
+                            Log.i("2", "NBreaths "+String.valueOf(nBreaths));
+                            Log.i("2", "Activity " +String.valueOf(breathActivity));
 
 
                             // Get timestamp
@@ -1308,6 +1324,15 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 float act = getActivity();
 
                                 resetMA();
+                                //ACTUALIZA Y MANDA AL SERVIDOR
+                                Log.i("3", "RESPECK BS TIMESTAMP "+ts_minute);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: "+ave_br);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: "+n_breaths);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: "+sd_br);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY "+act);
+
+                                // Send message
+                                //JSONObject json = new JSONObject();
 
                                 latestProcessedMinute = ts_minute;
                             }
@@ -1316,6 +1341,54 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         }
                     }
                 }
+            }else if(characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))){
+                final byte[] breathAveragesBytes = characteristic.getValue();
+                final int len = breathAveragesBytes.length;
+
+                final int seq = breathAveragesBytes[0] & 0xFF;
+
+                if (seq == latest_stored_respeck_seq) {
+                    return;
+                }
+                else {
+                    latest_stored_respeck_seq = seq;
+                }
+
+
+                for (int i = 1; i < len; i += 6) {
+                    Byte start_byte = breathAveragesBytes[i];
+
+                    if (start_byte == -1) {
+                        //timestamp
+                        Byte ts_1 = breathAveragesBytes[i+1];
+                        Byte ts_2 = breathAveragesBytes[i+2];
+                        Byte ts_3 = breathAveragesBytes[i+3];
+                        Byte ts_4 = breathAveragesBytes[i+4];
+                        brav_bs_timestamp = System.currentTimeMillis();
+                        brav_rs_timestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
+                        brav_seq = 0;
+                    }else if (start_byte == -2) {
+                        //breath average
+                        int n_breaths = breathAveragesBytes[i + 1] & 0xFF;
+                        if (n_breaths > 5) {
+                            float mean_br = (float) (breathAveragesBytes[i + 2] & 0xFF) / 5.0f;
+                            float sd_br = (float) Math.sqrt((float) (breathAveragesBytes[i + 3] & 0xFF) / 10.0f);
+
+                            Byte upper_act = breathAveragesBytes[i + 4];
+                            Byte lower_act = breathAveragesBytes[i + 5];
+                            float combined_act = combineActBytes(upper_act, lower_act);
+
+                            RESpeckStoredSample ras = new RESpeckStoredSample(brav_bs_timestamp, brav_rs_timestamp, brav_seq++, n_breaths, mean_br, sd_br, combined_act);
+                            Log.w("RAT", "Queueing stored sample: " + ras.toString());
+                            stored_queue.add(ras);
+                        }
+                    }
+
+
+                    //Log.i("RAT", "BREATH AVERAGES: " + Arrays.toString(breath_averages));
+                    //updateTextBox("Breath Averages: " + Arrays.toString(breath_averages));
+                }
+
             }
         }
     };
