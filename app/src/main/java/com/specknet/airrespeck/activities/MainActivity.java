@@ -1337,7 +1337,26 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY "+act);
 
                                 // Send message
-                                //JSONObject json = new JSONObject();
+                                JSONObject json2 = new JSONObject();
+                                try {
+                                    json2.put("messagetype", "respeck_processed");
+                                    json2.put("timestamp", ts_minute);
+                                    json2.put("activity", act);
+                                    if (!Float.isNaN(ave_br)) {
+                                        json2.put("breathing_rate", ave_br);
+                                        json2.put("n_breaths", n_breaths);
+                                        json2.put("sd_br", sd_br);
+                                    }
+                                    json2.put("stored", 0);
+                                }
+                                catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
+                                intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json2.toString());
+                                sendBroadcast(intent2);
+                                Log.d("RAT", "Sent LIVE JSON to upload service: " + json.toString());
+
 
                                 latestProcessedMinute = ts_minute;
                             }

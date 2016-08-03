@@ -326,8 +326,8 @@ public class GraphsFragment extends BaseFragment {
         xAxis.setDrawAxisLine(true);
 
         YAxis leftAxis = mBreathingSignalChart.getAxisLeft();
-        leftAxis.setLabelCount(5, false);
-        leftAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
+        //leftAxis.setLabelCount(5, false);
+        //leftAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         YAxis rightAxis = mBreathingSignalChart.getAxisRight();
         rightAxis.setLabelCount(5, false);
