@@ -120,6 +120,12 @@ public class Constants {
 
 
     /**
+     * GRAPHS FRAGMENT UI
+     */
+    public static final int NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART = 30;
+
+
+    /**
      * USERS' GROUP AGES
      */
     public static final int UGA_ADOLESCENT = 1;

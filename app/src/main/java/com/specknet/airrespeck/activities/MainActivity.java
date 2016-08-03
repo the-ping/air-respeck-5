@@ -47,7 +47,6 @@ import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.LocationHelper;
-import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.json.JSONException;
@@ -550,6 +549,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
 
             mHomeFragment.setReadings(listValues);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+
+        // Graphs fragment UI
+        try {
+            mGraphsFragment.addBreathingSignalData(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
         }
         catch (Exception e) { e.printStackTrace(); }
     }
