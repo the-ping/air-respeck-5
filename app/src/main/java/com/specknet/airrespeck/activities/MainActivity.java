@@ -156,8 +156,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
     private int REQUEST_ENABLE_BT = 1;
-    private static String RESPECK_UUID;// = "F5:85:7D:EA:61:F9";
-    private static String QOE_UUID;// = "FC:A6:33:A2:A4:5A";
+    private static String RESPECK_UUID;
+    private static String QOE_UUID;
     private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
     private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
 
@@ -664,13 +664,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
             json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
             json.put("app_version", mUtils.getAppVersionCode());
-
-            /*json.put("patient_id", "999");
-            json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
-            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
-            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
-            json.put("tablet_serial", "Q8G12151102193");
-            json.put("app_version", mUtils.getAppVersionCode());*/
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -695,13 +688,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
             json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
             json.put("app_version", mUtils.getAppVersionCode());
-
-            /*json.put("patient_id", "999");
-            json.put("respeck_key", "cR2bUPJ6fEyXycRLQhPavuedzvPU4znXuNvvQQWn");
-            json.put("respeck_uuid", "F5:85:7D:EA:61:F9");
-            json.put("qoe_uuid", "FC:A6:33:A2:A4:5A");
-            json.put("tablet_serial", "Q8G12151102193");
-            json.put("app_version", mUtils.getAppVersionCode());*/
         }
         catch (Exception e) {
             e.printStackTrace();
