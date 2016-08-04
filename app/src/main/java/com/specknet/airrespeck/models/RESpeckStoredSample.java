@@ -1,4 +1,4 @@
-package com.specknet.airrespeck.activities;
+package com.specknet.airrespeck.models;
 /**
  * Created by esotsm54 on 7/25/2016.
  */

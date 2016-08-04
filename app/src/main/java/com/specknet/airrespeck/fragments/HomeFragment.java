@@ -267,9 +267,9 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
      * Updates the feedback mName
      */
     public void updateFeedback() {
-        // TODO add dynamic feedback based on readings and user profile
-        mFeedback.setText("Feedback message");
-        mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_running_man, 0, 0);
+        // TODO Add dynamic feedback based on user respiratory model, current sensors' readings, and user profile (i.e. age, gender)
+        //mFeedback.setText("Feedback message");
+        //mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_running_man, 0, 0);
         //mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop, 0, 0);
     }
 }

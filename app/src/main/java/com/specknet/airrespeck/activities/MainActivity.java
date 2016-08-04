@@ -43,6 +43,7 @@ import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
+import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
@@ -196,6 +197,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mUtils = Utils.getInstance(this);
         //mLocationUtils = LocationUtils.getInstance(this);
         mLocationUtils = LocationHelper.getInstance(this);
+
+        // Set activity title
+        this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
         // Get Bluetooth address
         QOE_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID);
