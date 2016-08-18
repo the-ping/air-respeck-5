@@ -210,8 +210,8 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_PM1:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 10f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(10f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(25f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+                        segments.add(new Segment(11f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(26f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
                         item = new ReadingItem(getString(R.string.reading_pm1_0), getString(R.string.reading_unit_ug_m3), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -219,8 +219,8 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_PM2_5:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(35f, 53f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(53f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+                        segments.add(new Segment(36f, 53f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(54f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
                         item = new ReadingItem(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -228,8 +228,8 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_PM10:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(50f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+                        segments.add(new Segment(51f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(76f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
                         item = new ReadingItem(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -237,11 +237,11 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_TEMPERATURE:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(-10f, 0f, "", ContextCompat.getColor(getContext(), R.color.md_blue_800)));
-                        segments.add(new Segment(0f, 10f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(10f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                        segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(30f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_red_300)));
-                        segments.add(new Segment(40f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                        segments.add(new Segment(1f, 10f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
+                        segments.add(new Segment(11f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                        segments.add(new Segment(21f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(31f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_red_300)));
+                        segments.add(new Segment(41f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                         item = new ReadingItem(getString(R.string.reading_temp), getString(R.string.reading_unit_c), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -249,10 +249,10 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_HUMIDITY:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 29f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                        segments.add(new Segment(29f, 39f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                        segments.add(new Segment(39f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                        segments.add(new Segment(45f, 54f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(54f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                        segments.add(new Segment(30f, 39f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                        segments.add(new Segment(40f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                        segments.add(new Segment(46f, 54f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(55f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                         item = new ReadingItem(getString(R.string.reading_rel_humidity), getString(R.string.reading_unit_percent), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -260,8 +260,8 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_O3:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(100f, 160f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(160f, 240f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+                        segments.add(new Segment(101f, 160f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(161f, 240f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
                         item = new ReadingItem(getString(R.string.reading_o3), getString(R.string.reading_unit_ug_m3), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -269,8 +269,8 @@ public class AQReadingsFragment extends BaseFragment {
                     case Constants.QOE_NO2:
                         segments = new ArrayList<Segment>();
                         segments.add(new Segment(0, 200f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(200f, 400f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(new Segment(400f, 600f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
+                        segments.add(new Segment(201f, 400f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                        segments.add(new Segment(401f, 600f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
                         item = new ReadingItem(getString(R.string.reading_no2), getString(R.string.reading_unit_ug_m3), 0, segments);
                         mReadingItems.add(item);
                         break;
@@ -300,112 +300,112 @@ public class AQReadingsFragment extends BaseFragment {
         }
         else if (temperature >= 43) {
             segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(35f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+            segments.add(new Segment(36f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
         }
         else {
             switch (temperature) {
                 case 22:
                     segments.add(new Segment(0f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(86f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
                     break;
                 case 23:
                     segments.add(new Segment(0f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(76f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
                     break;
                 case 24:
                     segments.add(new Segment(0f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(66f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
                     break;
                 case 25:
                     segments.add(new Segment(0f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(55f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(56f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
                     break;
                 case 26:
                     segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(45f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(95f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(46f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(96f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
                     break;
                 case 27:
                     segments.add(new Segment(0f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(40f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(41f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(86f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
                     break;
                 case 28:
                     segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
-                    segments.add(new Segment(30f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(75f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(31f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
+                    segments.add(new Segment(76f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
                     break;
                 case 29:
                     segments.add(new Segment(0f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(66f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
                     break;
                 case 30:
                     segments.add(new Segment(0f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(60f, 90f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(90f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(61f, 90f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(91f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
                     break;
                 case 31:
                     segments.add(new Segment(0f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(50f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(80f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(51f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(81f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
                     break;
                 case 32:
                     segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(45f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(70f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(46f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(71f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
                     break;
                 case 33:
                     segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(35f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(65f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(95f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(36f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(66f, 95f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(96f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 34:
                     segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(30f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(55f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(85f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(31f, 55f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(56f, 85f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(86f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 35:
                     segments.add(new Segment(0f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_green_300)));
-                    segments.add(new Segment(25f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(50f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(80f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(26f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
+                    segments.add(new Segment(51f, 80f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(81f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 36:
                     segments.add(new Segment(0f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(45f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(70f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(46f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(71f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 37:
                     segments.add(new Segment(0f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(40f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(65f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(41f, 65f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(66f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 38:
                     segments.add(new Segment(0f, 35f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(35f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(60f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(36f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(61f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 39:
                     segments.add(new Segment(0f, 30f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(30f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(50f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(31f, 50f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(51f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 40:
                     segments.add(new Segment(0f, 25f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(25f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(45f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(26f, 45f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(46f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 41:
                     segments.add(new Segment(0f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(20f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(40f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(21f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(41f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
                 case 42:
                     segments.add(new Segment(0f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_yellow_600)));
-                    segments.add(new Segment(20f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                    segments.add(new Segment(40f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
+                    segments.add(new Segment(21f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+                    segments.add(new Segment(41f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_600)));
                     break;
             }
         }

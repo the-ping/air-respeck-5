@@ -165,9 +165,9 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
             ArrayList<Segment> segments;
 
             segments = new ArrayList<>();
-            segments.add(new Segment(0f, 12f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+            segments.add(new Segment(0f, 11f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
             segments.add(new Segment(12f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-            segments.add(new Segment(20f, 60f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
+            segments.add(new Segment(21f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
             item = new ReadingItem(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), 0, segments);
             mReadingItems.add(item);
 

@@ -137,11 +137,11 @@ public class GraphsFragment extends BaseFragment {
         set1.setLineWidth(2.5f);
         set1.setCircleRadius(4.5f);
         set1.setHighLightColor(Color.rgb(244, 117, 117));
-        set1.setColor(Color.rgb(255, 255, 255));
-        set1.setCircleColor(Color.rgb(255, 255, 255));
+        set1.setColor(Color.rgb(0, 0, 0));
+        set1.setCircleColor(Color.rgb(0, 0, 0));
         set1.setDrawValues(false);
         set1.setDrawFilled(true);
-        set1.setFillColor(Color.rgb(255, 255, 255));
+        set1.setFillColor(Color.rgb(0, 0, 0));
 
         LineDataSet set2 = new LineDataSet(v2, "PM 2.5");
         set2.setLineWidth(2.5f);
