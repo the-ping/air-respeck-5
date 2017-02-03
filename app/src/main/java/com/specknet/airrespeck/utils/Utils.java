@@ -139,6 +139,7 @@ public final class Utils {
             // Load file stream
             mProperties = new Properties();
             mProperties.load(inputStream);
+            Log.e("AirRespeck Properties", "Loaded properties file");
         }
         catch (FileNotFoundException e) {
             Log.e("AirRespeck Properties", "Properties file not found.");
