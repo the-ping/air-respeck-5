@@ -66,8 +66,8 @@ public class LocationHelper {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mLocationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+        //mLocationManager.requestLocationUpdates(
+        //        LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
 
         // Setup a callback for when the GPS gets a lock and we receive data.
         mLocationManager.requestLocationUpdates(
