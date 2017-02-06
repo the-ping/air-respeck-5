@@ -96,7 +96,7 @@ public class LocationHelper {
 
             // Now we have our location we can stop the service from sending updates.
             // Comment out this line if you want the service to continue updating the users location
-            killLocationServices();
+            //killLocationServices();
 
             // Change the flag to indicate that we now have a location.
             mGotLocation = true;
