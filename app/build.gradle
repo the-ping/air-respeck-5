@@ -9,8 +9,8 @@ android {
         applicationId "com.specknet.airrespeck"
         minSdkVersion 22
         targetSdkVersion 23
-        versionCode 7
-        versionName "1.0.6"
+        versionCode 8
+        versionName "1.1"
 
         // Enabling multidex support.
         multiDexEnabled true
@@ -53,7 +53,7 @@ dependencies {
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     // Google location services
-    compile 'com.google.android.gms:play-services:9.2.1'
+    compile 'com.google.android.gms:play-services-location:10.0.1'
     // Active Android SQLite lib
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     // Chart graphs
