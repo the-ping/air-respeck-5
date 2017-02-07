@@ -66,8 +66,8 @@ public class LocationHelper {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mLocationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+        //mLocationManager.requestLocationUpdates(
+        //        LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
 
         // Setup a callback for when the GPS gets a lock and we receive data.
         mLocationManager.requestLocationUpdates(
@@ -96,7 +96,7 @@ public class LocationHelper {
 
             // Now we have our location we can stop the service from sending updates.
             // Comment out this line if you want the service to continue updating the users location
-            killLocationServices();
+            //killLocationServices();
 
             // Change the flag to indicate that we now have a location.
             mGotLocation = true;

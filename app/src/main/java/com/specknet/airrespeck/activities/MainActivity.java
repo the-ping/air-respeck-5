@@ -551,6 +551,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             listValues.add(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
             listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
             listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+            //listValues.add(mQOESensorReadings.get(Constants.LOC_LATITUDE));
+            //listValues.add(mQOESensorReadings.get(Constants.LOC_LONGITUDE));
 
             mHomeFragment.setReadings(listValues);
         }
