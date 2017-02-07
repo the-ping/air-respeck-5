@@ -21,15 +21,13 @@ import com.google.android.gms.location.LocationServices;
 
 public class LocationUtils implements
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener {
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static LocationUtils mLocationUtils;
     private final Context mContext;
 
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation;
-    private LocationManager locationManager;
     private LocationRequest mLocationRequest;
 
     private LocationUtils(Context context) {
@@ -40,7 +38,6 @@ public class LocationUtils implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
     }
 
     public static LocationUtils getInstance(Context context) {
@@ -51,32 +48,14 @@ public class LocationUtils implements
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Toast.makeText(mContext, "Access location permissions not granted.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
-        if(mLocation == null){
-            startLocationUpdates();
-        }
-
+    public void onConnected(Bundle connectionHint) {
+        Log.i("GPLOC", "Connected!");
+        mLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
         if (mLocation != null) {
-            double latitude = mLocation.getLatitude();
-            double longitude = mLocation.getLongitude();
-        }
-        else {
-             Toast.makeText(mContext, "Location not Detected.", Toast.LENGTH_SHORT).show();
+            String lat =  Double.toString(mLocation.getLatitude());
+            String lon = Double.toString(mLocation.getLongitude());
+            Log.i("GPLOC", "Lat:" + lat + ", " + "lon:" + lon);
         }
     }
 
@@ -96,29 +75,6 @@ public class LocationUtils implements
         Log.e("LocationUtils", "Connection failed. Error: " + connectionResult.getErrorCode());
     }
 
-    protected void startLocationUpdates() {
-        // Create the location request
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(Constants.UPDATE_INTERVAL)
-                .setFastestInterval(Constants.FASTEST_INTERVAL);
-
-        // Request location updates
-        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Toast.makeText(mContext, "Access location permissions not granted.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-    }
 
     public void startLocationManager() {
         mGoogleApiClient.connect();
