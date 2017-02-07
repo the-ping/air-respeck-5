@@ -34,6 +34,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import android.os.PowerManager;
 
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -186,12 +187,15 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     int brav_seq = -1;
     int latest_stored_respeck_seq = -1;
 
-
-
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // keep alive
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+        wakeLock.acquire();
 
         // Utils
         mUtils = Utils.getInstance(this);
