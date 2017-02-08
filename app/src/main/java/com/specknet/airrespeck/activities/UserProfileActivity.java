@@ -1,12 +1,7 @@
 package com.specknet.airrespeck.activities;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
@@ -17,8 +12,8 @@ import java.util.HashMap;
 
 public class UserProfileActivity extends BaseActivity {
 
-    private HashMap<String,String> mGenderMap;
-    private HashMap<String,String> mUsertypeMap;
+    private HashMap<String, String> mGenderMap;
+    private HashMap<String, String> mUsertypeMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +24,7 @@ public class UserProfileActivity extends BaseActivity {
 
         try {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-        catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
 
         setupHashMaps();
         String fullName = mCurrentUser.getFirstName() + " " + mCurrentUser.getLastName();
@@ -60,8 +54,7 @@ public class UserProfileActivity extends BaseActivity {
 
         mGenderMap = new HashMap<String, String>();
 
-        for (int i = 0; i < genderArrayValue.length && i < genderArrayKey.length; i++)
-        {
+        for (int i = 0; i < genderArrayValue.length && i < genderArrayKey.length; i++) {
             mGenderMap.put(genderArrayKey[i], genderArrayValue[i]);
         }
 
@@ -71,8 +64,7 @@ public class UserProfileActivity extends BaseActivity {
 
         mUsertypeMap = new HashMap<String, String>();
 
-        for (int i = 0; i < usertypeArrayValue.length && i < usertypeArrayKey.length; i++)
-        {
+        for (int i = 0; i < usertypeArrayValue.length && i < usertypeArrayKey.length; i++) {
             mUsertypeMap.put(usertypeArrayKey[i], usertypeArrayValue[i]);
         }
     }

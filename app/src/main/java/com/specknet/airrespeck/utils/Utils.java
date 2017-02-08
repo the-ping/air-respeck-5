@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 
 
@@ -30,6 +31,7 @@ public final class Utils {
 
     /**
      * Private constructor for singleton class.
+     *
      * @param context Context Application context.
      */
     private Utils(Context context) {
@@ -38,6 +40,7 @@ public final class Utils {
 
     /**
      * Get singleton class instance.
+     *
      * @param context Context Application context.
      * @return Utils Singleton class instance.
      */
@@ -49,13 +52,13 @@ public final class Utils {
     }
 
 
-
     /***********************************************************************************************
      * GENERAL UTIL METHODS
      **********************************************************************************************/
 
     /**
      * Get screen size.
+     *
      * @return Point Screen size i.e. Point(x, y).
      */
     public Point getScreenSize() {
@@ -69,6 +72,7 @@ public final class Utils {
 
     /**
      * Get the screen density.
+     *
      * @return float Screen density.
      */
     public float getScreenDensity() {
@@ -78,6 +82,7 @@ public final class Utils {
 
     /**
      * Get unix timestamp.
+     *
      * @return long The timestamp.
      */
     public long getUnixTimestamp() {
@@ -86,15 +91,17 @@ public final class Utils {
 
     /**
      * Round a float number to 2 digits.
+     *
      * @param value float The value to be rounded.
      * @return float The rounded value.
      */
     public float roundToTwoDigits(final float value) {
-        return Float.valueOf(String.format("%.2f%n", value));
+        return Float.valueOf(String.format(Locale.UK, "%.2f%n", value));
     }
 
     /**
      * Get all the configuration properties.
+     *
      * @return Properties All configuration properties.
      */
     public Properties getConfigProperties() {
@@ -111,6 +118,7 @@ public final class Utils {
 
     /**
      * Get a configuration property value by its key.
+     *
      * @param key String Configuration property key.
      * @return String Configuration property value.
      */
@@ -128,6 +136,7 @@ public final class Utils {
 
     /**
      * Load properties file from the external storage directory.
+     *
      * @param fileName String Properties file name.
      */
     private void loadPropertiesFile(final String fileName) {
@@ -140,12 +149,10 @@ public final class Utils {
             mProperties = new Properties();
             mProperties.load(inputStream);
             Log.e("AirRespeck Properties", "Loaded properties file");
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             Log.e("AirRespeck Properties", "Properties file not found.");
             e.printStackTrace();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e("AirRespeck Properties", "Cannot load properties file.");
             e.printStackTrace();
         }
@@ -153,9 +160,10 @@ public final class Utils {
 
     /**
      * Get a properties object from a file from the external storage directory.
+     *
      * @return Properties The properties object.
      */
-    public Properties getProperties () {
+    public Properties getProperties() {
         if (mProperties == null) {
             loadPropertiesFile(Constants.PROPERTIES_FILE_NAME);
         }
@@ -164,6 +172,7 @@ public final class Utils {
 
     /**
      * Get app version code.
+     *
      * @return int The version code.
      */
     public int getAppVersionCode() {
@@ -172,12 +181,12 @@ public final class Utils {
 
     /**
      * Get app version name.
+     *
      * @return String The version name.
      */
     public String getAppVersionName() {
         return BuildConfig.VERSION_NAME;
     }
-
 
 
     /***********************************************************************************************
@@ -186,6 +195,7 @@ public final class Utils {
 
     /**
      * Get the current age given the birth date.
+     *
      * @param dateOfBirth Date The birth date.
      * @return int The current age.
      */
@@ -204,13 +214,13 @@ public final class Utils {
         age = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
 
         // If birth date is greater than today's date (after 2 days adjustment of leap year) then decrement age one year
-        if ( (birthDate.get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR) > 3) ||
-                (birthDate.get(Calendar.MONTH) > today.get(Calendar.MONTH ))){
+        if ((birthDate.get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR) > 3) ||
+                (birthDate.get(Calendar.MONTH) > today.get(Calendar.MONTH))) {
             age--;
         }
         // If birth date and today's date are of same month and birth day of month is greater than today's day of month then decrement age
-        else if ((birthDate.get(Calendar.MONTH) == today.get(Calendar.MONTH )) &&
-                (birthDate.get(Calendar.DAY_OF_MONTH) > today.get(Calendar.DAY_OF_MONTH ))){
+        else if ((birthDate.get(Calendar.MONTH) == today.get(Calendar.MONTH)) &&
+                (birthDate.get(Calendar.DAY_OF_MONTH) > today.get(Calendar.DAY_OF_MONTH))) {
             age--;
         }
 
@@ -219,24 +229,22 @@ public final class Utils {
 
     /**
      * Get the user group age.
+     *
      * @param age int The user's age.
      * @return int The group age the user belongs to.
      */
     public int getUserGroupAge(final int age) {
-        if ( age >= Integer.parseInt(getConfigProperty("adolescent_min")) &&
-                age <= Integer.parseInt(getConfigProperty("adolescent_max")) ) {
+        if (age >= Integer.parseInt(getConfigProperty("adolescent_min")) &&
+                age <= Integer.parseInt(getConfigProperty("adolescent_max"))) {
             return Constants.UGA_ADOLESCENT;
-        }
-        else if ( age >= Integer.parseInt(getConfigProperty("young_adult_min")) &&
-                age <= Integer.parseInt(getConfigProperty("young_adult_max")) ) {
+        } else if (age >= Integer.parseInt(getConfigProperty("young_adult_min")) &&
+                age <= Integer.parseInt(getConfigProperty("young_adult_max"))) {
             return Constants.UGA_YOUNG_ADULT;
-        }
-        else if ( age >= Integer.parseInt(getConfigProperty("middleaged_adult_min")) &&
-                age <= Integer.parseInt(getConfigProperty("middleaged_adult_max")) ) {
+        } else if (age >= Integer.parseInt(getConfigProperty("middleaged_adult_min")) &&
+                age <= Integer.parseInt(getConfigProperty("middleaged_adult_max"))) {
             return Constants.UGA_MIDDLEAGED_ADULT;
-        }
-        else if ( age >= Integer.parseInt(getConfigProperty("elderly_adult_min")) &&
-                age <= Integer.parseInt(getConfigProperty("elderly_adult_max")) ) {
+        } else if (age >= Integer.parseInt(getConfigProperty("elderly_adult_min")) &&
+                age <= Integer.parseInt(getConfigProperty("elderly_adult_max"))) {
             return Constants.UGA_ELDERLY_ADULT;
         }
         return -1;
@@ -245,6 +253,7 @@ public final class Utils {
     /**
      * Method to configure the UI preferences based on the user details
      * (i.e. user type (subject, researcher), age).
+     *
      * @param user User the user instance.
      */
     public void setupUI(User user) {
@@ -256,20 +265,19 @@ public final class Utils {
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, true);
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, true);
-        }
-        else if (user.getUserType() == 1) {
+        } else if (user.getUserType() == 1) {
             // Users of type "Subject" will have different configurations based on age
             switch (getUserGroupAge(getAge(user.getBirthDate()))) {
                 case Constants.UGA_ADOLESCENT:
                     // Menu type: Buttons
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "0");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
                     // Font size: Normal
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "1");
                     // Home screen, readings display type: Segmented bar
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "1");
                     // Air Quality screen, readings display type: Segmented bar
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "1");
-                    //Graphs screen: disabled
+                    // Graphs screen: disabled
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
@@ -277,7 +285,7 @@ public final class Utils {
                     break;
                 case Constants.UGA_YOUNG_ADULT:
                     // Menu type: Tabs
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
                     // Font size: Normal
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "1");
                     // Home screen, readings display type: Segmented bar
@@ -292,7 +300,7 @@ public final class Utils {
                     break;
                 case Constants.UGA_MIDDLEAGED_ADULT:
                     // Menu type: Tabs
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_TAB_ICONS, true);
                     // Font size: Normal
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "1");
@@ -308,7 +316,7 @@ public final class Utils {
                     break;
                 case Constants.UGA_ELDERLY_ADULT:
                     // Menu type: Buttons
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "0");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
                     // Font size: Large
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "2");
                     // Home screen, readings display type: Segmented bar

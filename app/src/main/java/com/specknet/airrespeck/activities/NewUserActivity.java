@@ -51,8 +51,8 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
 
     private User mUser;
 
-    private HashMap<String,String> mGenderMap;
-    private HashMap<String,String> mUsertypeMap;
+    private HashMap<String, String> mGenderMap;
+    private HashMap<String, String> mUsertypeMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,21 +82,18 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
-        if(v.equals(mBirthDate)) {
+        if (v.equals(mBirthDate)) {
             mBirthDatePickerDialog.show();
-        }
-        else if (v.equals(mRegisterBtn)) {
+        } else if (v.equals(mRegisterBtn)) {
             if (mFirstName.getText().toString().isEmpty() ||
                     mLastName.getText().toString().isEmpty() ||
                     mBirthDate.getText().toString().isEmpty()) {
                 Toast.makeText(getApplicationContext(), R.string.new_user_empty_fields, Toast.LENGTH_SHORT).show();
-            }
-            else {
+            } else {
                 NetworkUtils networkUtils = NetworkUtils.getInstance(getApplicationContext());
                 if (networkUtils.isNetworkAvailable()) {
                     createUserApiRequest();
-                }
-                else {
+                } else {
                     Toast.makeText(this, R.string.no_network, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -114,8 +111,7 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
 
         mGenderMap = new HashMap<String, String>();
 
-        for (int i = 0; i < genderArrayValue.length && i < genderArrayKey.length; i++)
-        {
+        for (int i = 0; i < genderArrayValue.length && i < genderArrayKey.length; i++) {
             mGenderMap.put(genderArrayValue[i], genderArrayKey[i]);
         }
 
@@ -125,8 +121,7 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
 
         mUsertypeMap = new HashMap<String, String>();
 
-        for (int i = 0; i < usertypeArrayValue.length && i < usertypeArrayKey.length; i++)
-        {
+        for (int i = 0; i < usertypeArrayValue.length && i < usertypeArrayKey.length; i++) {
             mUsertypeMap.put(usertypeArrayValue[i], usertypeArrayKey[i]);
         }
     }
@@ -163,6 +158,7 @@ public class NewUserActivity extends BaseActivity implements View.OnClickListene
 
     /**
      * Build a new user instance.
+     *
      * @return User The user instance.
      */
     private User buildUserInstance() {

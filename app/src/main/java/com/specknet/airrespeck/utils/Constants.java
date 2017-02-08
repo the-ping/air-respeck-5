@@ -5,6 +5,8 @@ import com.specknet.airrespeck.R;
 
 
 public class Constants {
+    // TODO: switch to enums instead of String constants
+
     /**
      * APP PROPERTIES FILE
      */
@@ -132,4 +134,10 @@ public class Constants {
     public static final int UGA_YOUNG_ADULT = 2;
     public static final int UGA_MIDDLEAGED_ADULT = 3;
     public static final int UGA_ELDERLY_ADULT = 4;
+
+    /**
+     * Menu mode options
+     */
+    public static final String MENU_MODE_BUTTONS = "buttons";
+    public static final String MENU_MODE_TABS = "tabs";
 }

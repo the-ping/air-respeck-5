@@ -121,15 +121,13 @@ public class InitialSetupActivity extends BaseActivity {
     }
 
     /**
-     *
      * @param user User The user data returned by the server.
      */
     private void processResponse(User user) {
         if (user.isActive()) {
             // No deletion request, go to Main Activity
             goToMainScreen();
-        }
-        else {
+        } else {
             // TODO handle user deletion
             // First, check with Tape lib that everything has been uploaded to the server.
             // Then, delete user from local database
@@ -159,11 +157,11 @@ public class InitialSetupActivity extends BaseActivity {
     /**
      * Method to handle user creation on startup using data from the properties configuration
      * file stored in the external storage directory.
-     *
+     * <p>
      * Data needed to create a user:
-     *  - user_id
-     *  - user_age
-     *  - user_type [Values: Subject (1), Researcher (2)]
+     * - user_id
+     * - user_age
+     * - user_type [Values: Subject (1), Researcher (2)]
      */
     private void setupUser() {
         Utils utils = Utils.getInstance(getApplicationContext());
@@ -192,8 +190,8 @@ public class InitialSetupActivity extends BaseActivity {
             else {
                 // Check for changes in the id
                 User currentUser = User.getUser();
-                if ( !currentUser.getUniqueId().equalsIgnoreCase(id) ) {
-                    // The id has been change, delete current user and create a new user
+                if (!currentUser.getUniqueId().equalsIgnoreCase(id)) {
+                    // The id has been changed, delete current user and create a new user
                     User.deleteUserByUniqueId(currentUser.getUniqueId());
 
                     // Create user
@@ -207,8 +205,8 @@ public class InitialSetupActivity extends BaseActivity {
 
             // Go to main activity
             goToMainScreen();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             Toast.makeText(getApplicationContext(), "Error reading properties file.", Toast.LENGTH_LONG).show();
         }
     }
