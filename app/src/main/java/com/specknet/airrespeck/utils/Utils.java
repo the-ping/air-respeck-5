@@ -260,23 +260,25 @@ public final class Utils {
         PreferencesUtils.getInstance(mContext);
         PreferencesUtils.getInstance().put(PreferencesUtils.Key.USER_ID, user.getUniqueId());
 
-        if (user.getUserType() == 2) {
+        if (user.getUserType() == Constants.USER_TYPE_RESEARCHER) {
             // Users of type "Researcher" will have the tabbed main menu as default
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, "1");
+            PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, true);
             PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, true);
-        } else if (user.getUserType() == 1) {
+        } else if (user.getUserType() == Constants.USER_TYPE_SUBJECT) {
             // Users of type "Subject" will have different configurations based on age
             switch (getUserGroupAge(getAge(user.getBirthDate()))) {
                 case Constants.UGA_ADOLESCENT:
                     // Menu type: Buttons
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
                     // Font size: Normal
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "1");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
                     // Home screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "1");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
                     // Air Quality screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "1");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
                     // Graphs screen: disabled
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
@@ -287,11 +289,13 @@ public final class Utils {
                     // Menu type: Tabs
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
                     // Font size: Normal
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "1");
-                    // Home screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0");
-                    // Air Quality screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
+                    // Home screen, readings display type: List
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_LIST);
+                    // Air Quality screen, readings display type: List
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
                     //Graphs screen: disabled
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
@@ -302,12 +306,11 @@ public final class Utils {
                     // Menu type: Tabs
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_TAB_ICONS, true);
-                    // Font size: Normal
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "1");
-                    // Home screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0");
-                    // Air Quality screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_LIST);
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
                     //Graphs screen: disabled
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
@@ -317,12 +320,11 @@ public final class Utils {
                 case Constants.UGA_ELDERLY_ADULT:
                     // Menu type: Buttons
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
-                    // Font size: Large
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, "2");
-                    // Home screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "1");
-                    // Air Quality screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "1");
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_LARGE);
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
+                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                            Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS);
                     //Graphs screen: disabled
                     PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled

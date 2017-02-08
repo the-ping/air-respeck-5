@@ -52,8 +52,8 @@ public class BaseActivity extends AppCompatActivity {
             mAirspeckAppAccessPref = PreferencesUtils.getInstance()
                     .getBoolean(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
 
-            mFontSizePref = Integer.valueOf(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.FONT_SIZE, "1"));
+            mFontSizePref = PreferencesUtils.getInstance()
+                    .getInt(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
 
             ThemeUtils themeUtils = ThemeUtils.getInstance();
             themeUtils.setTheme(mFontSizePref);

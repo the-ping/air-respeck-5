@@ -136,8 +136,21 @@ public class Constants {
     public static final int UGA_ELDERLY_ADULT = 4;
 
     /**
-     * Menu mode options
+     * Preferences option values
      */
-    public static final String MENU_MODE_BUTTONS = "buttons";
-    public static final String MENU_MODE_TABS = "tabs";
+    public static final int MENU_MODE_BUTTONS = 0;
+    public static final int MENU_MODE_TABS = 1;
+
+    public static final int READINGS_MODE_HOME_SCREEN_LIST = 0;
+    public static final int READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS = 1;
+
+    public static final int READINGS_MODE_AQREADINGS_SCREEN_LIST = 0;
+    public static final int READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS = 1;
+
+    public static final int FONT_SIZE_NORMAL = 1;
+    public static final int FONT_SIZE_LARGE = 2;
+
+    public static final int USER_TYPE_SUBJECT = 0;
+    public static final int USER_TYPE_RESEARCHER = 1;
+
 }

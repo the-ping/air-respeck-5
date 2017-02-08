@@ -19,6 +19,7 @@ import com.specknet.airrespeck.lib.SegmentedBar;
 import com.specknet.airrespeck.lib.SegmentedBarSideTextStyle;
 import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
+import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,14 +63,14 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
         // Inflate the layout for this fragment
         View view = null;
 
-        if (mReadingsModeHomeScreen == 0) {
+        if (mReadingsModeHomeScreen == Constants.READINGS_MODE_HOME_SCREEN_LIST) {
             view = inflater.inflate(R.layout.fragment_home_listview, container, false);
 
             // Attach the adapter to a ListView
             ListView mListView = (ListView) view.findViewById(R.id.readings_list);
             mListView.setAdapter(mListViewAdapter);
         }
-        else if (mReadingsModeHomeScreen == 1) {
+        else if (mReadingsModeHomeScreen == Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS) {
             view = inflater.inflate(R.layout.fragment_home_segmentedbar, container, false);
 
             mCurrentReadingName = (TextView) view.findViewById(R.id.current_reading_name);
