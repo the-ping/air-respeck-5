@@ -36,3 +36,9 @@ captures/
 
 # iml files
 *.iml
+
+# Windows thumbs.db
+Thumbs.db
+
+# OSX files
+.DS_Store
