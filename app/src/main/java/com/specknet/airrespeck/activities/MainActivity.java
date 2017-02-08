@@ -48,8 +48,8 @@ import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.LocationHelper;
 import com.specknet.airrespeck.utils.Utils;
+import com.specknet.airrespeck.utils.LocationUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -128,8 +128,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     // UTILS
     Utils mUtils;
-    //LocationUtils mLocationUtils;
-    LocationHelper mLocationUtils;
+    LocationUtils mLocationUtils;
 
 
     // Layout view for snack bar
@@ -200,7 +199,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // Utils
         mUtils = Utils.getInstance(this);
         //mLocationUtils = LocationUtils.getInstance(this);
-        mLocationUtils = LocationHelper.getInstance(this);
+        //mLocationUtils = LocationHelper.getInstance(this);
+        mLocationUtils = LocationUtils.getInstance(this);
+        mLocationUtils.startLocationManager();
 
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
