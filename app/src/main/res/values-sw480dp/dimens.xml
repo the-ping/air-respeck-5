@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_size_bpm_large">100sp</dimen>
+    <dimen name="text_size_bpm_small">50sp</dimen>
+    <dimen name="battery_height">100dp</dimen>
+    <dimen name="text_size_button">40sp</dimen>
+</resources>

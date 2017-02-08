@@ -25,4 +25,10 @@
     <dimen name="sb_segment_gap_width">2dp</dimen>
     <dimen name="sb_value_sign_round">4dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+
+    <dimen name="text_size_bpm_large">50sp</dimen>
+    <dimen name="text_size_bpm_small">25sp</dimen>
+    <dimen name="text_size_button">20sp</dimen>
+    <dimen name="button_and_battery_height">75dp</dimen>
 </resources>
