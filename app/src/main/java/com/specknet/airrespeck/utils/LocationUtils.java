@@ -15,13 +15,15 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 
 public class LocationUtils implements
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
     private static LocationUtils mLocationUtils;
     private final Context mContext;
@@ -56,18 +58,33 @@ public class LocationUtils implements
             String lat =  Double.toString(mLocation.getLatitude());
             String lon = Double.toString(mLocation.getLongitude());
             Log.i("GPLOC", "Lat:" + lat + ", " + "lon:" + lon);
+
+            createLocationRequest();
+            startLocationUpdates();
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         Log.i("LocationUtils", "Connection Suspended");
-        mGoogleApiClient.connect();
+    }
+
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
     public void onLocationChanged(Location location) {
         mLocation = location;
+        Log.e("GPLOC", "Location updated: " + Double.toString(location.getLatitude()) + ", " + Double.toString(location.getLatitude()));
     }
 
     @Override
