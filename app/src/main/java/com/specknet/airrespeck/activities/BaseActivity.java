@@ -18,7 +18,7 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 public class BaseActivity extends AppCompatActivity {
 
     protected User mCurrentUser;
-    protected String mMenuModePref;
+    protected int mMenuModePref;
     protected boolean mMenuTabIconsPref;
     protected boolean mGraphsScreen;
     protected boolean mRespeckAppAccessPref;
@@ -41,7 +41,7 @@ public class BaseActivity extends AppCompatActivity {
         // can be used if anything goes wrong.
         try {
             mMenuModePref = PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+                    .getInt(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
             mMenuTabIconsPref = PreferencesUtils.getInstance()
                     .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
             mGraphsScreen = PreferencesUtils.getInstance()
@@ -68,10 +68,10 @@ public class BaseActivity extends AppCompatActivity {
         super.onStart();
 
         try {
-            String newVal = PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+            int newVal = PreferencesUtils.getInstance()
+                    .getInt(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
 
-            if (!mMenuModePref.equals(newVal)) {
+            if (mMenuModePref != newVal) {
                 restartActivity();
             }
         } catch (Exception ex) {

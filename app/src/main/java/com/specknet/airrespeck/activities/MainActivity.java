@@ -252,7 +252,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
 
         // Display currently selected fragment layout
-        if (mMenuModePref.equals(Constants.MENU_MODE_BUTTONS)) {
+        if (mMenuModePref == Constants.MENU_MODE_BUTTONS) {
             setContentView(R.layout.activity_main_buttons);
 
             FragmentTransaction trans = fm.beginTransaction();
@@ -269,7 +269,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             }
 
             trans.commit();
-        } else if (mMenuModePref.equals(Constants.MENU_MODE_TABS)) {
+        } else if (mMenuModePref == Constants.MENU_MODE_TABS) {
             setContentView(R.layout.activity_main_tabs);
 
             // Create the adapter that will return a fragment for each of the three

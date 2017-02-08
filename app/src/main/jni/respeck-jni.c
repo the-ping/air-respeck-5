@@ -50,45 +50,45 @@ void Java_com_specknet_airrespeck_activities_MainActivity_updateBreathing(JNIEnv
 
 jfloat Java_com_specknet_airrespeck_activities_MainActivity_getBreathingSignal( JNIEnv* env, jobject this)
 {
-    return breathing.bs;
+    return (jfloat) breathing.bs;
 }
 
 jfloat Java_com_specknet_airrespeck_activities_MainActivity_getBreathingAngle( JNIEnv* env, jobject this)
 {
-    return breathing.ba;
+    return (jfloat) breathing.ba;
 }
 
 jfloat Java_com_specknet_airrespeck_activities_MainActivity_getBreathingRate( JNIEnv* env, jobject this)
 {
-    return bpm.bpm;
+    return (jfloat) bpm.bpm;
 }
 
 jfloat Java_com_specknet_airrespeck_activities_MainActivity_getAverageBreathingRate( JNIEnv* env, jobject this)
 {
-    return MA_stats_mean(&maf);
+    return (jfloat) MA_stats_mean(&maf);
 }
 
 jfloat Java_com_specknet_airrespeck_activities_MainActivity_getStdDevBreathingRate( JNIEnv* env, jobject this)
 {
-    return MA_stats_sd(&maf);
+    return (jfloat) MA_stats_sd(&maf);
 }
 
-jint Java_com_specknet_airrespeck_activities_MainActivity_resetMA( JNIEnv* env, jobject this)
+void Java_com_specknet_airrespeck_activities_MainActivity_resetMA( JNIEnv* env, jobject this)
 {
     MA_stats_init(&maf);
 }
 
-jint Java_com_specknet_airrespeck_activities_MainActivity_calculateMA( JNIEnv* env, jobject this)
+void Java_com_specknet_airrespeck_activities_MainActivity_calculateMA( JNIEnv* env, jobject this)
 {
     MA_stats_calculate(&maf);
 }
 
 jint Java_com_specknet_airrespeck_activities_MainActivity_getNBreaths( JNIEnv* env, jobject this)
 {
-    return MA_stats_num(&maf);
+    return (jint) MA_stats_num(&maf);
 }
 
 jfloat Java_com_specknet_airrespeck_activities_MainActivity_getActivity( JNIEnv* env, jobject this)
 {
-    return breathing.activity;
+    return (jfloat) breathing.activity;
 }

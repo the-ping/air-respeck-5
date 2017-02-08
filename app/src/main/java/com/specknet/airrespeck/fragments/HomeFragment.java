@@ -24,6 +24,8 @@ import com.specknet.airrespeck.utils.Constants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.specknet.airrespeck.R.styleable.SegmentedBar;
+
 
 public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
