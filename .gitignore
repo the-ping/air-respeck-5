@@ -31,3 +31,8 @@ proguard/
 # Android Studio captures folder
 captures/
 
+# Android studio build files. These should all be created by gradle
+/.idea/
+
+# iml files
+*.iml
