@@ -1,33 +1,21 @@
 package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.ImageView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
-import com.specknet.airrespeck.lib.Segment;
-import com.specknet.airrespeck.lib.SegmentedBar;
-import com.specknet.airrespeck.lib.SegmentedBarSideTextStyle;
-import com.specknet.airrespeck.models.ReadingItem;
-import com.specknet.airrespeck.utils.Constants;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Darius on 08.02.2017.
  */
 
 public class DaphneHomeFragment extends BaseFragment {
+
+    private ImageView connectedStatusRESpeck;
+    private ImageView connectedStatusAirspeck;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -46,10 +34,16 @@ public class DaphneHomeFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = null;
+        View view = inflater.inflate(R.layout.fragment_daphne_home, container, false);
+
+        // Load connection symbols
+        connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);
+        connectedStatusAirspeck = (ImageView) view.findViewById(R.id.connected_status_airspeck);
 
         return view;
     }
+
+
 
     @Override
     public void onDestroyView() {

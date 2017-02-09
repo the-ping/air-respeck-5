@@ -40,6 +40,7 @@ import org.apache.commons.lang3.time.DateUtils;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
+import com.specknet.airrespeck.fragments.DaphneHomeFragment;
 import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
@@ -66,21 +67,25 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.UUID;
 
+/**
+ * Created by Darius on 09.02.2017.
+ */
 
-public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSelectedListener {
+public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnMenuSelectedListener {
 
     // UI HANDLER
     private final static int UPDATE_RESPECK_READINGS = 0;
     private final static int UPDATE_QOE_READINGS = 1;
+
 
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
      */
     private static class UIHandler extends Handler {
         // Using a weak reference means you won't prevent garbage collection
-        private final WeakReference<MainActivity> mService;
+        private final WeakReference<DaphneMainActivity> mService;
 
-        public UIHandler(MainActivity service) {
+        public UIHandler(DaphneMainActivity service) {
             mService = new WeakReference<>(service);
         }
 
@@ -88,7 +93,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         public void handleMessage(Message msg) {
             final int what = msg.what;
 
-            MainActivity service = mService.get();
+            DaphneMainActivity service = mService.get();
 
             if (service != null) {
                 switch (what) {
@@ -109,21 +114,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * @return UIHandler The handler.
      */
     public Handler getHandler() {
-        return new UIHandler(this);
+        return new DaphneMainActivity.UIHandler(this);
     }
 
     private final Handler mUIHandler = getHandler();
 
 
     // FRAGMENTS
-    private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
-    private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
-    private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
-    private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
+    private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
+    private static final String TAG_CURRENT_FRAGMENT = "DAPHNE_CURRENT_FRAGMENT";
 
-    private HomeFragment mHomeFragment;
-    private AQReadingsFragment mAQReadingsFragment;
-    private GraphsFragment mGraphsFragment;
+    private DaphneHomeFragment mDaphneHomeFragment;
     private Fragment mCurrentFragment;
 
 
@@ -217,92 +218,49 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // Initialize fragments
         FragmentManager fm = getSupportFragmentManager();
 
+        // Load fragments from saved instance state
         if (savedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mHomeFragment =
-                    (HomeFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
-            mAQReadingsFragment =
-                    (AQReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
-            mGraphsFragment =
-                    (GraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
-            mCurrentFragment = fm.getFragment(savedInstanceState, TAG_CURRENT_FRAGMENT);
+            mDaphneHomeFragment =
+                    (DaphneHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
 
             // If they don't exist, which could happen because the activity was paused before loading the fragments,
             // create new fragments
-            if (mHomeFragment == null) {
-                mHomeFragment = new HomeFragment();
-            }
-            if (mAQReadingsFragment == null) {
-                mAQReadingsFragment = new AQReadingsFragment();
-            }
-            if (mGraphsFragment == null) {
-                mGraphsFragment = new GraphsFragment();
-            }
-            if (mCurrentFragment == null) {
-                mCurrentFragment = mHomeFragment;
+            if (mDaphneHomeFragment == null) {
+                mDaphneHomeFragment = new DaphneHomeFragment();
             }
         } else {
             // If there is no saved instance state, this means we are starting the activity for the first time
             // Create all the fragments
-            mHomeFragment = new HomeFragment();
-            mAQReadingsFragment = new AQReadingsFragment();
-            mGraphsFragment = new GraphsFragment();
-            // Set home fragment to be the currently displayed one
-            mCurrentFragment = mHomeFragment;
+            mDaphneHomeFragment = new DaphneHomeFragment();
         }
 
-        // Display currently selected fragment layout
-        if (mMenuModePref.equals(Constants.MENU_MODE_BUTTONS)) {
-            setContentView(R.layout.activity_main_buttons);
+        setContentView(R.layout.activity_main_tabs);
 
-            FragmentTransaction trans = fm.beginTransaction();
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
+                getApplicationContext());
+        sectionsPagerAdapter.addFragment(mDaphneHomeFragment);
 
-            if (mCurrentFragment instanceof HomeFragment) {
-                trans.replace(R.id.content, mCurrentFragment, TAG_HOME_FRAGMENT);
-            } else if (mCurrentFragment instanceof AQReadingsFragment) {
-                trans.replace(R.id.content, mCurrentFragment, TAG_AQREADINGS_FRAGMENT);
-            } else if (mCurrentFragment instanceof GraphsFragment) {
-                trans.replace(R.id.content, mCurrentFragment, TAG_GRAPHS_FRAGMENT);
-            } else {
-                trans.replace(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT);
-                mCurrentFragment = mHomeFragment;
-            }
-
-            trans.commit();
-        } else if (mMenuModePref.equals(Constants.MENU_MODE_TABS)) {
-            setContentView(R.layout.activity_main_tabs);
-
-            // Create the adapter that will return a fragment for each of the three
-            // primary sections of the activity.
-            SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
-                    getApplicationContext());
-            sectionsPagerAdapter.addFragment(mHomeFragment);
-            sectionsPagerAdapter.addFragment(mAQReadingsFragment);
-            if (mGraphsScreen) {
-                sectionsPagerAdapter.addFragment(mGraphsFragment);
-            }
-            // Set up the ViewPager with the sections adapter.
-            ViewPager viewPager = (ViewPager) findViewById(R.id.container);
-            if (viewPager != null) {
-                viewPager.setAdapter(sectionsPagerAdapter);
-            }
-
-            TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-            if (tabLayout != null) {
-                tabLayout.setupWithViewPager(viewPager);
-            }
-
-            if (mMenuTabIconsPref) {
-                tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
-                tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_AIR);
-                if (mGraphsScreen) {
-                    tabLayout.getTabAt(2).setIcon(Constants.MENU_ICON_GRAPHS);
-                }
-            }
+        // Set up the ViewPager with the sections adapter.
+        ViewPager viewPager = (ViewPager) findViewById(R.id.container);
+        if (viewPager != null) {
+            viewPager.setAdapter(sectionsPagerAdapter);
         }
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        if (tabLayout != null) {
+            tabLayout.setupWithViewPager(viewPager);
+        }
+
+        tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
+        tabLayout.getTabAt(0).setText("");
+
 
         // Add the toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(mToolbar);
 
         // For use with snack bar
@@ -347,8 +305,15 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
     @Override
+    public void onButtonSelected(int buttonId) {
+        // Do nothing because we don't have buttons in Daphne layout
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // TODO: intentreceiver is leaking. Unregister here. (error message when closing app in android log)
 
         // Cleanup Bluetooth handlers
         if (mGattRespeck == null && mGattQOE == null) {
@@ -375,16 +340,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         FragmentManager fm = getSupportFragmentManager();
 
-        if (mHomeFragment != null && mHomeFragment.isAdded()) {
-            fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
-        }
-
-        if (mAQReadingsFragment != null && mAQReadingsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mAQReadingsFragment);
-        }
-
-        if (mGraphsFragment != null && mGraphsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mGraphsFragment);
+        if (mDaphneHomeFragment != null && mDaphneHomeFragment.isAdded()) {
+            fm.putFragment(outState, TAG_DAPHNE_HOME_FRAGMENT, mDaphneHomeFragment);
         }
 
         if (mCurrentFragment != null && mCurrentFragment.isAdded()) {
@@ -395,21 +352,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu, this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_daphne, menu);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.getItem(0).setVisible(mRespeckAppAccessPref);
-        menu.getItem(1).setVisible(mAirspeckAppAccessPref);
-
-        if (Objects.equals(mCurrentUser.getGender(), "M")) {
-            menu.getItem(2).setIcon(R.drawable.ic_user_male);
-        } else if (Objects.equals(mCurrentUser.getGender(), "F")) {
-            menu.getItem(2).setIcon(R.drawable.ic_user_female);
-        }
-
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -453,23 +401,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onButtonSelected(int buttonId) {
-        switch (buttonId) {
-            // Home
-            case 0:
-                replaceFragment(mHomeFragment, TAG_HOME_FRAGMENT);
-                break;
-            // Air Quality
-            case 1:
-                replaceFragment(mAQReadingsFragment, TAG_AQREADINGS_FRAGMENT);
-                break;
-            // Dashboard
-            case 2:
-                replaceFragment(mGraphsFragment, TAG_GRAPHS_FRAGMENT);
-                break;
-        }
-    }
+
 
     /**
      * Replace the current fragment with the given one.
@@ -549,88 +481,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
     }
 
-    /**
-     * Update Respeck reading values
-     * We need to separate Respeck and QOE values as both update at different rates
-     */
-    private void updateRespeckUI() {
-        // Home fragment UI
-        try {
-            ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-            //listValues.add(mQOESensorReadings.get(Constants.LOC_LATITUDE));
-            //listValues.add(mQOESensorReadings.get(Constants.LOC_LONGITUDE));
-
-            mHomeFragment.setReadings(listValues);
-        } catch (Exception e) { e.printStackTrace(); }
-
-        // Graphs fragment UI
-        try {
-            mGraphsFragment.addBreathingSignalData(
-                    mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    /**
-     * Update QOE reading values
-     * We need to separate Respeck and QOE values as both update at different rates
-     */
-    private void updateQOEUI() {
-        // Update connection loading layout
-        mHomeFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
-        mAQReadingsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
-        mGraphsFragment.showConnecting(!mQOEConnectionComplete && !mRespeckConnectionComplete);
-
-        // Air Quality fragment UI
-        try {
-            HashMap<String, Float> values = new HashMap<String, Float>();
-
-            values.put(Constants.QOE_TEMPERATURE,
-                    mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
-            values.put(Constants.QOE_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
-            values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
-            values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
-            values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
-            values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-            values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-            values.put(Constants.QOE_BINS_TOTAL,
-                    mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
-
-            mAQReadingsFragment.setReadings(values);
-        } catch (Exception e) { e.printStackTrace(); }
-
-        // Graphs fragment UI
-        try {
-            ArrayList<Float> listValues = new ArrayList<Float>();
-
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
-
-            mGraphsFragment.setBinsChartData(listValues);
-
-            mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
-                    mQOESensorReadings.get(Constants.QOE_PM1),
-                    mQOESensorReadings.get(Constants.QOE_PM2_5),
-                    mQOESensorReadings.get(Constants.QOE_PM10)));
-        } catch (Exception e) { e.printStackTrace(); }
-    }
 
     /**
      * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
@@ -642,7 +493,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mRespeckSensorReadings = newValues;
 
         // Update the UI
-        updateRespeckUI();
+        //updateRespeckUI();
     }
 
     /**
@@ -655,7 +506,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mQOESensorReadings = newValues;
 
         // Update the UI
-        updateQOEUI();
+        //updateQOEUI();
     }
 
 
@@ -1449,7 +1300,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
     static {
-        System.loadLibrary("respeck-jni");
+        System.loadLibrary("respeck-jni-daphne");
     }
 
     //public native String getMsgFromJni();
@@ -1476,3 +1327,4 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     public native float getStdDevBreathingRate();
 }
+

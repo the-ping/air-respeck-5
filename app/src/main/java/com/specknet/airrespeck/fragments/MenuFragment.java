@@ -61,11 +61,11 @@ public class MenuFragment extends BaseFragment {
 
         mButtons = new ArrayList<MenuButton>();
         mButtons.add(new MenuButton(MenuButton.buttonType.HOME, getString(R.string.menu_home),
-                Constants.menuIconsResId[0]));
+                Constants.MENU_ICON_HOME));
         mButtons.add(new MenuButton(MenuButton.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
-                Constants.menuIconsResId[2]));
+                Constants.MENU_ICON_AIR));
         mButtons.add(new MenuButton(MenuButton.buttonType.GRAPHS, getString(R.string.menu_graphs),
-                Constants.menuIconsResId[3]));
+                Constants.MENU_ICON_GRAPHS));
 
         mUtils = Utils.getInstance(getContext());
     }

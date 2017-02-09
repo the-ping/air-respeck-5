@@ -42,13 +42,13 @@ public class Constants {
     /**
      * Menu icons
      */
-    public static int[] menuIconsResId = {
-            R.drawable.ic_home,
-            R.drawable.ic_health,
-            R.drawable.ic_air,
-            R.drawable.ic_graphs,
-            R.drawable.ic_settings
-    };
+    public static int MENU_ICON_HOME = R.drawable.ic_home;
+    public static int MENU_ICON_HEALTH = R.drawable.ic_health;
+    public static int MENU_ICON_AIR = R.drawable.ic_air;
+    public static int MENU_ICON_GRAPHS = R.drawable.ic_graphs;
+    public static int MENU_ICON_SETTINGS = R.drawable.ic_settings;
+    public static int MENU_ICON_INFO = R.drawable.vec_info;
+
 
 
     /**
@@ -138,19 +138,21 @@ public class Constants {
     /**
      * Preferences option values
      */
-    public static final int MENU_MODE_BUTTONS = 0;
-    public static final int MENU_MODE_TABS = 1;
+    public static final String MENU_MODE_BUTTONS = "0";
+    public static final String MENU_MODE_TABS = "1";
 
-    public static final int READINGS_MODE_HOME_SCREEN_LIST = 0;
-    public static final int READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS = 1;
+    public static final String READINGS_MODE_HOME_SCREEN_LIST = "0";
+    public static final String READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS = "1";
 
-    public static final int READINGS_MODE_AQREADINGS_SCREEN_LIST = 0;
-    public static final int READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS = 1;
+    public static final String READINGS_MODE_AQREADINGS_SCREEN_LIST = "0";
+    public static final String READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS = "1";
 
-    public static final int FONT_SIZE_NORMAL = 1;
-    public static final int FONT_SIZE_LARGE = 2;
+    public static final String FONT_SIZE_NORMAL = "1";
+    public static final String FONT_SIZE_LARGE = "2";
 
     public static final int USER_TYPE_SUBJECT = 0;
     public static final int USER_TYPE_RESEARCHER = 1;
+
+    public static final String MENU_BUTTONS_PADDING_NORMAL = "5";
 
 }

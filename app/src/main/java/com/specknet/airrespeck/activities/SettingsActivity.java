@@ -15,6 +15,7 @@ import android.support.v4.app.NavUtils;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.lib.SeekBarListPreference;
+import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 import com.specknet.airrespeck.utils.ThemeUtils;
 
@@ -35,31 +36,30 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener =
             new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            String stringValue = value.toString();
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object value) {
+                    String stringValue = value.toString();
 
-            if (preference instanceof ListPreference) {
-                // For mData preferences, look up the correct display value in
-                // the preference's 'entries' mData.
-                ListPreference listPreference = (ListPreference) preference;
-                int index = listPreference.findIndexOfValue(stringValue);
+                    if (preference instanceof ListPreference) {
+                        // For mData preferences, look up the correct display value in
+                        // the preference's 'entries' mData.
+                        ListPreference listPreference = (ListPreference) preference;
+                        int index = listPreference.findIndexOfValue(stringValue);
 
-                // Set the summary to reflect the new value.
-                // Set the summary to reflect the new value.
-                preference.setSummary(
-                        index >= 0
-                                ? listPreference.getEntries()[index]
-                                : null);
-            }
-            else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
-                preference.setSummary(stringValue);
-            }
-            return true;
-        }
-    };
+                        // Set the summary to reflect the new value.
+                        // Set the summary to reflect the new value.
+                        preference.setSummary(
+                                index >= 0
+                                        ? listPreference.getEntries()[index]
+                                        : null);
+                    } else {
+                        // For all other preferences, set the summary to the value's
+                        // simple string representation.
+                        preference.setSummary(stringValue);
+                    }
+                    return true;
+                }
+            };
 
     /**
      * Binds a preference's summary to its value. More specifically, when the
@@ -86,7 +86,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         super.onCreate(savedInstanceState);
 
         PreferencesUtils preferencesUtils = PreferencesUtils.getInstance(getApplicationContext());
-        int fontSizePref = Integer.valueOf(preferencesUtils.getString(PreferencesUtils.Key.FONT_SIZE, "1"));
+        int fontSizePref = Integer.parseInt(
+                preferencesUtils.getString(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL));
         ThemeUtils themeUtils = ThemeUtils.getInstance();
         themeUtils.setTheme(fontSizePref);
         themeUtils.onActivityCreateSetTheme(this);
@@ -161,8 +162,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         detach(this).
                         attach(this).
                         commit();
-            }
-            else if (key.equals("menu_mode")) {
+            } else if (key.equals("menu_mode")) {
                 checkMenuModePref();
             }
         }
@@ -175,8 +175,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             if (listPref.getValue().equals("0")) {
                 seekPref.setEnabled(true);
                 switchPref.setEnabled(false);
-            }
-            else {
+            } else {
                 seekPref.setEnabled(false);
                 switchPref.setEnabled(true);
             }

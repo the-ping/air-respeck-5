@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.datamodels.User;
-import com.specknet.airrespeck.models.MenuButton;
+import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 
 
@@ -36,16 +36,17 @@ public class BaseFragment extends Fragment {
         mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance()
                 .getString(PreferencesUtils.Key.USER_ID));
 
-        mReadingsModeHomeScreen = Integer.valueOf(PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0"));
-        mReadingsModeAQReadingsScreen = Integer.valueOf(PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0"));
+        mReadingsModeHomeScreen = Integer.parseInt(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST));
+        mReadingsModeAQReadingsScreen = Integer.parseInt(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                        Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST));
 
         mGraphsScreen = PreferencesUtils.getInstance()
                 .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
 
-        mButtonsPadding = Integer.valueOf(PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, "5"));
+        mButtonsPadding = Integer.parseInt(PreferencesUtils.getInstance()
+                .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
     }
 
     @Override
@@ -53,24 +54,24 @@ public class BaseFragment extends Fragment {
         super.onStart();
 
         if (this instanceof HomeFragment) {
-            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, "0"));
+            int newVal = Integer.parseInt(
+                    PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_LIST));
 
             if (mReadingsModeHomeScreen != newVal) {
                 restartFragment();
             }
-        }
-        else if (this instanceof AQReadingsFragment) {
-            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN, "0"));
+        } else if (this instanceof AQReadingsFragment) {
+            int newVal = Integer.parseInt(
+                    PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST));
 
             if (mReadingsModeAQReadingsScreen != newVal) {
                 restartFragment();
             }
-        }
-        else if (this instanceof MenuFragment) {
-            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, "5"));
+        } else if (this instanceof MenuFragment) {
+            int newVal = Integer.parseInt(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
 
             if (mButtonsPadding != newVal) {
                 restartFragment();

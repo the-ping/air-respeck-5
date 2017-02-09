@@ -18,6 +18,9 @@ android {
         ndk {
             moduleName "respeck-jni"
         }
+        ndk {
+            moduleName "respeck-jni-daphne"
+        }
     }
 
     buildTypes {

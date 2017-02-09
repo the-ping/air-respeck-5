@@ -37,4 +37,5 @@
     <style name="FontSizeHuge">
         <item name="android:textSize">@dimen/font_size_huge</item>
     </style>
+
 </resources>

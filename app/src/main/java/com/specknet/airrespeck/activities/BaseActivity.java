@@ -18,7 +18,7 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 public class BaseActivity extends AppCompatActivity {
 
     protected User mCurrentUser;
-    protected int mMenuModePref;
+    protected String mMenuModePref;
     protected boolean mMenuTabIconsPref;
     protected boolean mGraphsScreen;
     protected boolean mRespeckAppAccessPref;
@@ -41,7 +41,7 @@ public class BaseActivity extends AppCompatActivity {
         // can be used if anything goes wrong.
         try {
             mMenuModePref = PreferencesUtils.getInstance()
-                    .getInt(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+                    .getString(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
             mMenuTabIconsPref = PreferencesUtils.getInstance()
                     .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
             mGraphsScreen = PreferencesUtils.getInstance()
@@ -52,8 +52,8 @@ public class BaseActivity extends AppCompatActivity {
             mAirspeckAppAccessPref = PreferencesUtils.getInstance()
                     .getBoolean(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
 
-            mFontSizePref = PreferencesUtils.getInstance()
-                    .getInt(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
+            mFontSizePref = Integer.parseInt(PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL));
 
             ThemeUtils themeUtils = ThemeUtils.getInstance();
             themeUtils.setTheme(mFontSizePref);
@@ -68,10 +68,10 @@ public class BaseActivity extends AppCompatActivity {
         super.onStart();
 
         try {
-            int newVal = PreferencesUtils.getInstance()
-                    .getInt(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+            String newVal = PreferencesUtils.getInstance()
+                    .getString(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
 
-            if (mMenuModePref != newVal) {
+            if (!mMenuModePref.equals(newVal)) {
                 restartActivity();
             }
         } catch (Exception ex) {
@@ -101,8 +101,8 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         try {
-            int newVal = Integer.valueOf(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.FONT_SIZE, "1"));
+            int newVal = Integer.parseInt(PreferencesUtils.getInstance().getString(PreferencesUtils.Key.FONT_SIZE,
+                    Constants.FONT_SIZE_NORMAL));
 
             if (mFontSizePref != newVal) {
                 restartActivity();

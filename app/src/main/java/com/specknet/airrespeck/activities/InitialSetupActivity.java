@@ -149,7 +149,7 @@ public class InitialSetupActivity extends BaseActivity {
      * Go to main activity and finish the current activity.
      */
     private void goToMainScreen() {
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        startActivity(new Intent(getApplicationContext(), DaphneMainActivity.class));
         this.finish();
     }
 
