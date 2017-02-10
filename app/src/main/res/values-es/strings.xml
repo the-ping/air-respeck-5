@@ -104,6 +104,7 @@
     <string name="action_settings">Ajustes</string>
     <string name="action_user_profile">Perfil</string>
     <string name="action_connect">Conectar</string>
+    <string name="action_supervised_mode">Modo supervisado</string>
 
 
 

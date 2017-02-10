@@ -15,14 +15,12 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceActivity;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -157,6 +155,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
     QOERemoteUploadService mQOERemoteUploadService;
 
 
+    // TODO: Move all Bluetooth related stuff into a Service class
     // BLUETOOTH
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mLEScanner;
@@ -387,34 +386,8 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStattement
-        if (id == R.id.action_user_profile) {
-            startActivity(new Intent(this, UserProfileActivity.class));
-        } else if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.SettingsFragment.class.getName());
-            intent.putExtra(PreferenceActivity.EXTRA_NO_HEADERS, true);
-            startActivity(intent);
-        } else if (id == R.id.action_airspeck) {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(
-                        "com.airquality.sepa",
-                        "com.airquality.sepa.DataCollectionActivity"));
-                startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, R.string.airspeck_not_found, Toast.LENGTH_LONG).show();
-            }
-        } else if (id == R.id.action_respeck) {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(
-                        "com.pulrehab",
-                        "com.pulrehab.fragments.MainActivity"));
-                startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, R.string.respeck_not_found, Toast.LENGTH_LONG).show();
-            }
+        if (id == R.id.action_supervised_mode) {
+            startActivity(new Intent(this, MainActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -522,6 +495,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         // Update local values
         mQOESensorReadings = newValues;
 
+        mDaphneValuesFragment.updateQOEReadings(mQOESensorReadings);
         // Update the UI
         //updateQOEUI();
     }
@@ -671,14 +645,12 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
-            mDaphneHomeFragment.updateConnectionRESpeck(true);
         }
 
         if (mGattQOE == null && device.getName().contains("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
             mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
-            mDaphneHomeFragment.updateConnectionAirpeck(true);
         }
 
         if (mGattQOE != null && mGattRespeck != null) {
@@ -706,6 +678,8 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                             + ". " + getString(R.string.waiting_for_data)
                             + ".", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
+
+                    mDaphneHomeFragment.updateConnectionAirpeck(true);
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mQOEConnectionComplete = false;
@@ -714,6 +688,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                     BluetoothDevice device = gatt.getDevice();
                     mGattQOE.close();
                     mGattQOE = null;
+                    mDaphneHomeFragment.updateConnectionAirpeck(false);
                     connectToDevice(device);
                     break;
                 default:
@@ -962,12 +937,12 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                     mRespeckConnectionComplete = true;
                     Log.i("Respeck-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
-
                     Snackbar.make(mCoordinatorLayout, "Respeck "
                             + getString(R.string.device_connected)
                             + ". " + getString(R.string.waiting_for_data)
                             + ".", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
+                    mDaphneHomeFragment.updateConnectionRESpeck(true);
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mRespeckConnectionComplete = false;
@@ -976,6 +951,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                     BluetoothDevice device = gatt.getDevice();
                     mGattRespeck.close();
                     mGattRespeck = null;
+                    mDaphneHomeFragment.updateConnectionRESpeck(false);
                     connectToDevice(device);
                     break;
                 default:

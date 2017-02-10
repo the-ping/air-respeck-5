@@ -1449,7 +1449,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
     static {
-        System.loadLibrary("respeck-jni");
+        System.loadLibrary("respeck-jni-old");
     }
 
     //public native String getMsgFromJni();

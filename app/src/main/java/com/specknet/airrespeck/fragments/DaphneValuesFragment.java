@@ -23,6 +23,10 @@ public class DaphneValuesFragment extends BaseFragment {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
+
+    TextView pm10Text;
+    TextView pm2_5Text;
+
     ImageView activityIcon;
 
     @Override
@@ -41,6 +45,8 @@ public class DaphneValuesFragment extends BaseFragment {
         breathingRateText = (TextView) view.findViewById(R.id.text_breathing);
         averageBreathingRateText = (TextView) view.findViewById(R.id.text_breathing_average);
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
+        pm10Text = (TextView) view.findViewById(R.id.text_pm10);
+        pm2_5Text = (TextView) view.findViewById(R.id.text_pm2_5);
 
         return view;
     }
@@ -67,5 +73,10 @@ public class DaphneValuesFragment extends BaseFragment {
             default:
                 activityIcon.setImageResource(R.drawable.vec_standing_sitting);
         }
+    }
+
+    public void updateQOEReadings(HashMap<String, Float> mAQSensorReadings) {
+        pm10Text.setText(String.format(Locale.UK, "PM 10: %.2f μg/m³", mAQSensorReadings.get(Constants.QOE_PM10)));
+        pm2_5Text.setText(String.format(Locale.UK, "PM 2.5: %.2f μg/m³", mAQSensorReadings.get(Constants.QOE_PM2_5)));
     }
 }

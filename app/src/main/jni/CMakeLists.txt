@@ -11,10 +11,19 @@ cmake_minimum_required(VERSION 3.6)
 # automatically packages shared libraries with your APK.
 
 # Add respeck-jni.c and all files in breathing and activitiyclassification directories to library sources
-file(GLOB RESPECK_SOURCES respeck-jni.c breathing/* activityclassification/*)
+file(GLOB RESPECK_SOURCES respeck-jni.c respeck-jni-old.c breathing/* activityclassification/*)
 
 add_library( # Specifies the name of the library.
              respeck-jni
+
+             # Sets the library as a shared library.
+             SHARED
+
+             # Provides a relative path to your source file(s).
+             ${RESPECK_SOURCES})
+
+add_library( # Specifies the name of the library.
+             respeck-jni-old
 
              # Sets the library as a shared library.
              SHARED
@@ -33,6 +42,11 @@ find_library( # Defines the name of the path variable that stores the
 # Links your native library against one or more other native libraries.
 target_link_libraries( # Specifies the target library.
                        respeck-jni
+
+                       # Links the log library to the target library.
+                       ${log-lib} )
+target_link_libraries( # Specifies the target library.
+                       respeck-jni-old
 
                        # Links the log library to the target library.
                        ${log-lib} )

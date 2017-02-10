@@ -104,6 +104,7 @@
     <string name="action_settings">设置</string>
     <string name="action_user_profile">轮廓</string>
     <string name="action_connect">接</string>
+    <string name="action_supervised_mode">监督模式</string>
 
 
 

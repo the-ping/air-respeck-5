@@ -104,7 +104,7 @@
     <string name="action_settings">सेटिंग्स</string>
     <string name="action_user_profile">प्रोफाइल</string>
     <string name="action_connect">जुडिये</string>
-
+    <string name="action_supervised_mode">निगरानी मोड</string>
 
 
     <!-- Strings related to AirSpeck and RESpeck apps -->

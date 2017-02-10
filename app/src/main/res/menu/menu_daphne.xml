@@ -7,10 +7,9 @@
         android:id="@+id/daphne_menu_group">
 
         <item
-            android:id="@+id/action_settings"
+            android:id="@+id/action_supervised_mode"
             android:orderInCategory="90"
-            android:title="@string/action_settings"
-            android:icon="@drawable/ic_settings"
+            android:title="@string/action_supervised_mode"
             app:showAsAction="never" />
 
     </group>
