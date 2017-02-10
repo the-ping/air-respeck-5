@@ -7,14 +7,17 @@
 
 #include "breathing/breathing.h"
 #include "breathing/breathing_rate.h"
-#include "breathing/activity_filter.h"
 #include "breathing/ma_stats.h"
+#include "activityclassification/predictions.h"
 
 static breathing_filter breathing;
 static threshold_filter thresholds;
 static bpm_filter bpm;
 static ma_stats_filter maf;
 static int count;
+
+// Activity classification
+static int current_activity_classification = -1;
 
 JNIEXPORT jstring JNICALL
                   Java_com_specknet_airrespeck_activities_DaphneMainActivity_getMsgFromJni(JNIEnv *env, jobject instance) {
@@ -92,7 +95,18 @@ jint Java_com_specknet_airrespeck_activities_DaphneMainActivity_getNBreaths( JNI
     return (jint) MA_stats_num(&maf);
 }
 
-jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getActivity( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getActivityLevel( JNIEnv* env, jobject this)
 {
     return (jfloat) breathing.activity;
+}
+
+void Java_com_specknet_airrespeck_activities_DaphneMainActivity_updateActivityClassification(JNIEnv *env, jobject instance) {
+    // Only do something if buffer is filled
+    if (get_is_buffer_full()) {
+        current_activity_classification = simple_predict();
+    }
+}
+
+jint Java_com_specknet_airrespeck_activities_DaphneMainActivity_getCurrentActivityClassification(JNIEnv *env, jobject instance) {
+    return (jint) current_activity_classification;
 }

@@ -19,6 +19,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceActivity;
@@ -41,9 +42,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.DaphneHomeFragment;
-import com.specknet.airrespeck.fragments.GraphsFragment;
-import com.specknet.airrespeck.fragments.HomeFragment;
-import com.specknet.airrespeck.fragments.AQReadingsFragment;
+import com.specknet.airrespeck.fragments.DaphneValuesFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
@@ -55,16 +54,23 @@ import com.specknet.airrespeck.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Locale;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 /**
@@ -122,9 +128,12 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
     // FRAGMENTS
     private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
+    private static final String TAG_DAPHNE_VALUES_FRAGMENT = "DAPHNE_VALUES_FRAGMENT";
+
     private static final String TAG_CURRENT_FRAGMENT = "DAPHNE_CURRENT_FRAGMENT";
 
     private DaphneHomeFragment mDaphneHomeFragment;
+    private DaphneValuesFragment mDaphneValuesFragment;
     private Fragment mCurrentFragment;
 
 
@@ -221,18 +230,22 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         // Load fragments from saved instance state
         if (savedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mDaphneHomeFragment =
-                    (DaphneHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
-
+            mDaphneHomeFragment = (DaphneHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
+            mDaphneValuesFragment = (DaphneValuesFragment) fm.getFragment(savedInstanceState,
+                    TAG_DAPHNE_VALUES_FRAGMENT);
             // If they don't exist, which could happen because the activity was paused before loading the fragments,
             // create new fragments
             if (mDaphneHomeFragment == null) {
                 mDaphneHomeFragment = new DaphneHomeFragment();
             }
+            if (mDaphneValuesFragment == null) {
+                mDaphneValuesFragment = new DaphneValuesFragment();
+            }
         } else {
             // If there is no saved instance state, this means we are starting the activity for the first time
             // Create all the fragments
             mDaphneHomeFragment = new DaphneHomeFragment();
+            mDaphneValuesFragment = new DaphneValuesFragment();
         }
 
         setContentView(R.layout.activity_main_tabs);
@@ -242,6 +255,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
                 getApplicationContext());
         sectionsPagerAdapter.addFragment(mDaphneHomeFragment);
+        sectionsPagerAdapter.addFragment(mDaphneValuesFragment);
 
         // Set up the ViewPager with the sections adapter.
         ViewPager viewPager = (ViewPager) findViewById(R.id.container);
@@ -256,6 +270,8 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
         tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
         tabLayout.getTabAt(0).setText("");
+        tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_INFO);
+        tabLayout.getTabAt(1).setText("");
 
 
         // Add the toolbar
@@ -278,6 +294,9 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         // Initialize Upload services
         initRespeckUploadService();
         initQOEUploadService();
+
+        // Start task which makes activity predictions every 2 seconds
+        startActivityClassificationTask();
     }
 
     @Override
@@ -402,7 +421,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
     }
 
 
-
     /**
      * Replace the current fragment with the given one.
      *
@@ -482,7 +500,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
     }
 
 
-
     /**
      * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
      *
@@ -491,7 +508,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
     private void updateRespeckReadings(HashMap<String, Float> newValues) {
         // Update local values
         mRespeckSensorReadings = newValues;
-
+        mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
         // Update the UI
         //updateRespeckUI();
     }
@@ -654,12 +671,14 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
+            mDaphneHomeFragment.updateConnectionRESpeck(true);
         }
 
         if (mGattQOE == null && device.getName().contains("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
             mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
+            mDaphneHomeFragment.updateConnectionAirpeck(true);
         }
 
         if (mGattQOE != null && mGattRespeck != null) {
@@ -1077,7 +1096,8 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                             float averageBreathingRate = getAverageBreathingRate();
                             float stdDevBreathingRate = getStdDevBreathingRate();
                             float nBreaths = getNBreaths();
-                            float breathActivity = getActivity();
+                            float breathActivity = getActivityLevel();
+                            float activityType = getCurrentActivityClassification();
 
                             Log.i("2", "BS TIMESTAMP " + String.valueOf(live_bs_timestamp));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(live_rs_timestamp));
@@ -1101,6 +1121,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                 json.put(Constants.RESPECK_X, x);
                                 json.put(Constants.RESPECK_Y, y);
                                 json.put(Constants.RESPECK_Z, z);
+                                json.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                                 if (Float.isNaN(breathingRate)) {
                                     json.put(Constants.RESPECK_BREATHING_RATE, null);
                                 } else {
@@ -1132,9 +1153,9 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                     json.put(Constants.RESPECK_N_BREATHS, nBreaths);
                                 }
                                 if (Float.isNaN(breathActivity)) {
-                                    json.put(Constants.RESPECK_ACTIVITY, null);
+                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, null);
                                 } else {
-                                    json.put(Constants.RESPECK_ACTIVITY, breathActivity);
+                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, breathActivity);
                                 }
                                 json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
                                 json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);
@@ -1154,6 +1175,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                             values.put(Constants.RESPECK_X, x);
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
+                            values.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                             if (Float.isNaN(breathingRate)) {
                                 values.put(Constants.RESPECK_BREATHING_RATE, 0f);
                             } else {
@@ -1163,6 +1185,11 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
                             } else {
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            }
+                            if (Float.isNaN(averageBreathingRate)) {
+                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, 0f);
+                            } else {
+                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
                             }
 
                             Message msg = Message.obtain();
@@ -1184,7 +1211,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                 float sd_br = getStdDevBreathingRate();
                                 //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
                                 int n_breaths = getNBreaths();
-                                float act = getActivity();
+                                float act = getActivityLevel();
 
                                 resetMA();
                                 //ACTUALIZA Y MANDA AL SERVIDOR
@@ -1299,6 +1326,81 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         return fValue;
     }
 
+    private void startActivityClassificationTask() {
+        final Handler h = new Handler();
+
+        // We want to summarise predictions every 10 minutes.
+        final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
+
+        // How often do we update the activity classification?
+        // half the window size for the activity predictions, in milliseconds
+        final int delay = 2000;
+
+        // Create prediction summary directory if it doesn't exist
+        final File summaryDirectory = new File(Environment.getExternalStorageDirectory(), "/ActivityPrediction");
+        if (!summaryDirectory.exists()) {
+            boolean created = summaryDirectory.mkdirs();
+            Log.i("DF", "Directory created: " + summaryDirectory);
+            if (!created) {
+                throw new RuntimeException("Couldn't create folder for temporary storage of the recording");
+            }
+        }
+
+        // Path to summary storage file. For now, we only use one file. Could be separated if the file gets too large.
+        final String filenameSummaryStorage = summaryDirectory + "/" + "predictions_summary";
+
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+
+            // We summarise the currently stored predictions when the counter reaches max
+            int summaryCounter = 0;
+            int temporaryStoragePredictions[] = new int[Constants.NUM_ACT_CLASSES];
+
+            @Override
+            public void run() {
+                updateActivityClassification();
+                int predictionIdx = getCurrentActivityClassification();
+                // an index of -1 means that the acceleration buffer has not been filled yet, so we have to wait.
+                if (predictionIdx != -1) {
+                    Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
+                    temporaryStoragePredictions[predictionIdx]++;
+                    summaryCounter++;
+                }
+
+                Log.i("DF", "summary counter: " + summaryCounter);
+
+                // If the temporary prediction recording is full, i.e. count is MAX, we
+                // write the summarised data into another external file and empty the temporary file.
+                if (summaryCounter == SUMMARY_COUNT_MAX) {
+
+                    String lineToWrite = getCurrentTimeStamp() + "\t" +
+                            Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "\t" +
+                            Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "\t" +
+                            Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
+
+                    try {
+                        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
+                                new FileOutputStream(filenameSummaryStorage, true));
+                        outputStreamWriter.append(lineToWrite);
+                        outputStreamWriter.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    // Reset counts to zero
+                    Arrays.fill(temporaryStoragePredictions, 0);
+                    summaryCounter = 0;
+                }
+            }
+        }, 0, delay);
+    }
+
+    public static String getCurrentTimeStamp() {
+        return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
+    }
+
+
     static {
         System.loadLibrary("respeck-jni-daphne");
     }
@@ -1314,7 +1416,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
     public native float getAverageBreathingRate();
 
-    public native float getActivity();
+    public native float getActivityLevel();
 
     public native int getNBreaths();
 
@@ -1326,5 +1428,9 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
     public native void calculateMA();
 
     public native float getStdDevBreathingRate();
+
+    public native int getCurrentActivityClassification();
+
+    public native void updateActivityClassification();
 }
 

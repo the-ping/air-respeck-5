@@ -11,6 +11,7 @@
 #include "mean_accel.h"
 #include "activity_filter.h"
 #include "math_helper.h"
+#include "../activityclassification/predictions.h"
 
 //#include "arm_math.h"
 
@@ -66,9 +67,14 @@ void BRG_update(double value[3], breathing_filter* filter)
 	accel[2] = value[2];
 
 	filter->valid = false;
-    
+
+	int previous_pos = activity.pos;
+
     // activity (movement detection)
 	ACT_update(accel,&activity);
+
+	// Update classification buffer -> we want the actual activity level, not the maximum
+	update_act_class_buffer(accel, activity.values[previous_pos]);
     
 	if (activity.valid == false)
 	{
@@ -164,6 +170,5 @@ void BRG_update(double value[3], breathing_filter* filter)
     filter->bs = average.value;
     filter->ba = average2.value;
     filter->valid = true;
-
 
 }

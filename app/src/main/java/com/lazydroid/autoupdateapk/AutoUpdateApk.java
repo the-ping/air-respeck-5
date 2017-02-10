@@ -441,7 +441,7 @@ public class AutoUpdateApk extends Observable {
 			}
 
 			/*
-			//PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+			//PendingIntent contentIntent = PendingIntent.getActivityLevel(context, 0, notificationIntent, 0);
 
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
 			builder.setSmallIcon(appIcon);

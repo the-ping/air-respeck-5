@@ -1281,9 +1281,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                     json.put(Constants.RESPECK_N_BREATHS, nBreaths);
                                 }
                                 if (Float.isNaN(breathActivity)) {
-                                    json.put(Constants.RESPECK_ACTIVITY, null);
+                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, null);
                                 } else {
-                                    json.put(Constants.RESPECK_ACTIVITY, breathActivity);
+                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, breathActivity);
                                 }
                                 json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
                                 json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);

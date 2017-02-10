@@ -63,7 +63,8 @@ public class Constants {
     public static final String RESPECK_AVERAGE_BREATHING_RATE = "average_breathing_rate";
     public static final String RESPECK_STD_DEV_BREATHING_RATE = "std_dev_breathing_rate";
     public static final String RESPECK_N_BREATHS = "n_breaths";
-    public static final String RESPECK_ACTIVITY = "activity";
+    public static final String RESPECK_ACTIVITY_LEVEL = "activity_level";
+    public static final String RESPECK_ACTIVITY_TYPE = "activity_type";
     public static final String RESPECK_LIVE_SEQ = "live_seq";
     public static final String RESPECK_LIVE_RS_TIMESTAMP = "live_rs_timestamp";
 
@@ -155,4 +156,12 @@ public class Constants {
 
     public static final String MENU_BUTTONS_PADDING_NORMAL = "5";
 
+    /**
+     * Activities
+     */
+    public static final int ACTIVITY_STAND_SIT = 1;
+    public static final int ACTIVITY_WALKING = 2;
+    public static final int ACTIVITY_LYING = 4;
+    public static final int NUM_ACT_CLASSES = 3;
+    public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down"} ;
 }

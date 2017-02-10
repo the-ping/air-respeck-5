@@ -4,7 +4,7 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".fragments.DaphneHomeFragment"
+             tools:context=".fragments.DaphneValuesFragment"
              android:paddingTop="20dp"
              android:paddingRight="20dp"
              android:paddingLeft="20dp"
@@ -23,9 +23,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:layout_weight="0.17"
-            android:background="@drawable/background_rounded_orange"
-            android:padding="15dp"/>
+            android:background="@drawable/clickable_button_background"
+            android:padding="15dp"
+            />
 
         <TableLayout
             android:layout_width="match_parent"
@@ -36,51 +36,52 @@
             android:paddingLeft="40dp"
             android:paddingRight="40dp"
             android:paddingTop="20dp"
-            android:layout_weight="1"
-            android:gravity="center">
+            android:layout_gravity="center">
 
             <TableRow
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="15dp">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                >
 
                 <ImageView
                     android:id="@+id/imageView"
                     app:srcCompat="@drawable/vec_respeck"
+                    android:layout_height="match_parent"
                     android:layout_width="wrap_content"
-                    android:layout_height="85dp"
-                    android:layout_gravity="center"
-                    android:layout_weight="0.30"/>
+                    android:layout_weight="1"
+                    android:paddingRight="20dp"/>
 
                 <ImageView
                     android:id="@+id/connected_status_respeck"
                     app:srcCompat="@drawable/vec_xmark"
                     android:layout_width="match_parent"
                     android:layout_height="85dp"
-                    android:layout_weight="0.44"
                     android:paddingTop="15dp"
-                    android:paddingBottom="15dp"/>
+                    android:paddingBottom="15dp"
+                    android:layout_weight="0.3"/>
             </TableRow>
 
             <TableRow
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 >
 
                 <ImageView
                     android:id="@+id/imageView3"
                     app:srcCompat="@drawable/vec_airspeck"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:paddingRight="20dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="85dp"
-                    android:layout_gravity="center"
-                    android:layout_weight="0.35"/>
+                    />
 
                 <ImageView
                     android:id="@+id/connected_status_airspeck"
                     app:srcCompat="@drawable/vec_xmark"
                     android:layout_width="match_parent"
                     android:layout_height="85dp"
-                    android:layout_weight="0.44"
+                    android:layout_weight="0.3"
                     android:paddingBottom="15dp"
                     android:paddingTop="15dp"/>
             </TableRow>
@@ -111,7 +112,8 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="10dp"
                 android:layout_weight="0.91"
-                android:indeterminate="true"/>
+                android:indeterminate="false"
+                android:progress="80"/>
 
         </LinearLayout>
 
