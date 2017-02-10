@@ -50,9 +50,9 @@ public class DaphneValuesFragment extends BaseFragment {
 
         // Set breathing rate text to currently calculated rates
         breathingRateText.setText(
-                String.format(Locale.UK, "%.2f", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
         averageBreathingRateText.setText(
-                String.format(Locale.UK, "%.2f", mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
+                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
 
         // Set activity icon to reflect currently predicted activity
         int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));

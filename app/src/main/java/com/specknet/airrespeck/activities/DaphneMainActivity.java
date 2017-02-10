@@ -1402,7 +1402,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
 
     static {
-        System.loadLibrary("respeck-jni-daphne");
+        System.loadLibrary("respeck-jni");
     }
 
     //public native String getMsgFromJni();

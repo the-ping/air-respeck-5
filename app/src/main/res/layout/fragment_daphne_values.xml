@@ -38,7 +38,7 @@
             android:layout_marginBottom="40dp"/>
 
         <ImageView
-            android:layout_width="match_parent"
+            android:layout_width="80dp"
             android:layout_height="80dp"
             app:srcCompat="@drawable/vec_standing_sitting"
             android:id="@+id/activity_icon"/>

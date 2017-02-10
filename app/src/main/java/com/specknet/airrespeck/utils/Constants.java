@@ -159,9 +159,9 @@ public class Constants {
     /**
      * Activities
      */
-    public static final int ACTIVITY_STAND_SIT = 1;
-    public static final int ACTIVITY_WALKING = 2;
-    public static final int ACTIVITY_LYING = 4;
+    public static final int ACTIVITY_STAND_SIT = 0;
+    public static final int ACTIVITY_WALKING = 1;
+    public static final int ACTIVITY_LYING = 2;
     public static final int NUM_ACT_CLASSES = 3;
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down"} ;
 }

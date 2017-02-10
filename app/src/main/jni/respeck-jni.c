@@ -1,10 +1,14 @@
+//
+// Created by Darius on 09.02.2017.
+//
+
 #include <string.h>
 #include <jni.h>
 
 #include "breathing/breathing.h"
 #include "breathing/breathing_rate.h"
-#include "breathing/activity_filter.h"
 #include "breathing/ma_stats.h"
+#include "activityclassification/predictions.h"
 
 static breathing_filter breathing;
 static threshold_filter thresholds;
@@ -12,12 +16,15 @@ static bpm_filter bpm;
 static ma_stats_filter maf;
 static int count;
 
+// Activity classification
+static int current_activity_classification = -1;
+
 JNIEXPORT jstring JNICALL
-                  Java_com_specknet_airrespeck_activities_MainActivity_getMsgFromJni(JNIEnv *env, jobject instance) {
+                  Java_com_specknet_airrespeck_activities_DaphneMainActivity_getMsgFromJni(JNIEnv *env, jobject instance) {
     return (*env)->NewStringUTF(env, "It works");
 }
 
-void Java_com_specknet_airrespeck_activities_MainActivity_initBreathing( JNIEnv* env, jobject this )
+void Java_com_specknet_airrespeck_activities_DaphneMainActivity_initBreathing( JNIEnv* env, jobject this )
 {
     BRG_init(&breathing);
     threshold_init(&thresholds);
@@ -30,7 +37,7 @@ void Java_com_specknet_airrespeck_activities_MainActivity_initBreathing( JNIEnv*
 }
 
 
-void Java_com_specknet_airrespeck_activities_MainActivity_updateBreathing(JNIEnv *env, jobject this, float x, float y, float z)
+void Java_com_specknet_airrespeck_activities_DaphneMainActivity_updateBreathing(JNIEnv *env, jobject this, float x, float y, float z)
 {
     double accel[3] = {x,y,z};
     BRG_update(accel, &breathing);
@@ -48,47 +55,58 @@ void Java_com_specknet_airrespeck_activities_MainActivity_updateBreathing(JNIEnv
     }
 }
 
-jfloat Java_com_specknet_airrespeck_activities_MainActivity_getBreathingSignal( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getBreathingSignal( JNIEnv* env, jobject this)
 {
     return (jfloat) breathing.bs;
 }
 
-jfloat Java_com_specknet_airrespeck_activities_MainActivity_getBreathingAngle( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getBreathingAngle( JNIEnv* env, jobject this)
 {
     return (jfloat) breathing.ba;
 }
 
-jfloat Java_com_specknet_airrespeck_activities_MainActivity_getBreathingRate( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getBreathingRate( JNIEnv* env, jobject this)
 {
     return (jfloat) bpm.bpm;
 }
 
-jfloat Java_com_specknet_airrespeck_activities_MainActivity_getAverageBreathingRate( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getAverageBreathingRate( JNIEnv* env, jobject this)
 {
     return (jfloat) MA_stats_mean(&maf);
 }
 
-jfloat Java_com_specknet_airrespeck_activities_MainActivity_getStdDevBreathingRate( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getStdDevBreathingRate( JNIEnv* env, jobject this)
 {
     return (jfloat) MA_stats_sd(&maf);
 }
 
-void Java_com_specknet_airrespeck_activities_MainActivity_resetMA( JNIEnv* env, jobject this)
+void Java_com_specknet_airrespeck_activities_DaphneMainActivity_resetMA( JNIEnv* env, jobject this)
 {
     MA_stats_init(&maf);
 }
 
-void Java_com_specknet_airrespeck_activities_MainActivity_calculateMA( JNIEnv* env, jobject this)
+void Java_com_specknet_airrespeck_activities_DaphneMainActivity_calculateMA( JNIEnv* env, jobject this)
 {
     MA_stats_calculate(&maf);
 }
 
-jint Java_com_specknet_airrespeck_activities_MainActivity_getNBreaths( JNIEnv* env, jobject this)
+jint Java_com_specknet_airrespeck_activities_DaphneMainActivity_getNBreaths( JNIEnv* env, jobject this)
 {
     return (jint) MA_stats_num(&maf);
 }
 
-jfloat Java_com_specknet_airrespeck_activities_MainActivity_getActivity( JNIEnv* env, jobject this)
+jfloat Java_com_specknet_airrespeck_activities_DaphneMainActivity_getActivityLevel( JNIEnv* env, jobject this)
 {
     return (jfloat) breathing.activity;
+}
+
+void Java_com_specknet_airrespeck_activities_DaphneMainActivity_updateActivityClassification(JNIEnv *env, jobject instance) {
+    // Only do something if buffer is filled
+    if (get_is_buffer_full()) {
+        current_activity_classification = simple_predict();
+    }
+}
+
+jint Java_com_specknet_airrespeck_activities_DaphneMainActivity_getCurrentActivityClassification(JNIEnv *env, jobject instance) {
+    return (jint) current_activity_classification;
 }

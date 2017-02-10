@@ -15,12 +15,6 @@ android {
         // Enabling multidex support.
         multiDexEnabled true
 
-        ndk {
-            moduleName "respeck-jni"
-        }
-        ndk {
-            moduleName "respeck-jni-daphne"
-        }
     }
 
     buildTypes {
@@ -34,6 +28,11 @@ android {
     }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+    }
+    externalNativeBuild {
+        cmake {
+            path 'src/main/jni/CMakeLists.txt'
+        }
     }
 }
 
