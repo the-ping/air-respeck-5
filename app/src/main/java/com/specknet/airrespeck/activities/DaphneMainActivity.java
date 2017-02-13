@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -33,9 +34,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
-import android.os.PowerManager;
-
-import org.apache.commons.lang3.time.DateUtils;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
@@ -46,9 +44,10 @@ import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.LocationHelper;
+import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -137,9 +136,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
     // UTILS
     Utils mUtils;
-    //LocationUtils mLocationUtils;
-    LocationHelper mLocationUtils;
-
+    LocationUtils mLocationUtils;
 
     // Layout view for snack bar
     private CoordinatorLayout mCoordinatorLayout;
@@ -214,7 +211,10 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
         // Utils
         mUtils = Utils.getInstance(this);
-        mLocationUtils = LocationHelper.getInstance(this);
+
+        // Load location Utils
+        mLocationUtils = LocationUtils.getInstance(this);
+        mLocationUtils.startLocationManager();
 
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());

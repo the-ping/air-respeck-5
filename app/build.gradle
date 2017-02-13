@@ -9,8 +9,8 @@ android {
         applicationId "com.specknet.airrespeck"
         minSdkVersion 22
         targetSdkVersion 23
-        versionCode 8
-        versionName "1.1"
+        versionCode 10
+        versionName "1.3"
 
         // Enabling multidex support.
         multiDexEnabled true
@@ -33,6 +33,9 @@ android {
         cmake {
             path 'src/main/jni/CMakeLists.txt'
         }
+    }
+    lintOptions {
+        abortOnError false
     }
 }
 
