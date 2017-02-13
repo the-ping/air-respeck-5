@@ -19,8 +19,8 @@ public class BaseFragment extends Fragment {
 
     // Preferences
     protected User mCurrentUser;
-    protected int mReadingsModeHomeScreen;
-    protected int mReadingsModeAQReadingsScreen;
+    protected String mReadingsModeHomeScreen;
+    protected String mReadingsModeAQReadingsScreen;
     protected boolean mGraphsScreen;
     protected int mButtonsPadding;
 
@@ -36,11 +36,11 @@ public class BaseFragment extends Fragment {
         mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance()
                 .getString(PreferencesUtils.Key.USER_ID));
 
-        mReadingsModeHomeScreen = Integer.parseInt(PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST));
-        mReadingsModeAQReadingsScreen = Integer.parseInt(PreferencesUtils.getInstance()
+        mReadingsModeHomeScreen = PreferencesUtils.getInstance().getString(
+                PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST);
+        mReadingsModeAQReadingsScreen = PreferencesUtils.getInstance()
                 .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
-                        Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST));
+                        Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
 
         mGraphsScreen = PreferencesUtils.getInstance()
                 .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
@@ -54,19 +54,17 @@ public class BaseFragment extends Fragment {
         super.onStart();
 
         if (this instanceof HomeFragment) {
-            int newVal = Integer.parseInt(
-                    PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_LIST));
+            String newVal = PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                            Constants.READINGS_MODE_HOME_SCREEN_LIST);
 
-            if (mReadingsModeHomeScreen != newVal) {
+            if (!mReadingsModeHomeScreen.equals(newVal)) {
                 restartFragment();
             }
         } else if (this instanceof AQReadingsFragment) {
-            int newVal = Integer.parseInt(
-                    PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
-                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST));
+            String newVal = PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
 
-            if (mReadingsModeAQReadingsScreen != newVal) {
+            if (!mReadingsModeAQReadingsScreen.equals(newVal)) {
                 restartFragment();
             }
         } else if (this instanceof MenuFragment) {

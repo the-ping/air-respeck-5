@@ -147,6 +147,7 @@ public class Constants {
 
     public static final String READINGS_MODE_AQREADINGS_SCREEN_LIST = "0";
     public static final String READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS = "1";
+    public static final String READINGS_MODE_AQREADINGS_SCREEN_ARCS = "2";
 
     public static final String FONT_SIZE_NORMAL = "1";
     public static final String FONT_SIZE_LARGE = "2";

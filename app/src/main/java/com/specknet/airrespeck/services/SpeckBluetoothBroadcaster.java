@@ -1,5 +1,4 @@
-package com.specknet.airrespeck.activities;
-
+package com.specknet.airrespeck.services;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,551 +9,41 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.Message;
-import android.os.PowerManager;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
-import com.specknet.airrespeck.fragments.DaphneHomeFragment;
-import com.specknet.airrespeck.fragments.DaphneValuesFragment;
-import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.LocationUtils;
-import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 
 /**
- * Created by Darius on 09.02.2017.
+ * Created by Darius on 13.02.2017.
  */
 
-public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnMenuSelectedListener {
-
-    // UI HANDLER
-    private final static int UPDATE_RESPECK_READINGS = 0;
-    private final static int UPDATE_QOE_READINGS = 1;
-
-
-    /**
-     * Static inner class doesn't hold an implicit reference to the outer class
-     */
-    private static class UIHandler extends Handler {
-        // Using a weak reference means you won't prevent garbage collection
-        private final WeakReference<DaphneMainActivity> mService;
-
-        public UIHandler(DaphneMainActivity service) {
-            mService = new WeakReference<>(service);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            final int what = msg.what;
-
-            DaphneMainActivity service = mService.get();
-
-            if (service != null) {
-                switch (what) {
-                    case UPDATE_RESPECK_READINGS:
-                        service.updateRespeckReadings((HashMap<String, Float>) msg.obj);
-                        break;
-                    case UPDATE_QOE_READINGS:
-                        service.updateQOEReadings((HashMap<String, Float>) msg.obj);
-                        break;
-                }
-            }
-        }
-    }
-
-    /**
-     * A getter for the UI handler
-     *
-     * @return UIHandler The handler.
-     */
-    public Handler getHandler() {
-        return new DaphneMainActivity.UIHandler(this);
-    }
-
-    private final Handler mUIHandler = getHandler();
-
-
-    // FRAGMENTS
-    private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
-    private static final String TAG_DAPHNE_VALUES_FRAGMENT = "DAPHNE_VALUES_FRAGMENT";
-
-    private static final String TAG_CURRENT_FRAGMENT = "DAPHNE_CURRENT_FRAGMENT";
-
-    private DaphneHomeFragment mDaphneHomeFragment;
-    private DaphneValuesFragment mDaphneValuesFragment;
-    private Fragment mCurrentFragment;
-
-
-    // UTILS
-    Utils mUtils;
-    LocationUtils mLocationUtils;
-
-    // Layout view for snack bar
-    private CoordinatorLayout mCoordinatorLayout;
-
-
-    // READING VALUES
-    HashMap<String, Float> mRespeckSensorReadings;
-    HashMap<String, Float> mQOESensorReadings;
-
-
-    // UPLOAD SERVICES
-    RespeckRemoteUploadService mRespeckRemoteUploadService;
-    QOERemoteUploadService mQOERemoteUploadService;
-
-
-    // TODO: Move all Bluetooth related stuff into a Service class
-    // BLUETOOTH
-    private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothLeScanner mLEScanner;
-    private ScanSettings mScanSettings;
-    private List<ScanFilter> mScanFilters;
-    private BluetoothGatt mGattRespeck, mGattQOE;
-    private BluetoothDevice mDeviceRespeck, mDeviceQOE;
-
-    private boolean mQOEConnectionComplete;
-    private boolean mRespeckConnectionComplete;
-    private int REQUEST_ENABLE_BT = 1;
-    private static String RESPECK_UUID;
-    private static String QOE_UUID;
-    private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
-    private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
-
-    private final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
-    private final static String RESPECK_LIVE_CHARACTERISTIC = "00002010-0000-1000-8000-00805f9b34fb";
-    private final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
-    private final static String RESPECK_BREATH_INTERVALS_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
-
-    //QOE CODE
-    private static byte[][] lastPackets_1 = new byte[4][];
-    private static byte[][] lastPackets_2 = new byte[5][];
-    private static int[] sampleIDs_1 = {0, 0, 0, 0};
-    private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
-    int lastSample = 0;
-
-    //RESPECK CODE
-    int latest_live_respeck_seq = -1;
-    long live_bs_timestamp = -1;
-    long live_rs_timestamp = -1;
-    Queue<RESpeckStoredSample> stored_queue;
-
-    long latestProcessedMinute = 0l;
-    int live_seq = -1;
-    long brav_bs_timestamp = -1;
-    long brav_rs_timestamp = -1;
-    int brav_seq = -1;
-    int latest_stored_respeck_seq = -1;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        /* Keep CPU running. TODO: Do we really need this? From Android developers: Creating and holding wake locks
-        can have a dramatic impact on the host device's battery life. Thus you should use wake locks only when
-        strictly necessary and hold them for as short a time as possible. For example, you should never need to
-        use a wake lock in an activity. As described above, if you want to keep the screen on in your activity,
-        use FLAG_KEEP_SCREEN_ON.
-         */
-        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
-        wakeLock.acquire();
-
-        // Utils
-        mUtils = Utils.getInstance(this);
-
-        // Load location Utils
-        mLocationUtils = LocationUtils.getInstance(this);
-        mLocationUtils.startLocationManager();
-
-        // Set activity title
-        this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
-
-        // Get Bluetooth address
-        QOE_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID);
-        RESPECK_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID);
-
-        // Initialize fragments
-        FragmentManager fm = getSupportFragmentManager();
-
-        // Load fragments from saved instance state
-        if (savedInstanceState != null) {
-            // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mDaphneHomeFragment = (DaphneHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
-            mDaphneValuesFragment = (DaphneValuesFragment) fm.getFragment(savedInstanceState,
-                    TAG_DAPHNE_VALUES_FRAGMENT);
-            // If they don't exist, which could happen because the activity was paused before loading the fragments,
-            // create new fragments
-            if (mDaphneHomeFragment == null) {
-                mDaphneHomeFragment = new DaphneHomeFragment();
-            }
-            if (mDaphneValuesFragment == null) {
-                mDaphneValuesFragment = new DaphneValuesFragment();
-            }
-        } else {
-            // If there is no saved instance state, this means we are starting the activity for the first time
-            // Create all the fragments
-            mDaphneHomeFragment = new DaphneHomeFragment();
-            mDaphneValuesFragment = new DaphneValuesFragment();
-        }
-
-        setContentView(R.layout.activity_main_tabs);
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
-                getApplicationContext());
-        sectionsPagerAdapter.addFragment(mDaphneHomeFragment);
-        sectionsPagerAdapter.addFragment(mDaphneValuesFragment);
-
-        // Set up the ViewPager with the sections adapter.
-        ViewPager viewPager = (ViewPager) findViewById(R.id.container);
-        if (viewPager != null) {
-            viewPager.setAdapter(sectionsPagerAdapter);
-        }
-
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        if (tabLayout != null) {
-            tabLayout.setupWithViewPager(viewPager);
-        }
-
-        tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
-        tabLayout.getTabAt(0).setText("");
-        tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_INFO);
-        tabLayout.getTabAt(1).setText("");
-
-
-        // Add the toolbar
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
-
-        setSupportActionBar(mToolbar);
-
-        // For use with snack bar
-        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-
-        //Initialize Breathing Functions
-        initBreathing();
-
-        // Initialize Readings hash maps
-        initReadingMaps();
-
-        // Bluetooth initialization
-        initBluetooth();
-
-        // Initialize Upload services
-        initRespeckUploadService();
-        initQOEUploadService();
-
-        // Start task which makes activity predictions every 2 seconds
-        startActivityClassificationTask();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        // Bluetooth startup
-        startBluetooth();
-
-        // Start location manager
-        //mLocationUtils.startLocationManager();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Stop Bluetooth scanning
-        if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
-            scanLeDevice(false);
-        }
-
-        // Stop location manager
-        //mLocationUtils.stopLocationManager();
-    }
-
-    @Override
-    public void onButtonSelected(int buttonId) {
-        // Do nothing because we don't have buttons in Daphne layout
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        // TODO: intentreceiver is leaking. Unregister here. (error message when closing app in android log)
-
-        // Cleanup Bluetooth handlers
-        if (mGattRespeck == null && mGattQOE == null) {
-            return;
-        }
-
-        if (mGattRespeck != null) {
-            mGattRespeck.close();
-            mGattRespeck = null;
-        }
-
-        if (mGattQOE != null) {
-            mGattQOE.close();
-            mGattQOE = null;
-        }
-
-        // Stop location manager
-        //mLocationUtils.stopLocationManager();
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        FragmentManager fm = getSupportFragmentManager();
-
-        if (mDaphneHomeFragment != null && mDaphneHomeFragment.isAdded()) {
-            fm.putFragment(outState, TAG_DAPHNE_HOME_FRAGMENT, mDaphneHomeFragment);
-        }
-
-        if (mCurrentFragment != null && mCurrentFragment.isAdded()) {
-            fm.putFragment(outState, TAG_CURRENT_FRAGMENT, mCurrentFragment);
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu, this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_daphne, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        if (id == R.id.action_supervised_mode) {
-            startActivity(new Intent(this, MainActivity.class));
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    /**
-     * Replace the current fragment with the given one.
-     *
-     * @param fragment Fragment New fragment.
-     * @param tag      String Tag for the new fragment.
-     */
-
-    public void replaceFragment(Fragment fragment, String tag) {
-        replaceFragment(fragment, tag, false);
-    }
-
-    /**
-     * Replace the current fragment with the given one.
-     *
-     * @param fragment       Fragment New fragment.
-     * @param tag            String Tag for the new fragment.
-     * @param addToBackStack boolean Whether to add the previous fragment to the Back Stack, or not.
-     */
-    public void replaceFragment(Fragment fragment, String tag, boolean addToBackStack) {
-        if (fragment.isVisible()) {
-            return;
-        }
-
-        FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
-        //trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-
-        trans.replace(R.id.content, fragment, tag);
-        if (addToBackStack) {
-            trans.addToBackStack(null);
-        }
-        trans.commit();
-
-        mCurrentFragment = fragment;
-    }
-
-
-    //----------------------------------------------------------------------------------------------
-    // UI ------------------------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * Initialize hashmaps for sensor reading values
-     */
-    private void initReadingMaps() {
-        mQOESensorReadings = new HashMap<String, Float>();
-        mQOESensorReadings.put(Constants.QOE_PM1, 0f);
-        mQOESensorReadings.put(Constants.QOE_PM2_5, 0f);
-        mQOESensorReadings.put(Constants.QOE_PM10, 0f);
-        mQOESensorReadings.put(Constants.QOE_TEMPERATURE, 0f);
-        mQOESensorReadings.put(Constants.QOE_HUMIDITY, 0f);
-        mQOESensorReadings.put(Constants.QOE_NO2, 0f);
-        mQOESensorReadings.put(Constants.QOE_O3, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_0, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_1, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_2, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_3, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_4, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_5, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_6, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_7, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_8, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_9, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_10, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_11, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_12, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_13, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_14, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
-
-        mRespeckSensorReadings = new HashMap<String, Float>();
-        mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_RATE, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
-    }
-
-
-    /**
-     * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
-     *
-     * @param newValues HashMap<String, Float> The Respeck sensor readings.
-     */
-    private void updateRespeckReadings(HashMap<String, Float> newValues) {
-        // Update local values
-        mRespeckSensorReadings = newValues;
-        mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
-        // Update the UI
-        //updateRespeckUI();
-    }
-
-    /**
-     * Update {@link #mQOESensorReadings} with the latest values sent from the QOE sensor.
-     *
-     * @param newValues HashMap<String, Float> The QOE sensor readings.
-     */
-    private void updateQOEReadings(HashMap<String, Float> newValues) {
-        // Update local values
-        mQOESensorReadings = newValues;
-
-        mDaphneValuesFragment.updateQOEReadings(mQOESensorReadings);
-        // Update the UI
-        //updateQOEUI();
-    }
-
-
-    //----------------------------------------------------------------------------------------------
-    // UPLOAD SERVICES -----------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
-
-    private void initRespeckUploadService() {
-        mRespeckRemoteUploadService = new RespeckRemoteUploadService();
-        mRespeckRemoteUploadService.onCreate(this);
-        Intent intent = new Intent(RespeckRemoteUploadService.MSG_CONFIG);
-
-        JSONObject json = new JSONObject();
-        try {
-            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
-            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
-            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
-            json.put("app_version", mUtils.getAppVersionCode());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
-        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
-        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
-        sendBroadcast(intent);
-    }
-
-    private void initQOEUploadService() {
-        mQOERemoteUploadService = new QOERemoteUploadService();
-        mQOERemoteUploadService.onCreate(this);
-        Intent intent = new Intent(QOERemoteUploadService.MSG_CONFIG);
-
-        JSONObject json = new JSONObject();
-        try {
-            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
-            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
-            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
-            json.put("app_version", mUtils.getAppVersionCode());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
-        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
-        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
-        sendBroadcast(intent);
-    }
-
-
-    //----------------------------------------------------------------------------------------------
-    // BLUETOOTH METHODS ---------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
+public class SpeckBluetoothBroadcaster {
 
     /**
      * Initiate Bluetooth adapter.
@@ -678,8 +167,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                             + ". " + getString(R.string.waiting_for_data)
                             + ".", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
-
-                    mDaphneHomeFragment.updateConnectionAirpeck(true);
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mQOEConnectionComplete = false;
@@ -688,7 +175,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                     BluetoothDevice device = gatt.getDevice();
                     mGattQOE.close();
                     mGattQOE = null;
-                    mDaphneHomeFragment.updateConnectionAirpeck(false);
                     connectToDevice(device);
                     break;
                 default:
@@ -937,12 +423,12 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                     mRespeckConnectionComplete = true;
                     Log.i("Respeck-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
+
                     Snackbar.make(mCoordinatorLayout, "Respeck "
                             + getString(R.string.device_connected)
                             + ". " + getString(R.string.waiting_for_data)
                             + ".", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
-                    mDaphneHomeFragment.updateConnectionRESpeck(true);
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mRespeckConnectionComplete = false;
@@ -951,7 +437,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                     BluetoothDevice device = gatt.getDevice();
                     mGattRespeck.close();
                     mGattRespeck = null;
-                    mDaphneHomeFragment.updateConnectionRESpeck(false);
                     connectToDevice(device);
                     break;
                 default:
@@ -1072,8 +557,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                             float averageBreathingRate = getAverageBreathingRate();
                             float stdDevBreathingRate = getStdDevBreathingRate();
                             float nBreaths = getNBreaths();
-                            float breathActivity = getActivityLevel();
-                            float activityType = getCurrentActivityClassification();
+                            float breathActivity = getActivity();
 
                             Log.i("2", "BS TIMESTAMP " + String.valueOf(live_bs_timestamp));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(live_rs_timestamp));
@@ -1097,7 +581,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                 json.put(Constants.RESPECK_X, x);
                                 json.put(Constants.RESPECK_Y, y);
                                 json.put(Constants.RESPECK_Z, z);
-                                json.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                                 if (Float.isNaN(breathingRate)) {
                                     json.put(Constants.RESPECK_BREATHING_RATE, null);
                                 } else {
@@ -1151,7 +634,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                             values.put(Constants.RESPECK_X, x);
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
-                            values.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                             if (Float.isNaN(breathingRate)) {
                                 values.put(Constants.RESPECK_BREATHING_RATE, 0f);
                             } else {
@@ -1161,11 +643,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
                             } else {
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
-                            }
-                            if (Float.isNaN(averageBreathingRate)) {
-                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, 0f);
-                            } else {
-                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
                             }
 
                             Message msg = Message.obtain();
@@ -1187,7 +664,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
                                 float sd_br = getStdDevBreathingRate();
                                 //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
                                 int n_breaths = getNBreaths();
-                                float act = getActivityLevel();
+                                float act = getActivity();
 
                                 resetMA();
                                 //ACTUALIZA Y MANDA AL SERVIDOR
@@ -1302,81 +779,6 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
         return fValue;
     }
 
-    private void startActivityClassificationTask() {
-        final Handler h = new Handler();
-
-        // We want to summarise predictions every 10 minutes.
-        final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
-
-        // How often do we update the activity classification?
-        // half the window size for the activity predictions, in milliseconds
-        final int delay = 2000;
-
-        // Create prediction summary directory if it doesn't exist
-        final File summaryDirectory = new File(Environment.getExternalStorageDirectory(), "/ActivityPrediction");
-        if (!summaryDirectory.exists()) {
-            boolean created = summaryDirectory.mkdirs();
-            Log.i("DF", "Directory created: " + summaryDirectory);
-            if (!created) {
-                throw new RuntimeException("Couldn't create folder for temporary storage of the recording");
-            }
-        }
-
-        // Path to summary storage file. For now, we only use one file. Could be separated if the file gets too large.
-        final String filenameSummaryStorage = summaryDirectory + "/" + "predictions_summary";
-
-
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-
-            // We summarise the currently stored predictions when the counter reaches max
-            int summaryCounter = 0;
-            int temporaryStoragePredictions[] = new int[Constants.NUM_ACT_CLASSES];
-
-            @Override
-            public void run() {
-                updateActivityClassification();
-                int predictionIdx = getCurrentActivityClassification();
-                // an index of -1 means that the acceleration buffer has not been filled yet, so we have to wait.
-                if (predictionIdx != -1) {
-                    Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
-                    temporaryStoragePredictions[predictionIdx]++;
-                    summaryCounter++;
-                }
-
-                Log.i("DF", "summary counter: " + summaryCounter);
-
-                // If the temporary prediction recording is full, i.e. count is MAX, we
-                // write the summarised data into another external file and empty the temporary file.
-                if (summaryCounter == SUMMARY_COUNT_MAX) {
-
-                    String lineToWrite = getCurrentTimeStamp() + "\t" +
-                            Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "\t" +
-                            Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "\t" +
-                            Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
-
-                    try {
-                        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
-                                new FileOutputStream(filenameSummaryStorage, true));
-                        outputStreamWriter.append(lineToWrite);
-                        outputStreamWriter.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    // Reset counts to zero
-                    Arrays.fill(temporaryStoragePredictions, 0);
-                    summaryCounter = 0;
-                }
-            }
-        }, 0, delay);
-    }
-
-    public static String getCurrentTimeStamp() {
-        return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
-    }
-
-
     static {
         System.loadLibrary("respeck-jni");
     }
@@ -1392,7 +794,7 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
 
     public native float getAverageBreathingRate();
 
-    public native float getActivityLevel();
+    public native float getActivity();
 
     public native int getNBreaths();
 
@@ -1404,9 +806,5 @@ public class DaphneMainActivity extends BaseActivity implements MenuFragment.OnM
     public native void calculateMA();
 
     public native float getStdDevBreathingRate();
-
-    public native int getCurrentActivityClassification();
-
-    public native void updateActivityClassification();
 }
 

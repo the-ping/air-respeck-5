@@ -88,7 +88,7 @@
         </activity>
 
         <service
-            android:name="com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService"
+            android:name="com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService"
             android:enabled="true"
             android:exported="true"
             android:process=":upload_process">
@@ -99,7 +99,7 @@
         </service>
 
         <service
-            android:name="com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService"
+            android:name="com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService"
             android:enabled="true"
             android:exported="true"
             android:process=":upload_process">

@@ -1,4 +1,4 @@
-package com.specknet.airrespeck.respeckuploadservice
+package com.specknet.airrespeck.services.qoeuploadservice
 
 
 import com.google.gson.GsonBuilder
@@ -12,11 +12,11 @@ import retrofit2.http.Path
 import rx.Observable
 
 
-interface RespeckServer {
+interface QOEServer {
     @POST("{path}")
     public fun submitData(@Body bodyData: JsonObject, @Path("path") path: String): Observable<JsonObject>
     companion object {
-        fun create(baseUrl: String) : RespeckServer {
+        fun create(baseUrl: String) : QOEServer {
             val gsonBuilder = GsonBuilder()
             val restAdapter = Retrofit.Builder()
                     .baseUrl(baseUrl)
@@ -24,7 +24,7 @@ interface RespeckServer {
                     .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
                     .build()
 
-            return restAdapter.create(RespeckServer::class.java)
+            return restAdapter.create(QOEServer::class.java)
         }
     }
 }

@@ -65,14 +65,14 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
         // Inflate the layout for this fragment
         View view = null;
 
-        if (mReadingsModeHomeScreen == Integer.parseInt(Constants.READINGS_MODE_HOME_SCREEN_LIST)) {
+        if (mReadingsModeHomeScreen.equals(Constants.READINGS_MODE_HOME_SCREEN_LIST)) {
             view = inflater.inflate(R.layout.fragment_home_listview, container, false);
 
             // Attach the adapter to a ListView
             ListView mListView = (ListView) view.findViewById(R.id.readings_list);
             mListView.setAdapter(mListViewAdapter);
         }
-        else if (mReadingsModeHomeScreen == Integer.parseInt(Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS)) {
+        else if (mReadingsModeHomeScreen.equals(Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS)) {
             view = inflater.inflate(R.layout.fragment_home_segmentedbar, container, false);
 
             mCurrentReadingName = (TextView) view.findViewById(R.id.current_reading_name);
