@@ -99,7 +99,6 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
 
         if (view != null) {
             mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-
             mFeedback = (TextView) view.findViewById(R.id.feedback);
             updateFeedback();
         }

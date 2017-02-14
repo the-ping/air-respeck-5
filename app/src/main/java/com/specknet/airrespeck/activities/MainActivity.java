@@ -16,6 +16,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -23,21 +24,20 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
+import com.specknet.airrespeck.fragments.DaphneHomeFragment;
+import com.specknet.airrespeck.fragments.DaphneValuesFragment;
 import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
 import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
-import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
-import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
-import org.json.JSONObject;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -47,6 +47,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     public final static int UPDATE_RESPECK_READINGS = 0;
     public final static int UPDATE_QOE_READINGS = 1;
     public final static int SHOW_SNACKBAR_MESSAGE = 2;
+    public final static int SHOW_RESPECK_CONNECTED = 3;
+    public final static int SHOW_RESPECK_DISCONNECTED = 4;
+    public final static int SHOW_AIRSPECK_CONNECTED = 5;
+    public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
+
 
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
@@ -75,6 +80,29 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         break;
                     case SHOW_SNACKBAR_MESSAGE:
                         service.showSnackbar((String) msg.obj);
+                        break;
+                    case SHOW_AIRSPECK_CONNECTED:
+                        String messageAir = String.format(Locale.UK, "QOE "
+                                + service.getString(R.string.device_connected)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".");
+                        service.showSnackbar(messageAir);
+                        service.updateAirspeckConnectionSymbol(true);
+                        break;
+                    case SHOW_AIRSPECK_DISCONNECTED:
+                        service.updateAirspeckConnectionSymbol(false);
+                        break;
+                    case SHOW_RESPECK_CONNECTED:
+                        String messageRE = String.format(Locale.UK, "Respeck "
+                                + service.getString(R.string.device_connected)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".");
+                        service.showSnackbar(messageRE);
+                        service.updateRESpeckConnectionSymbol(true);
+                        break;
+                    case SHOW_RESPECK_DISCONNECTED:
+                        service.updateRESpeckConnectionSymbol(false);
+                        break;
                 }
             }
         }
@@ -96,7 +124,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
     private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
     private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
+    private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
+    private static final String TAG_DAPHNE_VALUES_FRAGMENT = "DAPHNE_VALUES_FRAGMENT";
 
+    private DaphneHomeFragment mDaphneHomeFragment;
+    private DaphneValuesFragment mDaphneValuesFragment;
     private HomeFragment mHomeFragment;
     private AQReadingsFragment mAQReadingsFragment;
     private GraphsFragment mGraphsFragment;
@@ -116,6 +148,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     // Speck service
     SpeckBluetoothService mSpeckBluetoothService;
 
+    // Variable to switch modes: subject mode or supervised mode
+    private static final String IS_SUPERVISED_MODE = "supervised_mode";
+    boolean isSupervisedMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,9 +176,42 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        // Initialize fragments
-        FragmentManager fm = getSupportFragmentManager();
+        // Initialise all fragments
+        initFragments(savedInstanceState);
 
+        // Load mode if stored. If no mode was stored, this defaults to false, i.e. subject mode
+        if (savedInstanceState != null) {
+            isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
+        } else {
+            isSupervisedMode = false;
+        }
+
+        // Display only those fragments which apply to the current mode
+        if (isSupervisedMode) {
+            Log.i("DF", "display supervised mode");
+            displaySupervisedMode();
+        } else {
+            displaySubjectMode();
+        }
+
+        // Add the toolbar
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+
+        // For use with snack bar (notification bar at the bottom of the screen)
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        // Initialize Readings hash maps
+        initReadingMaps();
+
+        // Start Speck Service
+        mSpeckBluetoothService = new SpeckBluetoothService();
+        mSpeckBluetoothService.initSpeckService(this);
+    }
+
+    private void initFragments(Bundle savedInstanceState) {
+        // Load or create fragments
+        FragmentManager fm = getSupportFragmentManager();
         if (savedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
             mHomeFragment =
@@ -152,6 +220,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                     (AQReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mGraphsFragment =
                     (GraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
+            mDaphneHomeFragment = (DaphneHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
+            mDaphneValuesFragment = (DaphneValuesFragment) fm.getFragment(savedInstanceState,
+                    TAG_DAPHNE_VALUES_FRAGMENT);
+
             mCurrentFragment = fm.getFragment(savedInstanceState, TAG_CURRENT_FRAGMENT);
 
             // If they don't exist, which could happen because the activity was paused before loading the fragments,
@@ -165,8 +237,14 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             if (mGraphsFragment == null) {
                 mGraphsFragment = new GraphsFragment();
             }
+            if (mDaphneHomeFragment == null) {
+                mDaphneHomeFragment = new DaphneHomeFragment();
+            }
+            if (mDaphneValuesFragment == null) {
+                mDaphneValuesFragment = new DaphneValuesFragment();
+            }
             if (mCurrentFragment == null) {
-                mCurrentFragment = mHomeFragment;
+                mCurrentFragment = mDaphneHomeFragment;
             }
         } else {
             // If there is no saved instance state, this means we are starting the activity for the first time
@@ -174,11 +252,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             mHomeFragment = new HomeFragment();
             mAQReadingsFragment = new AQReadingsFragment();
             mGraphsFragment = new GraphsFragment();
-            // Set home fragment to be the currently displayed one
-            mCurrentFragment = mHomeFragment;
-        }
+            mDaphneHomeFragment = new DaphneHomeFragment();
+            mDaphneValuesFragment = new DaphneValuesFragment();
 
-        // Display currently selected fragment layout
+            // Set Daphne home fragment to be the currently displayed one
+            mCurrentFragment = mDaphneHomeFragment;
+        }
+    }
+
+    private void displaySupervisedMode() {
+        // Display supervised mode fragment layout depending on settings
+        FragmentManager fm = getSupportFragmentManager();
         if (mMenuModePref.equals(Constants.MENU_MODE_BUTTONS)) {
             setContentView(R.layout.activity_main_buttons);
 
@@ -227,21 +311,34 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                 }
             }
         }
+    }
 
-        // Add the toolbar
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+    private void displaySubjectMode() {
+        // Display subject mode. We have no settings here so far.
+        setContentView(R.layout.activity_main_tabs);
 
-        // For use with snack bar
-        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
+                getApplicationContext());
+        sectionsPagerAdapter.addFragment(mDaphneHomeFragment);
+        sectionsPagerAdapter.addFragment(mDaphneValuesFragment);
 
+        // Set up the ViewPager with the sections adapter.
+        ViewPager viewPager = (ViewPager) findViewById(R.id.container);
+        if (viewPager != null) {
+            viewPager.setAdapter(sectionsPagerAdapter);
+        }
 
-        // Initialize Readings hash maps
-        initReadingMaps();
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        if (tabLayout != null) {
+            tabLayout.setupWithViewPager(viewPager);
+        }
 
-        // Start Speck Service
-        mSpeckBluetoothService = new SpeckBluetoothService();
-        mSpeckBluetoothService.initSpeckService(this);
+        tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
+        tabLayout.getTabAt(0).setText("");
+        tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_INFO);
+        tabLayout.getTabAt(1).setText("");
     }
 
     @Override
@@ -276,6 +373,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(IS_SUPERVISED_MODE, isSupervisedMode);
         super.onSaveInstanceState(outState);
 
         FragmentManager fm = getSupportFragmentManager();
@@ -283,15 +381,18 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         if (mHomeFragment != null && mHomeFragment.isAdded()) {
             fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
         }
-
         if (mAQReadingsFragment != null && mAQReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mAQReadingsFragment);
         }
-
         if (mGraphsFragment != null && mGraphsFragment.isAdded()) {
             fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mGraphsFragment);
         }
-
+        if (mDaphneHomeFragment != null && mDaphneHomeFragment.isAdded()) {
+            fm.putFragment(outState, TAG_DAPHNE_HOME_FRAGMENT, mDaphneHomeFragment);
+        }
+        if (mDaphneValuesFragment != null && mDaphneValuesFragment.isAdded()) {
+            fm.putFragment(outState, TAG_DAPHNE_VALUES_FRAGMENT, mDaphneValuesFragment);
+        }
         if (mCurrentFragment != null && mCurrentFragment.isAdded()) {
             fm.putFragment(outState, TAG_CURRENT_FRAGMENT, mCurrentFragment);
         }
@@ -300,21 +401,26 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu, this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        if (isSupervisedMode) {
+            getMenuInflater().inflate(R.menu.menu_supervised, menu);
+        } else {
+            getMenuInflater().inflate(R.menu.menu_subject, menu);
+        }
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.getItem(0).setVisible(mRespeckAppAccessPref);
-        menu.getItem(1).setVisible(mAirspeckAppAccessPref);
+        if (isSupervisedMode) {
+            menu.getItem(0).setVisible(mRespeckAppAccessPref);
+            menu.getItem(1).setVisible(mAirspeckAppAccessPref);
 
-        if (Objects.equals(mCurrentUser.getGender(), "M")) {
-            menu.getItem(2).setIcon(R.drawable.ic_user_male);
-        } else if (Objects.equals(mCurrentUser.getGender(), "F")) {
-            menu.getItem(2).setIcon(R.drawable.ic_user_female);
+            if (Objects.equals(mCurrentUser.getGender(), "M")) {
+                menu.getItem(2).setIcon(R.drawable.ic_user_male);
+            } else if (Objects.equals(mCurrentUser.getGender(), "F")) {
+                menu.getItem(2).setIcon(R.drawable.ic_user_female);
+            }
         }
-
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -353,6 +459,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             } catch (Exception e) {
                 Toast.makeText(this, R.string.respeck_not_found, Toast.LENGTH_LONG).show();
             }
+        } else if (id == R.id.action_supervised_mode) {
+            isSupervisedMode = true;
+            displaySupervisedMode();
+        } else if (id == R.id.action_subject_mode) {
+            isSupervisedMode = false;
+            displaySubjectMode();
         }
 
         return super.onOptionsItemSelected(item);
@@ -459,24 +571,28 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * We need to separate Respeck and QOE values as both update at different rates
      */
     private void updateRespeckUI() {
-        // Home fragment UI
+        updateConnectionLoadingLayout();
         try {
-            ArrayList<Float> listValues = new ArrayList<Float>();
+            if (isSupervisedMode) {
+                ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-            listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-            //listValues.add(mQOESensorReadings.get(Constants.LOC_LATITUDE));
-            //listValues.add(mQOESensorReadings.get(Constants.LOC_LONGITUDE));
+                listValues.add(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+                listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+                listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+                //listValues.add(mQOESensorReadings.get(Constants.LOC_LATITUDE));
+                //listValues.add(mQOESensorReadings.get(Constants.LOC_LONGITUDE));
 
-            mHomeFragment.setReadings(listValues);
-        } catch (Exception e) { e.printStackTrace(); }
+                mHomeFragment.setReadings(listValues);
 
-        // Graphs fragment UI
-        try {
-            mGraphsFragment.addBreathingSignalData(
-                    mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
-        } catch (Exception e) { e.printStackTrace(); }
+                // Graphs fragment UI
+                mGraphsFragment.addBreathingSignalData(
+                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
+            } else {
+                mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -484,59 +600,70 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
      * We need to separate Respeck and QOE values as both update at different rates
      */
     private void updateQOEUI() {
-        // Update connection loading layout
-        boolean isConnecting = mSpeckBluetoothService.isConnecting();
-        mHomeFragment.showConnecting(isConnecting);
-        mAQReadingsFragment.showConnecting(isConnecting);
-        mGraphsFragment.showConnecting(isConnecting);
-
+        updateConnectionLoadingLayout();
 
         // Air Quality fragment UI
         try {
-            HashMap<String, Float> values = new HashMap<String, Float>();
+            if (isSupervisedMode) {
+                HashMap<String, Float> values = new HashMap<String, Float>();
 
-            values.put(Constants.QOE_TEMPERATURE,
-                    mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
-            values.put(Constants.QOE_HUMIDITY, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
-            values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
-            values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
-            values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
-            values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-            values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-            values.put(Constants.QOE_BINS_TOTAL,
-                    mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
+                values.put(Constants.QOE_TEMPERATURE,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
+                values.put(Constants.QOE_HUMIDITY,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
+                values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
+                values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
+                values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
+                values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+                values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+                values.put(Constants.QOE_BINS_TOTAL,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
 
-            mAQReadingsFragment.setReadings(values);
-        } catch (Exception e) { e.printStackTrace(); }
+                mAQReadingsFragment.setReadings(values);
 
-        // Graphs fragment UI
-        try {
-            ArrayList<Float> listValues = new ArrayList<Float>();
+                // Graphs fragment UI
+                ArrayList<Float> listValues = new ArrayList<Float>();
 
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
-            listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
+                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
 
-            mGraphsFragment.setBinsChartData(listValues);
+                mGraphsFragment.setBinsChartData(listValues);
 
-            mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
-                    mQOESensorReadings.get(Constants.QOE_PM1),
-                    mQOESensorReadings.get(Constants.QOE_PM2_5),
-                    mQOESensorReadings.get(Constants.QOE_PM10)));
-        } catch (Exception e) { e.printStackTrace(); }
+                mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
+                        mQOESensorReadings.get(Constants.QOE_PM1),
+                        mQOESensorReadings.get(Constants.QOE_PM2_5),
+                        mQOESensorReadings.get(Constants.QOE_PM10)));
+            } else {
+                // Daphne values fragment
+                mDaphneValuesFragment.updateQOEReadings(mQOESensorReadings);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateConnectionLoadingLayout() {
+        boolean isConnecting = mSpeckBluetoothService.isConnecting();
+        // TODO: show loading symbol instead of X-mark in subject mode
+        if (isSupervisedMode) {
+            mHomeFragment.showConnecting(isConnecting);
+            mAQReadingsFragment.showConnecting(isConnecting);
+            mGraphsFragment.showConnecting(isConnecting);
+        }
     }
 
     /**
@@ -563,6 +690,14 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
         // Update the UI
         updateQOEUI();
+    }
+
+    private void updateRESpeckConnectionSymbol(boolean isConnected) {
+        mDaphneHomeFragment.updateRESpeckConnectionSymbol(isConnected);
+    }
+
+    private void updateAirspeckConnectionSymbol(boolean isConnected) {
+        mDaphneHomeFragment.updateAirspeckConnectionSymbol(isConnected);
     }
 
     private void showSnackbar(String message) {

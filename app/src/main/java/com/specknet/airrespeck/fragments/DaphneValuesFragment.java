@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
@@ -47,6 +48,8 @@ public class DaphneValuesFragment extends BaseFragment {
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
         pm10Text = (TextView) view.findViewById(R.id.text_pm10);
         pm2_5Text = (TextView) view.findViewById(R.id.text_pm2_5);
+
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
         return view;
     }

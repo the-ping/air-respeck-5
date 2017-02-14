@@ -4,11 +4,11 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context=".fragments.DaphneValuesFragment"
-             android:paddingTop="20dp"
-             android:paddingRight="20dp"
+             android:paddingBottom="10dp"
              android:paddingLeft="20dp"
-             android:paddingBottom="10dp">
+             android:paddingRight="20dp"
+             android:paddingTop="20dp"
+             tools:context=".fragments.DaphneValuesFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,24 +19,24 @@
 
         <ImageButton
             android:id="@+id/imageButton"
-            app:srcCompat="@drawable/vec_diary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:background="@drawable/clickable_button_background"
             android:padding="15dp"
+            app:srcCompat="@drawable/vec_diary"
             />
 
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginBottom="20dp"
             android:background="@drawable/background_rounded_lightgrey"
             android:paddingBottom="20dp"
             android:paddingLeft="40dp"
             android:paddingRight="40dp"
-            android:paddingTop="20dp"
-            android:layout_gravity="center">
+            android:paddingTop="20dp">
 
             <TableRow
                 android:layout_width="match_parent"
@@ -46,20 +46,20 @@
 
                 <ImageView
                     android:id="@+id/imageView"
-                    app:srcCompat="@drawable/vec_respeck"
-                    android:layout_height="match_parent"
                     android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:paddingRight="20dp"/>
+                    android:paddingRight="20dp"
+                    app:srcCompat="@drawable/vec_respeck"/>
 
                 <ImageView
                     android:id="@+id/connected_status_respeck"
-                    app:srcCompat="@drawable/vec_xmark"
                     android:layout_width="match_parent"
                     android:layout_height="85dp"
-                    android:paddingTop="15dp"
+                    android:layout_weight="0.3"
                     android:paddingBottom="15dp"
-                    android:layout_weight="0.3"/>
+                    android:paddingTop="15dp"
+                    app:srcCompat="@drawable/vec_xmark"/>
             </TableRow>
 
             <TableRow
@@ -69,21 +69,21 @@
 
                 <ImageView
                     android:id="@+id/imageView3"
-                    app:srcCompat="@drawable/vec_airspeck"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:paddingRight="20dp"
-                    android:layout_width="wrap_content"
+                    app:srcCompat="@drawable/vec_airspeck"
                     />
 
                 <ImageView
                     android:id="@+id/connected_status_airspeck"
-                    app:srcCompat="@drawable/vec_xmark"
                     android:layout_width="match_parent"
                     android:layout_height="85dp"
                     android:layout_weight="0.3"
                     android:paddingBottom="15dp"
-                    android:paddingTop="15dp"/>
+                    android:paddingTop="15dp"
+                    app:srcCompat="@drawable/vec_xmark"/>
             </TableRow>
 
         </TableLayout>
@@ -118,4 +118,5 @@
         </LinearLayout>
 
     </LinearLayout>
+
 </FrameLayout>

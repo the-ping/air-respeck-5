@@ -17,6 +17,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -35,15 +36,22 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 /**
@@ -149,7 +157,7 @@ public class SpeckBluetoothService {
                     Toast.LENGTH_LONG).show();
             return;
         }
-        
+
         // Check if Bluetooth is enabled
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -169,6 +177,9 @@ public class SpeckBluetoothService {
             // Start Bluetooth scanning
             scanLeDevice(true);
         }
+
+        // Start task which makes activity predictions every 2 seconds
+        startActivityClassificationTask();
     }
 
     public void stopBluetoothScanning() {
@@ -219,7 +230,7 @@ public class SpeckBluetoothService {
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice btDevice = result.getDevice();
 
-            if (btDevice != null) {
+            if (btDevice != null && btDevice.getName() != null) {
                 Log.i("[Bluetooth]", "Device found: " + btDevice.getName());
                 connectToDevice(btDevice);
             }
@@ -243,7 +254,6 @@ public class SpeckBluetoothService {
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
         }
-
         if (mGattQOE == null && device.getName().contains("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
@@ -269,13 +279,7 @@ public class SpeckBluetoothService {
                     mQOEConnectionComplete = true;
                     Log.i("QOE-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
-
-                    String message = String.format(Locale.UK, "QOE "
-                            + mainActivity.getString(R.string.device_connected)
-                            + ". " + mainActivity.getString(R.string.waiting_for_data)
-                            + ".");
-                    sendMessageToUIHandler(MainActivity.SHOW_SNACKBAR_MESSAGE, message);
-
+                    sendMessageToUIHandler(MainActivity.SHOW_AIRSPECK_CONNECTED, null);
                     break;
 
                 case BluetoothProfile.STATE_DISCONNECTED:
@@ -286,6 +290,7 @@ public class SpeckBluetoothService {
                     mGattQOE.close();
                     mGattQOE = null;
                     connectToDevice(device);
+                    sendMessageToUIHandler(MainActivity.SHOW_AIRSPECK_DISCONNECTED, null);
                     break;
 
                 default:
@@ -530,13 +535,7 @@ public class SpeckBluetoothService {
                     mRespeckConnectionComplete = true;
                     Log.i("Respeck-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
-
-                    String message = String.format(Locale.UK, "Respeck "
-                            + mainActivity.getString(R.string.device_connected)
-                            + ". " + mainActivity.getString(R.string.waiting_for_data)
-                            + ".");
-
-                    sendMessageToUIHandler(MainActivity.SHOW_SNACKBAR_MESSAGE, message);
+                    sendMessageToUIHandler(MainActivity.SHOW_RESPECK_CONNECTED, null);
 
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
@@ -547,6 +546,7 @@ public class SpeckBluetoothService {
                     mGattRespeck.close();
                     mGattRespeck = null;
                     connectToDevice(device);
+                    sendMessageToUIHandler(MainActivity.SHOW_RESPECK_DISCONNECTED, null);
                     break;
                 default:
                     Log.e("Respeck-gattCallback", "STATE_OTHER");
@@ -667,6 +667,7 @@ public class SpeckBluetoothService {
                             float stdDevBreathingRate = getStdDevBreathingRate();
                             float nBreaths = getNBreaths();
                             float activityLevel = getActivityLevel();
+                            float activityType = getCurrentActivityClassification();
 
                             Log.i("2", "BS TIMESTAMP " + String.valueOf(live_bs_timestamp));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(live_rs_timestamp));
@@ -690,6 +691,7 @@ public class SpeckBluetoothService {
                                 json.put(Constants.RESPECK_X, x);
                                 json.put(Constants.RESPECK_Y, y);
                                 json.put(Constants.RESPECK_Z, z);
+                                json.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                                 if (Float.isNaN(breathingRate)) {
                                     json.put(Constants.RESPECK_BREATHING_RATE, null);
                                 } else {
@@ -743,6 +745,7 @@ public class SpeckBluetoothService {
                             values.put(Constants.RESPECK_X, x);
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
+                            values.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                             if (Float.isNaN(breathingRate)) {
                                 values.put(Constants.RESPECK_BREATHING_RATE, 0f);
                             } else {
@@ -752,6 +755,11 @@ public class SpeckBluetoothService {
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
                             } else {
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            }
+                            if (Float.isNaN(averageBreathingRate)) {
+                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, 0f);
+                            } else {
+                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
                             }
 
                             sendMessageToUIHandler(MainActivity.UPDATE_RESPECK_READINGS, values);
@@ -937,6 +945,80 @@ public class SpeckBluetoothService {
         mainActivity.sendBroadcast(intent);
     }
 
+    private void startActivityClassificationTask() {
+        final Handler h = new Handler();
+
+        // We want to summarise predictions every 10 minutes.
+        final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
+
+        // How often do we update the activity classification?
+        // half the window size for the activity predictions, in milliseconds
+        final int delay = 2000;
+
+        // Create prediction summary directory if it doesn't exist
+        final File summaryDirectory = new File(Environment.getExternalStorageDirectory(), "/ActivityPrediction");
+        if (!summaryDirectory.exists()) {
+            boolean created = summaryDirectory.mkdirs();
+            Log.i("DF", "Directory created: " + summaryDirectory);
+            if (!created) {
+                throw new RuntimeException("Couldn't create folder for temporary storage of the recording");
+            }
+        }
+
+        // Path to summary storage file. For now, we only use one file. Could be separated if the file gets too large.
+        final String filenameSummaryStorage = summaryDirectory + "/" + "predictions_summary";
+
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+
+            // We summarise the currently stored predictions when the counter reaches max
+            int summaryCounter = 0;
+            int temporaryStoragePredictions[] = new int[Constants.NUM_ACT_CLASSES];
+
+            @Override
+            public void run() {
+                updateActivityClassification();
+                int predictionIdx = getCurrentActivityClassification();
+                // an index of -1 means that the acceleration buffer has not been filled yet, so we have to wait.
+                if (predictionIdx != -1) {
+                    Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
+                    temporaryStoragePredictions[predictionIdx]++;
+                    summaryCounter++;
+                }
+
+                Log.i("DF", "summary counter: " + summaryCounter);
+
+                // If the temporary prediction recording is full, i.e. count is MAX, we
+                // write the summarised data into another external file and empty the temporary file.
+                if (summaryCounter == SUMMARY_COUNT_MAX) {
+
+                    String lineToWrite = getCurrentTimeStamp() + "\t" +
+                            Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "\t" +
+                            Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "\t" +
+                            Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
+
+                    try {
+                        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
+                                new FileOutputStream(filenameSummaryStorage, true));
+                        outputStreamWriter.append(lineToWrite);
+                        outputStreamWriter.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    // Reset counts to zero
+                    Arrays.fill(temporaryStoragePredictions, 0);
+                    summaryCounter = 0;
+                }
+            }
+        }, 0, delay);
+    }
+
+    public static String getCurrentTimeStamp() {
+        return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
+    }
+
     static {
         System.loadLibrary("respeck-jni");
     }
@@ -963,5 +1045,9 @@ public class SpeckBluetoothService {
     public native void calculateMA();
 
     public native float getStdDevBreathingRate();
+
+    public native int getCurrentActivityClassification();
+
+    public native void updateActivityClassification();
 }
 

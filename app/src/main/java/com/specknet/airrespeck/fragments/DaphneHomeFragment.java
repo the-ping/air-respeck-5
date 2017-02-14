@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
 
@@ -41,7 +43,7 @@ public class DaphneHomeFragment extends BaseFragment {
         connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);
         connectedStatusAirspeck = (ImageView) view.findViewById(R.id.connected_status_airspeck);
 
-
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
         return view;
     }
@@ -53,7 +55,7 @@ public class DaphneHomeFragment extends BaseFragment {
         super.onDestroyView();
     }
 
-    public void updateConnectionRESpeck(boolean isConnected) {
+    public void updateRESpeckConnectionSymbol(boolean isConnected) {
         if (isConnected) {
             connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
         } else {
@@ -61,7 +63,7 @@ public class DaphneHomeFragment extends BaseFragment {
         }
     }
 
-    public void updateConnectionAirpeck(boolean isConnected) {
+    public void updateAirspeckConnectionSymbol(boolean isConnected) {
         if (isConnected) {
             connectedStatusAirspeck.setImageResource(R.drawable.vec_wireless);
         } else {

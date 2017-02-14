@@ -33,6 +33,12 @@
             android:icon="@drawable/ic_air"
             app:showAsAction="never" />
 
+        <item
+            android:id="@+id/action_subject_mode"
+            android:orderInCategory="10"
+            android:title="@string/action_air_speck"
+            app:showAsAction="never" />
+
     </group>
 
 </menu>

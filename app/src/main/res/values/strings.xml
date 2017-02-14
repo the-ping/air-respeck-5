@@ -108,6 +108,7 @@
     <string name="action_user_profile">Profile</string>
     <string name="action_connect">Connect</string>
     <string name="action_supervised_mode">Supervised mode</string>
+    <string name="action_subject_mode">Subject mode</string>
 
 
 
