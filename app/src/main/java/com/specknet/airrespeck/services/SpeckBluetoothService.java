@@ -1,5 +1,6 @@
 package com.specknet.airrespeck.services;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -9,22 +10,26 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.LocationUtils;
+import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
@@ -37,43 +42,118 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Queue;
 import java.util.UUID;
 
 /**
  * Created by Darius on 13.02.2017.
  */
 
-public class SpeckBluetoothBroadcaster {
+public class SpeckBluetoothService {
+
+    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothLeScanner mLEScanner;
+    private ScanSettings mScanSettings;
+    private List<ScanFilter> mScanFilters;
+    private BluetoothGatt mGattRespeck, mGattQOE;
+    private BluetoothDevice mDeviceRespeck, mDeviceQOE;
+
+    private boolean mQOEConnectionComplete;
+    private boolean mRespeckConnectionComplete;
+    private int REQUEST_ENABLE_BT = 1;
+    private static String RESPECK_UUID;
+    private static String QOE_UUID;
+    private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
+    private static final String QOE_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
+
+    private final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
+    private final static String RESPECK_LIVE_CHARACTERISTIC = "00002010-0000-1000-8000-00805f9b34fb";
+    private final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
+    private final static String RESPECK_BREATH_INTERVALS_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
+
+    // QOE CODE
+    private static byte[][] lastPackets_1 = new byte[4][];
+    private static byte[][] lastPackets_2 = new byte[5][];
+    private static int[] sampleIDs_1 = {0, 0, 0, 0};
+    private static int[] sampleIDs_2 = {0, 1, 2, 3, 4};
+    int lastSample = 0;
+
+    // RESPECK CODE
+    int latest_live_respeck_seq = -1;
+    long live_bs_timestamp = -1;
+    long live_rs_timestamp = -1;
+    Queue<RESpeckStoredSample> stored_queue;
+
+    long latestProcessedMinute = 0l;
+    int live_seq = -1;
+    long brav_bs_timestamp = -1;
+    long brav_rs_timestamp = -1;
+    int brav_seq = -1;
+    int latest_stored_respeck_seq = -1;
+
+    // References to Context and Utils
+    MainActivity mainActivity;
+    Utils mUtils;
+    LocationUtils mLocationUtils;
+
+    // UPLOAD SERVICES
+    RespeckRemoteUploadService mRespeckRemoteUploadService;
+    QOERemoteUploadService mQOERemoteUploadService;
+
+    public SpeckBluetoothService() {
+
+    }
 
     /**
      * Initiate Bluetooth adapter.
      */
-    private void initBluetooth() {
-        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
+    public void initSpeckService(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+
+        // Get references to Utils
+        mUtils = Utils.getInstance(mainActivity);
+
+        // Get reference to LocationUtils
+        mLocationUtils = LocationUtils.getInstance(mainActivity);
+        mLocationUtils.startLocationManager();
+
+        //Initialize Breathing Functions
+        initBreathing();
+
+        // Get Bluetooth address
+        QOE_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID);
+        RESPECK_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID);
+
+        // Initializes a Bluetooth adapter. For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
         final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+                (BluetoothManager) mainActivity.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
         mQOEConnectionComplete = false;
         mRespeckConnectionComplete = false;
+
+        // Initialize Upload services
+        initRespeckUploadService();
+        initQOEUploadService();
     }
 
     /**
      * Check Bluetooth availability and initiate devices scanning.
      */
-    private void startBluetooth() {
+    public void startServiceAndBluetoothScanning() {
         // Check if Bluetooth is supported on the device
         if (mBluetoothAdapter == null) {
-            Toast.makeText(getApplicationContext(), "This device does not support Bluetooth",
+            Toast.makeText(mainActivity.getApplicationContext(), "This device does not support Bluetooth",
                     Toast.LENGTH_LONG).show();
             return;
         }
-
+        
         // Check if Bluetooth is enabled
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            mainActivity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         } else {
             // For API level 21 and above
             mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -89,6 +169,33 @@ public class SpeckBluetoothBroadcaster {
             // Start Bluetooth scanning
             scanLeDevice(true);
         }
+    }
+
+    public void stopBluetoothScanning() {
+        if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+            scanLeDevice(false);
+        }
+    }
+
+    public void stopSpeckService() {
+        // Cleanup Bluetooth handlers
+        if (mGattRespeck == null && mGattQOE == null) {
+            return;
+        }
+
+        if (mGattRespeck != null) {
+            mGattRespeck.close();
+            mGattRespeck = null;
+        }
+
+        if (mGattQOE != null) {
+            mGattQOE.close();
+            mGattQOE = null;
+        }
+    }
+
+    public boolean isConnecting() {
+        return !mQOEConnectionComplete && !mRespeckConnectionComplete;
     }
 
     /**
@@ -130,16 +237,17 @@ public class SpeckBluetoothBroadcaster {
      * @param device BluetoothDevice The device.
      */
     public void connectToDevice(BluetoothDevice device) {
+        Log.i("DF", "device name: " + device.getName());
         if (mGattRespeck == null && device.getName().contains("Respeck")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceRespeck = device;
-            mGattRespeck = device.connectGatt(getApplicationContext(), true, mGattCallbackRespeck);
+            mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
         }
 
         if (mGattQOE == null && device.getName().contains("QOE")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
             mDeviceQOE = device;
-            mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
+            mGattQOE = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackQOE);
         }
 
         if (mGattQOE != null && mGattRespeck != null) {
@@ -162,12 +270,14 @@ public class SpeckBluetoothBroadcaster {
                     Log.i("QOE-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
 
-                    Snackbar.make(mCoordinatorLayout, "QOE "
-                            + getString(R.string.device_connected)
-                            + ". " + getString(R.string.waiting_for_data)
-                            + ".", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    String message = String.format(Locale.UK, "QOE "
+                            + mainActivity.getString(R.string.device_connected)
+                            + ". " + mainActivity.getString(R.string.waiting_for_data)
+                            + ".");
+                    sendMessageToUIHandler(MainActivity.SHOW_SNACKBAR_MESSAGE, message);
+
                     break;
+
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mQOEConnectionComplete = false;
                     Log.e("QOE-gattCallback", "STATE_DISCONNECTED");
@@ -177,6 +287,7 @@ public class SpeckBluetoothBroadcaster {
                     mGattQOE = null;
                     connectToDevice(device);
                     break;
+
                 default:
                     Log.e("QOE-gattCallback", "STATE_OTHER");
             }
@@ -373,7 +484,7 @@ public class SpeckBluetoothBroadcaster {
 
                     Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
                     intent.putExtra(QOERemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                    sendBroadcast(intent);
+                    mainActivity.sendBroadcast(intent);
                     Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
 
 
@@ -404,11 +515,7 @@ public class SpeckBluetoothBroadcaster {
                     values.put(Constants.QOE_BINS_15, (float) bin15);
                     values.put(Constants.QOE_BINS_TOTAL, (float) total);
 
-                    Message msg = Message.obtain();
-                    msg.obj = values;
-                    msg.what = UPDATE_QOE_READINGS;
-                    msg.setTarget(mUIHandler);
-                    msg.sendToTarget();
+                    sendMessageToUIHandler(MainActivity.UPDATE_QOE_READINGS, values);
                 }
             }
         }
@@ -424,11 +531,13 @@ public class SpeckBluetoothBroadcaster {
                     Log.i("Respeck-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
 
-                    Snackbar.make(mCoordinatorLayout, "Respeck "
-                            + getString(R.string.device_connected)
-                            + ". " + getString(R.string.waiting_for_data)
-                            + ".", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    String message = String.format(Locale.UK, "Respeck "
+                            + mainActivity.getString(R.string.device_connected)
+                            + ". " + mainActivity.getString(R.string.waiting_for_data)
+                            + ".");
+
+                    sendMessageToUIHandler(MainActivity.SHOW_SNACKBAR_MESSAGE, message);
+
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mRespeckConnectionComplete = false;
@@ -557,7 +666,7 @@ public class SpeckBluetoothBroadcaster {
                             float averageBreathingRate = getAverageBreathingRate();
                             float stdDevBreathingRate = getStdDevBreathingRate();
                             float nBreaths = getNBreaths();
-                            float breathActivity = getActivity();
+                            float activityLevel = getActivityLevel();
 
                             Log.i("2", "BS TIMESTAMP " + String.valueOf(live_bs_timestamp));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(live_rs_timestamp));
@@ -568,7 +677,7 @@ public class SpeckBluetoothBroadcaster {
                             Log.i("2", "BRA " + String.valueOf(averageBreathingRate));
                             Log.i("2", "STDBR " + String.valueOf(stdDevBreathingRate));
                             Log.i("2", "NBreaths " + String.valueOf(nBreaths));
-                            Log.i("2", "Activity " + String.valueOf(breathActivity));
+                            Log.i("2", "Activity Level " + String.valueOf(activityLevel));
 
 
                             // Get timestamp
@@ -611,10 +720,10 @@ public class SpeckBluetoothBroadcaster {
                                 } else {
                                     json.put(Constants.RESPECK_N_BREATHS, nBreaths);
                                 }
-                                if (Float.isNaN(breathActivity)) {
+                                if (Float.isNaN(activityLevel)) {
                                     json.put(Constants.RESPECK_ACTIVITY_LEVEL, null);
                                 } else {
-                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, breathActivity);
+                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
                                 }
                                 json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
                                 json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);
@@ -625,7 +734,7 @@ public class SpeckBluetoothBroadcaster {
 
                             Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
                             intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                            sendBroadcast(intent);
+                            mainActivity.sendBroadcast(intent);
                             Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
 
 
@@ -645,11 +754,7 @@ public class SpeckBluetoothBroadcaster {
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                             }
 
-                            Message msg = Message.obtain();
-                            msg.obj = values;
-                            msg.what = UPDATE_RESPECK_READINGS;
-                            msg.setTarget(mUIHandler);
-                            msg.sendToTarget();
+                            sendMessageToUIHandler(MainActivity.UPDATE_RESPECK_READINGS, values);
 
                             //RESpeckStoredSample s = stored_queue.remove();
 
@@ -664,10 +769,10 @@ public class SpeckBluetoothBroadcaster {
                                 float sd_br = getStdDevBreathingRate();
                                 //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
                                 int n_breaths = getNBreaths();
-                                float act = getActivity();
+                                float act = getActivityLevel();
 
                                 resetMA();
-                                //ACTUALIZA Y MANDA AL SERVIDOR
+
                                 Log.i("3", "RESPECK BS TIMESTAMP " + ts_minute);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + ave_br);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + n_breaths);
@@ -691,9 +796,8 @@ public class SpeckBluetoothBroadcaster {
                                 }
                                 Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
                                 intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json2.toString());
-                                sendBroadcast(intent2);
+                                mainActivity.sendBroadcast(intent2);
                                 Log.d("RAT", "Sent LIVE JSON to upload service: " + json.toString());
-
 
                                 latestProcessedMinute = ts_minute;
                             }
@@ -779,11 +883,65 @@ public class SpeckBluetoothBroadcaster {
         return fValue;
     }
 
+    private void sendMessageToUIHandler(int tag, Object obj) {
+        Message msg = Message.obtain();
+        msg.obj = obj;
+        msg.what = tag;
+        msg.setTarget(mainActivity.getUIHandler());
+        msg.sendToTarget();
+    }
+
+    private void initRespeckUploadService() {
+        mRespeckRemoteUploadService = new RespeckRemoteUploadService();
+        mRespeckRemoteUploadService.onCreate(mainActivity);
+        Intent intent = new Intent(RespeckRemoteUploadService.MSG_CONFIG);
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
+            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
+            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
+            json.put("app_version", mUtils.getAppVersionCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
+        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
+        intent.putExtra(RespeckRemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
+        mainActivity.sendBroadcast(intent);
+    }
+
+    private void initQOEUploadService() {
+        mQOERemoteUploadService = new QOERemoteUploadService();
+        mQOERemoteUploadService.onCreate(mainActivity);
+        Intent intent = new Intent(QOERemoteUploadService.MSG_CONFIG);
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
+            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
+            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
+            json.put("app_version", mUtils.getAppVersionCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_JSON_HEADERS, json.toString());
+        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_URL, Constants.UPLOAD_SERVER_URL);
+        intent.putExtra(QOERemoteUploadService.MSG_CONFIG_PATH, Constants.UPLOAD_SERVER_PATH);
+        mainActivity.sendBroadcast(intent);
+    }
+
     static {
         System.loadLibrary("respeck-jni");
     }
 
-    //public native String getMsgFromJni();
+    // JNI methods
     public native void initBreathing();
 
     public native void updateBreathing(float x, float y, float z);
@@ -794,13 +952,12 @@ public class SpeckBluetoothBroadcaster {
 
     public native float getAverageBreathingRate();
 
-    public native float getActivity();
+    public native float getActivityLevel();
 
     public native int getNBreaths();
 
     public native float getBreathingAngle();
 
-    //public native String stringfromJNI();
     public native void resetMA();
 
     public native void calculateMA();

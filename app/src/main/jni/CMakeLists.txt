@@ -22,15 +22,6 @@ add_library( # Specifies the name of the library.
              # Provides a relative path to your source file(s).
              ${RESPECK_SOURCES})
 
-add_library( # Specifies the name of the library.
-             respeck-jni-old
-
-             # Sets the library as a shared library.
-             SHARED
-
-             # Provides a relative path to your source file(s).
-             ${RESPECK_SOURCES})
-
 find_library( # Defines the name of the path variable that stores the
               # location of the NDK library.
               log-lib
@@ -42,11 +33,6 @@ find_library( # Defines the name of the path variable that stores the
 # Links your native library against one or more other native libraries.
 target_link_libraries( # Specifies the target library.
                        respeck-jni
-
-                       # Links the log library to the target library.
-                       ${log-lib} )
-target_link_libraries( # Specifies the target library.
-                       respeck-jni-old
 
                        # Links the log library to the target library.
                        ${log-lib} )
