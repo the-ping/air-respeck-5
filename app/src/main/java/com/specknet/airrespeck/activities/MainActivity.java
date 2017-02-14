@@ -1401,6 +1401,8 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                 latest_battery_percent = (float)percent;
                 if (charge) latest_request_charge = 1f; else latest_request_charge = 0;
+
+                Log.i("RAT", "Battery level: " + Float.toString(latest_battery_percent) + ", request charge: " + Float.toString(latest_request_charge));
             }
 
             else if(characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))){
