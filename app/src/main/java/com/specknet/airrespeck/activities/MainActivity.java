@@ -186,7 +186,15 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     int brav_seq = -1;
     int latest_stored_respeck_seq = -1;
 
-    
+    // BATTERY MONITORING
+
+    public static final int PROMPT_TO_CHARGE_LEVEL = 1152;
+    public static final int BATTERY_FULL_LEVEL = 1152; // was 1139
+    public static final int BATTERY_EMPTY_LEVEL = 889;
+    private final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
+    private float latest_battery_percent = 0f;
+    private float latest_request_charge = 0f;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -542,6 +550,9 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_RATE, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_BATTERY_PERCENT, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_REQUEST_CHARGE, 0f);
+
     }
 
     /**
@@ -1136,7 +1147,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                 BluetoothGattService s = descriptor.getCharacteristic().getService();
 
-                BluetoothGattCharacteristic characteristic = s.getCharacteristic(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC));
+                BluetoothGattCharacteristic characteristic = s.getCharacteristic(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC));
 
                 if (characteristic != null) {
                     gatt.setCharacteristicNotification(characteristic, true);
@@ -1150,7 +1161,10 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
             }
             else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
-
+                Log.i("Respeck", "RESPECK_BREATHING_RATES_CHARACTERISTIC");
+            }
+            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+                Log.i("Respeck", "RESPECK_BATTERY_LEVEL_CHARACTERISTIC");
             }
         }
 
@@ -1171,7 +1185,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                 for (int i = 1; i < len; i += 7) {
                     Byte start_byte = accelBytes[i];
-                    if(start_byte == -1){
+                    if (start_byte == -1) {
                         Byte ts_1 = accelBytes[i + 1];
                         Byte ts_2 = accelBytes[i + 2];
                         Byte ts_3 = accelBytes[i + 3];
@@ -1192,20 +1206,19 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             Long current_time_offset = live_bs_timestamp / 1000 - live_rs_timestamp;
 
                             //MANDA AL SERVIDOR PERO NO ACTUALIZA EN PANTALLA
-                            Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: "+current_time_offset);
-                            Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: "+s.getRs_timestamp());
-                            Log.i("1", "EXTRA_RESPECK_SEQ: "+s.getSeq());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_AVE_BR: "+s.getMeanBr());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_N_BR: "+s.getNBreaths());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_SD_BR: "+s.getSdBr());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY "+s.getActivity());
+                            Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + current_time_offset);
+                            Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRs_timestamp());
+                            Log.i("1", "EXTRA_RESPECK_SEQ: " + s.getSeq());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getMeanBr());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNBreaths());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getSdBr());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY " + s.getActivity());
                         }
-                    }
-                    else if (start_byte == -2 && live_seq >= 0) {
-                        try{
-                            final float x = combineAccelBytes(Byte.valueOf(accelBytes[i+1]),Byte.valueOf(accelBytes[i+2]));
-                            float y = combineAccelBytes(Byte.valueOf(accelBytes[i+3]), Byte.valueOf(accelBytes[i+4]));
-                            float z = combineAccelBytes(Byte.valueOf(accelBytes[i+5]),Byte.valueOf(accelBytes[i+6]));
+                    } else if (start_byte == -2 && live_seq >= 0) {
+                        try {
+                            final float x = combineAccelBytes(Byte.valueOf(accelBytes[i + 1]), Byte.valueOf(accelBytes[i + 2]));
+                            float y = combineAccelBytes(Byte.valueOf(accelBytes[i + 3]), Byte.valueOf(accelBytes[i + 4]));
+                            float z = combineAccelBytes(Byte.valueOf(accelBytes[i + 5]), Byte.valueOf(accelBytes[i + 6]));
 
                             updateBreathing(x, y, z);
 
@@ -1217,16 +1230,16 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                             float nBreaths = getNBreaths();
                             float breathActivity = getActivity();
 
-                            Log.i("2", "BS TIMESTAMP "+String.valueOf(live_bs_timestamp));
-                            Log.i("2", "RS_TIMESTAMP "+String.valueOf(live_rs_timestamp));
-                            Log.i("2", "EXTRA_RESPECK_SEQ "+String.valueOf(live_seq));
-                            Log.i("2", "Breathing Rate "+String.valueOf(breathingRate));
-                            Log.i("2", "Breathing Signal "+String.valueOf(breathingSignal));
-                            Log.i("2", "Breathing Angle "+String.valueOf(breathingAngle));
-                            Log.i("2", "BRA "+String.valueOf(averageBreathingRate));
-                            Log.i("2", "STDBR "+String.valueOf(stdDevBreathingRate));
-                            Log.i("2", "NBreaths "+String.valueOf(nBreaths));
-                            Log.i("2", "Activity " +String.valueOf(breathActivity));
+                            Log.i("2", "BS TIMESTAMP " + String.valueOf(live_bs_timestamp));
+                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(live_rs_timestamp));
+                            Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(live_seq));
+                            Log.i("2", "Breathing Rate " + String.valueOf(breathingRate));
+                            Log.i("2", "Breathing Signal " + String.valueOf(breathingSignal));
+                            Log.i("2", "Breathing Angle " + String.valueOf(breathingAngle));
+                            Log.i("2", "BRA " + String.valueOf(averageBreathingRate));
+                            Log.i("2", "STDBR " + String.valueOf(stdDevBreathingRate));
+                            Log.i("2", "NBreaths " + String.valueOf(nBreaths));
+                            Log.i("2", "Activity " + String.valueOf(breathActivity));
 
 
                             // Get timestamp
@@ -1239,7 +1252,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 json.put(Constants.RESPECK_X, x);
                                 json.put(Constants.RESPECK_Y, y);
                                 json.put(Constants.RESPECK_Z, z);
-                                if(Float.isNaN(breathingRate)){
+                                if (Float.isNaN(breathingRate)) {
                                     json.put(Constants.RESPECK_BREATHING_RATE, null);
                                 } else {
                                     json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
@@ -1264,12 +1277,12 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 } else {
                                     json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, stdDevBreathingRate);
                                 }
-                                if(Float.isNaN(nBreaths)){
+                                if (Float.isNaN(nBreaths)) {
                                     json.put(Constants.RESPECK_N_BREATHS, null);
                                 } else {
                                     json.put(Constants.RESPECK_N_BREATHS, nBreaths);
                                 }
-                                if(Float.isNaN(breathActivity)){
+                                if (Float.isNaN(breathActivity)) {
                                     json.put(Constants.RESPECK_ACTIVITY, null);
                                 } else {
                                     json.put(Constants.RESPECK_ACTIVITY, breathActivity);
@@ -1277,8 +1290,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
                                 json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);
                                 json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);
-                            }
-                            catch (JSONException e) {
+                            } catch (JSONException e) {
                                 e.printStackTrace();
                             }
 
@@ -1304,6 +1316,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                 values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                             }
 
+                            // add battery info
+                            values.put(Constants.RESPECK_BATTERY_PERCENT, latest_battery_percent);
+                            values.put(Constants.RESPECK_REQUEST_CHARGE, latest_request_charge);
+
+
                             Message msg = Message.obtain();
                             msg.obj = values;
                             msg.what = UPDATE_RESPECK_READINGS;
@@ -1327,11 +1344,11 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
                                 resetMA();
                                 //ACTUALIZA Y MANDA AL SERVIDOR
-                                Log.i("3", "RESPECK BS TIMESTAMP "+ts_minute);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: "+ave_br);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: "+n_breaths);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: "+sd_br);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY "+act);
+                                Log.i("3", "RESPECK BS TIMESTAMP " + ts_minute);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + ave_br);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + n_breaths);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: " + sd_br);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY " + act);
 
                                 // Send message
                                 JSONObject json2 = new JSONObject();
@@ -1345,8 +1362,7 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                                         json2.put("sd_br", sd_br);
                                     }
                                     json2.put("stored", 0);
-                                }
-                                catch (JSONException e) {
+                                } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                                 Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
@@ -1362,7 +1378,32 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
                         }
                     }
                 }
-            }else if(characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))){
+            }
+            else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+                //count += 1;
+                final byte[] batteryLevelBytes = characteristic.getValue();
+                int batt_level = combineBattBytes(batteryLevelBytes[0],batteryLevelBytes[1]);
+
+                Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(batt_level));
+
+
+                boolean charge = false;
+                if (batt_level <= PROMPT_TO_CHARGE_LEVEL) {
+                    charge = true;
+                }
+
+                int percent = (100 * (batt_level - BATTERY_EMPTY_LEVEL) / (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
+
+                if (percent < 1)
+                    percent = 1;
+                else if (percent > 100)
+                    percent = 100;
+
+                latest_battery_percent = (float)percent;
+                if (charge) latest_request_charge = 1f; else latest_request_charge = 0;
+            }
+
+            else if(characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))){
                 final byte[] breathAveragesBytes = characteristic.getValue();
                 final int len = breathAveragesBytes.length;
 
@@ -1437,6 +1478,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         short value = (short) ((unsigned_upper << 8) | unsigned_lower);
         float fValue = (value) / 1000.0f;
         return fValue;
+    }
+
+    private int combineBattBytes(Byte upper, Byte lower) {
+        short unsigned_lower = (short) (lower & 0xFF);
+        short unsigned_upper = (short) (upper & 0xFF);
+        if (unsigned_upper > 0xF0) {
+            unsigned_upper = (short)((0xFF - unsigned_upper) + 1);
+        }
+        short value = (short) ((unsigned_upper << 8) | unsigned_lower);
+        int iValue = value;
+        return iValue;
     }
 
     static {

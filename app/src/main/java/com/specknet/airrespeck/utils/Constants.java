@@ -64,6 +64,8 @@ public class Constants {
     public static final String RESPECK_ACTIVITY = "activity";
     public static final String RESPECK_LIVE_SEQ = "live_seq";
     public static final String RESPECK_LIVE_RS_TIMESTAMP = "live_rs_timestamp";
+    public static final String RESPECK_BATTERY_PERCENT = "battery_percentage";
+    public static final String RESPECK_REQUEST_CHARGE = "request_charge";
 
     public static final String QOE_PM1 = "pm1";
     public static final String QOE_PM2_5 = "pm2_5";
