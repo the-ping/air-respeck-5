@@ -73,6 +73,8 @@ public class MainActivity extends BaseActivity {
                         break;
                     case UPDATE_QOE_READINGS:
                         service.updateQOEReadings((HashMap<String, Float>) msg.obj);
+                        // We also update the connection symbol in case it hasn't been updated yet
+                        service.updateAirspeckConnectionSymbol(true);
                         break;
                     case SHOW_SNACKBAR_MESSAGE:
                         service.showSnackbar((String) msg.obj);
