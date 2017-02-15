@@ -7,6 +7,12 @@
         android:id="@+id/main_menu_group">
 
         <item
+            android:id="@+id/action_subject_mode"
+            android:orderInCategory="10"
+            android:title="@string/action_subject_mode"
+            app:showAsAction="never" />
+
+        <item
             android:id="@+id/action_settings"
             android:orderInCategory="90"
             android:title="@string/action_settings"
@@ -17,26 +23,6 @@
             android:id="@+id/action_user_profile"
             android:orderInCategory="80"
             android:title="@string/action_user_profile"
-            app:showAsAction="never" />
-
-        <item
-            android:id="@+id/action_respeck"
-            android:orderInCategory="70"
-            android:title="@string/action_re_speck"
-            android:icon="@drawable/ic_health"
-            app:showAsAction="never" />
-
-        <item
-            android:id="@+id/action_airspeck"
-            android:orderInCategory="60"
-            android:title="@string/action_air_speck"
-            android:icon="@drawable/ic_air"
-            app:showAsAction="never" />
-
-        <item
-            android:id="@+id/action_subject_mode"
-            android:orderInCategory="10"
-            android:title="@string/action_air_speck"
             app:showAsAction="never" />
 
     </group>

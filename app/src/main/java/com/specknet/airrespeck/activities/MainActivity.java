@@ -1,7 +1,6 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,22 +12,18 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.DaphneHomeFragment;
 import com.specknet.airrespeck.fragments.DaphneValuesFragment;
 import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
-import com.specknet.airrespeck.fragments.MenuFragment;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.LocationUtils;
@@ -38,10 +33,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Objects;
 
 
-public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSelectedListener {
+public class MainActivity extends BaseActivity {
 
     // UI HANDLER
     public final static int UPDATE_RESPECK_READINGS = 0;
@@ -152,9 +146,17 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     private static final String IS_SUPERVISED_MODE = "supervised_mode";
     boolean isSupervisedMode;
 
+    TabLayout tabLayout;
+    ViewPager viewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Setup the part of the layout which is the same for both modes
+        setContentView(R.layout.activity_main_tabs);
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        viewPager = (ViewPager) findViewById(R.id.view_pager);
 
         /* Keep CPU running. TODO: Do we really need this? From Android developers: Creating and holding wake locks
         can have a dramatic impact on the host device's battery life. Thus you should use wake locks only when
@@ -176,19 +178,20 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        // Initialise all fragments
         initFragments(savedInstanceState);
 
         // Load mode if stored. If no mode was stored, this defaults to false, i.e. subject mode
         if (savedInstanceState != null) {
             isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
         } else {
-            isSupervisedMode = false;
+            isSupervisedMode = true;
         }
 
-        // Display only those fragments which apply to the current mode
+        // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
+        viewPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
+
+        // Call displayMode methods so the tabs are set correctly
         if (isSupervisedMode) {
-            Log.i("DF", "display supervised mode");
             displaySupervisedMode();
         } else {
             displaySubjectMode();
@@ -260,85 +263,89 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
         }
     }
 
-    private void displaySupervisedMode() {
-        // Display supervised mode fragment layout depending on settings
-        FragmentManager fm = getSupportFragmentManager();
-        if (mMenuModePref.equals(Constants.MENU_MODE_BUTTONS)) {
-            setContentView(R.layout.activity_main_buttons);
+    private class MyPagerAdapter extends FragmentStatePagerAdapter {
 
-            FragmentTransaction trans = fm.beginTransaction();
+        public MyPagerAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
 
-            if (mCurrentFragment instanceof HomeFragment) {
-                trans.replace(R.id.content, mCurrentFragment, TAG_HOME_FRAGMENT);
-            } else if (mCurrentFragment instanceof AQReadingsFragment) {
-                trans.replace(R.id.content, mCurrentFragment, TAG_AQREADINGS_FRAGMENT);
-            } else if (mCurrentFragment instanceof GraphsFragment) {
-                trans.replace(R.id.content, mCurrentFragment, TAG_GRAPHS_FRAGMENT);
-            } else {
-                trans.replace(R.id.content, mHomeFragment, TAG_HOME_FRAGMENT);
-                mCurrentFragment = mHomeFragment;
-            }
-
-            trans.commit();
-        } else if (mMenuModePref.equals(Constants.MENU_MODE_TABS)) {
-            setContentView(R.layout.activity_main_tabs);
-
-            // Create the adapter that will return a fragment for each of the three
-            // primary sections of the activity.
-            SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
-                    getApplicationContext());
-            sectionsPagerAdapter.addFragment(mHomeFragment);
-            sectionsPagerAdapter.addFragment(mAQReadingsFragment);
-            if (mGraphsScreen) {
-                sectionsPagerAdapter.addFragment(mGraphsFragment);
-            }
-            // Set up the ViewPager with the sections adapter.
-            ViewPager viewPager = (ViewPager) findViewById(R.id.container);
-            if (viewPager != null) {
-                viewPager.setAdapter(sectionsPagerAdapter);
-            }
-
-            TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-            if (tabLayout != null) {
-                tabLayout.setupWithViewPager(viewPager);
-            }
-
-            if (mMenuTabIconsPref) {
-                tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
-                tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_AIR);
-                if (mGraphsScreen) {
-                    tabLayout.getTabAt(2).setIcon(Constants.MENU_ICON_GRAPHS);
+        @Override
+        public Fragment getItem(int position) {
+            if (isSupervisedMode) {
+                switch (position) {
+                    case 0:
+                        return mHomeFragment;
+                    case 1:
+                        return mAQReadingsFragment;
+                    case 2:
+                        return mGraphsFragment;
+                    default:
+                        return mHomeFragment;
                 }
+            } else {
+                switch (position) {
+                    case 0:
+                        return mDaphneHomeFragment;
+                    case 1:
+                        return mDaphneValuesFragment;
+                    default:
+                        return mDaphneHomeFragment;
+                }
+            }
+        }
+
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
+        }
+
+        @Override
+        public int getCount() {
+            if (isSupervisedMode) {
+                if (mGraphsScreen) {
+                    return 3;
+                } else {
+                    return 2;
+                }
+            } else {
+                return 2;
             }
         }
     }
 
+    private void displaySupervisedMode() {
+        isSupervisedMode = true;
+        // Update displayed Fragments to reflect mode
+        viewPager.getAdapter().notifyDataSetChanged();
+
+        // Update tab labels
+        tabLayout.setupWithViewPager(viewPager);
+
+        if (mMenuTabIconsPref) {
+            tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
+            tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_AIR);
+            if (mGraphsScreen) {
+                tabLayout.getTabAt(2).setIcon(Constants.MENU_ICON_GRAPHS);
+            }
+        }
+
+        // Recreate options menu
+        invalidateOptionsMenu();
+    }
+
     private void displaySubjectMode() {
-        // Display subject mode. We have no settings here so far.
-        setContentView(R.layout.activity_main_tabs);
+        isSupervisedMode = false;
+        // Update displayed Fragments to reflect mode
+        viewPager.getAdapter().notifyDataSetChanged();
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(),
-                getApplicationContext());
-        sectionsPagerAdapter.addFragment(mDaphneHomeFragment);
-        sectionsPagerAdapter.addFragment(mDaphneValuesFragment);
-
-        // Set up the ViewPager with the sections adapter.
-        ViewPager viewPager = (ViewPager) findViewById(R.id.container);
-        if (viewPager != null) {
-            viewPager.setAdapter(sectionsPagerAdapter);
-        }
-
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        if (tabLayout != null) {
-            tabLayout.setupWithViewPager(viewPager);
-        }
+        tabLayout.setupWithViewPager(viewPager);
 
         tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
         tabLayout.getTabAt(0).setText("");
         tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_INFO);
         tabLayout.getTabAt(1).setText("");
+
+        // Recreate options menu
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -411,16 +418,6 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if (isSupervisedMode) {
-            menu.getItem(0).setVisible(mRespeckAppAccessPref);
-            menu.getItem(1).setVisible(mAirspeckAppAccessPref);
-
-            if (Objects.equals(mCurrentUser.getGender(), "M")) {
-                menu.getItem(2).setIcon(R.drawable.ic_user_male);
-            } else if (Objects.equals(mCurrentUser.getGender(), "F")) {
-                menu.getItem(2).setIcon(R.drawable.ic_user_female);
-            }
-        }
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -439,88 +436,13 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
             intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.SettingsFragment.class.getName());
             intent.putExtra(PreferenceActivity.EXTRA_NO_HEADERS, true);
             startActivity(intent);
-        } else if (id == R.id.action_airspeck) {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(
-                        "com.airquality.sepa",
-                        "com.airquality.sepa.DataCollectionActivity"));
-                startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, R.string.airspeck_not_found, Toast.LENGTH_LONG).show();
-            }
-        } else if (id == R.id.action_respeck) {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(
-                        "com.pulrehab",
-                        "com.pulrehab.fragments.MainActivity"));
-                startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, R.string.respeck_not_found, Toast.LENGTH_LONG).show();
-            }
         } else if (id == R.id.action_supervised_mode) {
-            isSupervisedMode = true;
             displaySupervisedMode();
         } else if (id == R.id.action_subject_mode) {
-            isSupervisedMode = false;
             displaySubjectMode();
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onButtonSelected(int buttonId) {
-        switch (buttonId) {
-            // Home
-            case 0:
-                replaceFragment(mHomeFragment, TAG_HOME_FRAGMENT);
-                break;
-            // Air Quality
-            case 1:
-                replaceFragment(mAQReadingsFragment, TAG_AQREADINGS_FRAGMENT);
-                break;
-            // Dashboard
-            case 2:
-                replaceFragment(mGraphsFragment, TAG_GRAPHS_FRAGMENT);
-                break;
-        }
-    }
-
-    /**
-     * Replace the current fragment with the given one.
-     *
-     * @param fragment Fragment New fragment.
-     * @param tag      String Tag for the new fragment.
-     */
-
-    public void replaceFragment(Fragment fragment, String tag) {
-        replaceFragment(fragment, tag, false);
-    }
-
-    /**
-     * Replace the current fragment with the given one.
-     *
-     * @param fragment       Fragment New fragment.
-     * @param tag            String Tag for the new fragment.
-     * @param addToBackStack boolean Whether to add the previous fragment to the Back Stack, or not.
-     */
-    public void replaceFragment(Fragment fragment, String tag, boolean addToBackStack) {
-        if (fragment.isVisible()) {
-            return;
-        }
-
-        FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
-        //trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-
-        trans.replace(R.id.content, fragment, tag);
-        if (addToBackStack) {
-            trans.addToBackStack(null);
-        }
-        trans.commit();
-
-        mCurrentFragment = fragment;
     }
 
 
@@ -693,11 +615,15 @@ public class MainActivity extends BaseActivity implements MenuFragment.OnMenuSel
     }
 
     private void updateRESpeckConnectionSymbol(boolean isConnected) {
-        mDaphneHomeFragment.updateRESpeckConnectionSymbol(isConnected);
+        if (!isSupervisedMode) {
+            mDaphneHomeFragment.updateRESpeckConnectionSymbol(isConnected);
+        }
     }
 
     private void updateAirspeckConnectionSymbol(boolean isConnected) {
-        mDaphneHomeFragment.updateAirspeckConnectionSymbol(isConnected);
+        if (!isSupervisedMode) {
+            mDaphneHomeFragment.updateAirspeckConnectionSymbol(isConnected);
+        }
     }
 
     private void showSnackbar(String message) {
