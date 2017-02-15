@@ -640,7 +640,6 @@ public class SpeckBluetoothService {
 
                             Long current_time_offset = live_bs_timestamp / 1000 - live_rs_timestamp;
 
-                            //MANDA AL SERVIDOR PERO NO ACTUALIZA EN PANTALLA
                             Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + current_time_offset);
                             Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRs_timestamp());
                             Log.i("1", "EXTRA_RESPECK_SEQ: " + s.getSeq());

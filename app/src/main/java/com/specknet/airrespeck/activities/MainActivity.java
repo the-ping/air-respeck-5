@@ -12,13 +12,13 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.DaphneHomeFragment;
 import com.specknet.airrespeck.fragments.DaphneValuesFragment;
@@ -68,6 +68,8 @@ public class MainActivity extends BaseActivity {
                 switch (what) {
                     case UPDATE_RESPECK_READINGS:
                         service.updateRespeckReadings((HashMap<String, Float>) msg.obj);
+                        // We also update the connection symbol in case it hasn't been updated yet
+                        service.updateRESpeckConnectionSymbol(true);
                         break;
                     case UPDATE_QOE_READINGS:
                         service.updateQOEReadings((HashMap<String, Float>) msg.obj);
@@ -148,6 +150,10 @@ public class MainActivity extends BaseActivity {
 
     TabLayout tabLayout;
     ViewPager viewPager;
+    ArrayList<Fragment> supervisedFragments;
+    ArrayList<String> supervisedTitles;
+    ArrayList<Fragment> subjectFragments;
+    ArrayList<String> subjectTitles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,17 +184,15 @@ public class MainActivity extends BaseActivity {
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        initFragments(savedInstanceState);
+        setupFragments(savedInstanceState);
+        setupViewPager();
 
         // Load mode if stored. If no mode was stored, this defaults to false, i.e. subject mode
         if (savedInstanceState != null) {
             isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
         } else {
-            isSupervisedMode = true;
+            isSupervisedMode = false;
         }
-
-        // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
-        viewPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
 
         // Call displayMode methods so the tabs are set correctly
         if (isSupervisedMode) {
@@ -212,7 +216,33 @@ public class MainActivity extends BaseActivity {
         mSpeckBluetoothService.initSpeckService(this);
     }
 
-    private void initFragments(Bundle savedInstanceState) {
+    private void setupViewPager() {
+        // Setup supervised mode arrays
+        supervisedFragments = new ArrayList<>();
+        supervisedTitles = new ArrayList<>();
+        supervisedFragments.add(mHomeFragment);
+        supervisedTitles.add(getString(R.string.menu_home));
+        supervisedFragments.add(mAQReadingsFragment);
+        supervisedTitles.add(getString(R.string.menu_air_quality));
+        if (mGraphsScreen) {
+            supervisedFragments.add(mGraphsFragment);
+            supervisedTitles.add(getString(R.string.menu_graphs));
+        }
+
+        // Setup subject mode arrays
+        subjectFragments = new ArrayList<>();
+        subjectTitles = new ArrayList<>();
+        subjectFragments.add(mDaphneHomeFragment);
+        // We don't want any text in the subject view, just the icons
+        subjectTitles.add("");
+        subjectFragments.add(mDaphneValuesFragment);
+        subjectTitles.add("");
+
+        // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
+        viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
+    }
+
+    private void setupFragments(Bundle savedInstanceState) {
         // Load or create fragments
         FragmentManager fm = getSupportFragmentManager();
         if (savedInstanceState != null) {
@@ -263,61 +293,14 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private class MyPagerAdapter extends FragmentStatePagerAdapter {
-
-        public MyPagerAdapter(FragmentManager fragmentManager) {
-            super(fragmentManager);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            if (isSupervisedMode) {
-                switch (position) {
-                    case 0:
-                        return mHomeFragment;
-                    case 1:
-                        return mAQReadingsFragment;
-                    case 2:
-                        return mGraphsFragment;
-                    default:
-                        return mHomeFragment;
-                }
-            } else {
-                switch (position) {
-                    case 0:
-                        return mDaphneHomeFragment;
-                    case 1:
-                        return mDaphneValuesFragment;
-                    default:
-                        return mDaphneHomeFragment;
-                }
-            }
-        }
-
-        public int getItemPosition(Object object) {
-            return POSITION_NONE;
-        }
-
-        @Override
-        public int getCount() {
-            if (isSupervisedMode) {
-                if (mGraphsScreen) {
-                    return 3;
-                } else {
-                    return 2;
-                }
-            } else {
-                return 2;
-            }
-        }
-    }
-
     private void displaySupervisedMode() {
         isSupervisedMode = true;
-        // Update displayed Fragments to reflect mode
-        viewPager.getAdapter().notifyDataSetChanged();
 
-        // Update tab labels
+        // Update displayed Fragments to reflect mode
+        ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(supervisedFragments, supervisedTitles);
+        viewPager.setCurrentItem(0);
+        
+        // Update tab icons
         tabLayout.setupWithViewPager(viewPager);
 
         if (mMenuTabIconsPref) {
@@ -334,8 +317,10 @@ public class MainActivity extends BaseActivity {
 
     private void displaySubjectMode() {
         isSupervisedMode = false;
+
         // Update displayed Fragments to reflect mode
-        viewPager.getAdapter().notifyDataSetChanged();
+        ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(subjectFragments, subjectTitles);
+        viewPager.setCurrentItem(0);
 
         tabLayout.setupWithViewPager(viewPager);
 
