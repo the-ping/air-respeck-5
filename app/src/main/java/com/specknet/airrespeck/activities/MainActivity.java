@@ -473,6 +473,8 @@ public class MainActivity extends BaseActivity {
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_RATE, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_BATTERY_PERCENT, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_REQUEST_CHARGE, 0f);
     }
 
     /**

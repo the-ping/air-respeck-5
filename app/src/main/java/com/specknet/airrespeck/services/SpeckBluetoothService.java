@@ -100,6 +100,15 @@ public class SpeckBluetoothService {
     int brav_seq = -1;
     int latest_stored_respeck_seq = -1;
 
+    // BATTERY MONITORING
+
+    public static final int PROMPT_TO_CHARGE_LEVEL = 1152;
+    public static final int BATTERY_FULL_LEVEL = 1152; // was 1139
+    public static final int BATTERY_EMPTY_LEVEL = 889;
+    private final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
+    private float latest_battery_percent = 0f;
+    private float latest_request_charge = 0f;
+
     // References to Context and Utils
     MainActivity mainActivity;
     Utils mUtils;
@@ -584,7 +593,7 @@ public class SpeckBluetoothService {
                 BluetoothGattService s = descriptor.getCharacteristic().getService();
 
                 BluetoothGattCharacteristic characteristic = s.getCharacteristic(
-                        UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC));
+                        UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC));
 
                 if (characteristic != null) {
                     gatt.setCharacteristicNotification(characteristic, true);
@@ -593,13 +602,16 @@ public class SpeckBluetoothService {
                     descriptor2.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                     gatt.writeDescriptor(descriptor2);
                 }
-            } else if (descriptor.getCharacteristic().getUuid().equals(
-                    UUID.fromString(RESPECK_BREATH_INTERVALS_CHARACTERISTIC))) {
+            }
+            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATH_INTERVALS_CHARACTERISTIC))) {
                 Log.i("Respeck", "RESPECK_BREATH_INTERVALS_CHARACTERISTIC");
 
-            } else if (descriptor.getCharacteristic().getUuid().equals(
-                    UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
-
+            }
+            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+                Log.i("Respeck", "RESPECK_BREATHING_RATES_CHARACTERISTIC");
+            }
+            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+                Log.i("Respeck", "RESPECK_BATTERY_LEVEL_CHARACTERISTIC");
             }
         }
 
@@ -760,6 +772,9 @@ public class SpeckBluetoothService {
                             } else {
                                 values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
                             }
+                            // add battery info
+                            values.put(Constants.RESPECK_BATTERY_PERCENT, latest_battery_percent);
+                            values.put(Constants.RESPECK_REQUEST_CHARGE, latest_request_charge);
 
                             sendMessageToUIHandler(MainActivity.UPDATE_RESPECK_READINGS, values);
 
@@ -813,7 +828,36 @@ public class SpeckBluetoothService {
                         }
                     }
                 }
-            } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+            }
+
+            else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+                //count += 1;
+                final byte[] batteryLevelBytes = characteristic.getValue();
+                int batt_level = combineBattBytes(batteryLevelBytes[0],batteryLevelBytes[1]);
+
+                Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(batt_level));
+
+
+                boolean charge = false;
+                if (batt_level <= PROMPT_TO_CHARGE_LEVEL) {
+                    charge = true;
+                }
+
+                int percent = (100 * (batt_level - BATTERY_EMPTY_LEVEL) / (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
+
+                if (percent < 1)
+                    percent = 1;
+                else if (percent > 100)
+                    percent = 100;
+
+                latest_battery_percent = (float)percent;
+                if (charge) latest_request_charge = 1f; else latest_request_charge = 0;
+
+                Log.i("RAT", "Battery level: " + Float.toString(latest_battery_percent) + ", request charge: " + Float.toString(latest_request_charge));
+
+
+            }
+            else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
                 final byte[] breathAveragesBytes = characteristic.getValue();
                 final int len = breathAveragesBytes.length;
 
@@ -888,6 +932,17 @@ public class SpeckBluetoothService {
         short value = (short) ((unsigned_upper << 8) | unsigned_lower);
         float fValue = (value) / 1000.0f;
         return fValue;
+    }
+
+    private int combineBattBytes(Byte upper, Byte lower) {
+        short unsigned_lower = (short) (lower & 0xFF);
+        short unsigned_upper = (short) (upper & 0xFF);
+        if (unsigned_upper > 0xF0) {
+            unsigned_upper = (short)((0xFF - unsigned_upper) + 1);
+        }
+        short value = (short) ((unsigned_upper << 8) | unsigned_lower);
+        int iValue = value;
+        return iValue;
     }
 
     private void sendMessageToUIHandler(int tag, Object obj) {
