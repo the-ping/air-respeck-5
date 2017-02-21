@@ -2,6 +2,8 @@ package com.specknet.airrespeck.fragments;
 
 import android.media.Image;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +59,19 @@ public class DaphneHomeFragment extends BaseFragment {
 
     public void updateRESpeckConnectionSymbol(boolean isConnected) {
         if (isConnected) {
+            // "Flash" with symbol when updating to indicate data coming in
             connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
+            connectedStatusRESpeck.setVisibility(View.INVISIBLE);
+
+            Log.i("DF", "connection symbol update");
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    connectedStatusRESpeck.setVisibility(View.VISIBLE);
+                }
+            }, 100);
+
         } else {
             connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
         }
@@ -65,7 +79,19 @@ public class DaphneHomeFragment extends BaseFragment {
 
     public void updateAirspeckConnectionSymbol(boolean isConnected) {
         if (isConnected) {
+            // "Flash" with symbol when updating to indicate data coming in
             connectedStatusAirspeck.setImageResource(R.drawable.vec_wireless);
+            connectedStatusAirspeck.setVisibility(View.INVISIBLE);
+
+            Log.i("DF", "connection symbol update");
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    connectedStatusAirspeck.setVisibility(View.VISIBLE);
+                }
+            }, 100);
+
         } else {
             connectedStatusAirspeck.setImageResource(R.drawable.vec_xmark);
         }

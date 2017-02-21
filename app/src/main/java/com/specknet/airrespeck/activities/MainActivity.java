@@ -332,7 +332,10 @@ public class MainActivity extends BaseActivity {
 
 
     private void updateActivitySummary() {
-        mActivitySummaryFragment.updateActivitySummary();
+        // The activity summary is only displayed in supervised mode
+        if (isSupervisedMode) {
+            mActivitySummaryFragment.updateActivitySummary();
+        }
     }
 
     private void displaySupervisedMode() {
