@@ -317,7 +317,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void startActivitySummaryUpdaterTask() {
-        final int delay = 2000;//10*60*1000;
+        final int delay = 10*60*1000;
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
