@@ -48,15 +48,19 @@ public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
             viewHolder.value = (TextView) convertView.findViewById(R.id.value);
 
             convertView.setTag(viewHolder);
-        }
-        else {
+        } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
         // Populate the data into the template view using the data object
         viewHolder.name.setText(item.name);
         viewHolder.unit.setText(item.unit);
-        viewHolder.value.setText(String.valueOf(item.value));
+        // If we have a stringValue, use that. Otherwise, convert the float value
+        if (item.stringValue != null) {
+            viewHolder.value.setText(item.stringValue);
+        } else {
+            viewHolder.value.setText(String.valueOf(item.value));
+        }
 
         // Return the completed view to render on screen
         return convertView;

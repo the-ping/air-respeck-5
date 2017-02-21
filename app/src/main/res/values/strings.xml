@@ -63,6 +63,8 @@
     <!-- Strings related to Readings -->
     <string name="readings_title">Live data</string>
 
+    <string name="activity_summary_title">Activity summary of past …</string>
+
     <!-- Readings -->
     <string name="reading_no_data">No data available</string>
 
@@ -100,6 +102,7 @@
     <string name="menu_air_quality">AIR QUALITY</string>
     <string name="menu_graphs">GRAPHS</string>
     <string name="menu_settings">SETTINGS</string>
+    <string name="menu_activity_summary">ACTIVITY</string>
 
     <!-- Action Bar menu -->
     <string name="action_air_speck">AirSpeck</string>

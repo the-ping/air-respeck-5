@@ -1000,8 +1000,6 @@ public class SpeckBluetoothService {
     }
 
     private void startActivityClassificationTask() {
-        final Handler h = new Handler();
-
         // We want to summarise predictions every 10 minutes.
         final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
 

@@ -15,6 +15,7 @@ public class ReadingItem {
     public float minVal;
     public float maxVal;
     public float value;
+    public String stringValue;
 
     // Valid only for Segmented Bar
     public List<Segment> segments = null;
@@ -25,6 +26,12 @@ public class ReadingItem {
 
     // Valid for both
     public int defaultColor = Color.parseColor("#2baf2b");
+
+    public ReadingItem(String name, String unit, String value) {
+        this.name = name;
+        this.unit = unit;
+        this.stringValue = value;
+    }
 
     public ReadingItem(String name, String unit, float value) {
         this.name = name;

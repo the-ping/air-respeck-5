@@ -207,7 +207,7 @@ public class AQReadingsFragment extends BaseFragment {
             ReadingItem item;
             ArrayList<Segment> segments;
 
-            for (String key : Constants.READINGS_ORDER) {
+            for (String key : Constants.READINGS_QOE) {
                 switch (key) {
                     case Constants.QOE_PM1:
                         segments = new ArrayList<Segment>();
@@ -487,12 +487,12 @@ public class AQReadingsFragment extends BaseFragment {
     public void setReadings(final HashMap<String, Float> values) {
         if (mReadingItems != null && getContext() != null) {
             int i = 0;
-            for (String key : Constants.READINGS_ORDER) {
+            for (String key : Constants.READINGS_QOE) {
                 mReadingItems.get(i).value = values.get(key);
                 i++;
             }
 
-            int index = Arrays.asList(Constants.READINGS_ORDER).indexOf(Constants.QOE_HUMIDITY);
+            int index = Arrays.asList(Constants.READINGS_QOE).indexOf(Constants.QOE_HUMIDITY);
             mReadingItems.get(index).segments = buildRelativeHumidityScale(
                     Math.round(values.get(Constants.QOE_TEMPERATURE)));
 

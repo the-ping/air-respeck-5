@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
+import com.specknet.airrespeck.fragments.ActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.DaphneHomeFragment;
 import com.specknet.airrespeck.fragments.DaphneValuesFragment;
 import com.specknet.airrespeck.fragments.GraphsFragment;
@@ -33,6 +34,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends BaseActivity {
@@ -45,6 +48,7 @@ public class MainActivity extends BaseActivity {
     public final static int SHOW_RESPECK_DISCONNECTED = 4;
     public final static int SHOW_AIRSPECK_CONNECTED = 5;
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
+    private static final int ACTIVITY_SUMMARY_UPDATE = 7;
 
 
     /**
@@ -75,6 +79,10 @@ public class MainActivity extends BaseActivity {
                         service.updateQOEReadings((HashMap<String, Float>) msg.obj);
                         // We also update the connection symbol in case it hasn't been updated yet
                         service.updateAirspeckConnectionSymbol(true);
+                        break;
+
+                    case ACTIVITY_SUMMARY_UPDATE:
+                        service.updateActivitySummary();
                         break;
                     case SHOW_SNACKBAR_MESSAGE:
                         service.showSnackbar((String) msg.obj);
@@ -124,6 +132,7 @@ public class MainActivity extends BaseActivity {
     private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
     private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
     private static final String TAG_DAPHNE_VALUES_FRAGMENT = "DAPHNE_VALUES_FRAGMENT";
+    private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
 
     private DaphneHomeFragment mDaphneHomeFragment;
     private DaphneValuesFragment mDaphneValuesFragment;
@@ -131,6 +140,7 @@ public class MainActivity extends BaseActivity {
     private AQReadingsFragment mAQReadingsFragment;
     private GraphsFragment mGraphsFragment;
     private Fragment mCurrentFragment;
+    private ActivitySummaryFragment mActivitySummaryFragment;
 
     // UTILS
     Utils mUtils;
@@ -216,6 +226,8 @@ public class MainActivity extends BaseActivity {
         // Start Speck Service
         mSpeckBluetoothService = new SpeckBluetoothService();
         mSpeckBluetoothService.initSpeckService(this);
+
+        startActivitySummaryUpdaterTask();
     }
 
     private void setupViewPager() {
@@ -226,6 +238,8 @@ public class MainActivity extends BaseActivity {
         supervisedTitles.add(getString(R.string.menu_home));
         supervisedFragments.add(mAQReadingsFragment);
         supervisedTitles.add(getString(R.string.menu_air_quality));
+        supervisedFragments.add(mActivitySummaryFragment);
+        supervisedTitles.add(getString(R.string.menu_activity_summary));
         if (mGraphsScreen) {
             supervisedFragments.add(mGraphsFragment);
             supervisedTitles.add(getString(R.string.menu_graphs));
@@ -261,6 +275,9 @@ public class MainActivity extends BaseActivity {
 
             mCurrentFragment = fm.getFragment(savedInstanceState, TAG_CURRENT_FRAGMENT);
 
+            mActivitySummaryFragment = (ActivitySummaryFragment) fm.getFragment(savedInstanceState,
+                    TAG_ACTIVITY_SUMMARY_FRAGMENT);
+
             // If they don't exist, which could happen because the activity was paused before loading the fragments,
             // create new fragments
             if (mHomeFragment == null) {
@@ -281,6 +298,9 @@ public class MainActivity extends BaseActivity {
             if (mCurrentFragment == null) {
                 mCurrentFragment = mDaphneHomeFragment;
             }
+            if (mActivitySummaryFragment == null) {
+                mActivitySummaryFragment = new ActivitySummaryFragment();
+            }
         } else {
             // If there is no saved instance state, this means we are starting the activity for the first time
             // Create all the fragments
@@ -289,10 +309,30 @@ public class MainActivity extends BaseActivity {
             mGraphsFragment = new GraphsFragment();
             mDaphneHomeFragment = new DaphneHomeFragment();
             mDaphneValuesFragment = new DaphneValuesFragment();
+            mActivitySummaryFragment = new ActivitySummaryFragment();
 
             // Set Daphne home fragment to be the currently displayed one
             mCurrentFragment = mDaphneHomeFragment;
         }
+    }
+
+    private void startActivitySummaryUpdaterTask() {
+        final int delay = 2000;//10*60*1000;
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Message msg = new Message();
+                msg.what = ACTIVITY_SUMMARY_UPDATE;
+                msg.setTarget(mUIHandler);
+                msg.sendToTarget();
+            }
+        }, 0, delay);
+    }
+
+
+    private void updateActivitySummary() {
+        mActivitySummaryFragment.updateActivitySummary();
     }
 
     private void displaySupervisedMode() {
@@ -301,16 +341,19 @@ public class MainActivity extends BaseActivity {
         // Update displayed Fragments to reflect mode
         ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(supervisedFragments, supervisedTitles);
         viewPager.setCurrentItem(0);
-        
+
         // Update tab icons
         tabLayout.setupWithViewPager(viewPager);
 
         if (mMenuTabIconsPref) {
             tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
             tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_AIR);
+            tabLayout.getTabAt(2).setIcon(Constants.MENU_ICON_ACTIVITY);
+
             if (mGraphsScreen) {
-                tabLayout.getTabAt(2).setIcon(Constants.MENU_ICON_GRAPHS);
+                tabLayout.getTabAt(3).setIcon(Constants.MENU_ICON_GRAPHS);
             }
+
         }
 
         // Recreate options menu
@@ -386,6 +429,9 @@ public class MainActivity extends BaseActivity {
         }
         if (mDaphneValuesFragment != null && mDaphneValuesFragment.isAdded()) {
             fm.putFragment(outState, TAG_DAPHNE_VALUES_FRAGMENT, mDaphneValuesFragment);
+        }
+        if (mActivitySummaryFragment != null && mActivitySummaryFragment.isAdded()) {
+            fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mActivitySummaryFragment);
         }
         if (mCurrentFragment != null && mCurrentFragment.isAdded()) {
             fm.putFragment(outState, TAG_CURRENT_FRAGMENT, mCurrentFragment);
@@ -619,10 +665,4 @@ public class MainActivity extends BaseActivity {
         Snackbar.make(mCoordinatorLayout, message, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
     }
-
-    //----------------------------------------------------------------------------------------------
-    // UPLOAD SERVICES -----------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
-
-
 }

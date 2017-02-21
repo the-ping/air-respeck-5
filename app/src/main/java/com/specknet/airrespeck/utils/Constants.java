@@ -44,6 +44,7 @@ public class Constants {
      */
     public static int MENU_ICON_HOME = R.drawable.ic_home;
     public static int MENU_ICON_HEALTH = R.drawable.ic_health;
+    public static int MENU_ICON_ACTIVITY = R.drawable.vec_running_man_orange;
     public static int MENU_ICON_AIR = R.drawable.ic_air;
     public static int MENU_ICON_GRAPHS = R.drawable.ic_graphs;
     public static int MENU_ICON_SETTINGS = R.drawable.ic_settings;
@@ -99,6 +100,10 @@ public class Constants {
     public static final String QOE_BINS_15 = "bins15";
     public static final String QOE_BINS_TOTAL = "bins_total";
 
+    public static final String ACTIVITY_SUMMARY_HOUR = "hour";
+    public static final String ACTIVITY_SUMMARY_DAY = "day";
+    public static final String ACTIVITY_SUMMARY_WEEK = "week";
+
 
     /**
      * Additional data for uploading to the server
@@ -112,7 +117,7 @@ public class Constants {
     /**
      * Readings order in Air Quality Fragment
      */
-    public static String[] READINGS_ORDER = {
+    public static String[] READINGS_QOE = {
             QOE_TEMPERATURE,
             QOE_HUMIDITY,
             QOE_NO2,
