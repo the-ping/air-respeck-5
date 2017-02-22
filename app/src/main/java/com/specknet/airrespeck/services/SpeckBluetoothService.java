@@ -38,12 +38,14 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
@@ -85,21 +87,20 @@ public class SpeckBluetoothService {
     int lastSample = 0;
 
     // RESPECK CODE
-    int latestLiveRespeckSeq = -1;
-    long currentPhoneTimestamp = -1;
-    long currentRESpeckTimestamp = -1;
-    Queue<RESpeckStoredSample> storedQueue;
+    private int latestLiveRespeckSeq = -1;
+    private long currentPhoneTimestamp = -1;
+    private long currentRESpeckTimestamp = -1;
+    private Queue<RESpeckStoredSample> storedQueue;
 
-    private long todayUnixTimestamp;
     private long timestampOfPreviousSequence = -1;
     private long timestampOfCurrentSequence = -1;
 
-    long latestProcessedMinute = 0l;
-    int currentSequenceNumberInBatch = -1;
-    long breathAveragePhoneTimestamp = -1;
-    long breathAverageRESpeckTimestamp = -1;
-    int breathAverageSequenceNumber = -1;
-    int latestStoredRespeckSeq = -1;
+    private long latestProcessedMinute = 0L;
+    private int currentSequenceNumberInBatch = -1;
+    private long breathAveragePhoneTimestamp = -1;
+    private long breathAverageRESpeckTimestamp = -1;
+    private int breathAverageSequenceNumber = -1;
+    private int latestStoredRespeckSeq = -1;
 
     // BATTERY MONITORING
 
@@ -135,6 +136,9 @@ public class SpeckBluetoothService {
         // Get reference to LocationUtils
         mLocationUtils = LocationUtils.getInstance(mainActivity);
         mLocationUtils.startLocationManager();
+
+        // Initialise stored queue
+        storedQueue = new LinkedList<>();
 
         //Initialize Breathing Functions
         initBreathing();
@@ -218,7 +222,7 @@ public class SpeckBluetoothService {
     public boolean isConnecting() {
         // TODO: this is only commented out for testing purposes
         //return !mQOEConnectionComplete && !mRespeckConnectionComplete;
-        return true;
+        return false;
     }
 
     /**
@@ -685,15 +689,12 @@ public class SpeckBluetoothService {
                         }
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
-                        // packes before the first timestamp
+                        // packets before the first timestamp
                         Log.i("DF", "Acceleration packet received from RESpeck");
                         try {
-                            final float x = combineAccelerationBytes(Byte.valueOf(accelBytes[i + 1]),
-                                    Byte.valueOf(accelBytes[i + 2]));
-                            float y = combineAccelerationBytes(Byte.valueOf(accelBytes[i + 3]),
-                                    Byte.valueOf(accelBytes[i + 4]));
-                            float z = combineAccelerationBytes(Byte.valueOf(accelBytes[i + 5]),
-                                    Byte.valueOf(accelBytes[i + 6]));
+                            final float x = combineAccelerationBytes(accelBytes[i + 1], accelBytes[i + 2]);
+                            float y = combineAccelerationBytes(accelBytes[i + 3], accelBytes[i + 4]);
+                            float z = combineAccelerationBytes(accelBytes[i + 5], accelBytes[i + 6]);
 
                             updateBreathing(x, y, z);
 
@@ -702,26 +703,30 @@ public class SpeckBluetoothService {
                             float breathingAngle = getBreathingAngle();
                             float averageBreathingRate = getAverageBreathingRate();
                             float stdDevBreathingRate = getStdDevBreathingRate();
-                            float nBreaths = getNBreaths();
+                            float numberOfBreaths = getNumberOfBreaths();
                             float activityLevel = getActivityLevel();
                             float activityType = getCurrentActivityClassification();
 
+                            // Calculate interpolated timestamp of current sample based on sequence number
+                            // There are 32 samples in each acceleration batch the RESpeck sends.
+                            long interpolatedPhoneTimestampOfCurrentSample = (long) ((timestampOfCurrentSequence -
+                                    timestampOfPreviousSequence) * (currentSequenceNumberInBatch / 32.0f)) +
+                                    timestampOfPreviousSequence;
+                            float cutoffInterpolatedTimestamp = onlyKeepTimeInDay(
+                                    interpolatedPhoneTimestampOfCurrentSample);
+
                             Log.i("2", "BS_TIMESTAMP " + String.valueOf(currentPhoneTimestamp));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(currentRESpeckTimestamp));
+                            Log.i("2", "Interpolated timestamp " + String.valueOf(
+                                    cutoffInterpolatedTimestamp));
                             Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(currentSequenceNumberInBatch));
                             Log.i("2", "Breathing Rate " + String.valueOf(breathingRate));
                             Log.i("2", "Breathing Signal " + String.valueOf(breathingSignal));
                             Log.i("2", "Breathing Angle " + String.valueOf(breathingAngle));
                             Log.i("2", "BRA " + String.valueOf(averageBreathingRate));
                             Log.i("2", "STDBR " + String.valueOf(stdDevBreathingRate));
-                            Log.i("2", "NBreaths " + String.valueOf(nBreaths));
+                            Log.i("2", "NBreaths " + String.valueOf(numberOfBreaths));
                             Log.i("2", "Activity Level " + String.valueOf(activityLevel));
-
-                            // Calculate interpolated timestamp of current sample based on sequence number
-                            // There are 32 samples in each acceleration batch the RESpeck sends.
-                            long interpolatedTimestampOfCurrentSample = (long) ((timestampOfCurrentSequence -
-                                    timestampOfPreviousSequence) * (currentSequenceNumberInBatch / 32.0f)) +
-                                    timestampOfPreviousSequence;
 
                             // Send JSON object to server
                             JSONObject json = new JSONObject();
@@ -756,10 +761,10 @@ public class SpeckBluetoothService {
                                 } else {
                                     json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, stdDevBreathingRate);
                                 }
-                                if (Float.isNaN(nBreaths)) {
+                                if (Float.isNaN(numberOfBreaths)) {
                                     json.put(Constants.RESPECK_N_BREATHS, null);
                                 } else {
-                                    json.put(Constants.RESPECK_N_BREATHS, nBreaths);
+                                    json.put(Constants.RESPECK_N_BREATHS, numberOfBreaths);
                                 }
                                 if (Float.isNaN(activityLevel)) {
                                     json.put(Constants.RESPECK_ACTIVITY_LEVEL, null);
@@ -768,7 +773,7 @@ public class SpeckBluetoothService {
                                 }
                                 json.put(Constants.RESPECK_LIVE_SEQ, currentSequenceNumberInBatch);
                                 json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, currentRESpeckTimestamp);
-                                json.put(Constants.UNIX_TIMESTAMP, interpolatedTimestampOfCurrentSample);
+                                json.put(Constants.UNIX_TIMESTAMP, interpolatedPhoneTimestampOfCurrentSample);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -785,7 +790,9 @@ public class SpeckBluetoothService {
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
                             values.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
-                            values.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, (float) currentRESpeckTimestamp);
+                            // Only store the
+                            values.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP,
+                                    (float) cutoffInterpolatedTimestamp);
                             if (Float.isNaN(breathingRate)) {
                                 values.put(Constants.RESPECK_BREATHING_RATE, 0f);
                             } else {
@@ -817,7 +824,7 @@ public class SpeckBluetoothService {
                                 float ave_br = getAverageBreathingRate();
                                 float sd_br = getStdDevBreathingRate();
                                 //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
-                                int n_breaths = getNBreaths();
+                                int n_breaths = getNumberOfBreaths();
                                 float act = getActivityLevel();
 
                                 // Empty the minute average window
@@ -941,6 +948,22 @@ public class SpeckBluetoothService {
             }
         }
     };
+
+    private float onlyKeepTimeInDay(long timestamp) {
+        /*
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHH", Locale.UK);
+            String startOfDay = dateFormat.format(new Date());
+            long startOfDayMillis = dateFormat.parse(startOfDay).getTime();
+            return (float) (timestamp - startOfDayMillis);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0f;
+        */
+        long millisInHour = 36000000;
+        return (float) (timestamp % millisInHour);
+    }
 
     private long combineTimestampBytes(Byte upper, Byte upper_middle, Byte lower_middle, Byte lower) {
         short unsigned_upper = (short) (upper & 0xFF);
@@ -1072,8 +1095,6 @@ public class SpeckBluetoothService {
                     summaryCounter++;
                 }
 
-                Log.i("DF", "summary counter: " + summaryCounter);
-
                 // If the temporary prediction recording is full, i.e. count is MAX, we
                 // write the summarised data into another external file and empty the temporary file.
                 if (summaryCounter == SUMMARY_COUNT_MAX) {
@@ -1121,7 +1142,7 @@ public class SpeckBluetoothService {
 
     public native float getActivityLevel();
 
-    public native int getNBreaths();
+    public native int getNumberOfBreaths();
 
     public native float getBreathingAngle();
 

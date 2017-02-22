@@ -15,7 +15,7 @@ public class XAxisValueFormatter implements IAxisValueFormatter {
     private SimpleDateFormat dateFormat;
 
     public XAxisValueFormatter() {
-        dateFormat = new SimpleDateFormat("mm:ss.SS", Locale.UK);
+        dateFormat = new SimpleDateFormat("mm:ss", Locale.UK);
     }
 
     @Override

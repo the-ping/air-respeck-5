@@ -31,7 +31,7 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing( 
     bpm_init(&bpm);
     MA_stats_init(&maf);
 
-    breathing.sample_rate = 13.0;
+    breathing.sample_rate = SAMPLE_RATE;
     breathing.sample_rate_valid = true;
     count = 0;
 }
@@ -90,7 +90,7 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_calculateMA( JN
     MA_stats_calculate(&maf);
 }
 
-jint Java_com_specknet_airrespeck_services_SpeckBluetoothService_getNBreaths( JNIEnv* env, jobject this)
+jint Java_com_specknet_airrespeck_services_SpeckBluetoothService_getNumberOfBreaths( JNIEnv* env, jobject this)
 {
     return (jint) MA_stats_num(&maf);
 }

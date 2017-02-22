@@ -508,7 +508,7 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
         mRespeckSensorReadings = new HashMap<String, Float>();
-        mRespeckSensorReadings.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -541,7 +541,7 @@ public class MainActivity extends BaseActivity {
                         mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
 
                 mBreathingGraphFragment.addBreathingSignalData(
-                        mRespeckSensorReadings.get(Constants.RESPECK_LIVE_RS_TIMESTAMP),
+                        mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
                         mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
             } else {
                 mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
@@ -619,6 +619,7 @@ public class MainActivity extends BaseActivity {
             mHomeFragment.showConnecting(isConnecting);
             mAQReadingsFragment.showConnecting(isConnecting);
             mGraphsFragment.showConnecting(isConnecting);
+            mBreathingGraphFragment.showConnecting(isConnecting);
         }
     }
 

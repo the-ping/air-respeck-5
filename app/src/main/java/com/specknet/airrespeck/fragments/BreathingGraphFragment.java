@@ -22,6 +22,7 @@ import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -68,8 +69,11 @@ public class BreathingGraphFragment extends BaseFragment {
      */
     private void setupBreathingSignalChart() {
         // no description text
-        mBreathingSignalChart.setDescription(new Description());
+        Description emptyDescription = new Description();
+        emptyDescription.setText("");
+        mBreathingSignalChart.setDescription(emptyDescription);
         mBreathingSignalChart.setDrawGridBackground(false);
+        mBreathingSignalChart.getLegend().setEnabled(false);
 
         XAxis xAxis = mBreathingSignalChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -78,31 +82,26 @@ public class BreathingGraphFragment extends BaseFragment {
         xAxis.setValueFormatter(new XAxisValueFormatter());
 
         YAxis leftAxis = mBreathingSignalChart.getAxisLeft();
-        //leftAxis.setLabelCount(5, false);
+        leftAxis.setLabelCount(5, false);
+        leftAxis.setDrawGridLines(true);
 
         YAxis rightAxis = mBreathingSignalChart.getAxisRight();
         rightAxis.setLabelCount(5, false);
-        rightAxis.setDrawGridLines(false);
 
         mBreathingSignalChart.animateX(750);
     }
 
     private void setupLineDataSet() {
-        LineDataSet set1;
-        set1 = new LineDataSet(new ArrayList<Entry>(), getString(R.string.graphs_breathing_signal_title));
+        LineDataSet dataSet = new LineDataSet(new ArrayList<Entry>(), getString(R.string.graphs_breathing_signal_title));
 
-        set1.setLineWidth(2.5f);
-        //set1.setCircleRadius(4.5f);
-        //set1.setHighLightColor(Color.rgb(244, 117, 117));
-        set1.setColor(Color.rgb(0, 0, 255));
-        //set1.setCircleColor(Color.rgb(0, 0, 255));
-        set1.setDrawValues(false);
-        //set1.setDrawFilled(true);
-        //set1.setFillColor(Color.rgb(0, 0, 255));
+        dataSet.setLineWidth(2.5f);
+        dataSet.setDrawCircles(false);
+        dataSet.setColor(Color.rgb(0, 0, 255));
+        dataSet.setDrawValues(false);
 
         // add the datasets
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
-        dataSets.add(set1);
+        dataSets.add(dataSet);
 
         // create a data object with the datasets
         LineData data = new LineData(dataSets);
@@ -117,9 +116,9 @@ public class BreathingGraphFragment extends BaseFragment {
      * @param value float The new value.
      */
     public void addBreathingSignalData(final float timestamp, final float value) {
-        if (mBreathingSignalChart != null) {
-            Log.i("DF", "addBreathingSignalData");
 
+        Log.i("DF", "Add breathing signal with timestamp: " + String.valueOf(timestamp));
+        if (mBreathingSignalChart != null) {
             LineDataSet dataSet = (LineDataSet) mBreathingSignalChart.getData().getDataSetByIndex(0);
             dataSet.addEntry(new Entry(timestamp, value));
 
