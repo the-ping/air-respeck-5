@@ -62,7 +62,7 @@ dependencies {
     // Active Android SQLite lib
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     // Chart graphs
-    compile 'com.github.PhilJay:MPAndroidChart:v3.0.0-beta1'
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
     // FloatLabeledEditText
     compile 'com.nineoldandroids:library:2.4.0'
     // CircularProgressBar
@@ -70,7 +70,7 @@ dependencies {
     // DateUtils
     compile 'org.apache.commons:commons-lang3:3.0'
     // Multidex support
-    compile 'com.android.support:multidex:1.0.0'
+    compile 'com.android.support:multidex:1.0.1'
 }
 repositories {
     mavenCentral()

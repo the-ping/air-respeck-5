@@ -132,7 +132,7 @@ public class Constants {
     /**
      * GRAPHS FRAGMENT UI
      */
-    public static final int NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART = 30;
+    public static final int NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART = (int) Math.round(30 * 12.5);
 
 
     /**

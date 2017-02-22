@@ -1,6 +1,5 @@
 package com.specknet.airrespeck.services;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -18,12 +17,10 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
@@ -88,17 +85,21 @@ public class SpeckBluetoothService {
     int lastSample = 0;
 
     // RESPECK CODE
-    int latest_live_respeck_seq = -1;
-    long live_bs_timestamp = -1;
-    long live_rs_timestamp = -1;
-    Queue<RESpeckStoredSample> stored_queue;
+    int latestLiveRespeckSeq = -1;
+    long currentPhoneTimestamp = -1;
+    long currentRESpeckTimestamp = -1;
+    Queue<RESpeckStoredSample> storedQueue;
+
+    private long todayUnixTimestamp;
+    private long timestampOfPreviousSequence = -1;
+    private long timestampOfCurrentSequence = -1;
 
     long latestProcessedMinute = 0l;
-    int live_seq = -1;
-    long brav_bs_timestamp = -1;
-    long brav_rs_timestamp = -1;
-    int brav_seq = -1;
-    int latest_stored_respeck_seq = -1;
+    int currentSequenceNumberInBatch = -1;
+    long breathAveragePhoneTimestamp = -1;
+    long breathAverageRESpeckTimestamp = -1;
+    int breathAverageSequenceNumber = -1;
+    int latestStoredRespeckSeq = -1;
 
     // BATTERY MONITORING
 
@@ -106,8 +107,8 @@ public class SpeckBluetoothService {
     public static final int BATTERY_FULL_LEVEL = 1152; // was 1139
     public static final int BATTERY_EMPTY_LEVEL = 889;
     private final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
-    private float latest_battery_percent = 0f;
-    private float latest_request_charge = 0f;
+    private float latestBatteryPercent = 0f;
+    private float latestRequestCharge = 0f;
 
     // References to Context and Utils
     MainActivity mainActivity;
@@ -215,7 +216,9 @@ public class SpeckBluetoothService {
     }
 
     public boolean isConnecting() {
-        return !mQOEConnectionComplete && !mRespeckConnectionComplete;
+        // TODO: this is only commented out for testing purposes
+        //return !mQOEConnectionComplete && !mRespeckConnectionComplete;
+        return true;
     }
 
     /**
@@ -602,15 +605,15 @@ public class SpeckBluetoothService {
                     descriptor2.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                     gatt.writeDescriptor(descriptor2);
                 }
-            }
-            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATH_INTERVALS_CHARACTERISTIC))) {
+            } else if (descriptor.getCharacteristic().getUuid().equals(
+                    UUID.fromString(RESPECK_BREATH_INTERVALS_CHARACTERISTIC))) {
                 Log.i("Respeck", "RESPECK_BREATH_INTERVALS_CHARACTERISTIC");
 
-            }
-            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+            } else if (descriptor.getCharacteristic().getUuid().equals(
+                    UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
                 Log.i("Respeck", "RESPECK_BREATHING_RATES_CHARACTERISTIC");
-            }
-            else if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+            } else if (descriptor.getCharacteristic().getUuid().equals(
+                    UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
                 Log.i("Respeck", "RESPECK_BATTERY_LEVEL_CHARACTERISTIC");
             }
         }
@@ -619,54 +622,77 @@ public class SpeckBluetoothService {
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             if (characteristic.getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
                 final byte[] accelBytes = characteristic.getValue();
-                final int len = accelBytes.length;
-                final int seq = accelBytes[0] & 0xFF;
+                final int sequenceNumber = accelBytes[0] & 0xFF;
 
                 //Check if the reading is not repeated
-                if (seq == latest_live_respeck_seq) {
-                    Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(seq));
+                if (sequenceNumber == latestLiveRespeckSeq) {
+                    Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(sequenceNumber));
                     return;
                 } else {
-                    latest_live_respeck_seq = seq;
+                    latestLiveRespeckSeq = sequenceNumber;
                 }
 
-                for (int i = 1; i < len; i += 7) {
-                    Byte start_byte = accelBytes[i];
-                    if (start_byte == -1) {
+                for (int i = 1; i < accelBytes.length; i += 7) {
+                    Byte startByte = accelBytes[i];
+                    if (startByte == -1) {
+                        // Timestamp packet received. Starting a new sequence
+                        Log.i("DF", "Timestamp received from RESpeck");
+
+                        // Read timestamp from packet
                         Byte ts_1 = accelBytes[i + 1];
                         Byte ts_2 = accelBytes[i + 2];
                         Byte ts_3 = accelBytes[i + 3];
                         Byte ts_4 = accelBytes[i + 4];
 
-                        live_bs_timestamp = System.currentTimeMillis();
-                        Long new_rs_timestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
-                        if (new_rs_timestamp == live_rs_timestamp) {
+                        Long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
+                        if (newRESpeckTimestamp == currentRESpeckTimestamp) {
                             Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
                             return;
                         }
-                        live_rs_timestamp = new_rs_timestamp;
-                        live_seq = 0;
+                        currentRESpeckTimestamp = newRESpeckTimestamp;
 
-                        while (!stored_queue.isEmpty()) {
-                            RESpeckStoredSample s = stored_queue.remove();
+                        // Independent of the RESpeck timestamp, we use the phone timestamp
+                        currentPhoneTimestamp = System.currentTimeMillis();
 
-                            Long current_time_offset = live_bs_timestamp / 1000 - live_rs_timestamp;
+                        if (timestampOfPreviousSequence == -1) {
+                            // If this is our first sequence, we use the typical time difference between the
+                            // RESpeck packets, which is around 2535
+                            int averageTimeDifferenceBetweenPackets = 2535;
+                            timestampOfPreviousSequence = currentPhoneTimestamp - averageTimeDifferenceBetweenPackets;
+                        } else {
+                            timestampOfPreviousSequence = timestampOfCurrentSequence;
+                        }
+                        // Update the current sequence timestamp to the current phone timestamp
+                        timestampOfCurrentSequence = currentPhoneTimestamp;
 
-                            Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + current_time_offset);
-                            Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRs_timestamp());
-                            Log.i("1", "EXTRA_RESPECK_SEQ: " + s.getSeq());
+                        currentSequenceNumberInBatch = 0;
+
+                        // process any queued stored data
+                        while (!storedQueue.isEmpty()) {
+                            // TODO: this doesn't seem to be reached? Is the queue only for the case when
+                            // the RESpeck was disconnected from the phone? Comment above if applicable!
+                            RESpeckStoredSample s = storedQueue.remove();
+
+                            Long currentTimeOffset = currentPhoneTimestamp / 1000 - currentRESpeckTimestamp;
+
+                            Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
+                            Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
+                            Log.i("1", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
                             Log.i("1", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getMeanBr());
                             Log.i("1", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNBreaths());
                             Log.i("1", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getSdBr());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY " + s.getActivity());
+                            Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY " + s.getActivityLevel());
                         }
-                    } else if (start_byte == -2 && live_seq >= 0) {
+                    } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
+                        // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
+                        // packes before the first timestamp
+                        Log.i("DF", "Acceleration packet received from RESpeck");
                         try {
-                            final float x = combineAccelBytes(Byte.valueOf(accelBytes[i + 1]),
+                            final float x = combineAccelerationBytes(Byte.valueOf(accelBytes[i + 1]),
                                     Byte.valueOf(accelBytes[i + 2]));
-                            float y = combineAccelBytes(Byte.valueOf(accelBytes[i + 3]),
+                            float y = combineAccelerationBytes(Byte.valueOf(accelBytes[i + 3]),
                                     Byte.valueOf(accelBytes[i + 4]));
-                            float z = combineAccelBytes(Byte.valueOf(accelBytes[i + 5]),
+                            float z = combineAccelerationBytes(Byte.valueOf(accelBytes[i + 5]),
                                     Byte.valueOf(accelBytes[i + 6]));
 
                             updateBreathing(x, y, z);
@@ -680,9 +706,9 @@ public class SpeckBluetoothService {
                             float activityLevel = getActivityLevel();
                             float activityType = getCurrentActivityClassification();
 
-                            Log.i("2", "BS TIMESTAMP " + String.valueOf(live_bs_timestamp));
-                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(live_rs_timestamp));
-                            Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(live_seq));
+                            Log.i("2", "BS_TIMESTAMP " + String.valueOf(currentPhoneTimestamp));
+                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(currentRESpeckTimestamp));
+                            Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(currentSequenceNumberInBatch));
                             Log.i("2", "Breathing Rate " + String.valueOf(breathingRate));
                             Log.i("2", "Breathing Signal " + String.valueOf(breathingSignal));
                             Log.i("2", "Breathing Angle " + String.valueOf(breathingAngle));
@@ -691,11 +717,13 @@ public class SpeckBluetoothService {
                             Log.i("2", "NBreaths " + String.valueOf(nBreaths));
                             Log.i("2", "Activity Level " + String.valueOf(activityLevel));
 
+                            // Calculate interpolated timestamp of current sample based on sequence number
+                            // There are 32 samples in each acceleration batch the RESpeck sends.
+                            long interpolatedTimestampOfCurrentSample = (long) ((timestampOfCurrentSequence -
+                                    timestampOfPreviousSequence) * (currentSequenceNumberInBatch / 32.0f)) +
+                                    timestampOfPreviousSequence;
 
-                            // Get timestamp
-                            long unixTimestamp = mUtils.getUnixTimestamp();
-
-                            // Send message
+                            // Send JSON object to server
                             JSONObject json = new JSONObject();
                             try {
                                 json.put("messagetype", "respeck_data");
@@ -738,9 +766,9 @@ public class SpeckBluetoothService {
                                 } else {
                                     json.put(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
                                 }
-                                json.put(Constants.RESPECK_LIVE_SEQ, live_seq);
-                                json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, live_rs_timestamp);
-                                json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);
+                                json.put(Constants.RESPECK_LIVE_SEQ, currentSequenceNumberInBatch);
+                                json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, currentRESpeckTimestamp);
+                                json.put(Constants.UNIX_TIMESTAMP, interpolatedTimestampOfCurrentSample);
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -751,12 +779,13 @@ public class SpeckBluetoothService {
                             Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
 
 
-                            //UPDATE THE UI
+                            // Send RESpeck readings to UI Handler
                             HashMap<String, Float> values = new HashMap<String, Float>();
                             values.put(Constants.RESPECK_X, x);
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
                             values.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
+                            values.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, (float) currentRESpeckTimestamp);
                             if (Float.isNaN(breathingRate)) {
                                 values.put(Constants.RESPECK_BREATHING_RATE, 0f);
                             } else {
@@ -773,17 +802,15 @@ public class SpeckBluetoothService {
                                 values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
                             }
                             // add battery info
-                            values.put(Constants.RESPECK_BATTERY_PERCENT, latest_battery_percent);
-                            values.put(Constants.RESPECK_REQUEST_CHARGE, latest_request_charge);
+                            values.put(Constants.RESPECK_BATTERY_PERCENT, latestBatteryPercent);
+                            values.put(Constants.RESPECK_REQUEST_CHARGE, latestRequestCharge);
 
                             sendMessageToUIHandler(MainActivity.UPDATE_RESPECK_READINGS, values);
 
-                            //RESpeckStoredSample s = stored_queue.remove();
-
-                            live_seq += 1;
-
-                            long ts_minute = DateUtils.truncate(new Date(live_bs_timestamp), Calendar.MINUTE).getTime();
-
+                            // Every full minute, calculate the average breathing rate in that minute. This value will
+                            // only change after a call to "calculateMA".
+                            long ts_minute = DateUtils.truncate(new Date(currentPhoneTimestamp),
+                                    Calendar.MINUTE).getTime();
                             if (ts_minute > latestProcessedMinute) {
                                 calculateMA();
 
@@ -793,9 +820,10 @@ public class SpeckBluetoothService {
                                 int n_breaths = getNBreaths();
                                 float act = getActivityLevel();
 
+                                // Empty the minute average window
                                 resetMA();
 
-                                Log.i("3", "RESPECK BS TIMESTAMP " + ts_minute);
+                                Log.i("3", "RESPECK_BS_TIMESTAMP " + ts_minute);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + ave_br);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + n_breaths);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: " + sd_br);
@@ -826,80 +854,85 @@ public class SpeckBluetoothService {
                         } catch (IndexOutOfBoundsException e) {
                             e.printStackTrace();
                         }
+
+                        // Increase sequence number for next incoming sample
+                        currentSequenceNumberInBatch += 1;
                     }
                 }
-            }
-
-            else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
-                //count += 1;
+            } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+                // Battery packet received which contains the charging level of the battery
                 final byte[] batteryLevelBytes = characteristic.getValue();
-                int batt_level = combineBattBytes(batteryLevelBytes[0],batteryLevelBytes[1]);
+                int battLevel = combineBattBytes(batteryLevelBytes[0], batteryLevelBytes[1]);
 
-                Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(batt_level));
+                Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
 
+                int chargePercentage = (100 * (battLevel - BATTERY_EMPTY_LEVEL) /
+                        (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
 
-                boolean charge = false;
-                if (batt_level <= PROMPT_TO_CHARGE_LEVEL) {
-                    charge = true;
+                if (chargePercentage < 1)
+                    chargePercentage = 1;
+                else if (chargePercentage > 100)
+                    chargePercentage = 100;
+
+                latestBatteryPercent = (float) chargePercentage;
+
+                boolean requiresCharging = battLevel <= PROMPT_TO_CHARGE_LEVEL;
+                if (requiresCharging) {
+                    latestRequestCharge = 1f;
+                } else {
+                    latestRequestCharge = 0;
                 }
 
-                int percent = (100 * (batt_level - BATTERY_EMPTY_LEVEL) / (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
+                Log.i("RAT", "Battery level: " + Float.toString(
+                        latestBatteryPercent) + ", request charge: " + Float.toString(latestRequestCharge));
 
-                if (percent < 1)
-                    percent = 1;
-                else if (percent > 100)
-                    percent = 100;
-
-                latest_battery_percent = (float)percent;
-                if (charge) latest_request_charge = 1f; else latest_request_charge = 0;
-
-                Log.i("RAT", "Battery level: " + Float.toString(latest_battery_percent) + ", request charge: " + Float.toString(latest_request_charge));
-
-
-            }
-            else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+            } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+                // Breathing rates packet received. This only happens when the RESpeck was disconnected and
+                // therefore only stored the minute averages
                 final byte[] breathAveragesBytes = characteristic.getValue();
-                final int len = breathAveragesBytes.length;
 
-                final int seq = breathAveragesBytes[0] & 0xFF;
+                final int sequenceNumber = breathAveragesBytes[0] & 0xFF;
 
-                if (seq == latest_stored_respeck_seq) {
+                // Duplicate sent?
+                if (sequenceNumber == latestStoredRespeckSeq) {
                     return;
                 } else {
-                    latest_stored_respeck_seq = seq;
+                    latestStoredRespeckSeq = sequenceNumber;
                 }
 
+                for (int i = 1; i < breathAveragesBytes.length; i += 6) {
+                    Byte startByte = breathAveragesBytes[i];
 
-                for (int i = 1; i < len; i += 6) {
-                    Byte start_byte = breathAveragesBytes[i];
-
-                    if (start_byte == -1) {
-                        //timestamp
+                    if (startByte == -1) {
+                        // timestamp
                         Byte ts_1 = breathAveragesBytes[i + 1];
                         Byte ts_2 = breathAveragesBytes[i + 2];
                         Byte ts_3 = breathAveragesBytes[i + 3];
                         Byte ts_4 = breathAveragesBytes[i + 4];
-                        brav_bs_timestamp = System.currentTimeMillis();
-                        brav_rs_timestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
-                        brav_seq = 0;
-                    } else if (start_byte == -2) {
-                        //breath average
-                        int n_breaths = breathAveragesBytes[i + 1] & 0xFF;
-                        if (n_breaths > 5) {
-                            float mean_br = (float) (breathAveragesBytes[i + 2] & 0xFF) / 5.0f;
-                            float sd_br = (float) Math.sqrt((float) (breathAveragesBytes[i + 3] & 0xFF) / 10.0f);
+                        breathAveragePhoneTimestamp = System.currentTimeMillis();
+                        breathAverageRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
+                        breathAverageSequenceNumber = 0;
+                    } else if (startByte == -2) {
+                        // breath average
+                        int numberOfBreaths = breathAveragesBytes[i + 1] & 0xFF;
+                        if (numberOfBreaths > 5) {
+                            float meanBreathingRate = (float) (breathAveragesBytes[i + 2] & 0xFF) / 5.0f;
+                            float sdBreathingRate = (float) Math.sqrt((float) (breathAveragesBytes[i + 3] & 0xFF) /
+                                    10.0f);
 
-                            Byte upper_act = breathAveragesBytes[i + 4];
-                            Byte lower_act = breathAveragesBytes[i + 5];
-                            float combined_act = combineActBytes(upper_act, lower_act);
+                            Byte upperActivityLevel = breathAveragesBytes[i + 4];
+                            Byte lowerActivityLevel = breathAveragesBytes[i + 5];
+                            float combinedActivityLevel = combineActBytes(upperActivityLevel, lowerActivityLevel);
 
-                            RESpeckStoredSample ras = new RESpeckStoredSample(brav_bs_timestamp, brav_rs_timestamp,
-                                    brav_seq++, n_breaths, mean_br, sd_br, combined_act);
+                            RESpeckStoredSample ras = new RESpeckStoredSample(breathAveragePhoneTimestamp,
+                                    breathAverageRESpeckTimestamp,
+                                    breathAverageSequenceNumber++, numberOfBreaths, meanBreathingRate,
+                                    sdBreathingRate,
+                                    combinedActivityLevel);
                             Log.w("RAT", "Queueing stored sample: " + ras.toString());
-                            stored_queue.add(ras);
+                            storedQueue.add(ras);
                         }
                     }
-
 
                     //Log.i("RAT", "BREATH AVERAGES: " + Arrays.toString(breath_averages));
                     //updateTextBox("Breath Averages: " + Arrays.toString(breath_averages));
@@ -919,7 +952,7 @@ public class SpeckBluetoothService {
         return uValue;
     }
 
-    private float combineAccelBytes(Byte upper, Byte lower) {
+    private float combineAccelerationBytes(Byte upper, Byte lower) {
         short unsigned_lower = (short) (lower & 0xFF);
         short value = (short) ((upper << 8) | unsigned_lower);
         float fValue = (value) / 16384.0f;
@@ -927,20 +960,20 @@ public class SpeckBluetoothService {
     }
 
     private float combineActBytes(Byte upper, Byte lower) {
-        short unsigned_lower = (short) (lower & 0xFF);
-        short unsigned_upper = (short) (upper & 0xFF);
-        short value = (short) ((unsigned_upper << 8) | unsigned_lower);
+        short unsignedLower = (short) (lower & 0xFF);
+        short unsignedUpper = (short) (upper & 0xFF);
+        short value = (short) ((unsignedUpper << 8) | unsignedLower);
         float fValue = (value) / 1000.0f;
         return fValue;
     }
 
     private int combineBattBytes(Byte upper, Byte lower) {
-        short unsigned_lower = (short) (lower & 0xFF);
-        short unsigned_upper = (short) (upper & 0xFF);
-        if (unsigned_upper > 0xF0) {
-            unsigned_upper = (short)((0xFF - unsigned_upper) + 1);
+        short unsignedLower = (short) (lower & 0xFF);
+        short unsignedUpper = (short) (upper & 0xFF);
+        if (unsignedUpper > 0xF0) {
+            unsignedUpper = (short) ((0xFF - unsignedUpper) + 1);
         }
-        short value = (short) ((unsigned_upper << 8) | unsigned_lower);
+        short value = (short) ((unsignedUpper << 8) | unsignedLower);
         int iValue = value;
         return iValue;
     }

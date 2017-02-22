@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -105,7 +106,7 @@ public class GraphsFragment extends BaseFragment {
      */
     private void setupPMsChart() {
         mPMsLineChart.setDrawGridBackground(false);
-        mPMsLineChart.setDescription("");
+        mPMsLineChart.setDescription(new Description());
 
         XAxis xAxis = mPMsLineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -114,12 +115,10 @@ public class GraphsFragment extends BaseFragment {
 
         YAxis leftAxis = mPMsLineChart.getAxisLeft();
         leftAxis.setLabelCount(5, false);
-        leftAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         YAxis rightAxis = mPMsLineChart.getAxisRight();
         rightAxis.setLabelCount(5, false);
         rightAxis.setDrawGridLines(false);
-        rightAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         // initial data
         // IMPORTANT: must have exactly 3 data sets
@@ -224,10 +223,8 @@ public class GraphsFragment extends BaseFragment {
      * Setup Bins chart.
      */
     private void setupBinsChart() {
-        mBinsLineChart.setDrawGridBackground(false);
-
         // no description text
-        mBinsLineChart.setDescription("");
+        mBinsLineChart.setDescription(new Description());
         mBinsLineChart.setDrawGridBackground(false);
 
         XAxis xAxis = mBinsLineChart.getXAxis();
@@ -237,12 +234,10 @@ public class GraphsFragment extends BaseFragment {
 
         YAxis leftAxis = mBinsLineChart.getAxisLeft();
         leftAxis.setLabelCount(5, false);
-        leftAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         YAxis rightAxis = mBinsLineChart.getAxisRight();
         rightAxis.setLabelCount(5, false);
         rightAxis.setDrawGridLines(false);
-        rightAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         // set data
         updateBinsChartData();
@@ -314,10 +309,8 @@ public class GraphsFragment extends BaseFragment {
      * Setup Breathing Signal chart.
      */
     private void setupBreathingSignalChart() {
-        mBreathingSignalChart.setDrawGridBackground(false);
-
         // no description text
-        mBreathingSignalChart.setDescription("");
+        mBreathingSignalChart.setDescription(new Description());
         mBreathingSignalChart.setDrawGridBackground(false);
 
         XAxis xAxis = mBreathingSignalChart.getXAxis();
@@ -327,12 +320,10 @@ public class GraphsFragment extends BaseFragment {
 
         YAxis leftAxis = mBreathingSignalChart.getAxisLeft();
         //leftAxis.setLabelCount(5, false);
-        //leftAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         YAxis rightAxis = mBreathingSignalChart.getAxisRight();
         rightAxis.setLabelCount(5, false);
         rightAxis.setDrawGridLines(false);
-        rightAxis.setAxisMinValue(0f); // this replaces setStartAtZero(true)
 
         // set data
         updateBreathingSignalChartData();

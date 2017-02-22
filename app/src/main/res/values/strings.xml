@@ -103,6 +103,7 @@
     <string name="menu_graphs">GRAPHS</string>
     <string name="menu_settings">SETTINGS</string>
     <string name="menu_activity_summary">ACTIVITY</string>
+    <string name="menu_breathing_graph">BREATHING GRAPH</string>
 
     <!-- Action Bar menu -->
     <string name="action_air_speck">AirSpeck</string>

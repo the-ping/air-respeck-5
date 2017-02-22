@@ -56,7 +56,6 @@ class QOERemoteUploadService {
 
     class MyReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
             when (intent.action) {
                 MSG_UPLOAD -> {
                     Log.i("QOE", "MSG_UPLOAD message received")

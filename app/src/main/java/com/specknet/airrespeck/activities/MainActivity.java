@@ -21,6 +21,7 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
 import com.specknet.airrespeck.fragments.ActivitySummaryFragment;
+import com.specknet.airrespeck.fragments.BreathingGraphFragment;
 import com.specknet.airrespeck.fragments.DaphneHomeFragment;
 import com.specknet.airrespeck.fragments.DaphneValuesFragment;
 import com.specknet.airrespeck.fragments.GraphsFragment;
@@ -129,18 +130,18 @@ public class MainActivity extends BaseActivity {
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
     private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
-    private static final String TAG_CURRENT_FRAGMENT = "CURRENT_FRAGMENT";
     private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
     private static final String TAG_DAPHNE_VALUES_FRAGMENT = "DAPHNE_VALUES_FRAGMENT";
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
+    private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
 
     private DaphneHomeFragment mDaphneHomeFragment;
     private DaphneValuesFragment mDaphneValuesFragment;
     private HomeFragment mHomeFragment;
     private AQReadingsFragment mAQReadingsFragment;
     private GraphsFragment mGraphsFragment;
-    private Fragment mCurrentFragment;
     private ActivitySummaryFragment mActivitySummaryFragment;
+    private BreathingGraphFragment mBreathingGraphFragment;
 
     // UTILS
     Utils mUtils;
@@ -203,7 +204,7 @@ public class MainActivity extends BaseActivity {
         if (savedInstanceState != null) {
             isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
         } else {
-            isSupervisedMode = false;
+            isSupervisedMode = true;
         }
 
         // Call displayMode methods so the tabs are set correctly
@@ -236,6 +237,8 @@ public class MainActivity extends BaseActivity {
         supervisedTitles = new ArrayList<>();
         supervisedFragments.add(mHomeFragment);
         supervisedTitles.add(getString(R.string.menu_home));
+        supervisedFragments.add(mBreathingGraphFragment);
+        supervisedTitles.add(getString(R.string.menu_breathing_graph));
         supervisedFragments.add(mAQReadingsFragment);
         supervisedTitles.add(getString(R.string.menu_air_quality));
         supervisedFragments.add(mActivitySummaryFragment);
@@ -273,51 +276,39 @@ public class MainActivity extends BaseActivity {
             mDaphneValuesFragment = (DaphneValuesFragment) fm.getFragment(savedInstanceState,
                     TAG_DAPHNE_VALUES_FRAGMENT);
 
-            mCurrentFragment = fm.getFragment(savedInstanceState, TAG_CURRENT_FRAGMENT);
-
             mActivitySummaryFragment = (ActivitySummaryFragment) fm.getFragment(savedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
 
-            // If they don't exist, which could happen because the activity was paused before loading the fragments,
-            // create new fragments
-            if (mHomeFragment == null) {
-                mHomeFragment = new HomeFragment();
-            }
-            if (mAQReadingsFragment == null) {
-                mAQReadingsFragment = new AQReadingsFragment();
-            }
-            if (mGraphsFragment == null) {
-                mGraphsFragment = new GraphsFragment();
-            }
-            if (mDaphneHomeFragment == null) {
-                mDaphneHomeFragment = new DaphneHomeFragment();
-            }
-            if (mDaphneValuesFragment == null) {
-                mDaphneValuesFragment = new DaphneValuesFragment();
-            }
-            if (mCurrentFragment == null) {
-                mCurrentFragment = mDaphneHomeFragment;
-            }
-            if (mActivitySummaryFragment == null) {
-                mActivitySummaryFragment = new ActivitySummaryFragment();
-            }
-        } else {
-            // If there is no saved instance state, this means we are starting the activity for the first time
-            // Create all the fragments
+            mBreathingGraphFragment = (BreathingGraphFragment) fm.getFragment(savedInstanceState,
+                    TAG_BREATHING_GRAPH_FRAGMENT);
+        }
+        // If there is no saved instance state, or if the fragments haven't been created during the last activity
+        // startup, create them now
+        if (mHomeFragment == null) {
             mHomeFragment = new HomeFragment();
+        }
+        if (mAQReadingsFragment == null) {
             mAQReadingsFragment = new AQReadingsFragment();
+        }
+        if (mGraphsFragment == null) {
             mGraphsFragment = new GraphsFragment();
+        }
+        if (mDaphneHomeFragment == null) {
             mDaphneHomeFragment = new DaphneHomeFragment();
+        }
+        if (mDaphneValuesFragment == null) {
             mDaphneValuesFragment = new DaphneValuesFragment();
+        }
+        if (mActivitySummaryFragment == null) {
             mActivitySummaryFragment = new ActivitySummaryFragment();
-
-            // Set Daphne home fragment to be the currently displayed one
-            mCurrentFragment = mDaphneHomeFragment;
+        }
+        if (mBreathingGraphFragment == null) {
+            mBreathingGraphFragment = new BreathingGraphFragment();
         }
     }
 
     private void startActivitySummaryUpdaterTask() {
-        final int delay = 10*60*1000;
+        final int delay = 10 * 60 * 1000;
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -436,8 +427,8 @@ public class MainActivity extends BaseActivity {
         if (mActivitySummaryFragment != null && mActivitySummaryFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mActivitySummaryFragment);
         }
-        if (mCurrentFragment != null && mCurrentFragment.isAdded()) {
-            fm.putFragment(outState, TAG_CURRENT_FRAGMENT, mCurrentFragment);
+        if (mBreathingGraphFragment != null && mBreathingGraphFragment.isAdded()) {
+            fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mBreathingGraphFragment);
         }
     }
 
@@ -517,6 +508,7 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
         mRespeckSensorReadings = new HashMap<String, Float>();
+        mRespeckSensorReadings.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -546,6 +538,10 @@ public class MainActivity extends BaseActivity {
 
                 // Graphs fragment UI
                 mGraphsFragment.addBreathingSignalData(
+                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
+
+                mBreathingGraphFragment.addBreathingSignalData(
+                        mRespeckSensorReadings.get(Constants.RESPECK_LIVE_RS_TIMESTAMP),
                         mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
             } else {
                 mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
