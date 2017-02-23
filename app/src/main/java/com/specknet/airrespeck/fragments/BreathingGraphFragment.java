@@ -2,7 +2,6 @@ package com.specknet.airrespeck.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +21,6 @@ import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
 
 /**
  * Created by Darius on 21.02.2017.
@@ -80,6 +77,7 @@ public class BreathingGraphFragment extends BaseFragment {
         xAxis.setDrawGridLines(false);
         xAxis.setDrawAxisLine(true);
         xAxis.setValueFormatter(new XAxisValueFormatter());
+        xAxis.setAxisLineColor(R.color.breathing_graph_line_color);
 
         YAxis leftAxis = mBreathingSignalChart.getAxisLeft();
         leftAxis.setLabelCount(5, false);
@@ -92,7 +90,8 @@ public class BreathingGraphFragment extends BaseFragment {
     }
 
     private void setupLineDataSet() {
-        LineDataSet dataSet = new LineDataSet(new ArrayList<Entry>(), getString(R.string.graphs_breathing_signal_title));
+        LineDataSet dataSet = new LineDataSet(new ArrayList<Entry>(),
+                getString(R.string.graphs_breathing_signal_title));
 
         dataSet.setLineWidth(2.5f);
         dataSet.setDrawCircles(false);
@@ -110,17 +109,11 @@ public class BreathingGraphFragment extends BaseFragment {
         mBreathingSignalChart.setData(data);
     }
 
-    /**
-     * Helper to add new values to Breathing Signal chart.
-     *
-     * @param value float The new value.
-     */
-    public void addBreathingSignalData(final float timestamp, final float value) {
-
-        Log.i("DF", "Add breathing signal with timestamp: " + String.valueOf(timestamp));
+    // This method is called from the UI handler to update the graph
+    public void updateBreathingGraph(Entry newEntry) {
         if (mBreathingSignalChart != null) {
             LineDataSet dataSet = (LineDataSet) mBreathingSignalChart.getData().getDataSetByIndex(0);
-            dataSet.addEntry(new Entry(timestamp, value));
+            dataSet.addEntry(newEntry);
 
             // Remove any values older than the number of breathing signal points we want to display
             while (dataSet.getValues().size() > Constants.NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART) {

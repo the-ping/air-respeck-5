@@ -660,9 +660,9 @@ public class SpeckBluetoothService {
 
                         if (timestampOfPreviousSequence == -1) {
                             // If this is our first sequence, we use the typical time difference between the
-                            // RESpeck packets, which is around 2535
-                            int averageTimeDifferenceBetweenPackets = 2535;
-                            timestampOfPreviousSequence = currentPhoneTimestamp - averageTimeDifferenceBetweenPackets;
+                            // RESpeck packets for determining the previous timestamp
+                            timestampOfPreviousSequence = currentPhoneTimestamp -
+                                    Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS;
                         } else {
                             timestampOfPreviousSequence = timestampOfCurrentSequence;
                         }
@@ -710,8 +710,8 @@ public class SpeckBluetoothService {
                             // Calculate interpolated timestamp of current sample based on sequence number
                             // There are 32 samples in each acceleration batch the RESpeck sends.
                             long interpolatedPhoneTimestampOfCurrentSample = (long) ((timestampOfCurrentSequence -
-                                    timestampOfPreviousSequence) * (currentSequenceNumberInBatch / 32.0f)) +
-                                    timestampOfPreviousSequence;
+                                    timestampOfPreviousSequence) * (currentSequenceNumberInBatch * 1. /
+                                    Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + timestampOfPreviousSequence;
                             float cutoffInterpolatedTimestamp = onlyKeepTimeInDay(
                                     interpolatedPhoneTimestampOfCurrentSample);
 

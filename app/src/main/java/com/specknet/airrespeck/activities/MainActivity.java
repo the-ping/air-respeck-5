@@ -14,9 +14,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.github.mikephil.charting.data.Entry;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
@@ -34,6 +36,7 @@ import com.specknet.airrespeck.utils.Utils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -50,6 +53,7 @@ public class MainActivity extends BaseActivity {
     public final static int SHOW_AIRSPECK_CONNECTED = 5;
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
+    private final static int UPDATE_BREATHING_GRAPH = 8;
 
 
     /**
@@ -81,7 +85,6 @@ public class MainActivity extends BaseActivity {
                         // We also update the connection symbol in case it hasn't been updated yet
                         service.updateAirspeckConnectionSymbol(true);
                         break;
-
                     case ACTIVITY_SUMMARY_UPDATE:
                         service.updateActivitySummary();
                         break;
@@ -109,6 +112,9 @@ public class MainActivity extends BaseActivity {
                         break;
                     case SHOW_RESPECK_DISCONNECTED:
                         service.updateRESpeckConnectionSymbol(false);
+                        break;
+                    case UPDATE_BREATHING_GRAPH:
+                        service.updateBreathingGraph((Entry) msg.obj);
                         break;
                 }
             }
@@ -151,8 +157,10 @@ public class MainActivity extends BaseActivity {
     private CoordinatorLayout mCoordinatorLayout;
 
     // READING VALUES
-    HashMap<String, Float> mRespeckSensorReadings;
-    HashMap<String, Float> mQOESensorReadings;
+    HashMap<String, Float> mRespeckSensorReadings = new HashMap<>();
+    HashMap<String, Float> mQOESensorReadings = new HashMap<>();
+    private LinkedList<Entry> breathingSignalchartDataQueue = new LinkedList<>();
+    private int updateDelayBreathingGraph;
 
     // Speck service
     SpeckBluetoothService mSpeckBluetoothService;
@@ -163,10 +171,10 @@ public class MainActivity extends BaseActivity {
 
     TabLayout tabLayout;
     ViewPager viewPager;
-    ArrayList<Fragment> supervisedFragments;
-    ArrayList<String> supervisedTitles;
-    ArrayList<Fragment> subjectFragments;
-    ArrayList<String> subjectTitles;
+    ArrayList<Fragment> supervisedFragments = new ArrayList<>();
+    ArrayList<String> supervisedTitles = new ArrayList<>();
+    ArrayList<Fragment> subjectFragments = new ArrayList<>();
+    ArrayList<String> subjectTitles = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,12 +237,13 @@ public class MainActivity extends BaseActivity {
         mSpeckBluetoothService.initSpeckService(this);
 
         startActivitySummaryUpdaterTask();
+        startBreathingGraphUpdaterTask();
     }
 
     private void setupViewPager() {
         // Setup supervised mode arrays
-        supervisedFragments = new ArrayList<>();
-        supervisedTitles = new ArrayList<>();
+        supervisedFragments.clear();
+        supervisedTitles.clear();
         supervisedFragments.add(mHomeFragment);
         supervisedTitles.add(getString(R.string.menu_home));
         supervisedFragments.add(mBreathingGraphFragment);
@@ -249,8 +258,8 @@ public class MainActivity extends BaseActivity {
         }
 
         // Setup subject mode arrays
-        subjectFragments = new ArrayList<>();
-        subjectTitles = new ArrayList<>();
+        subjectFragments.clear();
+        subjectTitles.clear();
         subjectFragments.add(mDaphneHomeFragment);
         // We don't want any text in the subject view, just the icons
         subjectTitles.add("");
@@ -321,12 +330,57 @@ public class MainActivity extends BaseActivity {
         }, 0, delay);
     }
 
+    private void startBreathingGraphUpdaterTask() {
+        final Handler handler = new Handler();
+        final int defaultDelay = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS /
+                Constants.NUMBER_OF_SAMPLES_PER_BATCH;
+        updateDelayBreathingGraph = defaultDelay;
 
-    private void updateActivitySummary() {
-        // The activity summary is only displayed in supervised mode
-        if (isSupervisedMode) {
-            mActivitySummaryFragment.updateActivitySummary();
+        // This class is used to determine the update frequency of the breathing data graph. The data from the
+        // RESpeck is coming in in batches, which would make the graph hard to read. Therefore, we store the
+        // incoming data in a queue and update the graph smoothly.
+        class breathingUpdaterRunner implements Runnable {
+            private boolean queueHadBeenFilled = false;
+
+            @Override
+            public void run() {
+                //Log.i("DF", String.format(Locale.UK, "Breathing data queue length: %d",
+                //        breathingSignalchartDataQueue.size()));
+
+                if (breathingSignalchartDataQueue.isEmpty()) {
+                    // If the queue is empty and there has been data in the queue previously,
+                    // this means we were too fast. Wait for another delay and decrease the processing speed.
+                    // Only do this if we're below a certain threshold (set with intuition here)
+                    if (queueHadBeenFilled && updateDelayBreathingGraph <= 1.1 * defaultDelay) {
+                        updateDelayBreathingGraph += 1;
+                        Log.i("DF", String.format(Locale.UK, "Queue empty: decrease processing speed to: %d ms",
+                                updateDelayBreathingGraph));
+                    }
+
+                    handler.postDelayed(this, updateDelayBreathingGraph);
+                } else {
+                    // Remember the fact that we have already received data
+                    queueHadBeenFilled = true;
+
+                    Message msg = new Message();
+                    msg.obj = breathingSignalchartDataQueue.removeFirst();
+                    msg.what = UPDATE_BREATHING_GRAPH;
+                    msg.setTarget(mUIHandler);
+                    msg.sendToTarget();
+
+                    // If our queue is too long, increase processing speed. The size threshold was set intuitively and
+                    // might have to be adjusted
+                    if (breathingSignalchartDataQueue.size() > Constants.NUMBER_OF_SAMPLES_PER_BATCH) {
+                        updateDelayBreathingGraph -= 1;
+                        Log.i("DF", String.format(Locale.UK, "Queue too full: increase processing speed to: %d ms",
+                                updateDelayBreathingGraph));
+                    }
+
+                    handler.postDelayed(this, updateDelayBreathingGraph);
+                }
+            }
         }
+        handler.postDelayed(new breathingUpdaterRunner(), updateDelayBreathingGraph);
     }
 
     private void displaySupervisedMode() {
@@ -481,7 +535,6 @@ public class MainActivity extends BaseActivity {
      * Initialize hashmaps for sensor reading values
      */
     private void initReadingMaps() {
-        mQOESensorReadings = new HashMap<String, Float>();
         mQOESensorReadings.put(Constants.QOE_PM1, 0f);
         mQOESensorReadings.put(Constants.QOE_PM2_5, 0f);
         mQOESensorReadings.put(Constants.QOE_PM10, 0f);
@@ -507,7 +560,6 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
-        mRespeckSensorReadings = new HashMap<String, Float>();
         mRespeckSensorReadings.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
@@ -540,9 +592,11 @@ public class MainActivity extends BaseActivity {
                 mGraphsFragment.addBreathingSignalData(
                         mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
 
-                mBreathingGraphFragment.addBreathingSignalData(
-                        mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
-                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
+                // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
+                breathingSignalchartDataQueue.add(
+                        new Entry(mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
+                                mUtils.roundToTwoDigits(
+                                        mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL))));
             } else {
                 mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
             }
@@ -664,5 +718,19 @@ public class MainActivity extends BaseActivity {
     private void showSnackbar(String message) {
         Snackbar.make(mCoordinatorLayout, message, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
+    }
+
+
+    private void updateActivitySummary() {
+        // The activity summary is only displayed in supervised mode
+        if (isSupervisedMode) {
+            mActivitySummaryFragment.updateActivitySummary();
+        }
+    }
+
+    private void updateBreathingGraph(Entry entry) {
+        if (isSupervisedMode) {
+            mBreathingGraphFragment.updateBreathingGraph(entry);
+        }
     }
 }

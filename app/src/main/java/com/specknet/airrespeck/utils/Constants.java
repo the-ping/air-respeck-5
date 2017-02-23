@@ -51,7 +51,6 @@ public class Constants {
     public static int MENU_ICON_INFO = R.drawable.vec_info;
 
 
-
     /**
      * Readings
      */
@@ -173,4 +172,10 @@ public class Constants {
     public static final int ACTIVITY_LYING = 2;
     public static final int NUM_ACT_CLASSES = 3;
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down"} ;
+
+    /*
+    Others
+     */
+    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = 2535;
+    public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
 }
