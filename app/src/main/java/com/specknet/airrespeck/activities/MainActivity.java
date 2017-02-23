@@ -674,6 +674,7 @@ public class MainActivity extends BaseActivity {
             mAQReadingsFragment.showConnecting(isConnecting);
             mGraphsFragment.showConnecting(isConnecting);
             mBreathingGraphFragment.showConnecting(isConnecting);
+            mActivitySummaryFragment.showConnecting(isConnecting);
         }
     }
 
