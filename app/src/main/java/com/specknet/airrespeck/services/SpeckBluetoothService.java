@@ -950,17 +950,6 @@ public class SpeckBluetoothService {
     };
 
     private float onlyKeepTimeInDay(long timestamp) {
-        /*
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHH", Locale.UK);
-            String startOfDay = dateFormat.format(new Date());
-            long startOfDayMillis = dateFormat.parse(startOfDay).getTime();
-            return (float) (timestamp - startOfDayMillis);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return 0f;
-        */
         long millisInHour = 36000000;
         return (float) (timestamp % millisInHour);
     }

@@ -1,17 +1,17 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".fragments.GraphsFragment">
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".fragments.GraphsFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <ScrollView
+            android:id="@+id/scrollView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/scrollView" >
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -22,17 +22,30 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:text="@string/graphs_breathing_signal_title" />
+                    android:text="@string/graphs_breathing_flow_title"/>
 
                 <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/breathing_signal_line_chart"
+                    android:id="@+id/breathing_flow_line_chart"
                     android:layout_width="match_parent"
-                    android:layout_height="250dp" />
+                    android:layout_height="200dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/graphs_breathing_pca_title"
+                    android:layout_marginTop="10dp"/>
+
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/breathing_pca_line_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="5dp"/>
 
             </LinearLayout>
         </ScrollView>
 
-        <include layout="@layout/content_connecting" />
+        <include layout="@layout/content_connecting"/>
 
     </RelativeLayout>
 </FrameLayout>

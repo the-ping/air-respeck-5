@@ -18,7 +18,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.github.mikephil.charting.data.Entry;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.AQReadingsFragment;
@@ -28,6 +27,7 @@ import com.specknet.airrespeck.fragments.DaphneHomeFragment;
 import com.specknet.airrespeck.fragments.DaphneValuesFragment;
 import com.specknet.airrespeck.fragments.GraphsFragment;
 import com.specknet.airrespeck.fragments.HomeFragment;
+import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.LocationUtils;
@@ -114,7 +114,7 @@ public class MainActivity extends BaseActivity {
                         service.updateRESpeckConnectionSymbol(false);
                         break;
                     case UPDATE_BREATHING_GRAPH:
-                        service.updateBreathingGraph((Entry) msg.obj);
+                        service.updateBreathingGraphs((BreathingGraphData) msg.obj);
                         break;
                 }
             }
@@ -159,7 +159,7 @@ public class MainActivity extends BaseActivity {
     // READING VALUES
     HashMap<String, Float> mRespeckSensorReadings = new HashMap<>();
     HashMap<String, Float> mQOESensorReadings = new HashMap<>();
-    private LinkedList<Entry> breathingSignalchartDataQueue = new LinkedList<>();
+    private LinkedList<BreathingGraphData> breathingSignalchartDataQueue = new LinkedList<>();
     private int updateDelayBreathingGraph;
 
     // Speck service
@@ -593,10 +593,15 @@ public class MainActivity extends BaseActivity {
                         mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
 
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
-                breathingSignalchartDataQueue.add(
-                        new Entry(mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
-                                mUtils.roundToTwoDigits(
-                                        mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL))));
+                BreathingGraphData breathingGraphData = new BreathingGraphData(
+                        mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
+                        mRespeckSensorReadings.get(Constants.RESPECK_X),
+                        mRespeckSensorReadings.get(Constants.RESPECK_Y),
+                        mRespeckSensorReadings.get(Constants.RESPECK_Z),
+                        mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL));
+
+                breathingSignalchartDataQueue.add(breathingGraphData);
+
             } else {
                 mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
             }
@@ -615,7 +620,7 @@ public class MainActivity extends BaseActivity {
         // Air Quality fragment UI
         try {
             if (isSupervisedMode) {
-                HashMap<String, Float> values = new HashMap<String, Float>();
+                HashMap<String, Float> values = new HashMap<>();
 
                 values.put(Constants.QOE_TEMPERATURE,
                         mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
@@ -632,7 +637,7 @@ public class MainActivity extends BaseActivity {
                 mAQReadingsFragment.setReadings(values);
 
                 // Graphs fragment UI
-                ArrayList<Float> listValues = new ArrayList<Float>();
+                ArrayList<Float> listValues = new ArrayList<>();
 
                 listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
                 listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
@@ -729,9 +734,9 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void updateBreathingGraph(Entry entry) {
+    private void updateBreathingGraphs(BreathingGraphData data) {
         if (isSupervisedMode) {
-            mBreathingGraphFragment.updateBreathingGraph(entry);
+            mBreathingGraphFragment.updateBreathingGraphs(data);
         }
     }
 }

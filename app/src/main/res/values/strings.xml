@@ -91,7 +91,8 @@
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
     <string name="graphs_bins_title">Bins: 0 – 15</string>
-    <string name="graphs_breathing_signal_title">Breathing Curve (flow rate)</string>
+    <string name="graphs_breathing_flow_title">Breathing Curve (flow rate)</string>
+    <string name="graphs_breathing_pca_title">Breathing Curve (volume, PCA)</string>
 
 
 

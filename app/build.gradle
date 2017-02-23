@@ -71,6 +71,8 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.0'
     // Multidex support
     compile 'com.android.support:multidex:1.0.1'
+    // PCA support
+    compile 'com.github.mkobos:pca_transform:1.0.1'
 }
 repositories {
     mavenCentral()

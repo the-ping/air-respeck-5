@@ -22,5 +22,5 @@
         <item>@color/pocket_color_4</item>
     </integer-array>
 
-    <color name="breathing_graph_line_color">#3F51B5</color>
+    <color name="breathing_graph_line_color">#303F9F</color>
 </resources>

@@ -132,7 +132,7 @@ public class Constants {
     /**
      * GRAPHS FRAGMENT UI
      */
-    public static final int NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART = (int) Math.round(30 * 12.5);
+    public static final int NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART = (int) Math.round(15 * 12.5);
 
 
     /**
@@ -178,4 +178,10 @@ public class Constants {
      */
     public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = 2535;
     public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
+
+    /*
+    PCA zero mean signal calculation
+     */
+    public static final int NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA = (int) Math.round(20 * 12.5);
+    public static final int NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION = 69;
 }
