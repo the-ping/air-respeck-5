@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -343,5 +344,28 @@ public final class Utils {
             sum += elem;
         }
         return sum / a.length;
+    }
+
+    public static float mean(float[] a) {
+        float sum = 0f;
+        for (float elem : a) {
+            sum += elem;
+        }
+        return sum / a.length;
+    }
+
+    public static float median(Float[] a) {
+        Float[] aCopy = Arrays.copyOf(a, a.length);
+
+        // sort aCopy
+        Arrays.sort(aCopy);
+
+        // return the middle value. if a has even length, return the mean of two middle values
+        int middle = aCopy.length / 2;
+        if (aCopy.length % 2 == 1) {
+            return aCopy[middle];
+        } else {
+            return (aCopy[middle - 1] + aCopy[middle]) / 2.0f;
+        }
     }
 }

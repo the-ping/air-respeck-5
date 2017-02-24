@@ -184,4 +184,6 @@ public class Constants {
      */
     public static final int NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA = (int) Math.round(20 * 12.5);
     public static final int NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION = 69;
+    public static final int NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER = 7;
+    public static final int NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER = 5;
 }

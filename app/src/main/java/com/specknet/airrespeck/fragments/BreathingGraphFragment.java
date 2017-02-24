@@ -1,6 +1,5 @@
 package com.specknet.airrespeck.fragments;
 
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -16,20 +15,22 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.github.mikephil.charting.utils.Utils;
 import com.mkobos.pca_transform.PCA;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Queue;
 
 import Jama.Matrix;
 
 /**
  * Created by Darius on 21.02.2017.
+ * Fragment to display the respiratory signal
  */
 
 public class BreathingGraphFragment extends BaseFragment {
@@ -37,10 +38,12 @@ public class BreathingGraphFragment extends BaseFragment {
     private LineChart mBreathingFlowChart;
     private LineChart mBreathingPCAChart;
 
-    private LinkedList<BreathingGraphData> breathingDataQueue = new LinkedList<>();
-    private LinkedList<Float> pcaValueQueue = new LinkedList<>();
-    private LinkedList<Float> meanPcaValueQueue = new LinkedList<>();
-    private float lastCorrectedPcaValue = 0f;
+
+    private LinkedList<BreathingGraphData> mPreFilteringQueue = new LinkedList<>();
+    private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
+    private LinkedList<Float> mPcaValueQueue = new LinkedList<>();
+    private LinkedList<Float> mMeanPcaValueQueue = new LinkedList<>();
+    private float mLastCorrectedPcaValue = 0f;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -54,7 +57,7 @@ public class BreathingGraphFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // initialize the utilities
-        Utils.init(getContext());
+        com.github.mikephil.charting.utils.Utils.init(getContext());
     }
 
     @Override
@@ -131,23 +134,24 @@ public class BreathingGraphFragment extends BaseFragment {
         updateGraph(newEntry, mBreathingFlowChart);
     }
 
-    private void updatePCAGraph(BreathingGraphData data) {
-        if (breathingDataQueue.size() > Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
+    private void updatePCAGraph(BreathingGraphData newData) {
+        if (mBreathingDataQueue.size() > Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
             throw new RuntimeException("Breathing data queue exceeds limit!");
 
-        } else if (breathingDataQueue.size() == Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
+        } else if (mBreathingDataQueue.size() == Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
             // PCA transform on queued data
             // Generate matrix from queue
             double[][] matrixArray = new double[Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA][3];
             for (int r = 0; r < matrixArray.length; r++) {
-                matrixArray[r][0] = breathingDataQueue.get(r).getAccelX();
-                matrixArray[r][1] = breathingDataQueue.get(r).getAccelY();
-                matrixArray[r][2] = breathingDataQueue.get(r).getAccelZ();
+                matrixArray[r][0] = mBreathingDataQueue.get(r).getAccelX();
+                matrixArray[r][1] = mBreathingDataQueue.get(r).getAccelY();
+                matrixArray[r][2] = mBreathingDataQueue.get(r).getAccelZ();
             }
             Matrix trainingMatrix = new Matrix(matrixArray);
 
             // We want to transform the new data
-            Matrix testMatrix = new Matrix(new double[][]{{data.getAccelX(), data.getAccelY(), data.getAccelZ()}});
+            Matrix testMatrix = new Matrix(
+                    new double[][]{{newData.getAccelX(), newData.getAccelY(), newData.getAccelZ()}});
             PCA pca = new PCA(trainingMatrix);
             Matrix transformedData = pca.transform(testMatrix, PCA.TransformationType.ROTATION);
 
@@ -155,36 +159,69 @@ public class BreathingGraphFragment extends BaseFragment {
             float pcaValue = (float) transformedData.get(0, 0);
 
             // Add the pca value to the queue
-            pcaValueQueue.add(pcaValue);
-            while (pcaValueQueue.size() > Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION) {
-                pcaValueQueue.removeFirst();
-            }
+            mPcaValueQueue.add(pcaValue);
+            limitQueueToSize(mPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION);
 
-            // Add the current sample to the breathingDataQueue and remove the oldest sample
-            breathingDataQueue.add(data);
-            breathingDataQueue.removeFirst();
-
-            // If the pcaValueQueue is long enough, we subtract the mean from the
+            // If the mPcaValueQueue is long enough, we subtract the mean from the
             // value in the middle of the array
-            if (pcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION) {
+            if (mPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION) {
                 // Calculate mean PCA of all PCA values in queue
-                float meanPca = com.specknet.airrespeck.utils.Utils.mean(
-                        pcaValueQueue.toArray(new Float[pcaValueQueue.size()]));
+                float meanPca = Utils.mean(
+                        mPcaValueQueue.toArray(new Float[mPcaValueQueue.size()]));
 
                 // Subtract the mean from the center value in the queue
-                float correctedPca = pcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
+                float correctedPca = mPcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
 
-                // Smooth the data
+                /*
+                // Smooth the data: momentum method
                 // ALPHA is the smoothing factor. The higher, the more the data is smoothed.
                 final float ALPHA = 0.9f;
-                float filteredPca = correctedPca + ALPHA * (lastCorrectedPcaValue - correctedPca);
-                lastCorrectedPcaValue = filteredPca;
+                float filteredPca = correctedPca + ALPHA * (mLastCorrectedPcaValue - correctedPca);
+                mLastCorrectedPcaValue = filteredPca;
 
                 Entry newEntry = new Entry(data.getTimestamp(), filteredPca);
                 updateGraph(newEntry, mBreathingPCAChart);
+                */
+
+                mMeanPcaValueQueue.add(correctedPca);
+                limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);
+
+                if (mMeanPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER) {
+                    Entry newEntry = new Entry(newData.getTimestamp(), Utils.mean(
+                                    mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
+                    updateGraph(newEntry, mBreathingPCAChart);
+                }
+
             }
-        } else {
-            breathingDataQueue.add(data);
+        }
+
+        // Pre-filtering of acceleration values
+        mPreFilteringQueue.add(newData);
+        limitQueueToSize(mPreFilteringQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER);
+
+        if (mPreFilteringQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER) {
+            // Add the filtered sample to the mBreathingDataQueue and remove the oldest sample
+            float[] xs = new float[mPreFilteringQueue.size()];
+            float[] ys = new float[mPreFilteringQueue.size()];
+            float[] zs = new float[mPreFilteringQueue.size()];
+
+            for (int i = 0; i < mPreFilteringQueue.size(); i++) {
+                xs[i] = mPreFilteringQueue.get(i).getAccelX();
+                ys[i] = mPreFilteringQueue.get(i).getAccelY();
+                zs[i] = mPreFilteringQueue.get(i).getAccelZ();
+            }
+
+            BreathingGraphData meanData = new BreathingGraphData(newData.getTimestamp(),
+                    Utils.mean(xs), Utils.mean(ys), Utils.mean(zs), 0.0f);
+            mBreathingDataQueue.add(meanData);
+            limitQueueToSize(mBreathingDataQueue, Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA);
+        }
+
+    }
+
+    private void limitQueueToSize(Queue queue, int size) {
+        while (queue.size() > size) {
+            queue.remove();
         }
     }
 
