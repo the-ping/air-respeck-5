@@ -27,24 +27,6 @@ public class PreferencesUtils {
     /**
      * Class for keeping all the keys used for shared preferences in one place.
      */
-    public static class Key {
-        public static final String IS_APP_INITIAL_STARTUP = "is_app_initial_startup";
-
-        public static final String USER_ID = "user_id";
-
-        public static final String FONT_SIZE = "font_size";
-
-        public static final String MENU_MODE = "menu_mode";
-        public static final String MENU_BUTTONS_PADDING = "menu_buttons_padding";
-        public static final String MENU_TAB_ICONS = "menu_tab_icons";
-        public static final String MENU_GRAPHS_SCREEN = "menu_graphs_screen";
-
-        public static final String AIRSPECK_APP_ACCESS = "airspeck_app_access";
-        public static final String RESPECK_APP_ACCESS = "respeck_app_access";
-
-        public static final String READINGS_MODE_HOME_SCREEN = "readings_mode_home_screen";
-        public static final String READINGS_MODE_AQREADINGS_SCREEN ="readings_mode_aqreadings_screen";
-    }
 
     private PreferencesUtils(Context context) {
         mPref = PreferenceManager.getDefaultSharedPreferences(context);

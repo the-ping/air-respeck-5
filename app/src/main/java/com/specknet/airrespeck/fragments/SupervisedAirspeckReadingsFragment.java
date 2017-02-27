@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 
-public class AQReadingsFragment extends BaseFragment {
+public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
     private static final String ARG_COLUMN_COUNT = "COLUMN_COUNT";
     private int mColumnCount = 2;
@@ -44,13 +44,13 @@ public class AQReadingsFragment extends BaseFragment {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public AQReadingsFragment() {
+    public SupervisedAirspeckReadingsFragment() {
 
     }
 
     @SuppressWarnings("unused")
-    public static AQReadingsFragment newInstance(int columnCount) {
-        AQReadingsFragment fragment = new AQReadingsFragment();
+    public static SupervisedAirspeckReadingsFragment newInstance(int columnCount) {
+        SupervisedAirspeckReadingsFragment fragment = new SupervisedAirspeckReadingsFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);

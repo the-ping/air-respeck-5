@@ -3,41 +3,56 @@ package com.specknet.airrespeck.utils;
 
 import com.specknet.airrespeck.R;
 
-
+/**
+ * Class to keep all constants and string keys in one place. Note that for most of the constants below we cannot use
+ * enums, as we use the constants as keys for methods requiring a String, such as SharedPreferences.
+ */
 public class Constants {
-    // TODO: switch to enums instead of String constants
 
     /**
      * App config file
      */
-    public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
-    public static final String PFIELD_RESPECK_KEY = "RESpeckKey";
-    public static final String PFIELD_RESPECK_UUID = "RESpeckUUID";
-    public static final String PFIELD_QOEUUID = "QoEUUID";
-    public static final String PFIELD_TABLET_SERIAL = "TabletSerial";
-    public static final String PFIELD_PATIENT_ID = "PatientID";
-    public static final String PFIELD_PATIENT_AGE = "PatientAge";
-    public static final String PFIELD_USER_TYPE = "UserType";
+    public static class Config {
+        public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
+        public static final String RESPECK_KEY = "RESpeckKey";
+        public static final String RESPECK_UUID = "RESpeckUUID";
+        public static final String QOEUUID = "QoEUUID";
+        public static final String TABLET_SERIAL = "TabletSerial";
+        public static final String PATIENT_ID = "PatientID";
+        public static final String PATIENT_AGE = "PatientAge";
+        public static final String USER_TYPE = "UserType";
+        public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
+        public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
+        public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
+        public static final String IS_SUPERVISED_BREATHING_GRAPHS_ENABLED = "EnableSupervisedBreathingGraphs";
+        public static final String IS_SUPERVISED_ALL_GRAPHS_ENABLED = "EnableSupervisedAllGraphs";
+        public static final String IS_SUPERVISED_ACTIVITY_SUMMARY_ENABLED = "EnableSupervisedActivitySummary";
+        public static final String IS_SUPERVISED_RESPECK_READINGS_ENABLED = "EnableSupervisedRESpeckReadings";
+        public static final String IS_SUPERVISED_AIRSPECK_READINGS_ENABLED = "EnableSupervisedAirspeckReadings";
+
+    }
 
     /**
      * Preferences
      */
-    public static final String IS_APP_INITIAL_STARTUP = "is_app_initial_startup";
+    public static class Preferences {
+        public static final String IS_APP_INITIAL_STARTUP = "is_app_initial_startup";
 
-    public static final String USER_ID = "user_id";
+        public static final String USER_ID = "user_id";
 
-    public static final String FONT_SIZE = "font_size";
+        public static final String FONT_SIZE = "font_size";
 
-    public static final String MENU_MODE = "menu_mode";
-    public static final String MENU_BUTTONS_PADDING = "menu_buttons_padding";
-    public static final String MENU_TAB_ICONS = "menu_tab_icons";
-    public static final String MENU_GRAPHS_SCREEN = "menu_graphs_screen";
+        public static final String MENU_MODE = "menu_mode";
+        public static final String MENU_BUTTONS_PADDING = "menu_buttons_padding";
+        public static final String MENU_TAB_ICONS = "menu_tab_icons";
+        public static final String MENU_GRAPHS_SCREEN = "menu_graphs_screen";
 
-    public static final String AIRSPECK_APP_ACCESS = "airspeck_app_access";
-    public static final String RESPECK_APP_ACCESS = "respeck_app_access";
+        public static final String AIRSPECK_APP_ACCESS = "airspeck_app_access";
+        public static final String RESPECK_APP_ACCESS = "respeck_app_access";
 
-    public static final String READINGS_MODE_HOME_SCREEN = "readings_mode_home_screen";
-    public static final String READINGS_MODE_AQREADINGS_SCREEN ="readings_mode_aqreadings_screen";
+        public static final String READINGS_MODE_HOME_SCREEN = "readings_mode_home_screen";
+        public static final String READINGS_MODE_AQREADINGS_SCREEN = "readings_mode_aqreadings_screen";
+    }
 
     /**
      * UPLOAD SERVICES
@@ -191,7 +206,7 @@ public class Constants {
     public static final int ACTIVITY_WALKING = 1;
     public static final int ACTIVITY_LYING = 2;
     public static final int NUM_ACT_CLASSES = 3;
-    public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down"} ;
+    public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down"};
 
     /*
     Others

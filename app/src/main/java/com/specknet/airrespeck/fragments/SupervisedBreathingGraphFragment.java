@@ -35,7 +35,7 @@ import Jama.Matrix;
  * Fragment to display the respiratory signal
  */
 
-public class BreathingGraphFragment extends BaseFragment {
+public class SupervisedBreathingGraphFragment extends BaseFragment {
 
     private LineChart mBreathingFlowChart;
     private LineChart mBreathingPCAChart;
@@ -53,7 +53,7 @@ public class BreathingGraphFragment extends BaseFragment {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public BreathingGraphFragment() {
+    public SupervisedBreathingGraphFragment() {
 
     }
 

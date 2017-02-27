@@ -2,40 +2,34 @@ package com.specknet.airrespeck.adapters;
 
 
 import android.content.Context;
-import android.graphics.Color;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.fragments.AQReadingsFragment;
-import com.specknet.airrespeck.lib.Segment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.lib.SegmentedBar;
-import com.specknet.airrespeck.lib.SegmentedBarSideStyle;
 import com.specknet.airrespeck.models.ReadingItem;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link ReadingItem} and makes a call
- * to the specified {@link AQReadingsFragment.OnAQFragmentInteractionListener}.
+ * to the specified {@link SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener}.
  */
 public class ReadingItemSegmentedBarAdapter extends
         RecyclerView.Adapter<ReadingItemSegmentedBarAdapter.ViewHolder> {
 
     private final Context mContext;
     private final List<ReadingItem> mValues;
-    private final AQReadingsFragment.OnAQFragmentInteractionListener mListener;
+    private final SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener mListener;
 
     public ReadingItemSegmentedBarAdapter(Context context,
                                           List<ReadingItem> items,
-                                          AQReadingsFragment.OnAQFragmentInteractionListener listener) {
+                                          SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener listener) {
         mContext = context;
         mValues = items;
         mListener = listener;

@@ -21,8 +21,6 @@ public class BaseActivity extends AppCompatActivity {
     protected String mMenuModePref;
     protected boolean mMenuTabIconsPref;
     protected boolean mGraphsScreen;
-    protected boolean mRespeckAppAccessPref;
-    protected boolean mAirspeckAppAccessPref;
     protected int mFontSizePref;
 
     @Override
@@ -33,7 +31,7 @@ public class BaseActivity extends AppCompatActivity {
 
         if (!(this instanceof InitialSetupActivity) && !(this instanceof NewUserActivity)) {
             mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance().
-                    getString(PreferencesUtils.Key.USER_ID));
+                    getString(Constants.Preferences.USER_ID));
         }
 
         // Get preference settings depending on user type defined in RESpeck.config.
@@ -41,19 +39,14 @@ public class BaseActivity extends AppCompatActivity {
         // can be used if anything goes wrong.
         try {
             mMenuModePref = PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+                    .getString(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_BUTTONS);
             mMenuTabIconsPref = PreferencesUtils.getInstance()
-                    .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
+                    .getBoolean(Constants.Preferences.MENU_TAB_ICONS, false);
             mGraphsScreen = PreferencesUtils.getInstance()
-                    .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
-
-            mRespeckAppAccessPref = PreferencesUtils.getInstance()
-                    .getBoolean(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
-            mAirspeckAppAccessPref = PreferencesUtils.getInstance()
-                    .getBoolean(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
+                    .getBoolean(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
 
             mFontSizePref = Integer.parseInt(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL));
+                    .getString(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL));
 
             ThemeUtils themeUtils = ThemeUtils.getInstance();
             themeUtils.setTheme(mFontSizePref);
@@ -69,7 +62,7 @@ public class BaseActivity extends AppCompatActivity {
 
         try {
             String newVal = PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+                    .getString(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_BUTTONS);
 
             if (!mMenuModePref.equals(newVal)) {
                 restartActivity();
@@ -80,7 +73,7 @@ public class BaseActivity extends AppCompatActivity {
 
         try {
             boolean newVal = PreferencesUtils.getInstance()
-                    .getBoolean(PreferencesUtils.Key.MENU_TAB_ICONS, false);
+                    .getBoolean(Constants.Preferences.MENU_TAB_ICONS, false);
 
             if (mMenuTabIconsPref != newVal) {
                 restartActivity();
@@ -91,7 +84,7 @@ public class BaseActivity extends AppCompatActivity {
 
         try {
             boolean newVal = PreferencesUtils.getInstance()
-                    .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+                    .getBoolean(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
 
             if (mGraphsScreen != newVal) {
                 restartActivity();
@@ -101,7 +94,7 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         try {
-            int newVal = Integer.parseInt(PreferencesUtils.getInstance().getString(PreferencesUtils.Key.FONT_SIZE,
+            int newVal = Integer.parseInt(PreferencesUtils.getInstance().getString(Constants.Preferences.FONT_SIZE,
                     Constants.FONT_SIZE_NORMAL));
 
             if (mFontSizePref != newVal) {

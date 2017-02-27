@@ -10,7 +10,7 @@
         android:name="com.specknet.airrespeck.fragments.ListViewItemFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".fragments.AQReadingsFragment"
+        tools:context=".fragments.SupervisedAirspeckReadingsFragment"
         tools:listitem="@layout/list_item_listview" />
 
     <include layout="@layout/content_connecting" />

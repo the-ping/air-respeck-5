@@ -1,7 +1,7 @@
 package com.specknet.airrespeck.models
 
 /**
- * Class for storing RESpeck readings for displaying in the breathing graphs in the BreathingGraphFragment
+ * Class for storing RESpeck readings for displaying in the breathing graphs in the SupervisedBreathingGraphFragment
  */
 
 data class BreathingGraphData(val timestamp: Float, val accelX: Float,

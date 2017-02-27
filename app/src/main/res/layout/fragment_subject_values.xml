@@ -8,7 +8,7 @@
              android:paddingLeft="20dp"
              android:paddingRight="20dp"
              android:paddingTop="20dp"
-             tools:context=".fragments.DaphneHomeFragment">
+             tools:context=".fragments.SubjectHomeFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

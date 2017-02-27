@@ -38,7 +38,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -144,8 +143,8 @@ public class SpeckBluetoothService {
         initBreathing();
 
         // Get Bluetooth address
-        QOE_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID);
-        RESPECK_UUID = mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID);
+        QOE_UUID = mUtils.getProperties().getProperty(Constants.Config.QOEUUID);
+        RESPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.RESPECK_UUID);
 
         // Initializes a Bluetooth adapter. For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
@@ -992,11 +991,11 @@ public class SpeckBluetoothService {
 
         JSONObject json = new JSONObject();
         try {
-            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
-            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
-            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
+            json.put("patient_id", mUtils.getProperties().getProperty(Constants.Config.PATIENT_ID));
+            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.Config.RESPECK_KEY));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.Config.RESPECK_UUID));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.Config.QOEUUID));
+            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.Config.TABLET_SERIAL));
             json.put("app_version", mUtils.getAppVersionCode());
         } catch (Exception e) {
             e.printStackTrace();
@@ -1015,11 +1014,11 @@ public class SpeckBluetoothService {
 
         JSONObject json = new JSONObject();
         try {
-            json.put("patient_id", mUtils.getProperties().getProperty(Constants.PFIELD_PATIENT_ID));
-            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_KEY));
-            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_RESPECK_UUID));
-            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.PFIELD_QOEUUID));
-            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.PFIELD_TABLET_SERIAL));
+            json.put("patient_id", mUtils.getProperties().getProperty(Constants.Config.PATIENT_ID));
+            json.put("respeck_key", mUtils.getProperties().getProperty(Constants.Config.RESPECK_KEY));
+            json.put("respeck_uuid", mUtils.getProperties().getProperty(Constants.Config.RESPECK_UUID));
+            json.put("qoe_uuid", mUtils.getProperties().getProperty(Constants.Config.QOEUUID));
+            json.put("tablet_serial", mUtils.getProperties().getProperty(Constants.Config.TABLET_SERIAL));
             json.put("app_version", mUtils.getAppVersionCode());
         } catch (Exception e) {
             e.printStackTrace();

@@ -20,7 +20,7 @@ import java.util.Locale;
  * Created by Darius on 10.02.2017.
  */
 
-public class DaphneValuesFragment extends BaseFragment {
+public class SubjectValuesFragment extends BaseFragment {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
@@ -41,7 +41,7 @@ public class DaphneValuesFragment extends BaseFragment {
                              @Nullable Bundle savedInstanceState) {
 
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_daphne_values, container, false);
+        View view = inflater.inflate(R.layout.fragment_subject_values, container, false);
 
         breathingRateText = (TextView) view.findViewById(R.id.text_breathing);
         averageBreathingRateText = (TextView) view.findViewById(R.id.text_breathing_average);

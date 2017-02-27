@@ -34,42 +34,43 @@ public class BaseFragment extends Fragment {
         PreferencesUtils.getInstance(getContext());
 
         mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.USER_ID));
+                .getString(Constants.Preferences.USER_ID));
 
         mReadingsModeHomeScreen = PreferencesUtils.getInstance().getString(
-                PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST);
+                Constants.Preferences.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST);
         mReadingsModeAQReadingsScreen = PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                .getString(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
                         Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
 
         mGraphsScreen = PreferencesUtils.getInstance()
-                .getBoolean(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+                .getBoolean(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
 
         mButtonsPadding = Integer.parseInt(PreferencesUtils.getInstance()
-                .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
+                .getString(Constants.Preferences.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
     }
 
     @Override
     public void onStart() {
         super.onStart();
 
-        if (this instanceof HomeFragment) {
-            String newVal = PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_LIST);
+        if (this instanceof SupervisedRESpeckReadingsFragment) {
+            String newVal = PreferencesUtils.getInstance().getString(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
+                    Constants.READINGS_MODE_HOME_SCREEN_LIST);
 
             if (!mReadingsModeHomeScreen.equals(newVal)) {
                 restartFragment();
             }
-        } else if (this instanceof AQReadingsFragment) {
-            String newVal = PreferencesUtils.getInstance().getString(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
-                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
+        } else if (this instanceof SupervisedAirspeckReadingsFragment) {
+            String newVal = PreferencesUtils.getInstance().getString(
+                    Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
+                    Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
 
             if (!mReadingsModeAQReadingsScreen.equals(newVal)) {
                 restartFragment();
             }
         } else if (this instanceof MenuFragment) {
             int newVal = Integer.parseInt(PreferencesUtils.getInstance()
-                    .getString(PreferencesUtils.Key.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
+                    .getString(Constants.Preferences.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
 
             if (mButtonsPadding != newVal) {
                 restartFragment();

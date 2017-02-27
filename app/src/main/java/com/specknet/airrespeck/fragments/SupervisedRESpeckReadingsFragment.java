@@ -27,7 +27,7 @@ import java.util.List;
 import static com.specknet.airrespeck.R.styleable.SegmentedBar;
 
 
-public class HomeFragment extends BaseFragment implements View.OnClickListener {
+public class SupervisedRESpeckReadingsFragment extends BaseFragment implements View.OnClickListener {
 
     private ArrayList<ReadingItem> mReadingItems;
 
@@ -47,7 +47,7 @@ public class HomeFragment extends BaseFragment implements View.OnClickListener {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public HomeFragment() {
+    public SupervisedRESpeckReadingsFragment() {
 
     }
 

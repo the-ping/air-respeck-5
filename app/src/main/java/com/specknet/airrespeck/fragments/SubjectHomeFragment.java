@@ -1,6 +1,5 @@
 package com.specknet.airrespeck.fragments;
 
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -9,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
 
@@ -17,7 +15,7 @@ import com.specknet.airrespeck.R;
  * Created by Darius on 08.02.2017.
  */
 
-public class DaphneHomeFragment extends BaseFragment {
+public class SubjectHomeFragment extends BaseFragment {
 
     private ImageView connectedStatusRESpeck;
     private ImageView connectedStatusAirspeck;
@@ -26,7 +24,7 @@ public class DaphneHomeFragment extends BaseFragment {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public DaphneHomeFragment() {
+    public SubjectHomeFragment() {
 
     }
 
@@ -39,7 +37,7 @@ public class DaphneHomeFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_daphne_home, container, false);
+        View view = inflater.inflate(R.layout.fragment_subject_home, container, false);
 
         // Load connection symbols
         connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);

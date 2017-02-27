@@ -87,7 +87,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         PreferencesUtils preferencesUtils = PreferencesUtils.getInstance(getApplicationContext());
         int fontSizePref = Integer.parseInt(
-                preferencesUtils.getString(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL));
+                preferencesUtils.getString(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL));
         ThemeUtils themeUtils = ThemeUtils.getInstance();
         themeUtils.setTheme(fontSizePref);
         themeUtils.onActivityCreateSetTheme(this);

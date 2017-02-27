@@ -36,7 +36,7 @@ import java.util.TimerTask;
  * Created by Darius on 21.02.2017.
  */
 
-public class ActivitySummaryFragment extends BaseFragment {
+public class SupervisedActivitySummaryFragment extends BaseFragment {
 
     private ArrayList<ReadingItem> mReadingItems;
     private ReadingItemArrayAdapter mListViewAdapter;
@@ -45,16 +45,16 @@ public class ActivitySummaryFragment extends BaseFragment {
 
     private static class ActivitySummaryHandler extends Handler {
         // Using a weak reference means you won't prevent garbage collection
-        private final WeakReference<ActivitySummaryFragment> mService;
+        private final WeakReference<SupervisedActivitySummaryFragment> mService;
 
-        ActivitySummaryHandler(ActivitySummaryFragment service) {
+        ActivitySummaryHandler(SupervisedActivitySummaryFragment service) {
             mService = new WeakReference<>(service);
         }
 
         @Override
         public void handleMessage(Message msg) {
             final int what = msg.what;
-            ActivitySummaryFragment service = mService.get();
+            SupervisedActivitySummaryFragment service = mService.get();
             if (what == ACTIVITY_SUMMARY_UPDATE) {
                 service.updateActivitySummary();
             }
@@ -67,7 +67,7 @@ public class ActivitySummaryFragment extends BaseFragment {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public ActivitySummaryFragment() {
+    public SupervisedActivitySummaryFragment() {
 
     }
 

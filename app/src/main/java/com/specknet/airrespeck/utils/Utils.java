@@ -149,12 +149,12 @@ public final class Utils {
             // Load file stream
             mProperties = new Properties();
             mProperties.load(inputStream);
-            Log.e("AirRespeck Properties", "Loaded properties file");
+            Log.i("DF", "Loaded properties file");
         } catch (FileNotFoundException e) {
-            Log.e("AirRespeck Properties", "Properties file not found.");
+            Log.i("DF", "Properties file not found.");
             e.printStackTrace();
         } catch (IOException e) {
-            Log.e("AirRespeck Properties", "Cannot load properties file.");
+            Log.i("DF", "Cannot load properties file.");
             e.printStackTrace();
         }
     }
@@ -166,7 +166,7 @@ public final class Utils {
      */
     public Properties getProperties() {
         if (mProperties == null) {
-            loadPropertiesFile(Constants.PROPERTIES_FILE_NAME);
+            loadPropertiesFile(Constants.Config.PROPERTIES_FILE_NAME);
         }
         return mProperties;
     }
@@ -259,78 +259,78 @@ public final class Utils {
      */
     public void setupUI(User user) {
         PreferencesUtils.getInstance(mContext);
-        PreferencesUtils.getInstance().put(PreferencesUtils.Key.USER_ID, user.getUniqueId());
+        PreferencesUtils.getInstance().put(Constants.Preferences.USER_ID, user.getUniqueId());
 
         if (user.getUserType() == Constants.USER_TYPE_RESEARCHER) {
             // Users of type "Researcher" will have the tabbed main menu as default
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, true);
-            PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, true);
+            PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
+            PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, true);
+            PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, true);
         } else if (user.getUserType() == Constants.USER_TYPE_SUBJECT) {
             // Users of type "Subject" will have different configurations based on age
             switch (getUserGroupAge(getAge(user.getBirthDate()))) {
                 case Constants.UGA_ADOLESCENT:
                     // Menu type: Buttons
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_BUTTONS);
                     // Font size: Normal
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
                     // Home screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
                             Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
                     // Air Quality screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
                             Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
                     // Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
                     break;
                 case Constants.UGA_YOUNG_ADULT:
                     // Menu type: Tabs
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
                     // Font size: Normal
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
                     // Home screen, readings display type: List
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
                             Constants.READINGS_MODE_HOME_SCREEN_LIST);
                     // Air Quality screen, readings display type: List
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
                             Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
                     //Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
                     break;
                 case Constants.UGA_MIDDLEAGED_ADULT:
                     // Menu type: Tabs
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_TABS);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_TAB_ICONS, true);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_TAB_ICONS, true);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
                             Constants.READINGS_MODE_HOME_SCREEN_LIST);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
                             Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
                     //Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
                     break;
                 case Constants.UGA_ELDERLY_ADULT:
                     // Menu type: Buttons
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_MODE, Constants.MENU_MODE_BUTTONS);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.FONT_SIZE, Constants.FONT_SIZE_LARGE);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_HOME_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_BUTTONS);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_LARGE);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
                             Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.READINGS_MODE_AQREADINGS_SCREEN,
+                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
                             Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS);
                     //Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.MENU_GRAPHS_SCREEN, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
                     // External apps access: disabled
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(PreferencesUtils.Key.RESPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
+                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
                     break;
                 default:
                     throw new IllegalArgumentException("User must be at least 12 years old.");

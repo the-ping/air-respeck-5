@@ -20,13 +20,13 @@ import android.view.MenuItem;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
-import com.specknet.airrespeck.fragments.AQReadingsFragment;
-import com.specknet.airrespeck.fragments.ActivitySummaryFragment;
-import com.specknet.airrespeck.fragments.BreathingGraphFragment;
-import com.specknet.airrespeck.fragments.DaphneHomeFragment;
-import com.specknet.airrespeck.fragments.DaphneValuesFragment;
-import com.specknet.airrespeck.fragments.GraphsFragment;
-import com.specknet.airrespeck.fragments.HomeFragment;
+import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedBreathingGraphFragment;
+import com.specknet.airrespeck.fragments.SubjectHomeFragment;
+import com.specknet.airrespeck.fragments.SubjectValuesFragment;
+import com.specknet.airrespeck.fragments.SupervisedAllGraphsFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
@@ -141,13 +141,22 @@ public class MainActivity extends BaseActivity {
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
 
-    private DaphneHomeFragment mDaphneHomeFragment;
-    private DaphneValuesFragment mDaphneValuesFragment;
-    private HomeFragment mHomeFragment;
-    private AQReadingsFragment mAQReadingsFragment;
-    private GraphsFragment mGraphsFragment;
-    private ActivitySummaryFragment mActivitySummaryFragment;
-    private BreathingGraphFragment mBreathingGraphFragment;
+    private SubjectHomeFragment mSubjectHomeFragment;
+    private SubjectValuesFragment mSubjectValuesFragment;
+    private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
+    private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
+    private SupervisedAllGraphsFragment mSupervisedAllGraphsFragment;
+    private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
+    private SupervisedBreathingGraphFragment mSupervisedBreathingGraphFragment;
+
+    // Config loaded from RESpeck.config
+    private boolean mIsEnabledSupervisedMode;
+    private boolean mIsEnabledSubjectMode;
+    private boolean mShowSupervisedBreathingGraphs;
+    private boolean mShowSupervisedAllGraphs;
+    private boolean mShowSupervisedActivitySummary;
+    private boolean mShowSupervisedAirspeckReadings;
+    private boolean mShowSupervisedRESpeckReadings;
 
     // UTILS
     Utils mUtils;
@@ -198,6 +207,9 @@ public class MainActivity extends BaseActivity {
         // Utils
         mUtils = Utils.getInstance(this);
 
+        // Load configuration
+        loadConfig();
+
         // Load location Utils
         mLocationUtils = LocationUtils.getInstance(this);
         mLocationUtils.startLocationManager();
@@ -209,10 +221,24 @@ public class MainActivity extends BaseActivity {
         setupViewPager();
 
         // Load mode if stored. If no mode was stored, this defaults to false, i.e. subject mode
-        if (savedInstanceState != null) {
-            isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
-        } else {
+        if (mIsEnabledSubjectMode && mIsEnabledSupervisedMode) {
+            if (savedInstanceState != null) {
+                isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
+            } else {
+                // Set mode to starting mode specified in config file
+                Log.i("DF", "starting mode: " + mUtils.getProperties().getProperty(
+                        Constants.Config.IS_SUPERVISED_STARTING_MODE));
+                isSupervisedMode = Boolean.parseBoolean(
+                        mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_STARTING_MODE));
+
+            }
+        } else if (mIsEnabledSubjectMode) {
+            isSupervisedMode = false;
+        } else if (mIsEnabledSupervisedMode) {
             isSupervisedMode = true;
+        } else {
+            throw new RuntimeException(
+                    "Neither subject more, nor supervised mode enabled in Configs. Nothing to display!");
         }
 
         // Call displayMode methods so the tabs are set correctly
@@ -240,31 +266,61 @@ public class MainActivity extends BaseActivity {
         startBreathingGraphUpdaterTask();
     }
 
+    private void loadConfig() {
+        mIsEnabledSupervisedMode = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
+        mIsEnabledSubjectMode = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUBJECT_MODE_ENABLED));
+        mShowSupervisedBreathingGraphs = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_BREATHING_GRAPHS_ENABLED));
+        mShowSupervisedAllGraphs = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_ALL_GRAPHS_ENABLED));
+        mShowSupervisedActivitySummary = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_ACTIVITY_SUMMARY_ENABLED));
+        mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_AIRSPECK_READINGS_ENABLED));
+        mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_RESPECK_READINGS_ENABLED));
+    }
+
     private void setupViewPager() {
-        // Setup supervised mode arrays
-        supervisedFragments.clear();
-        supervisedTitles.clear();
-        supervisedFragments.add(mHomeFragment);
-        supervisedTitles.add(getString(R.string.menu_home));
-        supervisedFragments.add(mBreathingGraphFragment);
-        supervisedTitles.add(getString(R.string.menu_breathing_graph));
-        supervisedFragments.add(mAQReadingsFragment);
-        supervisedTitles.add(getString(R.string.menu_air_quality));
-        supervisedFragments.add(mActivitySummaryFragment);
-        supervisedTitles.add(getString(R.string.menu_activity_summary));
-        if (mGraphsScreen) {
-            supervisedFragments.add(mGraphsFragment);
-            supervisedTitles.add(getString(R.string.menu_graphs));
+        if (mIsEnabledSupervisedMode) {
+            // Setup supervised mode arrays
+            supervisedFragments.clear();
+            supervisedTitles.clear();
+            // Only show each fragment if we set the config to true
+            if (mShowSupervisedRESpeckReadings) {
+                supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
+                supervisedTitles.add(getString(R.string.menu_home));
+            }
+            if (mShowSupervisedAirspeckReadings) {
+                supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
+                supervisedTitles.add(getString(R.string.menu_air_quality));
+            }
+            if (mShowSupervisedBreathingGraphs) {
+                supervisedFragments.add(mSupervisedBreathingGraphFragment);
+                supervisedTitles.add(getString(R.string.menu_breathing_graph));
+            }
+            if (mShowSupervisedAllGraphs) {
+                supervisedFragments.add(mSupervisedAllGraphsFragment);
+                supervisedTitles.add(getString(R.string.menu_graphs));
+            }
+            if (mShowSupervisedActivitySummary) {
+                supervisedFragments.add(mSupervisedActivitySummaryFragment);
+                supervisedTitles.add(getString(R.string.menu_activity_summary));
+            }
         }
 
-        // Setup subject mode arrays
-        subjectFragments.clear();
-        subjectTitles.clear();
-        subjectFragments.add(mDaphneHomeFragment);
-        // We don't want any text in the subject view, just the icons
-        subjectTitles.add("");
-        subjectFragments.add(mDaphneValuesFragment);
-        subjectTitles.add("");
+        if (mIsEnabledSubjectMode) {
+            // Setup subject mode arrays
+            subjectFragments.clear();
+            subjectTitles.clear();
+            subjectFragments.add(mSubjectHomeFragment);
+            // We don't want any text in the subject view, just the icons
+            subjectTitles.add("");
+            subjectFragments.add(mSubjectValuesFragment);
+            subjectTitles.add("");
+        }
 
         // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
         viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
@@ -275,44 +331,44 @@ public class MainActivity extends BaseActivity {
         FragmentManager fm = getSupportFragmentManager();
         if (savedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mHomeFragment =
-                    (HomeFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
-            mAQReadingsFragment =
-                    (AQReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
-            mGraphsFragment =
-                    (GraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
-            mDaphneHomeFragment = (DaphneHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
-            mDaphneValuesFragment = (DaphneValuesFragment) fm.getFragment(savedInstanceState,
+            mSupervisedRESpeckReadingsFragment =
+                    (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
+            mSupervisedAirspeckReadingsFragment =
+                    (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
+            mSupervisedAllGraphsFragment =
+                    (SupervisedAllGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
+            mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
+            mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
                     TAG_DAPHNE_VALUES_FRAGMENT);
 
-            mActivitySummaryFragment = (ActivitySummaryFragment) fm.getFragment(savedInstanceState,
+            mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(savedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
 
-            mBreathingGraphFragment = (BreathingGraphFragment) fm.getFragment(savedInstanceState,
+            mSupervisedBreathingGraphFragment = (SupervisedBreathingGraphFragment) fm.getFragment(savedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity
         // startup, create them now
-        if (mHomeFragment == null) {
-            mHomeFragment = new HomeFragment();
+        if (mSupervisedRESpeckReadingsFragment == null) {
+            mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
         }
-        if (mAQReadingsFragment == null) {
-            mAQReadingsFragment = new AQReadingsFragment();
+        if (mSupervisedAirspeckReadingsFragment == null) {
+            mSupervisedAirspeckReadingsFragment = new SupervisedAirspeckReadingsFragment();
         }
-        if (mGraphsFragment == null) {
-            mGraphsFragment = new GraphsFragment();
+        if (mSupervisedAllGraphsFragment == null) {
+            mSupervisedAllGraphsFragment = new SupervisedAllGraphsFragment();
         }
-        if (mDaphneHomeFragment == null) {
-            mDaphneHomeFragment = new DaphneHomeFragment();
+        if (mSubjectHomeFragment == null) {
+            mSubjectHomeFragment = new SubjectHomeFragment();
         }
-        if (mDaphneValuesFragment == null) {
-            mDaphneValuesFragment = new DaphneValuesFragment();
+        if (mSubjectValuesFragment == null) {
+            mSubjectValuesFragment = new SubjectValuesFragment();
         }
-        if (mActivitySummaryFragment == null) {
-            mActivitySummaryFragment = new ActivitySummaryFragment();
+        if (mSupervisedActivitySummaryFragment == null) {
+            mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
         }
-        if (mBreathingGraphFragment == null) {
-            mBreathingGraphFragment = new BreathingGraphFragment();
+        if (mSupervisedBreathingGraphFragment == null) {
+            mSupervisedBreathingGraphFragment = new SupervisedBreathingGraphFragment();
         }
     }
 
@@ -463,26 +519,26 @@ public class MainActivity extends BaseActivity {
 
         FragmentManager fm = getSupportFragmentManager();
 
-        if (mHomeFragment != null && mHomeFragment.isAdded()) {
-            fm.putFragment(outState, TAG_HOME_FRAGMENT, mHomeFragment);
+        if (mSupervisedRESpeckReadingsFragment != null && mSupervisedRESpeckReadingsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_HOME_FRAGMENT, mSupervisedRESpeckReadingsFragment);
         }
-        if (mAQReadingsFragment != null && mAQReadingsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mAQReadingsFragment);
+        if (mSupervisedAirspeckReadingsFragment != null && mSupervisedAirspeckReadingsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mSupervisedAirspeckReadingsFragment);
         }
-        if (mGraphsFragment != null && mGraphsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mGraphsFragment);
+        if (mSupervisedAllGraphsFragment != null && mSupervisedAllGraphsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAllGraphsFragment);
         }
-        if (mDaphneHomeFragment != null && mDaphneHomeFragment.isAdded()) {
-            fm.putFragment(outState, TAG_DAPHNE_HOME_FRAGMENT, mDaphneHomeFragment);
+        if (mSubjectHomeFragment != null && mSubjectHomeFragment.isAdded()) {
+            fm.putFragment(outState, TAG_DAPHNE_HOME_FRAGMENT, mSubjectHomeFragment);
         }
-        if (mDaphneValuesFragment != null && mDaphneValuesFragment.isAdded()) {
-            fm.putFragment(outState, TAG_DAPHNE_VALUES_FRAGMENT, mDaphneValuesFragment);
+        if (mSubjectValuesFragment != null && mSubjectValuesFragment.isAdded()) {
+            fm.putFragment(outState, TAG_DAPHNE_VALUES_FRAGMENT, mSubjectValuesFragment);
         }
-        if (mActivitySummaryFragment != null && mActivitySummaryFragment.isAdded()) {
-            fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mActivitySummaryFragment);
+        if (mSupervisedActivitySummaryFragment != null && mSupervisedActivitySummaryFragment.isAdded()) {
+            fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mSupervisedActivitySummaryFragment);
         }
-        if (mBreathingGraphFragment != null && mBreathingGraphFragment.isAdded()) {
-            fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mBreathingGraphFragment);
+        if (mSupervisedBreathingGraphFragment != null && mSupervisedBreathingGraphFragment.isAdded()) {
+            fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mSupervisedBreathingGraphFragment);
         }
     }
 
@@ -490,9 +546,17 @@ public class MainActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu, this adds items to the action bar if it is present.
         if (isSupervisedMode) {
-            getMenuInflater().inflate(R.menu.menu_supervised, menu);
+            // We currently only use one setting item in supervised mode, namely for enabling the subject mode.
+            // If subject mode is disabled, don't load the menu
+            if (mIsEnabledSubjectMode) {
+                getMenuInflater().inflate(R.menu.menu_supervised, menu);
+            }
         } else {
-            getMenuInflater().inflate(R.menu.menu_subject, menu);
+            // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
+            // If subject mode is disabled, don't load the menu
+            if (mIsEnabledSupervisedMode) {
+                getMenuInflater().inflate(R.menu.menu_subject, menu);
+            }
         }
         return true;
     }
@@ -509,7 +573,7 @@ public class MainActivity extends BaseActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStattement
+        /*
         if (id == R.id.action_user_profile) {
             startActivity(new Intent(this, UserProfileActivity.class));
         } else if (id == R.id.action_settings) {
@@ -517,7 +581,8 @@ public class MainActivity extends BaseActivity {
             intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.SettingsFragment.class.getName());
             intent.putExtra(PreferenceActivity.EXTRA_NO_HEADERS, true);
             startActivity(intent);
-        } else if (id == R.id.action_supervised_mode) {
+        }*/
+        if (id == R.id.action_supervised_mode) {
             displaySupervisedMode();
         } else if (id == R.id.action_subject_mode) {
             displaySubjectMode();
@@ -586,10 +651,10 @@ public class MainActivity extends BaseActivity {
                 //listValues.add(mQOESensorReadings.get(Constants.LOC_LATITUDE));
                 //listValues.add(mQOESensorReadings.get(Constants.LOC_LONGITUDE));
 
-                mHomeFragment.setReadings(listValues);
+                mSupervisedRESpeckReadingsFragment.setReadings(listValues);
 
                 // Graphs fragment UI
-                mGraphsFragment.addBreathingSignalData(
+                mSupervisedAllGraphsFragment.addBreathingSignalData(
                         mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
 
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
@@ -603,7 +668,7 @@ public class MainActivity extends BaseActivity {
                 breathingSignalchartDataQueue.add(breathingGraphData);
 
             } else {
-                mDaphneValuesFragment.updateBreathing(mRespeckSensorReadings);
+                mSubjectValuesFragment.updateBreathing(mRespeckSensorReadings);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -634,7 +699,7 @@ public class MainActivity extends BaseActivity {
                 values.put(Constants.QOE_BINS_TOTAL,
                         mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
 
-                mAQReadingsFragment.setReadings(values);
+                mSupervisedAirspeckReadingsFragment.setReadings(values);
 
                 // Graphs fragment UI
                 ArrayList<Float> listValues = new ArrayList<>();
@@ -656,15 +721,15 @@ public class MainActivity extends BaseActivity {
                 listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
                 listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
 
-                mGraphsFragment.setBinsChartData(listValues);
+                mSupervisedAllGraphsFragment.setBinsChartData(listValues);
 
-                mGraphsFragment.addPMsChartData(new GraphsFragment.PMs(
+                mSupervisedAllGraphsFragment.addPMsChartData(new SupervisedAllGraphsFragment.PMs(
                         mQOESensorReadings.get(Constants.QOE_PM1),
                         mQOESensorReadings.get(Constants.QOE_PM2_5),
                         mQOESensorReadings.get(Constants.QOE_PM10)));
             } else {
                 // Daphne values fragment
-                mDaphneValuesFragment.updateQOEReadings(mQOESensorReadings);
+                mSubjectValuesFragment.updateQOEReadings(mQOESensorReadings);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -675,11 +740,11 @@ public class MainActivity extends BaseActivity {
         boolean isConnecting = mSpeckBluetoothService.isConnecting();
         // TODO: show loading symbol instead of X-mark in subject mode
         if (isSupervisedMode) {
-            mHomeFragment.showConnecting(isConnecting);
-            mAQReadingsFragment.showConnecting(isConnecting);
-            mGraphsFragment.showConnecting(isConnecting);
-            mBreathingGraphFragment.showConnecting(isConnecting);
-            mActivitySummaryFragment.showConnecting(isConnecting);
+            mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
+            mSupervisedAirspeckReadingsFragment.showConnecting(isConnecting);
+            mSupervisedAllGraphsFragment.showConnecting(isConnecting);
+            mSupervisedBreathingGraphFragment.showConnecting(isConnecting);
+            mSupervisedActivitySummaryFragment.showConnecting(isConnecting);
         }
     }
 
@@ -711,13 +776,13 @@ public class MainActivity extends BaseActivity {
 
     private void updateRESpeckConnectionSymbol(boolean isConnected) {
         if (!isSupervisedMode) {
-            mDaphneHomeFragment.updateRESpeckConnectionSymbol(isConnected);
+            mSubjectHomeFragment.updateRESpeckConnectionSymbol(isConnected);
         }
     }
 
     private void updateAirspeckConnectionSymbol(boolean isConnected) {
         if (!isSupervisedMode) {
-            mDaphneHomeFragment.updateAirspeckConnectionSymbol(isConnected);
+            mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
         }
     }
 
@@ -730,13 +795,13 @@ public class MainActivity extends BaseActivity {
     private void updateActivitySummary() {
         // The activity summary is only displayed in supervised mode
         if (isSupervisedMode) {
-            mActivitySummaryFragment.updateActivitySummary();
+            mSupervisedActivitySummaryFragment.updateActivitySummary();
         }
     }
 
     private void updateBreathingGraphs(BreathingGraphData data) {
         if (isSupervisedMode) {
-            mBreathingGraphFragment.updateBreathingGraphs(data);
+            mSupervisedBreathingGraphFragment.updateBreathingGraphs(data);
         }
     }
 }

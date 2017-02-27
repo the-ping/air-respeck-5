@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class GraphsFragment extends BaseFragment {
+public class SupervisedAllGraphsFragment extends BaseFragment {
 
     public static class PMs {
         public final static int PMS_NUM = 3;
@@ -61,7 +61,7 @@ public class GraphsFragment extends BaseFragment {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public GraphsFragment() {
+    public SupervisedAllGraphsFragment() {
 
     }
 
@@ -353,7 +353,7 @@ public class GraphsFragment extends BaseFragment {
         }
         else {
             // create a dataset and give it a type
-            set1 = new LineDataSet(values, getString(R.string.graphs_breathing_signal_title));
+            set1 = new LineDataSet(values, getString(R.string.graphs_breathing_flow_title));
 
             set1.setLineWidth(2.5f);
             set1.setCircleRadius(4.5f);

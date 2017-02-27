@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="https://schemas.android.com/tools"
-    tools:context="com.specknet.airrespeck.activities.MainActivity">
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="https://schemas.android.com/tools"
+      tools:context="com.specknet.airrespeck.activities.MainActivity">
 
     <group
         android:id="@+id/main_menu_group">
@@ -10,20 +10,21 @@
             android:id="@+id/action_subject_mode"
             android:orderInCategory="10"
             android:title="@string/action_subject_mode"
-            app:showAsAction="never" />
-
+            app:showAsAction="never"/>
+        <!--
         <item
             android:id="@+id/action_settings"
+            android:icon="@drawable/ic_settings"
             android:orderInCategory="90"
             android:title="@string/action_settings"
-            android:icon="@drawable/ic_settings"
-            app:showAsAction="never" />
+            app:showAsAction="never"/>
 
         <item
             android:id="@+id/action_user_profile"
             android:orderInCategory="80"
             android:title="@string/action_user_profile"
             app:showAsAction="never" />
+        -->
 
     </group>
 
