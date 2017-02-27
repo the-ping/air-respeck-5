@@ -790,24 +790,11 @@ public class SpeckBluetoothService {
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
                             values.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
-                            // Only store the
-                            values.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP,
-                                    (float) cutoffInterpolatedTimestamp);
-                            if (Float.isNaN(breathingRate)) {
-                                values.put(Constants.RESPECK_BREATHING_RATE, 0f);
-                            } else {
-                                values.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
-                            }
-                            if (Float.isNaN(breathingSignal)) {
-                                values.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
-                            } else {
-                                values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
-                            }
-                            if (Float.isNaN(averageBreathingRate)) {
-                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, 0f);
-                            } else {
-                                values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
-                            }
+                            values.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            values.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                            values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
+                            values.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP, cutoffInterpolatedTimestamp);
+
                             // add battery info
                             values.put(Constants.RESPECK_BATTERY_PERCENT, latestBatteryPercent);
                             values.put(Constants.RESPECK_REQUEST_CHARGE, latestRequestCharge);

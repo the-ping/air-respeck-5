@@ -2,6 +2,7 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Queue;
 
 import Jama.Matrix;
@@ -43,7 +45,9 @@ public class BreathingGraphFragment extends BaseFragment {
     private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
     private LinkedList<Float> mPcaValueQueue = new LinkedList<>();
     private LinkedList<Float> mMeanPcaValueQueue = new LinkedList<>();
-    private float mLastCorrectedPcaValue = 0f;
+
+    private final int FLOW_CHART = 0;
+    private final int PCA_CHART = 1;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -131,7 +135,7 @@ public class BreathingGraphFragment extends BaseFragment {
 
     private void updateFlowGraph(BreathingGraphData data) {
         Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
-        updateGraph(newEntry, mBreathingFlowChart);
+        updateGraph(newEntry, mBreathingFlowChart, FLOW_CHART);
     }
 
     private void updatePCAGraph(BreathingGraphData newData) {
@@ -172,24 +176,13 @@ public class BreathingGraphFragment extends BaseFragment {
                 // Subtract the mean from the center value in the queue
                 float correctedPca = mPcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
 
-                /*
-                // Smooth the data: momentum method
-                // ALPHA is the smoothing factor. The higher, the more the data is smoothed.
-                final float ALPHA = 0.9f;
-                float filteredPca = correctedPca + ALPHA * (mLastCorrectedPcaValue - correctedPca);
-                mLastCorrectedPcaValue = filteredPca;
-
-                Entry newEntry = new Entry(data.getTimestamp(), filteredPca);
-                updateGraph(newEntry, mBreathingPCAChart);
-                */
-
                 mMeanPcaValueQueue.add(correctedPca);
                 limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);
 
                 if (mMeanPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER) {
                     Entry newEntry = new Entry(newData.getTimestamp(), Utils.mean(
-                                    mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
-                    updateGraph(newEntry, mBreathingPCAChart);
+                            mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
+                    updateGraph(newEntry, mBreathingPCAChart, PCA_CHART);
                 }
 
             }
@@ -225,7 +218,27 @@ public class BreathingGraphFragment extends BaseFragment {
         }
     }
 
-    private void updateGraph(Entry newEntry, LineChart chart) {
+    private void updateGraph(Entry newEntry, LineChart chart, int charttype) {
+        // Set the limits based on the graph type
+        float negativeLowerLimit;
+        float negativeUpperLimit;
+        float positiveLowerLimit;
+        float positiveUpperLimit;
+
+        if (charttype == FLOW_CHART) {
+            negativeLowerLimit = -2.0f;
+            negativeUpperLimit = -0.3f;
+            positiveLowerLimit = 0.3f;
+            positiveUpperLimit = 2.0f;
+        } else if (charttype == PCA_CHART) {
+            negativeLowerLimit = -0.2f;
+            negativeUpperLimit = -0.03f;
+            positiveLowerLimit = 0.03f;
+            positiveUpperLimit = 0.2f;
+        } else {
+            throw new RuntimeException("Chart type unknown");
+        }
+
         LineDataSet dataSet = (LineDataSet) chart.getData().getDataSetByIndex(0);
         dataSet.addEntry(newEntry);
 
@@ -234,24 +247,45 @@ public class BreathingGraphFragment extends BaseFragment {
             dataSet.removeFirst();
         }
 
-        // Update UI
+        // Recalculate dataSet parameters
         chart.getData().notifyDataChanged();
+
+        // Load the current min and max of the data set
+        float minOfDataSet = dataSet.getYMin();
+        float maxOfDataSet = dataSet.getYMax();
+
+        // Adjust the minimum of the displayed chart based on the minimum of the dataset and the minimum/maximum limit
+        if (minOfDataSet < negativeLowerLimit) {
+            chart.getAxisLeft().setAxisMinimum(negativeLowerLimit);
+            chart.getAxisRight().setAxisMinimum(negativeLowerLimit);
+        } else if (minOfDataSet > negativeUpperLimit) {
+            chart.getAxisLeft().setAxisMinimum(negativeUpperLimit);
+            chart.getAxisRight().setAxisMinimum(negativeUpperLimit);
+        } else {
+            // Display slightly more than the current dataset, so that the lowest value doesn't get cut off
+            Log.i("DF", String.format(Locale.UK, "set minimum based on data: %f",
+                    minOfDataSet + negativeUpperLimit * 1.01f));
+            chart.getAxisLeft().setAxisMinimum(minOfDataSet - 0.001f);
+            chart.getAxisRight().setAxisMinimum(minOfDataSet - 0.001f);
+        }
+
+        // Adjust the maximum of the displayed chart based on the maximum of the dataset and the minimum/maximum limit
+        if (maxOfDataSet < positiveLowerLimit) {
+            chart.getAxisLeft().setAxisMaximum(positiveLowerLimit);
+            chart.getAxisRight().setAxisMaximum(positiveLowerLimit);
+        } else if (maxOfDataSet > positiveUpperLimit) {
+            chart.getAxisLeft().setAxisMaximum(positiveUpperLimit);
+            chart.getAxisRight().setAxisMaximum(positiveUpperLimit);
+        } else {
+            // Display slightly more than the current dataset, so that the highest value doesn't get cut off
+            Log.i("DF", String.format(Locale.UK, "set maximum based on data: %f",
+                    maxOfDataSet + positiveUpperLimit * 1.01f));
+            chart.getAxisLeft().setAxisMaximum(maxOfDataSet + 0.001f);
+            chart.getAxisRight().setAxisMaximum(maxOfDataSet + 0.001f);
+        }
+
+        // Update UI
         chart.notifyDataSetChanged();
         chart.invalidate();
-    }
-
-    public static void main(String[] args) {
-        double[][] matrixArray = new double[][]{{1, 2, 3}, {2, 3, 4}, {3, 2, 2}, {5, 4, 3}};
-        Matrix trainingMatrix = new Matrix(matrixArray);
-        // We want to transform the new data
-        Matrix testMatrix = new Matrix(new double[][]{{3, 2, 1}});
-        PCA pca = new PCA(trainingMatrix);
-        Matrix transformedData = pca.transform(testMatrix, PCA.TransformationType.ROTATION);
-        for (int pos = 0; pos < 3; pos++) {
-            System.out.println(pca.getEigenvalue(pos));
-        }
-        for (double data : transformedData.getArray()[0]) {
-            System.out.println("transformed: " + data);
-        }
     }
 }

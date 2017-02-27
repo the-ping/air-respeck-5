@@ -8,7 +8,7 @@ public class Constants {
     // TODO: switch to enums instead of String constants
 
     /**
-     * APP PROPERTIES FILE
+     * App config file
      */
     public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
     public static final String PFIELD_RESPECK_KEY = "RESpeckKey";
@@ -18,6 +18,26 @@ public class Constants {
     public static final String PFIELD_PATIENT_ID = "PatientID";
     public static final String PFIELD_PATIENT_AGE = "PatientAge";
     public static final String PFIELD_USER_TYPE = "UserType";
+
+    /**
+     * Preferences
+     */
+    public static final String IS_APP_INITIAL_STARTUP = "is_app_initial_startup";
+
+    public static final String USER_ID = "user_id";
+
+    public static final String FONT_SIZE = "font_size";
+
+    public static final String MENU_MODE = "menu_mode";
+    public static final String MENU_BUTTONS_PADDING = "menu_buttons_padding";
+    public static final String MENU_TAB_ICONS = "menu_tab_icons";
+    public static final String MENU_GRAPHS_SCREEN = "menu_graphs_screen";
+
+    public static final String AIRSPECK_APP_ACCESS = "airspeck_app_access";
+    public static final String RESPECK_APP_ACCESS = "respeck_app_access";
+
+    public static final String READINGS_MODE_HOME_SCREEN = "readings_mode_home_screen";
+    public static final String READINGS_MODE_AQREADINGS_SCREEN ="readings_mode_aqreadings_screen";
 
     /**
      * UPLOAD SERVICES

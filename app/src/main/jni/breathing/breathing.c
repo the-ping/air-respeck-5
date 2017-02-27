@@ -42,7 +42,9 @@ void BRG_init(breathing_filter* filter)
 
 	filter->valid = false;
 	filter->sample_rate_valid = false;
-
+	filter->bs = NAN;
+	filter->ba = NAN;
+	filter->activity = NAN;
 }
 
 void BRG_update(double value[3], breathing_filter* filter)
@@ -50,14 +52,14 @@ void BRG_update(double value[3], breathing_filter* filter)
 	if (filter->sample_rate_valid == false)
 	{
 		filter->valid = false;
-		filter->bs = 1.0;
+		// filter->bs = 1.0;
 		return;
 	}
     
     if (isnan(value[0]) || isnan(value[1]) || isnan(value[2]))
     {
         filter->valid = false;
-        filter->bs = 2.0;
+        // filter->bs = 2.0;
         return;
     }
 
