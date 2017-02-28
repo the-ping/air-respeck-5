@@ -749,7 +749,6 @@ public class MainActivity extends BaseActivity {
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(isConnecting);
             mSupervisedAllGraphsFragment.showConnecting(isConnecting);
-            mSupervisedActivitySummaryFragment.showConnecting(isConnecting);
         }
     }
 

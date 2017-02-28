@@ -69,9 +69,6 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);
 
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        mConnectingLayout.setVisibility(View.INVISIBLE);
-
         updateActivitySummary();
 
         return view;
