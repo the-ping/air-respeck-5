@@ -242,4 +242,6 @@
         <item>2</item>
     </string-array>
 
+    <string name="connection_text_respeck_only">Connecting to RESpeck</string>
+
 </resources>

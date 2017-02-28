@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
@@ -18,6 +19,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.Utils;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +107,14 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
         View view = inflater.inflate(R.layout.fragment_graphs, container, false);
 
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        mConnectingLayout.setVisibility(View.INVISIBLE);
+        TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
+        boolean isAirspeckEnabled = Boolean.parseBoolean(
+                com.specknet.airrespeck.utils.Utils.getInstance(getContext()).getProperties().getProperty(
+                        Constants.Config.IS_AIRSPECK_ENABLED));
+        // Change the connection text if we only connect to RESpeck
+        if (!isAirspeckEnabled) {
+            textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
+        }
 
         mPMsLineChart = (LineChart) view.findViewById(R.id.pms_line_chart);
         mBinsLineChart = (LineChart) view.findViewById(R.id.bins_line_chart);

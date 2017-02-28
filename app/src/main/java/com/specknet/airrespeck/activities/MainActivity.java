@@ -149,13 +149,14 @@ public class MainActivity extends BaseActivity {
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
 
     // Config loaded from RESpeck.config
-    private boolean mIsEnabledSupervisedMode;
-    private boolean mIsEnabledSubjectMode;
+    private boolean mIsSupervisedModeEnabled;
+    private boolean mIsSubjectModeEnabled;
     private boolean mShowSupervisedOverview;
-    private boolean mShowSupervisedAllGraphs;
+    private boolean mShowSupervisedAQGraphs;
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedRESpeckReadings;
+    private boolean mIsAirspeckEnabled;
 
     // UTILS
     Utils mUtils;
@@ -220,7 +221,7 @@ public class MainActivity extends BaseActivity {
         setupViewPager();
 
         // Load mode if stored. If no mode was stored, this defaults to false, i.e. subject mode
-        if (mIsEnabledSubjectMode && mIsEnabledSupervisedMode) {
+        if (mIsSubjectModeEnabled && mIsSupervisedModeEnabled) {
             if (savedInstanceState != null) {
                 isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
             } else {
@@ -231,9 +232,9 @@ public class MainActivity extends BaseActivity {
                         mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_STARTING_MODE));
 
             }
-        } else if (mIsEnabledSubjectMode) {
+        } else if (mIsSubjectModeEnabled) {
             isSupervisedMode = false;
-        } else if (mIsEnabledSupervisedMode) {
+        } else if (mIsSupervisedModeEnabled) {
             isSupervisedMode = true;
         } else {
             throw new RuntimeException(
@@ -266,24 +267,35 @@ public class MainActivity extends BaseActivity {
     }
 
     private void loadConfig() {
-        mIsEnabledSupervisedMode = Boolean.parseBoolean(
+        mIsSupervisedModeEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
-        mIsEnabledSubjectMode = Boolean.parseBoolean(
+        mIsSubjectModeEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUBJECT_MODE_ENABLED));
-        mShowSupervisedOverview = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_OVERVIEW));
-        mShowSupervisedAllGraphs = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ALL_GRAPHS));
-        mShowSupervisedActivitySummary = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
-        mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AIRSPECK_READINGS));
-        mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
+        if (mIsSupervisedModeEnabled) {
+            mShowSupervisedOverview = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_OVERVIEW));
+            mShowSupervisedAQGraphs = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_GRAPHS));
+            mShowSupervisedActivitySummary = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
+            mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AIRSPECK_READINGS));
+            mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
+        }
+        mIsAirspeckEnabled = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
+
+        // If Airspeck is disabled, disable all fragments related to its data. Overwrite settings above.
+        if (!mIsAirspeckEnabled) {
+            mShowSupervisedOverview = false;
+            mShowSupervisedAirspeckReadings = false;
+            mShowSupervisedAQGraphs = false;
+        }
     }
 
     private void setupViewPager() {
-        if (mIsEnabledSupervisedMode) {
+        if (mIsSupervisedModeEnabled) {
             // Setup supervised mode arrays
             supervisedFragments.clear();
             supervisedTitles.clear();
@@ -300,7 +312,7 @@ public class MainActivity extends BaseActivity {
                 supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
                 supervisedTitles.add(getString(R.string.menu_air_quality));
             }
-            if (mShowSupervisedAllGraphs) {
+            if (mShowSupervisedAQGraphs) {
                 supervisedFragments.add(mSupervisedAllGraphsFragment);
                 supervisedTitles.add(getString(R.string.menu_graphs));
             }
@@ -310,7 +322,7 @@ public class MainActivity extends BaseActivity {
             }
         }
 
-        if (mIsEnabledSubjectMode) {
+        if (mIsSubjectModeEnabled) {
             // Setup subject mode arrays
             subjectFragments.clear();
             subjectTitles.clear();
@@ -445,18 +457,14 @@ public class MainActivity extends BaseActivity {
         ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(supervisedFragments, supervisedTitles);
         viewPager.setCurrentItem(0);
 
-        // Update tab icons
-        tabLayout.setupWithViewPager(viewPager);
-
-        if (mMenuTabIconsPref) {
-            tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
-            tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_AIR);
-            tabLayout.getTabAt(2).setIcon(Constants.MENU_ICON_ACTIVITY);
-
-            if (mGraphsScreen) {
-                tabLayout.getTabAt(3).setIcon(Constants.MENU_ICON_GRAPHS);
-            }
-
+        // We only display tabs if there is more than one fragment
+        if (supervisedFragments.size() > 1) {
+            tabLayout.setVisibility(View.VISIBLE);
+            tabLayout.setupWithViewPager(viewPager);
+            // Update tab icons
+            // tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
+        } else {
+            tabLayout.setVisibility(View.GONE);
         }
 
         // Recreate options menu
@@ -472,6 +480,8 @@ public class MainActivity extends BaseActivity {
 
         tabLayout.setupWithViewPager(viewPager);
 
+        // We currently have no option to change the display in the subject mode, so the location of the tabs
+        // will always be the same
         tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
         tabLayout.getTabAt(0).setText("");
         tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_INFO);
@@ -547,13 +557,13 @@ public class MainActivity extends BaseActivity {
         if (isSupervisedMode) {
             // We currently only use one setting item in supervised mode, namely for enabling the subject mode.
             // If subject mode is disabled, don't load the menu
-            if (mIsEnabledSubjectMode) {
+            if (mIsSubjectModeEnabled) {
                 getMenuInflater().inflate(R.menu.menu_supervised, menu);
             }
         } else {
             // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
             // If subject mode is disabled, don't load the menu
-            if (mIsEnabledSupervisedMode) {
+            if (mIsSupervisedModeEnabled) {
                 getMenuInflater().inflate(R.menu.menu_subject, menu);
             }
         }

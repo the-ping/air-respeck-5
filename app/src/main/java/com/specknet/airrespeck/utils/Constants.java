@@ -24,8 +24,8 @@ public class Constants {
         public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
         public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
-        public static final String IS_SUPERVISED_BREATHING_GRAPHS_ENABLED = "EnableSupervisedBreathingGraphs";
-        public static final String SHOW_SUPERVISED_ALL_GRAPHS = "EnableSupervisedAllGraphs";
+        public static final String IS_AIRSPECK_ENABLED = "EnableAirspeck";
+        public static final String SHOW_SUPERVISED_AQ_GRAPHS = "EnableSupervisedAQGraphs";
         public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
         public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
         public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";

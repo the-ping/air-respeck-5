@@ -261,6 +261,11 @@ public final class Utils {
         PreferencesUtils.getInstance(mContext);
         PreferencesUtils.getInstance().put(Constants.Preferences.USER_ID, user.getUniqueId());
 
+        PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
+        PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, true);
+        PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, true);
+
+        /*
         if (user.getUserType() == Constants.USER_TYPE_RESEARCHER) {
             // Users of type "Researcher" will have the tabbed main menu as default
             PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
@@ -335,7 +340,7 @@ public final class Utils {
                 default:
                     throw new IllegalArgumentException("User must be at least 12 years old.");
             }
-        }
+        }*/
     }
 
     public static float mean(Float[] a) {

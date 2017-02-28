@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.ReadingItemArcProgressAdapter;
@@ -75,10 +76,17 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
 
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        mConnectingLayout.setVisibility(View.INVISIBLE);
-
         Context context = view.getContext();
+
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
+        boolean isAirspeckEnabled = Boolean.parseBoolean(
+                Utils.getInstance(context).getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
+        // Change the connection text if we only connect to RESpeck
+        if (!isAirspeckEnabled) {
+            textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
+        }
+
 
         // Set the adapter
         if (mReadingsModeAQReadingsScreen.equals(Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST)) {

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
@@ -89,8 +90,16 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_respeck_readings, container, false);
 
+        Utils utils = Utils.getInstance(getContext());
+
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        mConnectingLayout.setVisibility(View.INVISIBLE);
+        TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
+        boolean isAirspeckEnabled = Boolean.parseBoolean(
+                utils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
+        // Change the connection text if we only connect to RESpeck
+        if (!isAirspeckEnabled) {
+            textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
+        }
 
         // Attach the adapter to a ListView for displaying the RESpeck readings
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
@@ -102,8 +111,7 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         setupLineDataSetForChart(mBreathingFlowChart);
 
         // Only display PCA chart if the config value is set to true
-        mShowPCAGraph = Boolean.parseBoolean(
-                Utils.getInstance(getContext()).getProperties().getProperty(Constants.Config.SHOW_PCA_GRAPH));
+        mShowPCAGraph = Boolean.parseBoolean(utils.getProperties().getProperty(Constants.Config.SHOW_PCA_GRAPH));
 
         if (mShowPCAGraph) {
             mBreathingPCAChart = (LineChart) view.findViewById(R.id.breathing_pca_line_chart);

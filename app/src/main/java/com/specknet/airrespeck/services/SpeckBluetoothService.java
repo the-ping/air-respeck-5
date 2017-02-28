@@ -64,6 +64,7 @@ public class SpeckBluetoothService {
     private List<ScanFilter> mScanFilters;
     private BluetoothGatt mGattRespeck, mGattQOE;
     private BluetoothDevice mDeviceRespeck, mDeviceQOE;
+    private boolean mIsAirspeckEnabled;
 
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
@@ -131,6 +132,10 @@ public class SpeckBluetoothService {
 
         // Get references to Utils
         mUtils = Utils.getInstance(mainActivity);
+
+        // Look whether Airspeck is enabled in config
+        mIsAirspeckEnabled = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
         // Get reference to LocationUtils
         mLocationUtils = LocationUtils.getInstance(mainActivity);
@@ -219,9 +224,7 @@ public class SpeckBluetoothService {
     }
 
     public boolean isConnecting() {
-        // TODO: this is only commented out for testing purposes
-        //return !mQOEConnectionComplete && !mRespeckConnectionComplete;
-        return false;
+        return !mRespeckConnectionComplete && (!mIsAirspeckEnabled || !mQOEConnectionComplete);
     }
 
     /**
@@ -269,14 +272,17 @@ public class SpeckBluetoothService {
             mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
         }
-        if (mGattQOE == null && device.getName().contains("QOE")) {
-            Log.i("[Bluetooth]", "Connecting to " + device.getName());
-            mDeviceQOE = device;
-            mGattQOE = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackQOE);
+
+        if (mIsAirspeckEnabled) {
+            if (mGattQOE == null && device.getName().contains("QOE")) {
+                Log.i("[Bluetooth]", "Connecting to " + device.getName());
+                mDeviceQOE = device;
+                mGattQOE = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackQOE);
+            }
         }
 
-        if (mGattQOE != null && mGattRespeck != null) {
-            Log.i("[Bluetooth]", "Devices connected. Scanner turned off.");
+        if (mGattRespeck != null && (!mIsAirspeckEnabled || mGattQOE != null)) {
+            Log.i("[Bluetooth]", "Device(s) connected. Scanner turned off.");
             scanLeDevice(false);
         }
     }
@@ -551,7 +557,6 @@ public class SpeckBluetoothService {
                     Log.i("Respeck-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
                     sendMessageToUIHandler(MainActivity.SHOW_RESPECK_CONNECTED, null);
-
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mRespeckConnectionComplete = false;
