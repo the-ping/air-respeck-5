@@ -5,13 +5,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.widget.ListView
-        android:id="@+id/listView_item_list"
-        android:name="com.specknet.airrespeck.fragments.ListViewItemFragment"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".fragments.SupervisedAirspeckReadingsFragment"
-        tools:listitem="@layout/list_item_listview" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:text="@string/readings_airspeck_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView2"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="7dp"
+            android:gravity="center_horizontal"/>
+
+        <android.widget.ListView
+            android:id="@+id/listView_item_list"
+            android:name="com.specknet.airrespeck.fragments.ListViewItemFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".fragments.SupervisedAirspeckReadingsFragment"
+            tools:listitem="@layout/list_item_listview" />
+    </LinearLayout>
 
     <include layout="@layout/content_connecting" />
 

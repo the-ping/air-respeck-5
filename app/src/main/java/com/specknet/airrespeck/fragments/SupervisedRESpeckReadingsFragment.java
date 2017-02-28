@@ -1,47 +1,65 @@
 package com.specknet.airrespeck.fragments;
 
-
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.ScrollView;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.mkobos.pca_transform.PCA;
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.lib.Segment;
-import com.specknet.airrespeck.lib.SegmentedBar;
-import com.specknet.airrespeck.lib.SegmentedBarSideTextStyle;
-import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
+import com.specknet.airrespeck.models.BreathingGraphData;
+import com.specknet.airrespeck.models.ReadingItem;
+import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Queue;
 
-import static com.specknet.airrespeck.R.styleable.SegmentedBar;
+import Jama.Matrix;
 
+/**
+ * Created by Darius on 21.02.2017.
+ * Fragment to display the respiratory signal
+ */
 
-public class SupervisedRESpeckReadingsFragment extends BaseFragment implements View.OnClickListener {
+public class SupervisedRESpeckReadingsFragment extends BaseFragment {
 
+    // Breathing values
     private ArrayList<ReadingItem> mReadingItems;
-
-    // List View
     private ReadingItemArrayAdapter mListViewAdapter;
 
-    // Segmented Bar
-    private TextView mCurrentReadingName;
-    private FrameLayout mFrameLayout;
-    private ArrayList<SegmentedBar> mSegmentedBars;
-    private SegmentedBar mCurrentSegmentedBar;
+    // Graphs
+    private LineChart mBreathingFlowChart;
+    private LineChart mBreathingPCAChart;
 
-    // Feedback
-    private TextView mFeedback;
+    private LinkedList<BreathingGraphData> mPreFilteringQueue = new LinkedList<>();
+    private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
+    private LinkedList<Float> mPcaValueQueue = new LinkedList<>();
+    private LinkedList<Float> mMeanPcaValueQueue = new LinkedList<>();
+
+    private final int FLOW_CHART = 0;
+    private final int PCA_CHART = 1;
+
+    // Config variable storing visibility of PCA graph
+    private boolean mShowPCAGraph;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -54,224 +72,265 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements V
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // initialize the utilities
+        com.github.mikephil.charting.utils.Utils.init(getContext());
 
-        init();
-        loadData();
+        mReadingItems = new ArrayList<>();
+        mReadingItems.add(new ReadingItem(getString(R.string.reading_breathing_rate),
+                getString(R.string.reading_unit_bpm), Float.NaN));
+        mReadingItems.add(new ReadingItem(getString(R.string.reading_avg_breathing_rate),
+                getString(R.string.reading_unit_bpm), Float.NaN));
+        mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = null;
+        View view = inflater.inflate(R.layout.fragment_respeck_readings, container, false);
 
-        if (mReadingsModeHomeScreen.equals(Constants.READINGS_MODE_HOME_SCREEN_LIST)) {
-            view = inflater.inflate(R.layout.fragment_home_listview, container, false);
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        mConnectingLayout.setVisibility(View.INVISIBLE);
 
-            // Attach the adapter to a ListView
-            ListView mListView = (ListView) view.findViewById(R.id.readings_list);
-            mListView.setAdapter(mListViewAdapter);
+        // Attach the adapter to a ListView for displaying the RESpeck readings
+        ListView mListView = (ListView) view.findViewById(R.id.readings_list);
+        mListView.setAdapter(mListViewAdapter);
+
+        // Setup flow graph
+        mBreathingFlowChart = (LineChart) view.findViewById(R.id.breathing_flow_line_chart);
+        setupBreathingSignalChart(mBreathingFlowChart);
+        setupLineDataSetForChart(mBreathingFlowChart);
+
+        // Only display PCA chart if the config value is set to true
+        mShowPCAGraph = Boolean.parseBoolean(
+                Utils.getInstance(getContext()).getProperties().getProperty(Constants.Config.SHOW_PCA_GRAPH));
+
+        if (mShowPCAGraph) {
+            mBreathingPCAChart = (LineChart) view.findViewById(R.id.breathing_pca_line_chart);
+            setupBreathingSignalChart(mBreathingPCAChart);
+            setupLineDataSetForChart(mBreathingPCAChart);
+        } else {
+            // Hide view
+            LinearLayout pcaGraphContainer = (LinearLayout) view.findViewById(R.id.pca_chart_container);
+            pcaGraphContainer.setVisibility(View.GONE);
         }
-        else if (mReadingsModeHomeScreen.equals(Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS)) {
-            view = inflater.inflate(R.layout.fragment_home_segmentedbar, container, false);
-
-            mCurrentReadingName = (TextView) view.findViewById(R.id.current_reading_name);
-
-            mFrameLayout = (FrameLayout) view.findViewById(R.id.reading_container);
-
-            ImageButton mPrevReading = (ImageButton) view.findViewById(R.id.prev_reading);
-            ImageButton mNextReading = (ImageButton) view.findViewById(R.id.next_reading);
-
-            mPrevReading.setOnClickListener(this);
-            mNextReading.setOnClickListener(this);
-
-            mFrameLayout.getViewTreeObserver().addOnGlobalLayoutListener(
-                    new ViewTreeObserver.OnGlobalLayoutListener() {
-                        @Override
-                        public void onGlobalLayout() {
-                            mFrameLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                            // Once the view layout has finished its setup, we can add views
-                            // to the frame layout
-                            setupSegmentedBars();
-                        }
-                    });
-        }
-
-        if (view != null) {
-            mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-            mFeedback = (TextView) view.findViewById(R.id.feedback);
-            updateFeedback();
-        }
-
         return view;
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        if (mFrameLayout != null) {
-            mFrameLayout.removeAllViews();
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (mSegmentedBars.isEmpty()) { return; }
-
-        int index = mSegmentedBars.indexOf(mCurrentSegmentedBar);
-
-        if (v.getId() == R.id.prev_reading) {
-            index--;
-            if (index < 0) { index = mSegmentedBars.size()-1; }
-        }
-        else if (v.getId() == R.id.next_reading) {
-            index++;
-            if (index > mSegmentedBars.size()-1) { index = 0; }
-        }
-        switchSegmentedBar(index);
-    }
-
-
-
-    /***********************************************************************************************
-     * READINGS
-     ***********************************************************************************************/
-
     /**
-     * Initialize data structures and view adapters.
+     * Setup Breathing Signal chart.
      */
-    private void init() {
-        if (mReadingItems == null) {
-            // Construct the data source
-            mReadingItems = new ArrayList<ReadingItem>();
-        }
+    private void setupBreathingSignalChart(LineChart chart) {
+        // Empty description text
+        Description emptyDescription = new Description();
+        emptyDescription.setText("");
+        chart.setDescription(emptyDescription);
+        chart.setDrawGridBackground(false);
+        chart.getLegend().setEnabled(false);
 
-        if (mListViewAdapter == null) {
-            // Create the adapter to convert the array to views
-            mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
-        }
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        xAxis.setValueFormatter(new XAxisValueFormatter());
 
-        if (mSegmentedBars == null) {
-            mSegmentedBars = new ArrayList<SegmentedBar>();
-        }
-        mCurrentSegmentedBar = null;
+        YAxis leftAxis = chart.getAxisLeft();
+        leftAxis.setLabelCount(5, false);
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = chart.getAxisRight();
+        rightAxis.setLabelCount(5, false);
+
+        chart.animateX(750);
     }
 
-    /**
-     * Load reading data in {@link #mReadingItems}.
-     */
-    private void loadData() {
-        if (mReadingItems != null && mReadingItems.size() == 0) {
-            ReadingItem item;
-            ArrayList<Segment> segments;
+    private void setupLineDataSetForChart(LineChart chart) {
+        // create dataset for graph
+        LineDataSet dataSet = new LineDataSet(new ArrayList<Entry>(), "");
 
-            segments = new ArrayList<>();
-            segments.add(new Segment(0f, 11f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(12f, 20f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-            segments.add(new Segment(21f, 40f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            item = new ReadingItem(getString(R.string.reading_respiratory_rate), getString(R.string.reading_unit_bpm), 0, segments);
-            mReadingItems.add(item);
+        dataSet.setLineWidth(2.5f);
+        dataSet.setColor(ContextCompat.getColor(getContext(), R.color.breathing_graph_line_color));
+        dataSet.setDrawCircles(false);
+        dataSet.setDrawValues(false);
 
-            segments = new ArrayList<>();
-            segments.add(new Segment(0, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-            segments.add(new Segment(36f, 53f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(54f, 70f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
-            item = new ReadingItem(getString(R.string.reading_pm2_5), getString(R.string.reading_unit_ug_m3), 0, segments);
-            mReadingItems.add(item);
+        // add the dataset
+        ArrayList<ILineDataSet> dataSets = new ArrayList<>();
+        dataSets.add(dataSet);
+        chart.setData(new LineData(dataSets));
+    }
 
-            segments = new ArrayList<>();
-            segments.add(new Segment(0, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-            segments.add(new Segment(51f, 75f, "", ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-            segments.add(new Segment(76f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
-            item = new ReadingItem(getString(R.string.reading_pm10), getString(R.string.reading_unit_ug_m3), 0, segments);
-            mReadingItems.add(item);
+    // This method is called from the UI handler to update the graph
+    public void updateBreathingGraphs(BreathingGraphData data) {
+        // Update the graphs if present
+        if (mBreathingFlowChart != null) {
+            updateFlowGraph(data);
+        }
+        if (mBreathingPCAChart != null) {
+            updatePCAGraph(data);
         }
     }
 
-    /**
-     * Setup the segmented bars in {@link #mSegmentedBars}
-     */
-    private void setupSegmentedBars() {
-        if (mSegmentedBars.isEmpty()) {
-            SegmentedBar bar;
-            for (int i = 0; i < mReadingItems.size(); ++i) {
-                bar = new SegmentedBar(getContext());
-                bar.setValueWithUnit(mReadingItems.get(i).value, mReadingItems.get(i).unit);
-                bar.setSegments(mReadingItems.get(i).segments);
-                bar.setSideTextStyle(SegmentedBarSideTextStyle.TWO_SIDED);
-                bar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                bar.setPadding(10, 10, 10, 10);
-                mSegmentedBars.add(bar);
+    private void updateFlowGraph(BreathingGraphData data) {
+        Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
+        updateGraph(newEntry, mBreathingFlowChart, FLOW_CHART);
+    }
+
+    private void updatePCAGraph(BreathingGraphData newData) {
+        if (mBreathingDataQueue.size() > Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
+            throw new RuntimeException("Breathing data queue exceeds limit!");
+
+        } else if (mBreathingDataQueue.size() == Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
+            // PCA transform on queued data
+            // Generate matrix from queue
+            double[][] matrixArray = new double[Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA][3];
+            for (int r = 0; r < matrixArray.length; r++) {
+                matrixArray[r][0] = mBreathingDataQueue.get(r).getAccelX();
+                matrixArray[r][1] = mBreathingDataQueue.get(r).getAccelY();
+                matrixArray[r][2] = mBreathingDataQueue.get(r).getAccelZ();
+            }
+            Matrix trainingMatrix = new Matrix(matrixArray);
+
+            // We want to transform the new data
+            Matrix testMatrix = new Matrix(
+                    new double[][]{{newData.getAccelX(), newData.getAccelY(), newData.getAccelZ()}});
+            PCA pca = new PCA(trainingMatrix);
+            Matrix transformedData = pca.transform(testMatrix, PCA.TransformationType.ROTATION);
+
+            // The first value is the one of the dimension with the most information. We want that one!
+            float pcaValue = (float) transformedData.get(0, 0);
+
+            // Add the pca value to the queue
+            mPcaValueQueue.add(pcaValue);
+            limitQueueToSize(mPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION);
+
+            // If the mPcaValueQueue is long enough, we subtract the mean from the
+            // value in the middle of the array
+            if (mPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION) {
+                // Calculate mean PCA of all PCA values in queue
+                float meanPca = Utils.mean(
+                        mPcaValueQueue.toArray(new Float[mPcaValueQueue.size()]));
+
+                // Subtract the mean from the center value in the queue
+                float correctedPca = mPcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
+
+                mMeanPcaValueQueue.add(correctedPca);
+                limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);
+
+                if (mMeanPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER) {
+                    Entry newEntry = new Entry(newData.getTimestamp(), Utils.mean(
+                            mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
+                    updateGraph(newEntry, mBreathingPCAChart, PCA_CHART);
+                }
+
             }
         }
 
-        mFrameLayout.removeAllViews();
+        // Pre-filtering of acceleration values
+        mPreFilteringQueue.add(newData);
+        limitQueueToSize(mPreFilteringQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER);
 
-        for (int i = 0; i < mSegmentedBars.size(); ++i) {
-            SegmentedBar sb = mSegmentedBars.get(i);
+        if (mPreFilteringQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER) {
+            // Add the filtered sample to the mBreathingDataQueue and remove the oldest sample
+            float[] xs = new float[mPreFilteringQueue.size()];
+            float[] ys = new float[mPreFilteringQueue.size()];
+            float[] zs = new float[mPreFilteringQueue.size()];
 
-            sb.setVisibility(View.INVISIBLE);
+            for (int i = 0; i < mPreFilteringQueue.size(); i++) {
+                xs[i] = mPreFilteringQueue.get(i).getAccelX();
+                ys[i] = mPreFilteringQueue.get(i).getAccelY();
+                zs[i] = mPreFilteringQueue.get(i).getAccelZ();
+            }
 
-            mFrameLayout.addView(sb, i);
+            BreathingGraphData meanData = new BreathingGraphData(newData.getTimestamp(),
+                    Utils.mean(xs), Utils.mean(ys), Utils.mean(zs), 0.0f);
+            mBreathingDataQueue.add(meanData);
+            limitQueueToSize(mBreathingDataQueue, Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA);
         }
 
-        mCurrentSegmentedBar = mSegmentedBars.get(0);
-        mCurrentSegmentedBar.setVisibility(View.VISIBLE);
-
-        mCurrentReadingName.setText(mReadingItems.get(0).name);
     }
 
-    /**
-     * Look for the current segmented bar and updates its value with the data from the data set
-     */
-    private void notifySegmentedBarDataSetChange() {
-        for (int i = 0; i < mSegmentedBars.size(); ++i) {
-            mSegmentedBars.get(i).setValue(mReadingItems.get(i).value);
+    private void limitQueueToSize(Queue queue, int size) {
+        while (queue.size() > size) {
+            queue.remove();
         }
     }
 
-    /**
-     * Switch the the reading view in the Graphical view display mode.
-     * @param index int Reading index in {@link #mSegmentedBars}.
-     */
-    private void switchSegmentedBar(int index) {
-        if (mSegmentedBars.isEmpty()) { return; }
+    private void updateGraph(Entry newEntry, LineChart chart, int charttype) {
+        // Set the limits based on the graph type
+        float negativeLowerLimit;
+        float negativeUpperLimit;
+        float positiveLowerLimit;
+        float positiveUpperLimit;
 
-        mCurrentSegmentedBar.setVisibility(View.INVISIBLE);
-        mCurrentSegmentedBar = mSegmentedBars.get(index);
-        mCurrentSegmentedBar.setVisibility(View.VISIBLE);
+        if (charttype == FLOW_CHART) {
+            negativeLowerLimit = -2.0f;
+            negativeUpperLimit = -0.3f;
+            positiveLowerLimit = 0.3f;
+            positiveUpperLimit = 2.0f;
+        } else if (charttype == PCA_CHART) {
+            negativeLowerLimit = -0.2f;
+            negativeUpperLimit = -0.03f;
+            positiveLowerLimit = 0.03f;
+            positiveUpperLimit = 0.2f;
+        } else {
+            throw new RuntimeException("Chart type unknown");
+        }
 
-        mCurrentReadingName.setText(mReadingItems.get(index).name);
+        LineDataSet dataSet = (LineDataSet) chart.getData().getDataSetByIndex(0);
+        dataSet.addEntry(newEntry);
+
+        // Remove any values older than the number of breathing signal points we want to display
+        while (dataSet.getValues().size() > Constants.NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART) {
+            dataSet.removeFirst();
+        }
+
+        // Recalculate dataSet parameters
+        chart.getData().notifyDataChanged();
+
+        // Load the current min and max of the data set
+        float minOfDataSet = dataSet.getYMin();
+        float maxOfDataSet = dataSet.getYMax();
+
+        // Adjust the minimum of the displayed chart based on the minimum of the dataset and the minimum/maximum limit
+        if (minOfDataSet < negativeLowerLimit) {
+            chart.getAxisLeft().setAxisMinimum(negativeLowerLimit);
+            chart.getAxisRight().setAxisMinimum(negativeLowerLimit);
+        } else if (minOfDataSet > negativeUpperLimit) {
+            chart.getAxisLeft().setAxisMinimum(negativeUpperLimit);
+            chart.getAxisRight().setAxisMinimum(negativeUpperLimit);
+        } else {
+            // Display slightly more than the current dataset, so that the lowest value doesn't get cut off
+            Log.i("DF", String.format(Locale.UK, "set minimum based on data: %f",
+                    minOfDataSet + negativeUpperLimit * 1.01f));
+            chart.getAxisLeft().setAxisMinimum(minOfDataSet - 0.001f);
+            chart.getAxisRight().setAxisMinimum(minOfDataSet - 0.001f);
+        }
+
+        // Adjust the maximum of the displayed chart based on the maximum of the dataset and the minimum/maximum limit
+        if (maxOfDataSet < positiveLowerLimit) {
+            chart.getAxisLeft().setAxisMaximum(positiveLowerLimit);
+            chart.getAxisRight().setAxisMaximum(positiveLowerLimit);
+        } else if (maxOfDataSet > positiveUpperLimit) {
+            chart.getAxisLeft().setAxisMaximum(positiveUpperLimit);
+            chart.getAxisRight().setAxisMaximum(positiveUpperLimit);
+        } else {
+            // Display slightly more than the current dataset, so that the highest value doesn't get cut off
+            Log.i("DF", String.format(Locale.UK, "set maximum based on data: %f",
+                    maxOfDataSet + positiveUpperLimit * 1.01f));
+            chart.getAxisLeft().setAxisMaximum(maxOfDataSet + 0.001f);
+            chart.getAxisRight().setAxisMaximum(maxOfDataSet + 0.001f);
+        }
+
+        // Update UI
+        chart.notifyDataSetChanged();
+        chart.invalidate();
     }
 
-
-    /**
-     * Helper setter
-     */
     public void setReadings(final List<Float> values) {
         if (mReadingItems != null) {
             for (int i = 0; i < mReadingItems.size() && i < values.size(); ++i) {
                 mReadingItems.get(i).value = values.get(i);
             }
             mListViewAdapter.notifyDataSetChanged();
-            notifySegmentedBarDataSetChange();
         }
-    }
-
-
-
-    /***********************************************************************************************
-     * FEEDBACK
-     ***********************************************************************************************/
-
-    /**
-     * Updates the feedback mName
-     */
-    public void updateFeedback() {
-        // TODO Add dynamic feedback based on user respiratory model, current sensors' readings, and user profile (i.e. age, gender)
-        //mFeedback.setText("Feedback message");
-        //mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_running_man, 0, 0);
-        //mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop, 0, 0);
     }
 }

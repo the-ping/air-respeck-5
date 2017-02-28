@@ -1,12 +1,10 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.preference.PreferenceActivity;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -17,16 +15,17 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedBreathingGraphFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SupervisedAllGraphsFragment;
-import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
@@ -143,16 +142,16 @@ public class MainActivity extends BaseActivity {
 
     private SubjectHomeFragment mSubjectHomeFragment;
     private SubjectValuesFragment mSubjectValuesFragment;
-    private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
+    private SupervisedOverviewFragment mSupervisedOverviewFragment;
     private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
     private SupervisedAllGraphsFragment mSupervisedAllGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
-    private SupervisedBreathingGraphFragment mSupervisedBreathingGraphFragment;
+    private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
 
     // Config loaded from RESpeck.config
     private boolean mIsEnabledSupervisedMode;
     private boolean mIsEnabledSubjectMode;
-    private boolean mShowSupervisedBreathingGraphs;
+    private boolean mShowSupervisedOverview;
     private boolean mShowSupervisedAllGraphs;
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
@@ -271,16 +270,16 @@ public class MainActivity extends BaseActivity {
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
         mIsEnabledSubjectMode = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUBJECT_MODE_ENABLED));
-        mShowSupervisedBreathingGraphs = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_BREATHING_GRAPHS_ENABLED));
+        mShowSupervisedOverview = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_OVERVIEW));
         mShowSupervisedAllGraphs = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_ALL_GRAPHS_ENABLED));
+                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ALL_GRAPHS));
         mShowSupervisedActivitySummary = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_ACTIVITY_SUMMARY_ENABLED));
+                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
         mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_AIRSPECK_READINGS_ENABLED));
+                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AIRSPECK_READINGS));
         mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_RESPECK_READINGS_ENABLED));
+                mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
     }
 
     private void setupViewPager() {
@@ -289,17 +288,17 @@ public class MainActivity extends BaseActivity {
             supervisedFragments.clear();
             supervisedTitles.clear();
             // Only show each fragment if we set the config to true
+            if (mShowSupervisedOverview) {
+                supervisedFragments.add(mSupervisedOverviewFragment);
+                supervisedTitles.add(getString(R.string.menu_home));
+            }
             if (mShowSupervisedRESpeckReadings) {
                 supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
-                supervisedTitles.add(getString(R.string.menu_home));
+                supervisedTitles.add(getString(R.string.menu_breathing_graph));
             }
             if (mShowSupervisedAirspeckReadings) {
                 supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
                 supervisedTitles.add(getString(R.string.menu_air_quality));
-            }
-            if (mShowSupervisedBreathingGraphs) {
-                supervisedFragments.add(mSupervisedBreathingGraphFragment);
-                supervisedTitles.add(getString(R.string.menu_breathing_graph));
             }
             if (mShowSupervisedAllGraphs) {
                 supervisedFragments.add(mSupervisedAllGraphsFragment);
@@ -331,8 +330,8 @@ public class MainActivity extends BaseActivity {
         FragmentManager fm = getSupportFragmentManager();
         if (savedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mSupervisedRESpeckReadingsFragment =
-                    (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
+            mSupervisedOverviewFragment =
+                    (SupervisedOverviewFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
             mSupervisedAirspeckReadingsFragment =
                     (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mSupervisedAllGraphsFragment =
@@ -344,13 +343,13 @@ public class MainActivity extends BaseActivity {
             mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(savedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
 
-            mSupervisedBreathingGraphFragment = (SupervisedBreathingGraphFragment) fm.getFragment(savedInstanceState,
+            mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity
         // startup, create them now
-        if (mSupervisedRESpeckReadingsFragment == null) {
-            mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
+        if (mSupervisedOverviewFragment == null) {
+            mSupervisedOverviewFragment = new SupervisedOverviewFragment();
         }
         if (mSupervisedAirspeckReadingsFragment == null) {
             mSupervisedAirspeckReadingsFragment = new SupervisedAirspeckReadingsFragment();
@@ -367,8 +366,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedActivitySummaryFragment == null) {
             mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
         }
-        if (mSupervisedBreathingGraphFragment == null) {
-            mSupervisedBreathingGraphFragment = new SupervisedBreathingGraphFragment();
+        if (mSupervisedRESpeckReadingsFragment == null) {
+            mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
         }
     }
 
@@ -519,8 +518,8 @@ public class MainActivity extends BaseActivity {
 
         FragmentManager fm = getSupportFragmentManager();
 
-        if (mSupervisedRESpeckReadingsFragment != null && mSupervisedRESpeckReadingsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_HOME_FRAGMENT, mSupervisedRESpeckReadingsFragment);
+        if (mSupervisedOverviewFragment != null && mSupervisedOverviewFragment.isAdded()) {
+            fm.putFragment(outState, TAG_HOME_FRAGMENT, mSupervisedOverviewFragment);
         }
         if (mSupervisedAirspeckReadingsFragment != null && mSupervisedAirspeckReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mSupervisedAirspeckReadingsFragment);
@@ -537,8 +536,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedActivitySummaryFragment != null && mSupervisedActivitySummaryFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mSupervisedActivitySummaryFragment);
         }
-        if (mSupervisedBreathingGraphFragment != null && mSupervisedBreathingGraphFragment.isAdded()) {
-            fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mSupervisedBreathingGraphFragment);
+        if (mSupervisedRESpeckReadingsFragment != null && mSupervisedRESpeckReadingsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mSupervisedRESpeckReadingsFragment);
         }
     }
 
@@ -643,19 +642,25 @@ public class MainActivity extends BaseActivity {
         updateConnectionLoadingLayout();
         try {
             if (isSupervisedMode) {
-                ArrayList<Float> listValues = new ArrayList<Float>();
+                // Update overview fragment
+                ArrayList<Float> listValuesOverview = new ArrayList<>();
 
-                listValues.add(mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-                listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-                listValues.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-                //listValues.add(mQOESensorReadings.get(Constants.LOC_LATITUDE));
-                //listValues.add(mQOESensorReadings.get(Constants.LOC_LONGITUDE));
+                listValuesOverview.add(
+                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+                listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+                listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
 
-                mSupervisedRESpeckReadingsFragment.setReadings(listValues);
+                mSupervisedOverviewFragment.setReadings(listValuesOverview);
 
-                // Graphs fragment UI
-                mSupervisedAllGraphsFragment.addBreathingSignalData(
-                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL)));
+                // Update RESpeckReadings Fragment
+                ArrayList<Float> listValuesRESpeckReadings = new ArrayList<>();
+
+                listValuesRESpeckReadings.add(
+                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+                listValuesRESpeckReadings.add(
+                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
+
+                mSupervisedRESpeckReadingsFragment.setReadings(listValuesRESpeckReadings);
 
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
@@ -740,10 +745,10 @@ public class MainActivity extends BaseActivity {
         boolean isConnecting = mSpeckBluetoothService.isConnecting();
         // TODO: show loading symbol instead of X-mark in subject mode
         if (isSupervisedMode) {
+            mSupervisedOverviewFragment.showConnecting(isConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(isConnecting);
             mSupervisedAllGraphsFragment.showConnecting(isConnecting);
-            mSupervisedBreathingGraphFragment.showConnecting(isConnecting);
             mSupervisedActivitySummaryFragment.showConnecting(isConnecting);
         }
     }
@@ -801,7 +806,7 @@ public class MainActivity extends BaseActivity {
 
     private void updateBreathingGraphs(BreathingGraphData data) {
         if (isSupervisedMode) {
-            mSupervisedBreathingGraphFragment.updateBreathingGraphs(data);
+            mSupervisedRESpeckReadingsFragment.updateBreathingGraphs(data);
         }
     }
 }

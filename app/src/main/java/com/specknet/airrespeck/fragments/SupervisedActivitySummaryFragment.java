@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
@@ -41,28 +42,6 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
     private ArrayList<ReadingItem> mReadingItems;
     private ReadingItemArrayAdapter mListViewAdapter;
 
-    /*
-
-    private static class ActivitySummaryHandler extends Handler {
-        // Using a weak reference means you won't prevent garbage collection
-        private final WeakReference<SupervisedActivitySummaryFragment> mService;
-
-        ActivitySummaryHandler(SupervisedActivitySummaryFragment service) {
-            mService = new WeakReference<>(service);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            final int what = msg.what;
-            SupervisedActivitySummaryFragment service = mService.get();
-            if (what == ACTIVITY_SUMMARY_UPDATE) {
-                service.updateActivitySummary();
-            }
-        }
-    }*/
-
-    //private final Handler mActivitySummaryHandler = new ActivitySummaryHandler(this);
-
     /**
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -89,6 +68,9 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
         // Attach the adapter to a ListView
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);
+
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        mConnectingLayout.setVisibility(View.INVISIBLE);
 
         updateActivitySummary();
 

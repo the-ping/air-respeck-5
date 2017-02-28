@@ -53,19 +53,15 @@
     <string name="user_profile_no">No</string>
 
 
-
     <!-- Strings related to SegmentedBar -->
     <string name="sb_empty">Empty</string>
     <string name="sb_value_segment">Current value</string>
 
 
-
     <!-- Strings related to Readings -->
     <string name="readings_title">Live data</string>
-
     <string name="activity_summary_title">Activity summary of past …</string>
 
-    <!-- Readings -->
     <string name="reading_no_data">No data available</string>
 
     <string name="reading_respiratory_rate">Respiratory rate</string>
@@ -78,33 +74,32 @@
     <string name="reading_o3">O3</string>
     <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins total</string>
+    <string name="readings_airspeck_title">Airspeck readings</string>
+    <string name="readings_respeck_title">RESpeck readings</string>
+    <string name="reading_breathing_rate">Breathing rate</string>
+    <string name="reading_avg_breathing_rate">Minute average breathing rate</string>
 
     <!-- Reading unit -->
-    <string name="reading_unit_bpm">bpm</string>
+    <string name="reading_unit_bpm">BrPM</string>
     <string name="reading_unit_ug_m3">µg/m³</string>
     <string name="reading_unit_c" translatable="false">°C</string>
     <string name="reading_unit_f" translatable="false">°F</string>
     <string name="reading_unit_percent" translatable="false">%</string>
 
-
-
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
     <string name="graphs_bins_title">Bins: 0 – 15</string>
-    <string name="graphs_breathing_flow_title">Breathing Curve (flow rate)</string>
-    <string name="graphs_breathing_pca_title">Breathing Curve (volume, PCA)</string>
-
-
+    <string name="graphs_breathing_flow_title">Breathing signal (flow rate)</string>
+    <string name="graphs_breathing_pca_title">Breathing signal (volume, PCA)</string>
 
     <!-- Strings related to Menus -->
 
     <!-- Button/tabs menu -->
-    <string name="menu_home">HOME</string>
-    <string name="menu_air_quality">AIR QUALITY</string>
-    <string name="menu_graphs">GRAPHS</string>
-    <string name="menu_settings">SETTINGS</string>
-    <string name="menu_activity_summary">ACTIVITY</string>
-    <string name="menu_breathing_graph">BREATHING GRAPH</string>
+    <string name="menu_home">Overview</string>
+    <string name="menu_air_quality">Air quality</string>
+    <string name="menu_graphs">AQ Graphs</string>
+    <string name="menu_activity_summary">Activity</string>
+    <string name="menu_breathing_graph">Breathing</string>
 
     <!-- Action Bar menu -->
     <string name="action_air_speck">AirSpeck</string>

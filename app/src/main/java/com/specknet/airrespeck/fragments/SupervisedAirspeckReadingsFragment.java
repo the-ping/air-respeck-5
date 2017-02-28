@@ -76,6 +76,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
         View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
 
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        mConnectingLayout.setVisibility(View.INVISIBLE);
 
         Context context = view.getContext();
 

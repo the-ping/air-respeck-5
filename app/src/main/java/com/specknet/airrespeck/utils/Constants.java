@@ -25,11 +25,12 @@ public class Constants {
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
         public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
         public static final String IS_SUPERVISED_BREATHING_GRAPHS_ENABLED = "EnableSupervisedBreathingGraphs";
-        public static final String IS_SUPERVISED_ALL_GRAPHS_ENABLED = "EnableSupervisedAllGraphs";
-        public static final String IS_SUPERVISED_ACTIVITY_SUMMARY_ENABLED = "EnableSupervisedActivitySummary";
-        public static final String IS_SUPERVISED_RESPECK_READINGS_ENABLED = "EnableSupervisedRESpeckReadings";
-        public static final String IS_SUPERVISED_AIRSPECK_READINGS_ENABLED = "EnableSupervisedAirspeckReadings";
-
+        public static final String SHOW_SUPERVISED_ALL_GRAPHS = "EnableSupervisedAllGraphs";
+        public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
+        public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
+        public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
+        public static final String SHOW_SUPERVISED_OVERVIEW = "EnableSupervisedOverview";
+        public static final String SHOW_PCA_GRAPH = "ShowPCAGraph";
     }
 
     /**
@@ -95,7 +96,7 @@ public class Constants {
     public static final String RESPECK_BREATHING_RATE = "breathing_rate";
     public static final String RESPECK_BREATHING_SIGNAL = "breathing_signal";
     public static final String RESPECK_BREATHING_ANGLE = "breathing_angle";
-    public static final String RESPECK_AVERAGE_BREATHING_RATE = "average_breathing_rate";
+    public static final String RESPECK_AVERAGE_BREATHING_RATE = "minute_average_breathing_rate";
     public static final String RESPECK_STD_DEV_BREATHING_RATE = "std_dev_breathing_rate";
     public static final String RESPECK_N_BREATHS = "n_breaths";
     public static final String RESPECK_ACTIVITY_LEVEL = "activity_level";

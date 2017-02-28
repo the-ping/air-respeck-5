@@ -53,7 +53,8 @@ public class BaseFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        if (this instanceof SupervisedRESpeckReadingsFragment) {
+        // Restart fragments if the type of display does not correspond to the preferences set by the user
+        if (this instanceof SupervisedOverviewFragment) {
             String newVal = PreferencesUtils.getInstance().getString(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
                     Constants.READINGS_MODE_HOME_SCREEN_LIST);
 

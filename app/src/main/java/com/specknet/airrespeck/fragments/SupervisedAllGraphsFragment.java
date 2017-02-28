@@ -18,7 +18,6 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.Utils;
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ import java.util.List;
 public class SupervisedAllGraphsFragment extends BaseFragment {
 
     public static class PMs {
-        public final static int PMS_NUM = 3;
+        final static int PMS_NUM = 3;
 
         private float mPM1;
         private float mPM2_5;
@@ -39,12 +38,29 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
             mPM10 = pm10;
         }
 
-        public void setPM1(final float pm1) { mPM1 = pm1; }
-        public float getPM1() { return mPM1; }
-        public void setPM2_5(final float pm2_5) { mPM2_5 = pm2_5; }
-        public float getPM2_5() { return mPM2_5; }
-        public void setPM10(final float pm10) { mPM10 = pm10; }
-        public float getPM10() { return mPM10; }
+        public void setPM1(final float pm1) {
+            mPM1 = pm1;
+        }
+
+        public float getPM1() {
+            return mPM1;
+        }
+
+        public void setPM2_5(final float pm2_5) {
+            mPM2_5 = pm2_5;
+        }
+
+        public float getPM2_5() {
+            return mPM2_5;
+        }
+
+        public void setPM10(final float pm10) {
+            mPM10 = pm10;
+        }
+
+        public float getPM10() {
+            return mPM10;
+        }
     }
 
     private int BINS_NUMBER = 16;
@@ -89,16 +105,15 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
         View view = inflater.inflate(R.layout.fragment_graphs, container, false);
 
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        mConnectingLayout.setVisibility(View.INVISIBLE);
 
         mPMsLineChart = (LineChart) view.findViewById(R.id.pms_line_chart);
         mBinsLineChart = (LineChart) view.findViewById(R.id.bins_line_chart);
-        mBreathingSignalChart = (LineChart) view.findViewById(R.id.breathing_signal_line_chart);
 
         setupPMsChart();
         setupBinsChart();
-        setupBreathingSignalChart();
 
-        return  view;
+        return view;
     }
 
     /**
@@ -122,9 +137,9 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
 
         // initial data
         // IMPORTANT: must have exactly 3 data sets
-        ArrayList<Entry> v1 = new ArrayList<Entry>();
-        ArrayList<Entry> v2 = new ArrayList<Entry>();
-        ArrayList<Entry> v3 = new ArrayList<Entry>();
+        ArrayList<Entry> v1 = new ArrayList<>();
+        ArrayList<Entry> v2 = new ArrayList<>();
+        ArrayList<Entry> v3 = new ArrayList<>();
 
         for (int i = 0; i < mPMsData.size(); ++i) {
             v1.add(new Entry(i, mPMsData.get(i).getPM1()));
@@ -162,7 +177,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
         set3.setDrawFilled(true);
         set3.setFillColor(Color.rgb(0, 0, 255));
 
-        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+        ArrayList<ILineDataSet> dataSets = new ArrayList<>();
         dataSets.add(set1);
         dataSets.add(set2);
         dataSets.add(set3);
@@ -173,6 +188,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
 
     /**
      * Add new entries to each of the line graphs (PM1, PM2.5, and PM10) in PMs chart
+     *
      * @param pMs PMs The new values.
      */
     private void addPMEntries(final PMs pMs) {
@@ -209,6 +225,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
 
     /**
      * Helper to add new values to PMs chart.
+     *
      * @param pMs PMs The new values.
      */
     public void addPMsChartData(final PMs pMs) {
@@ -251,7 +268,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
     private void updateBinsChartData() {
         int count = mBinsData.size();
 
-        ArrayList<Entry> values = new ArrayList<Entry>();
+        ArrayList<Entry> values = new ArrayList<>();
 
         for (int i = 0; i < count; ++i) {
             values.add(new Entry(i, mBinsData.get(i)));
@@ -264,8 +281,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
             set1.setValues(values);
             mBinsLineChart.getData().notifyDataChanged();
             mBinsLineChart.notifyDataSetChanged();
-        }
-        else {
+        } else {
             // create a dataset and give it a type
             set1 = new LineDataSet(values, "Bins");
 
@@ -279,7 +295,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
             set1.setFillColor(Color.rgb(0, 255, 0));
 
             // add the datasets
-            ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+            ArrayList<ILineDataSet> dataSets = new ArrayList<>();
             dataSets.add(set1);
 
             // create a data object with the datasets
@@ -295,104 +311,13 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
 
     /**
      * Helper to set the values for the Bins chart.
+     *
      * @param binsData List<Float> The new values.
      */
     public void setBinsChartData(List<Float> binsData) {
         if (mBinsData != null && mBinsLineChart != null) {
             mBinsData = binsData;
             updateBinsChartData();
-        }
-    }
-
-
-    /**
-     * Setup Breathing Signal chart.
-     */
-    private void setupBreathingSignalChart() {
-        // no description text
-        mBreathingSignalChart.setDescription(new Description());
-        mBreathingSignalChart.setDrawGridBackground(false);
-
-        XAxis xAxis = mBreathingSignalChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawGridLines(false);
-        xAxis.setDrawAxisLine(true);
-
-        YAxis leftAxis = mBreathingSignalChart.getAxisLeft();
-        //leftAxis.setLabelCount(5, false);
-
-        YAxis rightAxis = mBreathingSignalChart.getAxisRight();
-        rightAxis.setLabelCount(5, false);
-        rightAxis.setDrawGridLines(false);
-
-        // set data
-        updateBreathingSignalChartData();
-
-        mBreathingSignalChart.animateX(750);
-    }
-
-    /**
-     * Update the dataset for the Breathing Signal chart.
-     */
-    private void updateBreathingSignalChartData() {
-        int count = mBreathingSignalData.size();
-
-        ArrayList<Entry> values = new ArrayList<Entry>();
-
-        for (int i = 0; i < count; ++i) {
-            values.add(new Entry(i, mBreathingSignalData.get(i)));
-        }
-
-        LineDataSet set1;
-
-        if (mBreathingSignalChart.getData() != null && mBreathingSignalChart.getData().getDataSetCount() > 0) {
-            set1 = (LineDataSet) mBreathingSignalChart.getData().getDataSetByIndex(0);
-            set1.setValues(values);
-            mBreathingSignalChart.getData().notifyDataChanged();
-            mBreathingSignalChart.notifyDataSetChanged();
-        }
-        else {
-            // create a dataset and give it a type
-            set1 = new LineDataSet(values, getString(R.string.graphs_breathing_flow_title));
-
-            set1.setLineWidth(2.5f);
-            set1.setCircleRadius(4.5f);
-            set1.setHighLightColor(Color.rgb(244, 117, 117));
-            set1.setColor(Color.rgb(0, 0, 255));
-            set1.setCircleColor(Color.rgb(0, 0, 255));
-            set1.setDrawValues(false);
-            set1.setDrawFilled(true);
-            set1.setFillColor(Color.rgb(0, 0, 255));
-
-            // add the datasets
-            ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-            dataSets.add(set1);
-
-            // create a data object with the datasets
-            LineData data = new LineData(dataSets);
-
-            // set data
-            mBreathingSignalChart.setData(data);
-        }
-
-        // refresh the drawing
-        mBreathingSignalChart.invalidate();
-    }
-
-    /**
-     * Helper to add new values to Breathing Signal chart.
-     * @param newValue float The new value.
-     */
-    public void addBreathingSignalData(final float newValue) {
-        if (mBreathingSignalData != null && mBreathingSignalChart != null) {
-            //if (newValue != 0.0f) {
-            mBreathingSignalData.add(newValue);
-
-            if (mBreathingSignalData.size() == Constants.NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART) {
-                updateBreathingSignalChartData();
-
-                mBreathingSignalData.clear();
-            }
         }
     }
 }

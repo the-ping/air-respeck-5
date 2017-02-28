@@ -64,7 +64,7 @@ int MA_stats_num(ma_stats_filter *filter) {
 }
 
 float MA_stats_mean(ma_stats_filter *filter) {
-    return (filter->fill > 0) ? filter->newM : 0.0f;
+    return (filter->fill > 0) ? filter->newM : NAN;
 }
 
 float MA_stats_var(ma_stats_filter *filter) {
