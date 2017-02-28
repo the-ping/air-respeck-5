@@ -2,17 +2,12 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.utils.Constants;
@@ -22,16 +17,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by Darius on 21.02.2017.
@@ -91,8 +82,9 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
     private List<String> loadSummaryValues() {
         List<String> readings = new ArrayList<>();
 
-        File summaryDirectory = new File(Environment.getExternalStorageDirectory(), "/ActivityPrediction");
-        final String filenameSummaryStorage = summaryDirectory + "/" + "predictions_summary";
+        File summaryDirectory = new File(Environment.getExternalStorageDirectory(),
+                "/" + Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+        final String filenameSummaryStorage = summaryDirectory + "/" + Constants.ACTIVITY_SUMMARY_FILE_PATH;
 
         if (new File(filenameSummaryStorage).exists()) {
             try {

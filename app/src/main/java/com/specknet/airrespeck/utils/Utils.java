@@ -15,8 +15,10 @@ import com.specknet.airrespeck.datamodels.User;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -371,6 +373,17 @@ public final class Utils {
             return aCopy[middle];
         } else {
             return (aCopy[middle - 1] + aCopy[middle]) / 2.0f;
+        }
+    }
+
+    public void writeToExternalStorageFile(String data, String path) {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(path, true));
+            outputStreamWriter.append(data);
+            outputStreamWriter.close();
+            Log.i("DF", "Data written to file: " + data);
+        } catch (IOException e) {
+            Log.e("DF", "File write failed: " + e.toString());
         }
     }
 }

@@ -307,8 +307,6 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
             chart.getAxisRight().setAxisMinimum(negativeUpperLimit);
         } else {
             // Display slightly more than the current dataset, so that the lowest value doesn't get cut off
-            Log.i("DF", String.format(Locale.UK, "set minimum based on data: %f",
-                    minOfDataSet + negativeUpperLimit * 1.01f));
             chart.getAxisLeft().setAxisMinimum(minOfDataSet - 0.001f);
             chart.getAxisRight().setAxisMinimum(minOfDataSet - 0.001f);
         }
@@ -322,8 +320,6 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
             chart.getAxisRight().setAxisMaximum(positiveUpperLimit);
         } else {
             // Display slightly more than the current dataset, so that the highest value doesn't get cut off
-            Log.i("DF", String.format(Locale.UK, "set maximum based on data: %f",
-                    maxOfDataSet + positiveUpperLimit * 1.01f));
             chart.getAxisLeft().setAxisMaximum(maxOfDataSet + 0.001f);
             chart.getAxisRight().setAxisMaximum(maxOfDataSet + 0.001f);
         }

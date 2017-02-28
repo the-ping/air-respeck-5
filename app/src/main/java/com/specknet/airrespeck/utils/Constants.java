@@ -1,7 +1,11 @@
 package com.specknet.airrespeck.utils;
 
 
+import android.os.Environment;
+
 import com.specknet.airrespeck.R;
+
+import java.io.File;
 
 /**
  * Class to keep all constants and string keys in one place. Note that for most of the constants below we cannot use
@@ -31,6 +35,9 @@ public class Constants {
         public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
         public static final String SHOW_SUPERVISED_OVERVIEW = "EnableSupervisedOverview";
         public static final String SHOW_PCA_GRAPH = "ShowPCAGraph";
+        public static final String IS_UPLOAD_DATA_TO_SERVER = "UploadToServer";
+        public static final String IS_STORE_DATA_LOCALLY = "StoreDataLocally";
+        public static final String IS_STORE_MERGED_FILE = "StoreMergedFile";
     }
 
     /**
@@ -214,6 +221,22 @@ public class Constants {
      */
     public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = 2535;
     public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
+
+    /**
+     * Storage
+     */
+    public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory(),
+            "/AirRespeck").getPath();
+    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/activity_summary.csv";
+    public static final String RESPECK_DATA_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/respeck.csv";
+    public static final String AIRSPECK_DATA_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/airpeck.csv";
+    public static final String MERGED_DATA_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/respeck_and_airspeck.csv";
+    public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,x,y,z," +
+            "breathingSignal,breathingRate,activityLevel,activityType";
+    public static final String AIRSPECK_DATA_HEADER = "phoneTimestamp,temperature,humidity,no2,o3,bin0";
+    public static final String MERGED_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,x,y,z," +
+            "breathingSignal,breathingRate,activityLevel,activityType,temperature,humidity,no2,o3,bin0";
+
 
     /*
     PCA zero mean signal calculation

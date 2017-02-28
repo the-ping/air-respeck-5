@@ -16,7 +16,6 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Environment;
 import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
@@ -33,9 +32,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
@@ -64,8 +60,16 @@ public class SpeckBluetoothService {
     private List<ScanFilter> mScanFilters;
     private BluetoothGatt mGattRespeck, mGattQOE;
     private BluetoothDevice mDeviceRespeck, mDeviceQOE;
-    private boolean mIsAirspeckEnabled;
 
+    // Config settings
+    private boolean mIsAirspeckEnabled;
+    private boolean mIsUploadDataToServer;
+    private boolean mIsStoreDataLocally;
+    private boolean mIsStoreMergedFile;
+
+    // Most recent Airspeck data, used for storing merged file
+    String mMostRecentAirspeckData = "-,-,-,-,-,-";
+    
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
     private int REQUEST_ENABLE_BT = 1;
@@ -89,7 +93,7 @@ public class SpeckBluetoothService {
     // RESPECK CODE
     private int latestLiveRespeckSeq = -1;
     private long currentPhoneTimestamp = -1;
-    private long currentRESpeckTimestamp = -1;
+    private long mCurrentRESpeckTimestamp = -1;
     private Queue<RESpeckStoredSample> storedQueue;
 
     private long timestampOfPreviousSequence = -1;
@@ -137,6 +141,17 @@ public class SpeckBluetoothService {
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
+        // Do we store data locally and/or upload to server?
+        mIsUploadDataToServer = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
+        mIsStoreDataLocally = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+
+        // Do we store a merged Airspeck-RESpeck file in addition to the individual files? Only
+        // works if Airspeck is enabled
+        mIsStoreMergedFile = (Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && mIsAirspeckEnabled);
+
         // Get reference to LocationUtils
         mLocationUtils = LocationUtils.getInstance(mainActivity);
         mLocationUtils.startLocationManager();
@@ -160,9 +175,11 @@ public class SpeckBluetoothService {
         mQOEConnectionComplete = false;
         mRespeckConnectionComplete = false;
 
-        // Initialize Upload services
-        initRespeckUploadService();
-        initQOEUploadService();
+        // Initialize Upload services if upload is set in config
+        if (mIsUploadDataToServer) {
+            initRespeckUploadService();
+            initQOEUploadService();
+        }
     }
 
     /**
@@ -456,7 +473,7 @@ public class SpeckBluetoothService {
                     lastSample = sampleIDs_2[0];
 
                     // Get timestamp
-                    long unixTimestamp = mUtils.getUnixTimestamp();
+                    long currentPhoneTimestamp = mUtils.getUnixTimestamp();
 
                     // Get location
                     double latitude = 0;
@@ -470,49 +487,50 @@ public class SpeckBluetoothService {
                         Log.e("[QOE]", "Location permissions not granted.");
                     }
 
-                    // Send message
-                    JSONObject json = new JSONObject();
-                    try {
-                        json.put("messagetype", "qoe_data");
-                        json.put(Constants.QOE_PM1, pm1);
-                        json.put(Constants.QOE_PM2_5, pm2_5);
-                        json.put(Constants.QOE_PM10, pm10);
-                        json.put(Constants.QOE_TEMPERATURE, temperature);
-                        json.put(Constants.QOE_HUMIDITY, hum);
-                        json.put(Constants.QOE_S1ae_NO2, no2_ae);
-                        json.put(Constants.QOE_S1we_NO2, no2_we);
-                        json.put(Constants.QOE_S2ae_O3, o3_ae);
-                        json.put(Constants.QOE_S2we_O3, o3_we);
-                        json.put(Constants.QOE_BINS_0, bin0);
-                        json.put(Constants.QOE_BINS_1, bin1);
-                        json.put(Constants.QOE_BINS_2, bin2);
-                        json.put(Constants.QOE_BINS_3, bin3);
-                        json.put(Constants.QOE_BINS_4, bin4);
-                        json.put(Constants.QOE_BINS_5, bin5);
-                        json.put(Constants.QOE_BINS_6, bin6);
-                        json.put(Constants.QOE_BINS_7, bin7);
-                        json.put(Constants.QOE_BINS_8, bin8);
-                        json.put(Constants.QOE_BINS_9, bin9);
-                        json.put(Constants.QOE_BINS_10, bin10);
-                        json.put(Constants.QOE_BINS_11, bin11);
-                        json.put(Constants.QOE_BINS_12, bin12);
-                        json.put(Constants.QOE_BINS_13, bin13);
-                        json.put(Constants.QOE_BINS_14, bin14);
-                        json.put(Constants.QOE_BINS_15, bin15);
-                        json.put(Constants.QOE_BINS_TOTAL, total);
-                        json.put(Constants.LOC_LATITUDE, latitude);
-                        json.put(Constants.LOC_LONGITUDE, longitude);
-                        json.put(Constants.LOC_ALTITUDE, altitude);
-                        json.put(Constants.UNIX_TIMESTAMP, unixTimestamp);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    // Upload data to server if set in config
+                    if (mIsUploadDataToServer) {
+                        JSONObject json = new JSONObject();
+                        try {
+                            json.put("messagetype", "qoe_data");
+                            json.put(Constants.QOE_PM1, pm1);
+                            json.put(Constants.QOE_PM2_5, pm2_5);
+                            json.put(Constants.QOE_PM10, pm10);
+                            json.put(Constants.QOE_TEMPERATURE, temperature);
+                            json.put(Constants.QOE_HUMIDITY, hum);
+                            json.put(Constants.QOE_S1ae_NO2, no2_ae);
+                            json.put(Constants.QOE_S1we_NO2, no2_we);
+                            json.put(Constants.QOE_S2ae_O3, o3_ae);
+                            json.put(Constants.QOE_S2we_O3, o3_we);
+                            json.put(Constants.QOE_BINS_0, bin0);
+                            json.put(Constants.QOE_BINS_1, bin1);
+                            json.put(Constants.QOE_BINS_2, bin2);
+                            json.put(Constants.QOE_BINS_3, bin3);
+                            json.put(Constants.QOE_BINS_4, bin4);
+                            json.put(Constants.QOE_BINS_5, bin5);
+                            json.put(Constants.QOE_BINS_6, bin6);
+                            json.put(Constants.QOE_BINS_7, bin7);
+                            json.put(Constants.QOE_BINS_8, bin8);
+                            json.put(Constants.QOE_BINS_9, bin9);
+                            json.put(Constants.QOE_BINS_10, bin10);
+                            json.put(Constants.QOE_BINS_11, bin11);
+                            json.put(Constants.QOE_BINS_12, bin12);
+                            json.put(Constants.QOE_BINS_13, bin13);
+                            json.put(Constants.QOE_BINS_14, bin14);
+                            json.put(Constants.QOE_BINS_15, bin15);
+                            json.put(Constants.QOE_BINS_TOTAL, total);
+                            json.put(Constants.LOC_LATITUDE, latitude);
+                            json.put(Constants.LOC_LONGITUDE, longitude);
+                            json.put(Constants.LOC_ALTITUDE, altitude);
+                            json.put(Constants.UNIX_TIMESTAMP, currentPhoneTimestamp);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
+                        intent.putExtra(QOERemoteUploadService.MSG_UPLOAD_DATA, json.toString());
+                        mainActivity.sendBroadcast(intent);
+                        Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
                     }
-
-                    Intent intent = new Intent(QOERemoteUploadService.MSG_UPLOAD);
-                    intent.putExtra(QOERemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                    mainActivity.sendBroadcast(intent);
-                    Log.d("[QOE]", "Sent LIVE JSON to upload service: " + json.toString());
-
 
                     // Update the UI
                     HashMap<String, Float> values = new HashMap<String, Float>();
@@ -542,6 +560,20 @@ public class SpeckBluetoothService {
                     values.put(Constants.QOE_BINS_TOTAL, (float) total);
 
                     sendMessageToUIHandler(MainActivity.UPDATE_QOE_READINGS, values);
+
+                    // Store the important data in the external storage if set in config
+                    if (mIsStoreDataLocally) {
+                        String storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
+                                "," + o3_ae + "," + bin0 + "\n";
+                        mUtils.writeToExternalStorageFile(storedLine, Constants.AIRSPECK_DATA_FILE_PATH);
+                    }
+
+                    // If we want to store a merged file, store the most recent Airspeck data without
+                    // timestamp as a string
+                    if (mIsStoreMergedFile) {
+                        mMostRecentAirspeckData = temperature + "," + humidity + "," + no2_ae +
+                                "," + o3_ae + "," + bin0;
+                    }
                 }
             }
         }
@@ -653,11 +685,11 @@ public class SpeckBluetoothService {
                         Byte ts_4 = accelBytes[i + 4];
 
                         Long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
-                        if (newRESpeckTimestamp == currentRESpeckTimestamp) {
+                        if (newRESpeckTimestamp == mCurrentRESpeckTimestamp) {
                             Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
                             return;
                         }
-                        currentRESpeckTimestamp = newRESpeckTimestamp;
+                        mCurrentRESpeckTimestamp = newRESpeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
                         currentPhoneTimestamp = System.currentTimeMillis();
@@ -681,7 +713,7 @@ public class SpeckBluetoothService {
                             // the RESpeck was disconnected from the phone? Comment above if applicable!
                             RESpeckStoredSample s = storedQueue.remove();
 
-                            Long currentTimeOffset = currentPhoneTimestamp / 1000 - currentRESpeckTimestamp;
+                            Long currentTimeOffset = currentPhoneTimestamp / 1000 - mCurrentRESpeckTimestamp;
 
                             Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
                             Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
@@ -697,19 +729,19 @@ public class SpeckBluetoothService {
                         Log.i("DF", "Acceleration packet received from RESpeck");
                         try {
                             final float x = combineAccelerationBytes(accelBytes[i + 1], accelBytes[i + 2]);
-                            float y = combineAccelerationBytes(accelBytes[i + 3], accelBytes[i + 4]);
-                            float z = combineAccelerationBytes(accelBytes[i + 5], accelBytes[i + 6]);
+                            final float y = combineAccelerationBytes(accelBytes[i + 3], accelBytes[i + 4]);
+                            final float z = combineAccelerationBytes(accelBytes[i + 5], accelBytes[i + 6]);
 
                             updateBreathing(x, y, z);
 
-                            float breathingRate = getBreathingRate();
-                            float breathingSignal = getBreathingSignal();
-                            float breathingAngle = getBreathingAngle();
-                            float averageBreathingRate = getAverageBreathingRate();
-                            float stdDevBreathingRate = getStdDevBreathingRate();
-                            float numberOfBreaths = getNumberOfBreaths();
-                            float activityLevel = getActivityLevel();
-                            float activityType = getCurrentActivityClassification();
+                            final float breathingRate = getBreathingRate();
+                            final float breathingSignal = getBreathingSignal();
+                            final float breathingAngle = getBreathingAngle();
+                            final float averageBreathingRate = getAverageBreathingRate();
+                            final float stdDevBreathingRate = getStdDevBreathingRate();
+                            final float numberOfBreaths = getNumberOfBreaths();
+                            final float activityLevel = getActivityLevel();
+                            final float activityType = getCurrentActivityClassification();
 
                             // Calculate interpolated timestamp of current sample based on sequence number
                             // There are 32 samples in each acceleration batch the RESpeck sends.
@@ -720,7 +752,7 @@ public class SpeckBluetoothService {
                                     interpolatedPhoneTimestampOfCurrentSample);
 
                             Log.i("2", "BS_TIMESTAMP " + String.valueOf(currentPhoneTimestamp));
-                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(currentRESpeckTimestamp));
+                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(mCurrentRESpeckTimestamp));
                             Log.i("2", "Interpolated timestamp " + String.valueOf(
                                     cutoffInterpolatedTimestamp));
                             Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(currentSequenceNumberInBatch));
@@ -732,64 +764,65 @@ public class SpeckBluetoothService {
                             Log.i("2", "NBreaths " + String.valueOf(numberOfBreaths));
                             Log.i("2", "Activity Level " + String.valueOf(activityLevel));
 
-                            // Send JSON object to server
-                            JSONObject json = new JSONObject();
-                            try {
-                                json.put("messagetype", "respeck_data");
-                                json.put(Constants.RESPECK_X, x);
-                                json.put(Constants.RESPECK_Y, y);
-                                json.put(Constants.RESPECK_Z, z);
-                                json.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
-                                if (Float.isNaN(breathingRate)) {
-                                    json.put(Constants.RESPECK_BREATHING_RATE, null);
-                                } else {
-                                    json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                            // Upload data to server if set in config
+                            if (mIsUploadDataToServer) {
+                                JSONObject json = new JSONObject();
+                                try {
+                                    json.put("messagetype", "respeck_data");
+                                    json.put(Constants.RESPECK_X, x);
+                                    json.put(Constants.RESPECK_Y, y);
+                                    json.put(Constants.RESPECK_Z, z);
+                                    json.put(Constants.RESPECK_ACTIVITY_TYPE, activityType);
+                                    if (Float.isNaN(breathingRate)) {
+                                        json.put(Constants.RESPECK_BREATHING_RATE, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                                    }
+                                    if (Float.isNaN(breathingSignal)) {
+                                        json.put(Constants.RESPECK_BREATHING_SIGNAL, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                                    }
+                                    if (Float.isNaN(breathingAngle)) {
+                                        json.put(Constants.RESPECK_BREATHING_ANGLE, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
+                                    }
+                                    if (Float.isNaN(averageBreathingRate)) {
+                                        json.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
+                                    }
+                                    if (Float.isNaN(stdDevBreathingRate)) {
+                                        json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, stdDevBreathingRate);
+                                    }
+                                    if (Float.isNaN(numberOfBreaths)) {
+                                        json.put(Constants.RESPECK_N_BREATHS, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_N_BREATHS, numberOfBreaths);
+                                    }
+                                    if (Float.isNaN(activityLevel)) {
+                                        json.put(Constants.RESPECK_ACTIVITY_LEVEL, null);
+                                    } else {
+                                        json.put(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
+                                    }
+                                    json.put(Constants.RESPECK_LIVE_SEQ, currentSequenceNumberInBatch);
+                                    json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, mCurrentRESpeckTimestamp);
+                                    json.put(Constants.UNIX_TIMESTAMP, interpolatedPhoneTimestampOfCurrentSample);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
                                 }
-                                if (Float.isNaN(breathingSignal)) {
-                                    json.put(Constants.RESPECK_BREATHING_SIGNAL, null);
-                                } else {
-                                    json.put(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
-                                }
-                                if (Float.isNaN(breathingAngle)) {
-                                    json.put(Constants.RESPECK_BREATHING_ANGLE, null);
-                                } else {
-                                    json.put(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
-                                }
-                                if (Float.isNaN(averageBreathingRate)) {
-                                    json.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, null);
-                                } else {
-                                    json.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
-                                }
-                                if (Float.isNaN(stdDevBreathingRate)) {
-                                    json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, null);
-                                } else {
-                                    json.put(Constants.RESPECK_STD_DEV_BREATHING_RATE, stdDevBreathingRate);
-                                }
-                                if (Float.isNaN(numberOfBreaths)) {
-                                    json.put(Constants.RESPECK_N_BREATHS, null);
-                                } else {
-                                    json.put(Constants.RESPECK_N_BREATHS, numberOfBreaths);
-                                }
-                                if (Float.isNaN(activityLevel)) {
-                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, null);
-                                } else {
-                                    json.put(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
-                                }
-                                json.put(Constants.RESPECK_LIVE_SEQ, currentSequenceNumberInBatch);
-                                json.put(Constants.RESPECK_LIVE_RS_TIMESTAMP, currentRESpeckTimestamp);
-                                json.put(Constants.UNIX_TIMESTAMP, interpolatedPhoneTimestampOfCurrentSample);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+
+                                Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
+                                intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
+                                mainActivity.sendBroadcast(intent);
+                                Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
                             }
 
-                            Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
-                            intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
-                            mainActivity.sendBroadcast(intent);
-                            Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
-
-
                             // Send RESpeck readings to UI Handler
-                            HashMap<String, Float> values = new HashMap<String, Float>();
+                            HashMap<String, Float> values = new HashMap<>();
                             values.put(Constants.RESPECK_X, x);
                             values.put(Constants.RESPECK_Y, y);
                             values.put(Constants.RESPECK_Z, z);
@@ -798,56 +831,73 @@ public class SpeckBluetoothService {
                             values.put(Constants.RESPECK_BREATHING_RATE, breathingRate);
                             values.put(Constants.RESPECK_AVERAGE_BREATHING_RATE, averageBreathingRate);
                             values.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP, cutoffInterpolatedTimestamp);
-
-                            // add battery info
                             values.put(Constants.RESPECK_BATTERY_PERCENT, latestBatteryPercent);
                             values.put(Constants.RESPECK_REQUEST_CHARGE, latestRequestCharge);
 
                             sendMessageToUIHandler(MainActivity.UPDATE_RESPECK_READINGS, values);
 
                             // Every full minute, calculate the average breathing rate in that minute. This value will
-                            // only change after a call to "calculateMA".
+                            // only change after a call to "calculateMedianAverageBreathing".
                             long ts_minute = DateUtils.truncate(new Date(currentPhoneTimestamp),
                                     Calendar.MINUTE).getTime();
-                            if (ts_minute > latestProcessedMinute) {
-                                calculateMA();
+                            if (ts_minute != latestProcessedMinute) {
+                                calculateMedianAverageBreathing();
 
-                                float ave_br = getAverageBreathingRate();
-                                float sd_br = getStdDevBreathingRate();
+                                final float updatedAverageBreathingRate = getAverageBreathingRate();
+                                final float updatedStdDevBreathingRate = getStdDevBreathingRate();
                                 //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
-                                int n_breaths = getNumberOfBreaths();
-                                float act = getActivityLevel();
+                                final int updatedNumberOfBreaths = getNumberOfBreaths();
 
                                 // Empty the minute average window
-                                resetMA();
+                                resetMedianAverageBreathing();
 
                                 Log.i("3", "RESPECK_BS_TIMESTAMP " + ts_minute);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + ave_br);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + n_breaths);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: " + sd_br);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY " + act);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + updatedAverageBreathingRate);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + updatedNumberOfBreaths);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: " + updatedStdDevBreathingRate);
+                                Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY " + activityLevel);
 
-                                // Send message
-                                JSONObject json2 = new JSONObject();
-                                try {
-                                    json2.put("messagetype", "respeck_processed");
-                                    json2.put("timestamp", ts_minute);
-                                    json2.put("activity", act);
-                                    if (!Float.isNaN(ave_br)) {
-                                        json2.put("breathing_rate", ave_br);
-                                        json2.put("n_breaths", n_breaths);
-                                        json2.put("sd_br", sd_br);
+                                // Upload data to server if set in config
+                                if (mIsUploadDataToServer) {
+                                    JSONObject jsonAverageData = new JSONObject();
+                                    try {
+                                        jsonAverageData.put("messagetype", "respeck_processed");
+                                        jsonAverageData.put("timestamp", ts_minute);
+                                        jsonAverageData.put("activity", activityLevel);
+                                        if (!Float.isNaN(updatedAverageBreathingRate)) {
+                                            jsonAverageData.put("breathing_rate", updatedAverageBreathingRate);
+                                            jsonAverageData.put("n_breaths", updatedNumberOfBreaths);
+                                            jsonAverageData.put("sd_br", updatedStdDevBreathingRate);
+                                        }
+                                        jsonAverageData.put("stored", 0);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
-                                    json2.put("stored", 0);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                    Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
+                                    intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA,
+                                            jsonAverageData.toString());
+                                    mainActivity.sendBroadcast(intent2);
+                                    Log.d("RAT", "Sent LIVE JSON to upload service: " + jsonAverageData.toString());
                                 }
-                                Intent intent2 = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
-                                intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json2.toString());
-                                mainActivity.sendBroadcast(intent2);
-                                Log.d("RAT", "Sent LIVE JSON to upload service: " + json.toString());
-
                                 latestProcessedMinute = ts_minute;
+                            }
+
+                            // Store the important data in the external storage if set in config
+                            if (mIsStoreDataLocally) {
+                                String storedLine = interpolatedPhoneTimestampOfCurrentSample + "," +
+                                        mCurrentRESpeckTimestamp + "." + currentSequenceNumberInBatch + "," + x + "," + y + "," + z + "," + breathingSignal +
+                                        "," + breathingRate + "," + activityLevel + "," + activityType + "\n";
+                                mUtils.writeToExternalStorageFile(storedLine, Constants.RESPECK_DATA_FILE_PATH);
+                            }
+
+                            // If we want to store a merged file of Airspeck and RESpeck data, append the most
+                            // recent Airspeck data to the current RESpeck data
+                            if (mIsStoreMergedFile) {
+                                String mergedData = interpolatedPhoneTimestampOfCurrentSample + "," +
+                                        mCurrentRESpeckTimestamp + "," + x + "," + y + "," + z + "," + breathingSignal +
+                                        "," + breathingRate + "," + activityLevel + "," + activityType +
+                                        mMostRecentAirspeckData + "\n";
+                                mUtils.writeToExternalStorageFile(mergedData, Constants.MERGED_DATA_FILE_PATH);
                             }
                         } catch (IndexOutOfBoundsException e) {
                             e.printStackTrace();
@@ -1043,20 +1093,6 @@ public class SpeckBluetoothService {
         // half the window size for the activity predictions, in milliseconds
         final int delay = 2000;
 
-        // Create prediction summary directory if it doesn't exist
-        final File summaryDirectory = new File(Environment.getExternalStorageDirectory(), "/ActivityPrediction");
-        if (!summaryDirectory.exists()) {
-            boolean created = summaryDirectory.mkdirs();
-            Log.i("DF", "Directory created: " + summaryDirectory);
-            if (!created) {
-                throw new RuntimeException("Couldn't create folder for temporary storage of the recording");
-            }
-        }
-
-        // Path to summary storage file. For now, we only use one file. Could be separated if the file gets too large.
-        final String filenameSummaryStorage = summaryDirectory + "/" + "predictions_summary";
-
-
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
 
@@ -1084,14 +1120,7 @@ public class SpeckBluetoothService {
                             Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "\t" +
                             Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
 
-                    try {
-                        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
-                                new FileOutputStream(filenameSummaryStorage, true));
-                        outputStreamWriter.append(lineToWrite);
-                        outputStreamWriter.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    mUtils.writeToExternalStorageFile(lineToWrite, Constants.ACTIVITY_SUMMARY_FILE_PATH);
 
                     // Reset counts to zero
                     Arrays.fill(temporaryStoragePredictions, 0);
@@ -1126,9 +1155,9 @@ public class SpeckBluetoothService {
 
     public native float getBreathingAngle();
 
-    public native void resetMA();
+    public native void resetMedianAverageBreathing();
 
-    public native void calculateMA();
+    public native void calculateMedianAverageBreathing();
 
     public native float getStdDevBreathingRate();
 

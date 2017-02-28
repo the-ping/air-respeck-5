@@ -4,6 +4,7 @@ package com.specknet.airrespeck.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
@@ -13,6 +14,7 @@ import com.specknet.airrespeck.http.HttpApi;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 
@@ -35,6 +37,50 @@ public class InitialSetupActivity extends BaseActivity {
         aua = new AutoUpdateApk(getApplicationContext());
         aua.enableMobileUpdates();
         //aua.checkUpdatesManually();
+
+        // Create directory on external storage if it doesn't exist
+        // Create prediction summary directory if it doesn't exist
+        File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            Log.i("DF", "Directory created: " + directory);
+            if (!created) {
+                throw new RuntimeException("Couldn't create folder on external storage");
+            }
+        }
+
+        Utils mUtils = Utils.getInstance(this);
+        // Look for storage related configs
+        boolean isAirspeckEnabled = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
+        boolean isStoreDataLocally = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+        boolean isStoreMergedFile = (Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && isAirspeckEnabled);
+
+        // If data storage files don't exist and we want to store data, create them with the correct header!
+        if (isStoreDataLocally) {
+            File respeckFile = new File(Constants.RESPECK_DATA_FILE_PATH);
+            if (!respeckFile.exists()) {
+                Log.i("DF", "created respeck file with header " + respeckFile.getPath());
+                mUtils.writeToExternalStorageFile(Constants.RESPECK_DATA_HEADER + "\n",
+                        Constants.RESPECK_DATA_FILE_PATH);
+            }
+            if (isAirspeckEnabled) {
+                File airspeckFile = new File(Constants.AIRSPECK_DATA_FILE_PATH);
+                if (!airspeckFile.exists()) {
+                    mUtils.writeToExternalStorageFile(Constants.AIRSPECK_DATA_HEADER + "\n",
+                            Constants.AIRSPECK_DATA_FILE_PATH);
+                }
+            }
+            if (isStoreMergedFile) {
+                File mergedFile = new File(Constants.MERGED_DATA_FILE_PATH);
+                if (!mergedFile.exists()) {
+                    mUtils.writeToExternalStorageFile(Constants.MERGED_DATA_HEADER + "\n",
+                            Constants.MERGED_DATA_FILE_PATH);
+                }
+            }
+        }
     }
 
     @Override

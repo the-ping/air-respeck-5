@@ -80,12 +80,12 @@ jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getStdDevBrea
     return (jfloat) MA_stats_sd(&maf);
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_resetMA( JNIEnv* env, jobject this)
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_resetMedianAverageBreathing( JNIEnv* env, jobject this)
 {
     MA_stats_init(&maf);
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_calculateMA( JNIEnv* env, jobject this)
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_calculateMedianAverageBreathing( JNIEnv* env, jobject this)
 {
     MA_stats_calculate(&maf);
 }
