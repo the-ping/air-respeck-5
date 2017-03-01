@@ -60,42 +60,46 @@ public class SubjectHomeFragment extends BaseFragment {
     }
 
     public void updateRESpeckConnectionSymbol(boolean isConnected) {
-        if (isConnected) {
-            // "Flash" with symbol when updating to indicate data coming in
-            connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
-            connectedStatusRESpeck.setVisibility(View.INVISIBLE);
+        if (connectedStatusRESpeck != null) {
+            if (isConnected) {
+                // "Flash" with symbol when updating to indicate data coming in
+                connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
+                connectedStatusRESpeck.setVisibility(View.INVISIBLE);
 
-            Log.i("DF", "connection symbol update");
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    connectedStatusRESpeck.setVisibility(View.VISIBLE);
-                }
-            }, 100);
+                Log.i("DF", "connection symbol update");
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        connectedStatusRESpeck.setVisibility(View.VISIBLE);
+                    }
+                }, 100);
 
-        } else {
-            connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
+            } else {
+                connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
+            }
         }
     }
 
     public void updateAirspeckConnectionSymbol(boolean isConnected) {
-        if (isConnected) {
-            // "Flash" with symbol when updating to indicate data coming in
-            connectedStatusAirspeck.setImageResource(R.drawable.vec_wireless);
-            connectedStatusAirspeck.setVisibility(View.INVISIBLE);
+        if (connectedStatusAirspeck != null) {
+            if (isConnected) {
+                // "Flash" with symbol when updating to indicate data coming in
+                connectedStatusAirspeck.setImageResource(R.drawable.vec_wireless);
+                connectedStatusAirspeck.setVisibility(View.INVISIBLE);
 
-            Log.i("DF", "connection symbol update");
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    connectedStatusAirspeck.setVisibility(View.VISIBLE);
-                }
-            }, 100);
+                Log.i("DF", "connection symbol update");
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        connectedStatusAirspeck.setVisibility(View.VISIBLE);
+                    }
+                }, 100);
 
-        } else {
-            connectedStatusAirspeck.setImageResource(R.drawable.vec_xmark);
+            } else {
+                connectedStatusAirspeck.setImageResource(R.drawable.vec_xmark);
+            }
         }
     }
 }

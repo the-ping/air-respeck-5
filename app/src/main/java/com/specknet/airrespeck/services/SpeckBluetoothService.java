@@ -750,7 +750,7 @@ public class SpeckBluetoothService {
                         mCurrentRESpeckTimestamp = newRESpeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
-                        currentPhoneTimestamp = System.currentTimeMillis();
+                        currentPhoneTimestamp = mUtils.getUnixTimestamp();
 
                         if (timestampOfPreviousSequence == -1) {
                             // If this is our first sequence, we use the typical time difference between the

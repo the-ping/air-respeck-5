@@ -109,22 +109,24 @@ public class SubjectWindmillFragment extends BaseFragment {
     }
 
     public void updateRESpeckConnectionSymbol(boolean isConnected) {
-        if (isConnected) {
-            // "Flash" with symbol when updating to indicate data coming in
-            connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
-            connectedStatusRESpeck.setVisibility(View.INVISIBLE);
+        if (connectedStatusRESpeck != null) {
+            if (isConnected) {
+                // "Flash" with symbol when updating to indicate data coming in
+                connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
+                connectedStatusRESpeck.setVisibility(View.INVISIBLE);
 
-            Log.i("DF", "connection symbol update");
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    connectedStatusRESpeck.setVisibility(View.VISIBLE);
-                }
-            }, 100);
+                Log.i("DF", "connection symbol update");
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        connectedStatusRESpeck.setVisibility(View.VISIBLE);
+                    }
+                }, 100);
 
-        } else {
-            connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
+            } else {
+                connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
+            }
         }
     }
 
@@ -174,10 +176,14 @@ public class SubjectWindmillFragment extends BaseFragment {
         if (mBreathingFlowChart != null) {
             Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
             // Set the limits based on the graph type
-            float negativeLowerLimit= -2.0f;;
-            float negativeUpperLimit= -0.3f;;
-            float positiveLowerLimit = 0.3f;;
-            float positiveUpperLimit= 2.0f;;
+            float negativeLowerLimit = -2.0f;
+            ;
+            float negativeUpperLimit = -0.3f;
+            ;
+            float positiveLowerLimit = 0.3f;
+            ;
+            float positiveUpperLimit = 2.0f;
+            ;
 
             LineDataSet dataSet = (LineDataSet) mBreathingFlowChart.getData().getDataSetByIndex(0);
             dataSet.addEntry(newEntry);

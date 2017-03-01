@@ -89,7 +89,7 @@ public final class Utils {
      * @return long The timestamp.
      */
     public long getUnixTimestamp() {
-        return System.currentTimeMillis() / 1000L;
+        return System.currentTimeMillis();
     }
 
     /**
