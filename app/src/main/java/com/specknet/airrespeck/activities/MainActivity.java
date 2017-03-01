@@ -478,6 +478,7 @@ public class MainActivity extends BaseActivity {
         ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(subjectFragments, subjectTitles);
         viewPager.setCurrentItem(0);
 
+        tabLayout.setVisibility(View.VISIBLE);
         tabLayout.setupWithViewPager(viewPager);
 
         // We currently have no option to change the display in the subject mode, so the location of the tabs
