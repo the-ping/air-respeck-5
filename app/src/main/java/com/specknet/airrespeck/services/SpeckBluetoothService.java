@@ -86,7 +86,7 @@ public class SpeckBluetoothService {
     private Date mDateOfLastAirspeckWrite = new Date(0);
 
     // Most recent Airspeck data, used for storing merged file
-    private String mMostRecentAirspeckData = "-,-,-,-,-,-";
+    private String mMostRecentAirspeckData;
 
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
@@ -208,6 +208,13 @@ public class SpeckBluetoothService {
                     new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        }
+
+        // Set most recent Airspeck data to be empty
+        if (mIsStoreAllAirspeckFields) {
+            mMostRecentAirspeckData = "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-";
+        } else {
+            mMostRecentAirspeckData = "-,-,-,-,-,-";
         }
     }
 
@@ -898,7 +905,7 @@ public class SpeckBluetoothService {
 
                                 final float updatedAverageBreathingRate = getAverageBreathingRate();
                                 final float updatedStdDevBreathingRate = getStdDevBreathingRate();
-//Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
+                                //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
                                 final int updatedNumberOfBreaths = getNumberOfBreaths();
 
                                 // Empty the minute average window
@@ -954,7 +961,7 @@ public class SpeckBluetoothService {
                     }
                 }
             } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
-// Battery packet received which contains the charging level of the battery
+                // Battery packet received which contains the charging level of the battery
                 final byte[] batteryLevelBytes = characteristic.getValue();
                 int battLevel = combineBattBytes(batteryLevelBytes[0], batteryLevelBytes[1]);
 
@@ -981,8 +988,8 @@ public class SpeckBluetoothService {
                 //         latestBatteryPercent) + ", request charge: " + Float.toString(latestRequestCharge));
 
             } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
-// Breathing rates packet received. This only happens when the RESpeck was disconnected and
-// therefore only stored the minute averages
+                // Breathing rates packet received. This only happens when the RESpeck was disconnected and
+                // therefore only stored the minute averages
                 final byte[] breathAveragesBytes = characteristic.getValue();
 
                 final int sequenceNumber = breathAveragesBytes[0] & 0xFF;
@@ -1238,7 +1245,11 @@ public class SpeckBluetoothService {
                         // Open new connection to new file
                         mMergedWriter = new OutputStreamWriter(
                                 new FileOutputStream(filenameMerged, true));
-                        mMergedWriter.append(Constants.MERGED_DATA_HEADER).append("\n");
+                        if (mIsStoreAllAirspeckFields) {
+                            mMergedWriter.append(Constants.MERGED_DATA_HEADER_SUBSET).append("\n");
+                        } else {
+                            mMergedWriter.append(Constants.MERGED_DATA_HEADER_ALL).append("\n");
+                        }
                     } else {
                         // Open new connection to new file
                         mMergedWriter = new OutputStreamWriter(
