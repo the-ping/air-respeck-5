@@ -115,7 +115,6 @@ public class SubjectWindmillFragment extends BaseFragment {
                 connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
                 connectedStatusRESpeck.setVisibility(View.INVISIBLE);
 
-                Log.i("DF", "connection symbol update");
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
                     @Override
