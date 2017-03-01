@@ -1246,9 +1246,9 @@ public class SpeckBluetoothService {
                         mMergedWriter = new OutputStreamWriter(
                                 new FileOutputStream(filenameMerged, true));
                         if (mIsStoreAllAirspeckFields) {
-                            mMergedWriter.append(Constants.MERGED_DATA_HEADER_SUBSET).append("\n");
-                        } else {
                             mMergedWriter.append(Constants.MERGED_DATA_HEADER_ALL).append("\n");
+                        } else {
+                            mMergedWriter.append(Constants.MERGED_DATA_HEADER_SUBSET).append("\n");
                         }
                     } else {
                         // Open new connection to new file
