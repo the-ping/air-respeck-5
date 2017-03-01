@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.utils.Constants;
 
 /**
  * Created by Darius on 08.02.2017.
@@ -48,7 +49,10 @@ public class SubjectHomeFragment extends BaseFragment {
         return view;
     }
 
-
+    @Override
+    public int getIcon() {
+        return Constants.MENU_ICON_HOME;
+    }
 
     @Override
     public void onDestroyView() {

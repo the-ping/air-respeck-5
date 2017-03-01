@@ -54,6 +54,11 @@ public class SubjectValuesFragment extends BaseFragment {
         return view;
     }
 
+    @Override
+    public int getIcon() {
+        return Constants.MENU_ICON_INFO;
+    }
+
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
         Log.i("DF", mRespeckSensorReadings.toString());
 

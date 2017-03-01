@@ -91,6 +91,10 @@ public class BaseFragment extends Fragment {
                 commit();
     }
 
+    public int getIcon() {
+        return Constants.MENU_ICON_HOME;
+    }
+
 
     /***********************************************************************************************
      * CONNECTING LAYOUT (for Bluetooth connection only)

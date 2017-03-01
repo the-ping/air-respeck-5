@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -12,13 +13,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
+import com.specknet.airrespeck.fragments.BaseFragment;
+import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
@@ -135,13 +137,15 @@ public class MainActivity extends BaseActivity {
     private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
     private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
-    private static final String TAG_DAPHNE_HOME_FRAGMENT = "DAPHNE_HOME_FRAGMENT";
-    private static final String TAG_DAPHNE_VALUES_FRAGMENT = "DAPHNE_VALUES_FRAGMENT";
+    private static final String TAG_SUBJECT_HOME_FRAGMENT = "SUBJECT_HOME_FRAGMENT";
+    private static final String TAG_SUBJECT_VALUES_FRAGMENT = "SUBJECT_VALUES_FRAGMENT";
+    private static final String TAG_SUBJECT_WINDMILL_FRAGMENT = "SUBJECT_WINDMILL_FRAGMENT";
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
 
     private SubjectHomeFragment mSubjectHomeFragment;
     private SubjectValuesFragment mSubjectValuesFragment;
+    private SubjectWindmillFragment mSubjectWindmillFragment;
     private SupervisedOverviewFragment mSupervisedOverviewFragment;
     private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
     private SupervisedAllGraphsFragment mSupervisedAllGraphsFragment;
@@ -157,6 +161,9 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedRESpeckReadings;
     private boolean mIsAirspeckEnabled;
+    private boolean mShowSubjectHome;
+    private boolean mShowSubjectValues;
+    private boolean mShowSubjectWindmill;
 
     // UTILS
     Utils mUtils;
@@ -269,6 +276,8 @@ public class MainActivity extends BaseActivity {
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
         mIsSubjectModeEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUBJECT_MODE_ENABLED));
+
+        // Load supervised mode config if enabled
         if (mIsSupervisedModeEnabled) {
             mShowSupervisedOverview = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_OVERVIEW));
@@ -281,6 +290,18 @@ public class MainActivity extends BaseActivity {
             mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
         }
+
+        // Load subject mode config if enabled
+        if (mIsSubjectModeEnabled) {
+            mShowSubjectHome = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_HOME));
+            mShowSubjectValues = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_VALUES));
+            mShowSubjectWindmill = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_WINDMILL));
+        }
+
+
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
@@ -324,11 +345,20 @@ public class MainActivity extends BaseActivity {
             // Setup subject mode arrays
             subjectFragments.clear();
             subjectTitles.clear();
-            subjectFragments.add(mSubjectHomeFragment);
-            // We don't want any text in the subject view, just the icons
-            subjectTitles.add("");
-            subjectFragments.add(mSubjectValuesFragment);
-            subjectTitles.add("");
+
+            if (mShowSubjectHome) {
+                subjectFragments.add(mSubjectHomeFragment);
+                // Emtpy title as we display icons
+                subjectTitles.add("");
+            }
+            if (mShowSubjectValues) {
+                subjectFragments.add(mSubjectValuesFragment);
+                subjectTitles.add("");
+            }
+            if (mShowSubjectWindmill) {
+                subjectFragments.add(mSubjectWindmillFragment);
+                subjectTitles.add("");
+            }
         }
 
         // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
@@ -346,15 +376,15 @@ public class MainActivity extends BaseActivity {
                     (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mSupervisedAllGraphsFragment =
                     (SupervisedAllGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
-            mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_DAPHNE_HOME_FRAGMENT);
-            mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
-                    TAG_DAPHNE_VALUES_FRAGMENT);
-
             mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(savedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
-
             mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
+            mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
+            mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
+                    TAG_SUBJECT_VALUES_FRAGMENT);
+            mSubjectWindmillFragment = (SubjectWindmillFragment) fm.getFragment(savedInstanceState,
+                    TAG_SUBJECT_WINDMILL_FRAGMENT);
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity
         // startup, create them now
@@ -367,17 +397,20 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedAllGraphsFragment == null) {
             mSupervisedAllGraphsFragment = new SupervisedAllGraphsFragment();
         }
+        if (mSupervisedActivitySummaryFragment == null) {
+            mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
+        }
+        if (mSupervisedRESpeckReadingsFragment == null) {
+            mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
+        }
         if (mSubjectHomeFragment == null) {
             mSubjectHomeFragment = new SubjectHomeFragment();
         }
         if (mSubjectValuesFragment == null) {
             mSubjectValuesFragment = new SubjectValuesFragment();
         }
-        if (mSupervisedActivitySummaryFragment == null) {
-            mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
-        }
-        if (mSupervisedRESpeckReadingsFragment == null) {
-            mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
+        if (mSubjectWindmillFragment == null) {
+            mSubjectWindmillFragment = new SubjectWindmillFragment();
         }
     }
 
@@ -482,16 +515,17 @@ public class MainActivity extends BaseActivity {
         ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(subjectFragments, subjectTitles);
         viewPager.setCurrentItem(0);
 
-        tabLayout.setVisibility(View.VISIBLE);
-        tabLayout.setupWithViewPager(viewPager);
+        if (subjectFragments.size() > 1) {
+            tabLayout.setVisibility(View.VISIBLE);
+            tabLayout.setupWithViewPager(viewPager);
 
-        // We currently have no option to change the display in the subject mode, so the location of the tabs
-        // will always be the same
-        tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
-        tabLayout.getTabAt(0).setText("");
-        tabLayout.getTabAt(1).setIcon(Constants.MENU_ICON_INFO);
-        tabLayout.getTabAt(1).setText("");
-
+            for (int i = 0; i < subjectFragments.size(); i++) {
+                tabLayout.getTabAt(i).setIcon(((BaseFragment)subjectFragments.get(i)).getIcon());
+                tabLayout.getTabAt(i).setText("");
+            }
+        } else {
+            tabLayout.setVisibility(View.GONE);
+        }
         // Recreate options menu
         invalidateOptionsMenu();
     }
@@ -542,17 +576,20 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedAllGraphsFragment != null && mSupervisedAllGraphsFragment.isAdded()) {
             fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAllGraphsFragment);
         }
-        if (mSubjectHomeFragment != null && mSubjectHomeFragment.isAdded()) {
-            fm.putFragment(outState, TAG_DAPHNE_HOME_FRAGMENT, mSubjectHomeFragment);
-        }
-        if (mSubjectValuesFragment != null && mSubjectValuesFragment.isAdded()) {
-            fm.putFragment(outState, TAG_DAPHNE_VALUES_FRAGMENT, mSubjectValuesFragment);
-        }
         if (mSupervisedActivitySummaryFragment != null && mSupervisedActivitySummaryFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mSupervisedActivitySummaryFragment);
         }
         if (mSupervisedRESpeckReadingsFragment != null && mSupervisedRESpeckReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mSupervisedRESpeckReadingsFragment);
+        }
+        if (mSubjectHomeFragment != null && mSubjectHomeFragment.isAdded()) {
+            fm.putFragment(outState, TAG_SUBJECT_HOME_FRAGMENT, mSubjectHomeFragment);
+        }
+        if (mSubjectValuesFragment != null && mSubjectValuesFragment.isAdded()) {
+            fm.putFragment(outState, TAG_SUBJECT_VALUES_FRAGMENT, mSubjectValuesFragment);
+        }
+        if (mSubjectWindmillFragment != null && mSubjectWindmillFragment.isAdded()) {
+            fm.putFragment(outState, TAG_SUBJECT_WINDMILL_FRAGMENT, mSubjectWindmillFragment);
         }
     }
 
@@ -657,26 +694,37 @@ public class MainActivity extends BaseActivity {
         updateConnectionLoadingLayout();
         try {
             if (isSupervisedMode) {
-                // Update overview fragment
-                ArrayList<Float> listValuesOverview = new ArrayList<>();
+                if (mShowSupervisedOverview) {
+                    // Update overview fragment
+                    ArrayList<Float> listValuesOverview = new ArrayList<>();
 
-                listValuesOverview.add(
-                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-                listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-                listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+                    listValuesOverview.add(
+                            mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
+                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
 
-                mSupervisedOverviewFragment.setReadings(listValuesOverview);
+                    mSupervisedOverviewFragment.setReadings(listValuesOverview);
+                }
 
-                // Update RESpeckReadings Fragment
-                ArrayList<Float> listValuesRESpeckReadings = new ArrayList<>();
+                if (mShowSupervisedRESpeckReadings) {
+                    // Update RESpeckReadings Fragment
+                    ArrayList<Float> listValuesRESpeckReadings = new ArrayList<>();
 
-                listValuesRESpeckReadings.add(
-                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-                listValuesRESpeckReadings.add(
-                        mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
+                    listValuesRESpeckReadings.add(
+                            mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+                    listValuesRESpeckReadings.add(
+                            mUtils.roundToTwoDigits(
+                                    mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
 
-                mSupervisedRESpeckReadingsFragment.setReadings(listValuesRESpeckReadings);
+                    mSupervisedRESpeckReadingsFragment.setReadings(listValuesRESpeckReadings);
+                }
+            } else {
+                mSubjectValuesFragment.updateBreathing(mRespeckSensorReadings);
+                mSubjectWindmillFragment.updateBreathing(mRespeckSensorReadings);
+            }
 
+            // Both fragments below display a breathing signal graph
+            if (mShowSupervisedRESpeckReadings|| mShowSubjectWindmill) {
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
                         mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
@@ -686,9 +734,6 @@ public class MainActivity extends BaseActivity {
                         mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL));
 
                 breathingSignalchartDataQueue.add(breathingGraphData);
-
-            } else {
-                mSubjectValuesFragment.updateBreathing(mRespeckSensorReadings);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -794,13 +839,16 @@ public class MainActivity extends BaseActivity {
     }
 
     private void updateRESpeckConnectionSymbol(boolean isConnected) {
-        if (!isSupervisedMode) {
+        if (!isSupervisedMode && mShowSubjectHome) {
             mSubjectHomeFragment.updateRESpeckConnectionSymbol(isConnected);
+        }
+        if (!isSupervisedMode && mShowSubjectWindmill) {
+            mSubjectWindmillFragment.updateRESpeckConnectionSymbol(isConnected);
         }
     }
 
     private void updateAirspeckConnectionSymbol(boolean isConnected) {
-        if (!isSupervisedMode) {
+        if (!isSupervisedMode && mShowSubjectHome) {
             mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
         }
     }
@@ -813,14 +861,17 @@ public class MainActivity extends BaseActivity {
 
     private void updateActivitySummary() {
         // The activity summary is only displayed in supervised mode
-        if (isSupervisedMode) {
+        if (mIsSupervisedModeEnabled && mShowSupervisedActivitySummary) {
             mSupervisedActivitySummaryFragment.updateActivitySummary();
         }
     }
 
     private void updateBreathingGraphs(BreathingGraphData data) {
-        if (isSupervisedMode) {
+        if (isSupervisedMode && mShowSupervisedRESpeckReadings) {
             mSupervisedRESpeckReadingsFragment.updateBreathingGraphs(data);
+        }
+        if (!isSupervisedMode && mShowSubjectWindmill) {
+            mSubjectWindmillFragment.updateBreathingGraph(data);
         }
     }
 }

@@ -70,6 +70,11 @@ public class SpeckBluetoothService {
     private boolean mIsUploadDataToServer;
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
+    private boolean mIsStoreAllAirspeckFields;
+
+    // Handles to the bluetooth devices
+    private BluetoothManager mBluetoothManager;
+    private BluetoothDevice mRESpeckBluetoothDevice;
 
     // Outputstreams for all the files
     private OutputStreamWriter mRespeckWriter;
@@ -154,6 +159,10 @@ public class SpeckBluetoothService {
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
+        // Do we want all Airspeck fields, or only the reliable data, i.e. only bin0, temperature, humidity etc.?
+        mIsStoreAllAirspeckFields = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_ALL_AIRSPECK_FIELDS));
+
         // Do we store data locally and/or upload to server?
         mIsUploadDataToServer = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
@@ -181,9 +190,8 @@ public class SpeckBluetoothService {
 
         // Initializes a Bluetooth adapter. For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) mainActivity.getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
+        mBluetoothManager = (BluetoothManager) mainActivity.getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = mBluetoothManager.getAdapter();
 
         mQOEConnectionComplete = false;
         mRespeckConnectionComplete = false;
@@ -226,7 +234,7 @@ public class SpeckBluetoothService {
                     .build();
 
             // Add the devices's addresses that we need for scanning
-            mScanFilters = new ArrayList<ScanFilter>();
+            mScanFilters = new ArrayList<>();
             mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(RESPECK_UUID).build());
             mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
 
@@ -319,7 +327,9 @@ public class SpeckBluetoothService {
     public void connectToDevice(BluetoothDevice device) {
         if (mGattRespeck == null && device.getName().contains("Respeck")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
+            mRESpeckBluetoothDevice = device;
             mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
+            // Log.i("[Bluetooth]", "Connection status: " + mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT));
         }
 
         if (mIsAirspeckEnabled) {
@@ -596,16 +606,24 @@ public class SpeckBluetoothService {
 
                     // Store the important data in the external storage if set in config
                     if (mIsStoreDataLocally) {
-                        String storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
-                                "," + o3_ae + "," + bin0 + "\n";
+                        String storedLine;
+                        if (mIsStoreAllAirspeckFields) {
+                            storedLine = currentPhoneTimestamp + "," + pm1 + "," + pm2_5 + "," + pm10 + "," +
+                                    temperature + "," + humidity + "," + no2_ae +
+                                    "," + o3_ae + "," + bin0 + "," + bin1 + "," + bin2 + "," + bin3 + "," + bin4 +
+                                    "," + bin5 + "," + bin6 + "," + bin7 + "," + bin8 + "," + bin9 + "," + bin10 +
+                                    "," + bin11 + "," + bin12 + "," + bin13 + "," + bin14 + "," + bin15 + "," + total;
+                        } else {
+                            storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
+                                    "," + o3_ae + "," + bin0;
+                        }
                         writeToAirspeckFile(storedLine);
-                    }
 
-                    // If we want to store a merged file, store the most recent Airspeck data without
-                    // timestamp as a string
-                    if (mIsStoreMergedFile) {
-                        mMostRecentAirspeckData = temperature + "," + humidity + "," + no2_ae +
-                                "," + o3_ae + "," + bin0;
+                        // If we want to store a merged file, store the most recent Airspeck data without
+                        // timestamp as a string
+                        if (mIsStoreMergedFile) {
+                            mMostRecentAirspeckData = storedLine;
+                        }
                     }
                 }
             }
@@ -757,6 +775,7 @@ public class SpeckBluetoothService {
                             Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY " + s.getActivityLevel());
                         }
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
+                        Log.v("DF", "Acceleration packet received from RESpeck");
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
                         // packets before the first timestamp
                         try {
@@ -879,7 +898,7 @@ public class SpeckBluetoothService {
 
                                 final float updatedAverageBreathingRate = getAverageBreathingRate();
                                 final float updatedStdDevBreathingRate = getStdDevBreathingRate();
-                                //Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
+//Log.d("RAT", "STD_DEV: " + Float.toString(sd_br));
                                 final int updatedNumberOfBreaths = getNumberOfBreaths();
 
                                 // Empty the minute average window
@@ -935,7 +954,7 @@ public class SpeckBluetoothService {
                     }
                 }
             } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
-                // Battery packet received which contains the charging level of the battery
+// Battery packet received which contains the charging level of the battery
                 final byte[] batteryLevelBytes = characteristic.getValue();
                 int battLevel = combineBattBytes(batteryLevelBytes[0], batteryLevelBytes[1]);
 
@@ -962,8 +981,8 @@ public class SpeckBluetoothService {
                 //         latestBatteryPercent) + ", request charge: " + Float.toString(latestRequestCharge));
 
             } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
-                // Breathing rates packet received. This only happens when the RESpeck was disconnected and
-                // therefore only stored the minute averages
+// Breathing rates packet received. This only happens when the RESpeck was disconnected and
+// therefore only stored the minute averages
                 final byte[] breathAveragesBytes = characteristic.getValue();
 
                 final int sequenceNumber = breathAveragesBytes[0] & 0xFF;
@@ -1113,11 +1132,11 @@ public class SpeckBluetoothService {
     }
 
     private void startActivityClassificationTask() {
-        // We want to summarise predictions every 10 minutes.
+// We want to summarise predictions every 10 minutes.
         final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
 
-        // How often do we update the activity classification?
-        // half the window size for the activity predictions, in milliseconds
+// How often do we update the activity classification?
+// half the window size for the activity predictions, in milliseconds
         final int delay = 2000;
 
         Timer timer = new Timer();
@@ -1273,7 +1292,11 @@ public class SpeckBluetoothService {
                     // Open new connection to new file
                     mAirspeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameAirspeck, true));
-                    mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER).append("\n");
+                    if (mIsStoreAllAirspeckFields) {
+                        mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER_ALL).append("\n");
+                    } else {
+                        mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER_SUBSET).append("\n");
+                    }
                 } else {
                     // Open new connection to new file
                     mAirspeckWriter = new OutputStreamWriter(
@@ -1285,6 +1308,7 @@ public class SpeckBluetoothService {
                 e.printStackTrace();
             }
         }
+
         mDateOfLastAirspeckWrite = now;
 
         // Write new line to file

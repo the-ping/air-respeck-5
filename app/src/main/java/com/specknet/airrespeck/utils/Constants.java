@@ -29,11 +29,15 @@ public class Constants {
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
         public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
         public static final String IS_AIRSPECK_ENABLED = "EnableAirspeck";
+        public static final String IS_STORE_ALL_AIRSPECK_FIELDS = "StoreAllAirspeckFields";
         public static final String SHOW_SUPERVISED_AQ_GRAPHS = "EnableSupervisedAQGraphs";
         public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
         public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
         public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
         public static final String SHOW_SUPERVISED_OVERVIEW = "EnableSupervisedOverview";
+        public static final String SHOW_SUBJECT_HOME = "EnableSubjectHome";
+        public static final String SHOW_SUBJECT_VALUES = "EnableSubjectValues";
+        public static final String SHOW_SUBJECT_WINDMILL = "EnableSubjectWindmill";
         public static final String SHOW_PCA_GRAPH = "ShowPCAGraph";
         public static final String IS_UPLOAD_DATA_TO_SERVER = "UploadToServer";
         public static final String IS_STORE_DATA_LOCALLY = "StoreDataLocally";
@@ -233,10 +237,11 @@ public class Constants {
     public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck_and_Airspeck/";
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
-    public static final String AIRSPECK_DATA_HEADER = "phoneTimestamp,temperature,humidity,no2,o3,bin0";
+    public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0";
+    public static final String AIRSPECK_DATA_HEADER_ALL = "phoneTimestamp,pm1,pm2_5,pm10,humidity,no2,o3,bin0,bin1" +
+            ",bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total";
     public static final String MERGED_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType,temperature,humidity,no2,o3,bin0";
-
 
     /*
     PCA zero mean signal calculation
