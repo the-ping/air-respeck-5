@@ -38,17 +38,6 @@ public class InitialSetupActivity extends BaseActivity {
         aua.enableMobileUpdates();
         //aua.checkUpdatesManually();
 
-        // Create directory on external storage if it doesn't exist
-        // Create prediction summary directory if it doesn't exist
-        File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            Log.i("DF", "Directory created: " + directory);
-            if (!created) {
-                throw new RuntimeException("Couldn't create folder on external storage");
-            }
-        }
-
         Utils mUtils = Utils.getInstance(this);
         // Look for storage related configs
         boolean isAirspeckEnabled = Boolean.parseBoolean(
@@ -58,31 +47,46 @@ public class InitialSetupActivity extends BaseActivity {
         boolean isStoreMergedFile = (Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && isAirspeckEnabled);
 
-        // If data storage files don't exist and we want to store data, create them with the correct header!
         if (isStoreDataLocally) {
-            File respeckFile = new File(Constants.RESPECK_DATA_FILE_PATH);
-            if (!respeckFile.exists()) {
-                Log.i("DF", "RESpeck data file created with header");
-                mUtils.writeToExternalStorageFile(Constants.RESPECK_DATA_HEADER + "\n",
-                        Constants.RESPECK_DATA_FILE_PATH);
+            // Create directories on external storage if they don't exist
+            File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                Log.i("DF", "Directory created: " + directory);
+                if (!created) {
+                    throw new RuntimeException("Couldn't create app root folder on external storage");
+                }
+            }
+            directory = new File(Constants.RESPECK_DATA_DIRECTORY_PATH);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                Log.i("DF", "Directory created: " + directory);
+                if (!created) {
+                    throw new RuntimeException("Couldn't create Respeck folder on external storage");
+                }
             }
             if (isAirspeckEnabled) {
-                Log.i("DF", "Airspeck data file created with header");
-                File airspeckFile = new File(Constants.AIRSPECK_DATA_FILE_PATH);
-                if (!airspeckFile.exists()) {
-                    mUtils.writeToExternalStorageFile(Constants.AIRSPECK_DATA_HEADER + "\n",
-                            Constants.AIRSPECK_DATA_FILE_PATH);
+                directory = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    Log.i("DF", "Directory created: " + directory);
+                    if (!created) {
+                        throw new RuntimeException("Couldn't create Airspeck folder on external storage");
+                    }
                 }
             }
             if (isStoreMergedFile) {
-                Log.i("DF", "Merged RESpeck and Airspeck data file created with header");
-                File mergedFile = new File(Constants.MERGED_DATA_FILE_PATH);
-                if (!mergedFile.exists()) {
-                    mUtils.writeToExternalStorageFile(Constants.MERGED_DATA_HEADER + "\n",
-                            Constants.MERGED_DATA_FILE_PATH);
+                directory = new File(Constants.MERGED_DATA_DIRECTORY_PATH);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    Log.i("DF", "Directory created: " + directory);
+                    if (!created) {
+                        throw new RuntimeException("Couldn't create Merged folder on external storage");
+                    }
                 }
             }
         }
+
     }
 
     @Override

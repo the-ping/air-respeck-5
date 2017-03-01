@@ -375,15 +375,4 @@ public final class Utils {
             return (aCopy[middle - 1] + aCopy[middle]) / 2.0f;
         }
     }
-
-    public void writeToExternalStorageFile(String data, String path) {
-        try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(path, true));
-            outputStreamWriter.append(data);
-            outputStreamWriter.close();
-            Log.i("DF", "Data written to file: " + data);
-        } catch (IOException e) {
-            Log.e("DF", "File write failed: " + e.toString());
-        }
-    }
 }

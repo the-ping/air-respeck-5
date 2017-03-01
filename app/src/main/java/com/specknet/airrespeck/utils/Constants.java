@@ -227,11 +227,11 @@ public class Constants {
      */
     public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory(),
             "/AirRespeck").getPath();
-    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/activity_summary.csv";
-    public static final String RESPECK_DATA_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/respeck.csv";
-    public static final String AIRSPECK_DATA_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/airpeck.csv";
-    public static final String MERGED_DATA_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/respeck_and_airspeck.csv";
-    public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,x,y,z," +
+    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Activity_summary.csv";
+    public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck/";
+    public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Airspeck/";
+    public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck_and_Airspeck/";
+    public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
     public static final String AIRSPECK_DATA_HEADER = "phoneTimestamp,temperature,humidity,no2,o3,bin0";
     public static final String MERGED_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,x,y,z," +

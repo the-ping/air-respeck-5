@@ -32,10 +32,10 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -76,9 +76,12 @@ public class SpeckBluetoothService {
     private OutputStreamWriter mAirspeckWriter;
     private OutputStreamWriter mMergedWriter;
     private OutputStreamWriter mActivitySummaryWriter;
+    // Initial values for last write timestamps. Have to be > 0 so the truncating works.
+    private Date mDateOfLastRESpeckWrite = new Date(0);
+    private Date mDateOfLastAirspeckWrite = new Date(0);
 
     // Most recent Airspeck data, used for storing merged file
-    String mMostRecentAirspeckData = "-,-,-,-,-,-";
+    private String mMostRecentAirspeckData = "-,-,-,-,-,-";
 
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
@@ -118,21 +121,21 @@ public class SpeckBluetoothService {
 
     // BATTERY MONITORING
 
-    public static final int PROMPT_TO_CHARGE_LEVEL = 1152;
-    public static final int BATTERY_FULL_LEVEL = 1152; // was 1139
-    public static final int BATTERY_EMPTY_LEVEL = 889;
+    private static final int PROMPT_TO_CHARGE_LEVEL = 1152;
+    private static final int BATTERY_FULL_LEVEL = 1152; // was 1139
+    private static final int BATTERY_EMPTY_LEVEL = 889;
     private final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
     private float latestBatteryPercent = 0f;
     private float latestRequestCharge = 0f;
 
     // References to Context and Utils
-    MainActivity mainActivity;
-    Utils mUtils;
-    LocationUtils mLocationUtils;
+    private MainActivity mainActivity;
+    private Utils mUtils;
+    private LocationUtils mLocationUtils;
 
     // UPLOAD SERVICES
-    RespeckRemoteUploadService mRespeckRemoteUploadService;
-    QOERemoteUploadService mQOERemoteUploadService;
+    private RespeckRemoteUploadService mRespeckRemoteUploadService;
+    private QOERemoteUploadService mQOERemoteUploadService;
 
     public SpeckBluetoothService() {
 
@@ -191,24 +194,12 @@ public class SpeckBluetoothService {
             initQOEUploadService();
         }
 
-        // Initialise OutputWriters
-        if (mIsStoreDataLocally) {
-            try {
-                mActivitySummaryWriter = new OutputStreamWriter(
-                        new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
-                mRespeckWriter = new OutputStreamWriter(new FileOutputStream(Constants.RESPECK_DATA_FILE_PATH, true));
-
-                if (mIsAirspeckEnabled) {
-                    mAirspeckWriter = new OutputStreamWriter(
-                            new FileOutputStream(Constants.AIRSPECK_DATA_FILE_PATH, true));
-                    if (mIsStoreMergedFile) {
-                        mMergedWriter = new OutputStreamWriter(
-                                new FileOutputStream(Constants.MERGED_DATA_FILE_PATH, true));
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+        // Initialise ActivitySummaryWriter. The other writers are initialised on demand
+        try {
+            mActivitySummaryWriter = new OutputStreamWriter(
+                    new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
@@ -607,11 +598,7 @@ public class SpeckBluetoothService {
                     if (mIsStoreDataLocally) {
                         String storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
                                 "," + o3_ae + "," + bin0 + "\n";
-                        try {
-                            mAirspeckWriter.append(storedLine);
-                        } catch (IOException e) {
-                            Log.e("DF", "Airspeck file write failed: " + e.toString());
-                        }
+                        writeToAirspeckFile(storedLine);
                     }
 
                     // If we want to store a merged file, store the most recent Airspeck data without
@@ -935,27 +922,10 @@ public class SpeckBluetoothService {
                             if (mIsStoreDataLocally) {
                                 String storedLine = interpolatedPhoneTimestampOfCurrentSample + "," +
                                         mCurrentRESpeckTimestamp + "." + currentSequenceNumberInBatch + "," + x + "," + y + "," + z + "," + breathingSignal +
-                                        "," + breathingRate + "," + activityLevel + "," + activityType + "\n";
-                                try {
-                                    mRespeckWriter.append(storedLine);
-                                } catch (IOException e) {
-                                    Log.e("DF", "RESpeck file write failed: " + e.toString());
-                                }
+                                        "," + breathingRate + "," + activityLevel + "," + activityType;
+                                writeToRESpeckAndMergedFile(storedLine);
                             }
 
-                            // If we want to store a merged file of Airspeck and RESpeck data, append the most
-                            // recent Airspeck data to the current RESpeck data
-                            if (mIsStoreMergedFile) {
-                                String mergedData = interpolatedPhoneTimestampOfCurrentSample + "," +
-                                        mCurrentRESpeckTimestamp + "," + x + "," + y + "," + z + "," + breathingSignal +
-                                        "," + breathingRate + "," + activityLevel + "," + activityType +
-                                        mMostRecentAirspeckData + "\n";
-                                try {
-                                    mMergedWriter.append(mergedData);
-                                } catch (IOException e) {
-                                    Log.e("DF", "Merged file write failed: " + e.toString());
-                                }
-                            }
                         } catch (IndexOutOfBoundsException e) {
                             e.printStackTrace();
                         }
@@ -1192,6 +1162,137 @@ public class SpeckBluetoothService {
 
     public static String getCurrentTimeStamp() {
         return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
+    }
+
+    private void writeToRESpeckAndMergedFile(String line) {
+        // Check whether we are in a new day
+        Date now = new Date();
+        long currentWriteDay = DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime();
+        long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();
+        long numberOfMillisInDay = 1000 * 60 * 60 * 24;
+
+        String filenameRESpeck = Constants.RESPECK_DATA_DIRECTORY_PATH +
+                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
+                " RESpeck.csv";
+
+        String filenameMerged = Constants.MERGED_DATA_DIRECTORY_PATH +
+                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
+                " Merged.csv";
+
+        // If we are in a new day, create a new file if necessary
+        if (currentWriteDay != previousWriteDay ||
+                now.getTime() - mDateOfLastRESpeckWrite.getTime() > numberOfMillisInDay) {
+            try {
+                /**
+                 * RESpeck writer
+                 */
+                // Close old connection if there was one
+                if (mRespeckWriter != null) {
+                    mRespeckWriter.close();
+                }
+
+                // The file could already exist if we just started the app. If not, add the header
+                if (!new File(filenameRESpeck).exists()) {
+                    Log.i("DF", "RESpeck data file created with header");
+                    // Open new connection to file (which creates file)
+                    mRespeckWriter = new OutputStreamWriter(
+                            new FileOutputStream(filenameRESpeck, true));
+
+                    mRespeckWriter.append(Constants.RESPECK_DATA_HEADER).append("\n");
+                } else {
+                    mRespeckWriter = new OutputStreamWriter(
+                            new FileOutputStream(filenameRESpeck, true));
+                }
+
+                /**
+                 * Merged writer
+                 */
+                if (mIsStoreMergedFile) {
+                    // Close old connection if there was one
+                    if (mMergedWriter != null) {
+                        mMergedWriter.close();
+                    }
+
+                    // The file could already exist if we just started the app. If not, add the header
+                    if (!new File(filenameMerged).exists()) {
+                        Log.i("DF", "Merged data file created with header");
+                        // Open new connection to new file
+                        mMergedWriter = new OutputStreamWriter(
+                                new FileOutputStream(filenameMerged, true));
+                        mMergedWriter.append(Constants.MERGED_DATA_HEADER).append("\n");
+                    } else {
+                        // Open new connection to new file
+                        mMergedWriter = new OutputStreamWriter(
+                                new FileOutputStream(filenameMerged, true));
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        mDateOfLastRESpeckWrite = now;
+
+        try {
+            // Write new line to file
+            mRespeckWriter.append(line).append("\n");
+
+            // If we want to store a merged file of Airspeck and RESpeck data, append the most
+            // recent Airspeck data to the current RESpeck data
+            if (mIsStoreMergedFile) {
+                mMergedWriter.append(line).append(",").append(mMostRecentAirspeckData).append("\n");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeToAirspeckFile(String line) {
+        // Check whether we are in a new day
+        Date now = new Date();
+        long currentWriteDay = DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime();
+        long previousWriteDay = DateUtils.truncate(mDateOfLastAirspeckWrite, Calendar.DAY_OF_MONTH).getTime();
+        long numberOfMillisInDay = 1000 * 60 * 60 * 24;
+
+        String filenameAirspeck = Constants.AIRSPECK_DATA_DIRECTORY_PATH +
+                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
+                " Airspeck.csv";
+
+        // If we are in a new day, create a new file if necessary
+        if (currentWriteDay != previousWriteDay ||
+                now.getTime() - mDateOfLastAirspeckWrite.getTime() > numberOfMillisInDay) {
+            try {
+                // Close old connection if there was one
+                if (mAirspeckWriter != null) {
+                    mAirspeckWriter.close();
+                }
+
+                // The file could already exist if we just started the app. If not, add the header
+                if (!new File(filenameAirspeck).exists()) {
+                    Log.i("DF", "Airspeck data file created with header");
+                    // Open new connection to new file
+                    mAirspeckWriter = new OutputStreamWriter(
+                            new FileOutputStream(filenameAirspeck, true));
+                    mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER).append("\n");
+                } else {
+                    // Open new connection to new file
+                    mAirspeckWriter = new OutputStreamWriter(
+                            new FileOutputStream(filenameAirspeck, true));
+
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        mDateOfLastAirspeckWrite = now;
+
+        // Write new line to file
+        try {
+            mAirspeckWriter.append(line).append("\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     static {
