@@ -32,6 +32,11 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
@@ -59,7 +64,6 @@ public class SpeckBluetoothService {
     private ScanSettings mScanSettings;
     private List<ScanFilter> mScanFilters;
     private BluetoothGatt mGattRespeck, mGattQOE;
-    private BluetoothDevice mDeviceRespeck, mDeviceQOE;
 
     // Config settings
     private boolean mIsAirspeckEnabled;
@@ -67,9 +71,15 @@ public class SpeckBluetoothService {
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
 
+    // Outputstreams for all the files
+    private OutputStreamWriter mRespeckWriter;
+    private OutputStreamWriter mAirspeckWriter;
+    private OutputStreamWriter mMergedWriter;
+    private OutputStreamWriter mActivitySummaryWriter;
+
     // Most recent Airspeck data, used for storing merged file
     String mMostRecentAirspeckData = "-,-,-,-,-,-";
-    
+
     private boolean mQOEConnectionComplete;
     private boolean mRespeckConnectionComplete;
     private int REQUEST_ENABLE_BT = 1;
@@ -180,6 +190,26 @@ public class SpeckBluetoothService {
             initRespeckUploadService();
             initQOEUploadService();
         }
+
+        // Initialise OutputWriters
+        if (mIsStoreDataLocally) {
+            try {
+                mActivitySummaryWriter = new OutputStreamWriter(
+                        new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
+                mRespeckWriter = new OutputStreamWriter(new FileOutputStream(Constants.RESPECK_DATA_FILE_PATH, true));
+
+                if (mIsAirspeckEnabled) {
+                    mAirspeckWriter = new OutputStreamWriter(
+                            new FileOutputStream(Constants.AIRSPECK_DATA_FILE_PATH, true));
+                    if (mIsStoreMergedFile) {
+                        mMergedWriter = new OutputStreamWriter(
+                                new FileOutputStream(Constants.MERGED_DATA_FILE_PATH, true));
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -228,15 +258,28 @@ public class SpeckBluetoothService {
         if (mGattRespeck == null && mGattQOE == null) {
             return;
         }
-
         if (mGattRespeck != null) {
             mGattRespeck.close();
             mGattRespeck = null;
         }
-
         if (mGattQOE != null) {
             mGattQOE.close();
             mGattQOE = null;
+        }
+
+        // Close the OutputWritingStreams
+        try {
+            if (mRespeckWriter != null) {
+                mRespeckWriter.close();
+            }
+            if (mAirspeckWriter != null) {
+                mAirspeckWriter.close();
+            }
+            if (mMergedWriter != null) {
+                mMergedWriter.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -283,17 +326,14 @@ public class SpeckBluetoothService {
      * @param device BluetoothDevice The device.
      */
     public void connectToDevice(BluetoothDevice device) {
-        Log.i("DF", "device name: " + device.getName());
         if (mGattRespeck == null && device.getName().contains("Respeck")) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName());
-            mDeviceRespeck = device;
             mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
         }
 
         if (mIsAirspeckEnabled) {
             if (mGattQOE == null && device.getName().contains("QOE")) {
                 Log.i("[Bluetooth]", "Connecting to " + device.getName());
-                mDeviceQOE = device;
                 mGattQOE = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackQOE);
             }
         }
@@ -378,7 +418,7 @@ public class SpeckBluetoothService {
                         (sampleIDs_2[1] == sampleIDs_2[2] && (sampleIDs_2[2] == sampleIDs_2[3]) &&
                                 (sampleIDs_2[3] == sampleIDs_2[4]))) {
 
-                    byte[] finalPacket = {};
+                    byte[] finalPacket;
                     int size = 5;
 
                     finalPacket = new byte[lastPackets_2[0].length + lastPackets_2[1].length +
@@ -466,9 +506,11 @@ public class SpeckBluetoothService {
                     temperature = ((temp - 3960) / 100.0);
                     hum = (-2.0468 + (0.0367 * humidity) + (-0.0000015955 * humidity * humidity));
 
+                    /*
                     Log.i("[QOE]", "PM1: " + pm1);
                     Log.i("[QOE]", "PM2.5: " + pm2_5);
                     Log.i("[QOE]", "PM10: " + pm10);
+                    */
 
                     lastSample = sampleIDs_2[0];
 
@@ -565,7 +607,11 @@ public class SpeckBluetoothService {
                     if (mIsStoreDataLocally) {
                         String storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
                                 "," + o3_ae + "," + bin0 + "\n";
-                        mUtils.writeToExternalStorageFile(storedLine, Constants.AIRSPECK_DATA_FILE_PATH);
+                        try {
+                            mAirspeckWriter.append(storedLine);
+                        } catch (IOException e) {
+                            Log.e("DF", "Airspeck file write failed: " + e.toString());
+                        }
                     }
 
                     // If we want to store a merged file, store the most recent Airspeck data without
@@ -676,7 +722,7 @@ public class SpeckBluetoothService {
                     Byte startByte = accelBytes[i];
                     if (startByte == -1) {
                         // Timestamp packet received. Starting a new sequence
-                        Log.i("DF", "Timestamp received from RESpeck");
+                        // Log.i("DF", "Timestamp received from RESpeck");
 
                         // Read timestamp from packet
                         Byte ts_1 = accelBytes[i + 1];
@@ -726,7 +772,6 @@ public class SpeckBluetoothService {
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
                         // packets before the first timestamp
-                        Log.i("DF", "Acceleration packet received from RESpeck");
                         try {
                             final float x = combineAccelerationBytes(accelBytes[i + 1], accelBytes[i + 2]);
                             final float y = combineAccelerationBytes(accelBytes[i + 3], accelBytes[i + 4]);
@@ -751,6 +796,7 @@ public class SpeckBluetoothService {
                             float cutoffInterpolatedTimestamp = onlyKeepTimeInDay(
                                     interpolatedPhoneTimestampOfCurrentSample);
 
+                            /*
                             Log.i("2", "BS_TIMESTAMP " + String.valueOf(currentPhoneTimestamp));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(mCurrentRESpeckTimestamp));
                             Log.i("2", "Interpolated timestamp " + String.valueOf(
@@ -763,6 +809,7 @@ public class SpeckBluetoothService {
                             Log.i("2", "STDBR " + String.valueOf(stdDevBreathingRate));
                             Log.i("2", "NBreaths " + String.valueOf(numberOfBreaths));
                             Log.i("2", "Activity Level " + String.valueOf(activityLevel));
+                            */
 
                             // Upload data to server if set in config
                             if (mIsUploadDataToServer) {
@@ -818,7 +865,7 @@ public class SpeckBluetoothService {
                                 Intent intent = new Intent(RespeckRemoteUploadService.MSG_UPLOAD);
                                 intent.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA, json.toString());
                                 mainActivity.sendBroadcast(intent);
-                                Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
+                                // Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
                             }
 
                             // Send RESpeck readings to UI Handler
@@ -851,11 +898,13 @@ public class SpeckBluetoothService {
                                 // Empty the minute average window
                                 resetMedianAverageBreathing();
 
+                                /*
                                 Log.i("3", "RESPECK_BS_TIMESTAMP " + ts_minute);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + updatedAverageBreathingRate);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + updatedNumberOfBreaths);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: " + updatedStdDevBreathingRate);
                                 Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY " + activityLevel);
+                                */
 
                                 // Upload data to server if set in config
                                 if (mIsUploadDataToServer) {
@@ -877,7 +926,7 @@ public class SpeckBluetoothService {
                                     intent2.putExtra(RespeckRemoteUploadService.MSG_UPLOAD_DATA,
                                             jsonAverageData.toString());
                                     mainActivity.sendBroadcast(intent2);
-                                    Log.d("RAT", "Sent LIVE JSON to upload service: " + jsonAverageData.toString());
+                                    // Log.d("RAT", "Sent LIVE JSON to upload service: " + jsonAverageData.toString());
                                 }
                                 latestProcessedMinute = ts_minute;
                             }
@@ -887,7 +936,11 @@ public class SpeckBluetoothService {
                                 String storedLine = interpolatedPhoneTimestampOfCurrentSample + "," +
                                         mCurrentRESpeckTimestamp + "." + currentSequenceNumberInBatch + "," + x + "," + y + "," + z + "," + breathingSignal +
                                         "," + breathingRate + "," + activityLevel + "," + activityType + "\n";
-                                mUtils.writeToExternalStorageFile(storedLine, Constants.RESPECK_DATA_FILE_PATH);
+                                try {
+                                    mRespeckWriter.append(storedLine);
+                                } catch (IOException e) {
+                                    Log.e("DF", "RESpeck file write failed: " + e.toString());
+                                }
                             }
 
                             // If we want to store a merged file of Airspeck and RESpeck data, append the most
@@ -897,7 +950,11 @@ public class SpeckBluetoothService {
                                         mCurrentRESpeckTimestamp + "," + x + "," + y + "," + z + "," + breathingSignal +
                                         "," + breathingRate + "," + activityLevel + "," + activityType +
                                         mMostRecentAirspeckData + "\n";
-                                mUtils.writeToExternalStorageFile(mergedData, Constants.MERGED_DATA_FILE_PATH);
+                                try {
+                                    mMergedWriter.append(mergedData);
+                                } catch (IOException e) {
+                                    Log.e("DF", "Merged file write failed: " + e.toString());
+                                }
                             }
                         } catch (IndexOutOfBoundsException e) {
                             e.printStackTrace();
@@ -912,7 +969,7 @@ public class SpeckBluetoothService {
                 final byte[] batteryLevelBytes = characteristic.getValue();
                 int battLevel = combineBattBytes(batteryLevelBytes[0], batteryLevelBytes[1]);
 
-                Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
+                // Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
 
                 int chargePercentage = (100 * (battLevel - BATTERY_EMPTY_LEVEL) /
                         (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
@@ -931,8 +988,8 @@ public class SpeckBluetoothService {
                     latestRequestCharge = 0;
                 }
 
-                Log.i("RAT", "Battery level: " + Float.toString(
-                        latestBatteryPercent) + ", request charge: " + Float.toString(latestRequestCharge));
+                // Log.i("RAT", "Battery level: " + Float.toString(
+                //         latestBatteryPercent) + ", request charge: " + Float.toString(latestRequestCharge));
 
             } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
                 // Breathing rates packet received. This only happens when the RESpeck was disconnected and
@@ -977,7 +1034,7 @@ public class SpeckBluetoothService {
                                     breathAverageSequenceNumber++, numberOfBreaths, meanBreathingRate,
                                     sdBreathingRate,
                                     combinedActivityLevel);
-                            Log.w("RAT", "Queueing stored sample: " + ras.toString());
+                            // Log.w("RAT", "Queueing stored sample: " + ras.toString());
                             storedQueue.add(ras);
                         }
                     }
@@ -1106,7 +1163,7 @@ public class SpeckBluetoothService {
                 int predictionIdx = getCurrentActivityClassification();
                 // an index of -1 means that the acceleration buffer has not been filled yet, so we have to wait.
                 if (predictionIdx != -1) {
-                    Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
+                    // Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
                     temporaryStoragePredictions[predictionIdx]++;
                     summaryCounter++;
                 }
@@ -1119,8 +1176,11 @@ public class SpeckBluetoothService {
                             Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "\t" +
                             Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "\t" +
                             Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
-
-                    mUtils.writeToExternalStorageFile(lineToWrite, Constants.ACTIVITY_SUMMARY_FILE_PATH);
+                    try {
+                        mActivitySummaryWriter.append(lineToWrite);
+                    } catch (IOException e) {
+                        Log.e("DF", "Activity summary file write failed: " + e.toString());
+                    }
 
                     // Reset counts to zero
                     Arrays.fill(temporaryStoragePredictions, 0);

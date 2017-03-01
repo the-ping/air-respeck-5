@@ -226,8 +226,6 @@ public class MainActivity extends BaseActivity {
                 isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
             } else {
                 // Set mode to starting mode specified in config file
-                Log.i("DF", "starting mode: " + mUtils.getProperties().getProperty(
-                        Constants.Config.IS_SUPERVISED_STARTING_MODE));
                 isSupervisedMode = Boolean.parseBoolean(
                         mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_STARTING_MODE));
 
@@ -420,8 +418,11 @@ public class MainActivity extends BaseActivity {
                     // Only do this if we're below a certain threshold (set with intuition here)
                     if (queueHadBeenFilled && updateDelayBreathingGraph <= 1.1 * defaultDelay) {
                         updateDelayBreathingGraph += 1;
-                        Log.i("DF", String.format(Locale.UK, "Queue empty: decrease processing speed to: %d ms",
+                        /*
+                        Log.v("DF", String.format(Locale.UK,
+                                "Breathing graph data queue empty: decrease processing speed to: %d ms",
                                 updateDelayBreathingGraph));
+                        */
                     }
 
                     handler.postDelayed(this, updateDelayBreathingGraph);
@@ -439,8 +440,11 @@ public class MainActivity extends BaseActivity {
                     // might have to be adjusted
                     if (breathingSignalchartDataQueue.size() > Constants.NUMBER_OF_SAMPLES_PER_BATCH) {
                         updateDelayBreathingGraph -= 1;
-                        Log.i("DF", String.format(Locale.UK, "Queue too full: increase processing speed to: %d ms",
+                        /*
+                        Log.v("DF", String.format(Locale.UK,
+                                "Breathing graph data queue too full: increase processing speed to: %d ms",
                                 updateDelayBreathingGraph));
+                        */
                     }
 
                     handler.postDelayed(this, updateDelayBreathingGraph);

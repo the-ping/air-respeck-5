@@ -12,7 +12,6 @@ void update_act_class_buffer(double *accel, double max_act_level) {
     double buffer_entry[4] = {accel[0], accel[1], accel[2], max_act_level};
     memcpy(act_class_buffer[current_idx_in_buffer], buffer_entry, 4 * sizeof(double));
     if (!is_buffer_full && current_idx_in_buffer == ACT_CLASS_BUFFER_SIZE - 1) {
-        __android_log_print(ANDROID_LOG_INFO, "DF", "Buffer is full!");
         is_buffer_full = 1;
     }
     current_idx_in_buffer = (current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
@@ -91,7 +90,6 @@ int simple_predict() {
     }
 
     double y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
-    __android_log_print(ANDROID_LOG_INFO, "DF", "y median: %lf", y_median);
 
     // Is y value between -0.5 and 0.5?. If yes, we are lying down. Else, check activity levels
     //if ((-0.5 <= y_median) && (y_median <= 0.5)) { // an angle of > 30° counts as sitting
@@ -102,15 +100,15 @@ int simple_predict() {
         // We circumvent that by clearing the activity level buffer. Walking can only be predicted when it is filled
         // again with high enough values
         if (last_prediction == 2) {
-            __android_log_print(ANDROID_LOG_INFO, "DF",
-                                "switched from lying do sit/stand -> clear activity level buffer!");
+            //__android_log_print(ANDROID_LOG_INFO, "DF",
+            //                    "switched from lying do sit/stand -> clear activity level buffer!");
             for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
                 act_class_buffer[buffer_idx][3] = 0;
             }
             last_prediction = 0; // Predict sitting
         } else {
             double al_median = calc_median(max_act_levels, ACT_CLASS_BUFFER_SIZE);
-            __android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
+            // __android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
             if (al_median >= 0.025) { // Determined with distribution of activity levels with 5 subjects
                 last_prediction = 1; // Walking
             } else {

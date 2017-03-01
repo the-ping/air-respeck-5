@@ -62,11 +62,12 @@ public class InitialSetupActivity extends BaseActivity {
         if (isStoreDataLocally) {
             File respeckFile = new File(Constants.RESPECK_DATA_FILE_PATH);
             if (!respeckFile.exists()) {
-                Log.i("DF", "created respeck file with header " + respeckFile.getPath());
+                Log.i("DF", "RESpeck data file created with header");
                 mUtils.writeToExternalStorageFile(Constants.RESPECK_DATA_HEADER + "\n",
                         Constants.RESPECK_DATA_FILE_PATH);
             }
             if (isAirspeckEnabled) {
+                Log.i("DF", "Airspeck data file created with header");
                 File airspeckFile = new File(Constants.AIRSPECK_DATA_FILE_PATH);
                 if (!airspeckFile.exists()) {
                     mUtils.writeToExternalStorageFile(Constants.AIRSPECK_DATA_HEADER + "\n",
@@ -74,6 +75,7 @@ public class InitialSetupActivity extends BaseActivity {
                 }
             }
             if (isStoreMergedFile) {
+                Log.i("DF", "Merged RESpeck and Airspeck data file created with header");
                 File mergedFile = new File(Constants.MERGED_DATA_FILE_PATH);
                 if (!mergedFile.exists()) {
                     mUtils.writeToExternalStorageFile(Constants.MERGED_DATA_HEADER + "\n",
