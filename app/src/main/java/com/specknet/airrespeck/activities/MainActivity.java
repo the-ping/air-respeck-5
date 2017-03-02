@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -90,14 +89,14 @@ public class MainActivity extends BaseActivity {
                         service.updateActivitySummary();
                         break;
                     case SHOW_SNACKBAR_MESSAGE:
-                        service.showSnackbar((String) msg.obj);
+                        service.showSnackbarFromHandler((String) msg.obj);
                         break;
                     case SHOW_AIRSPECK_CONNECTED:
                         String messageAir = String.format(Locale.UK, "QOE "
                                 + service.getString(R.string.device_connected)
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".");
-                        service.showSnackbar(messageAir);
+                        service.showSnackbarFromHandler(messageAir);
                         service.updateAirspeckConnectionSymbol(true);
                         break;
                     case SHOW_AIRSPECK_DISCONNECTED:
@@ -108,7 +107,7 @@ public class MainActivity extends BaseActivity {
                                 + service.getString(R.string.device_connected)
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".");
-                        service.showSnackbar(messageRE);
+                        service.showSnackbarFromHandler(messageRE);
                         service.updateRESpeckConnectionSymbol(true);
                         break;
                     case SHOW_RESPECK_DISCONNECTED:
@@ -853,9 +852,17 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void showSnackbar(String message) {
+    private void showSnackbarFromHandler(String message) {
         Snackbar.make(mCoordinatorLayout, message, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
+    }
+
+    public void showOnSnackbar(String text) {
+        Message msg = new Message();
+        msg.what = SHOW_SNACKBAR_MESSAGE;
+        msg.obj = text;
+        msg.setTarget(mUIHandler);
+        msg.sendToTarget();
     }
 
 

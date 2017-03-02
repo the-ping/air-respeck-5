@@ -464,30 +464,10 @@ public class SpeckBluetoothService {
                             + bin8 + bin9 + bin10 + bin11
                             + bin12 + bin13 + bin14 + bin15;
 
-                    String bins_data_string = bin0 + "," + bin1 + "," + bin2 + "," + bin3 + ","
-                            + bin4 + "," + bin5 + "," + bin6 + "," + bin7 + ","
-                            + bin8 + "," + bin9 + "," + bin10 + "," + bin11 + ","
-                            + bin12 + "," + bin13 + "," + bin14 + "," + bin15;
-
-                    double temperature = -1;
-                    double hum = -1;
-
-                    float pm1 = -1;
-                    float pm2_5 = -1;
-                    float pm10 = -1;
-
-                    float opctemp = -1;
-
-                    int o3_ae = -1;
-                    int o3_we = -1;
-
-                    int no2_ae = -1;
-                    int no2_we = -1;
-
                     // MtoF
                     packetBufferLittleEnd.getInt();
                     // opc_temp
-                    opctemp = packetBufferLittleEnd.getInt();
+                    float opctemp = packetBufferLittleEnd.getInt();
                     // opc_pressure
                     packetBufferLittleEnd.getInt();
                     // period count
@@ -495,24 +475,24 @@ public class SpeckBluetoothService {
                     // uint16_t checksum ????
                     packetBufferLittleEnd.getShort();
 
-                    pm1 = packetBufferLittleEnd.getFloat();
-                    pm2_5 = packetBufferLittleEnd.getFloat();
-                    pm10 = packetBufferLittleEnd.getFloat();
+                    float pm1 = packetBufferLittleEnd.getFloat();
+                    float pm2_5 = packetBufferLittleEnd.getFloat();
+                    float pm10 = packetBufferLittleEnd.getFloat();
 
-                    o3_ae = packetBufferBigEnd.getShort(62);
-                    o3_we = packetBufferBigEnd.getShort(64);
+                    int o3_ae = packetBufferBigEnd.getShort(62);
+                    int o3_we = packetBufferBigEnd.getShort(64);
 
-                    no2_ae = packetBufferBigEnd.getShort(66);
-                    no2_we = packetBufferBigEnd.getShort(68);
+                    int no2_ae = packetBufferBigEnd.getShort(66);
+                    int no2_we = packetBufferBigEnd.getShort(68);
 
-                    /* uint16_t temp */
-                    int temp = packetBufferBigEnd.getShort(70) & 0xffff;
+                    /* uint16_t temperature */
+                    int unconvertedTemperature = packetBufferBigEnd.getShort(70) & 0xffff;
 
                     /* uint16_t humidity */
-                    int humidity = packetBufferBigEnd.getShort(72);
+                    int unconvertedHumidity = packetBufferBigEnd.getShort(72);
 
-                    temperature = ((temp - 3960) / 100.0);
-                    hum = (-2.0468 + (0.0367 * humidity) + (-0.0000015955 * humidity * humidity));
+                    double temperature = ((unconvertedTemperature - 3960) / 100.0);
+                    double humidity = (-2.0468 + (0.0367 * unconvertedHumidity) + (-0.0000015955 * unconvertedHumidity * unconvertedHumidity));
 
                     /*
                     Log.i("[QOE]", "PM1: " + pm1);
@@ -546,7 +526,7 @@ public class SpeckBluetoothService {
                             json.put(Constants.QOE_PM2_5, pm2_5);
                             json.put(Constants.QOE_PM10, pm10);
                             json.put(Constants.QOE_TEMPERATURE, temperature);
-                            json.put(Constants.QOE_HUMIDITY, hum);
+                            json.put(Constants.QOE_HUMIDITY, humidity);
                             json.put(Constants.QOE_S1ae_NO2, no2_ae);
                             json.put(Constants.QOE_S1we_NO2, no2_we);
                             json.put(Constants.QOE_S2ae_O3, o3_ae);
@@ -583,12 +563,12 @@ public class SpeckBluetoothService {
                     }
 
                     // Update the UI
-                    HashMap<String, Float> values = new HashMap<String, Float>();
+                    HashMap<String, Float> values = new HashMap<>();
                     values.put(Constants.QOE_PM1, pm1);
                     values.put(Constants.QOE_PM2_5, pm2_5);
                     values.put(Constants.QOE_PM10, pm10);
                     values.put(Constants.QOE_TEMPERATURE, (float) temperature);
-                    values.put(Constants.QOE_HUMIDITY, (float) hum);
+                    values.put(Constants.QOE_HUMIDITY, (float) humidity);
                     values.put(Constants.QOE_NO2, (float) no2_ae);
                     values.put(Constants.QOE_O3, (float) o3_ae);
                     values.put(Constants.QOE_BINS_0, (float) bin0);

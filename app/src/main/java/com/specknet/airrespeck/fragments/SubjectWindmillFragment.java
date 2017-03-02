@@ -1,15 +1,19 @@
 package com.specknet.airrespeck.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
@@ -20,6 +24,7 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
@@ -75,12 +80,25 @@ public class SubjectWindmillFragment extends BaseFragment {
         setupBreathingSignalChart(mBreathingFlowChart);
         setupLineDataSetForChart(mBreathingFlowChart);
 
-        return view;
-    }
+        // Setup onClick handler for buttons. We can't define them in the xml as that would search in MainActivity
+        ImageButton diaryButton = (ImageButton) view.findViewById(R.id.image_button_diary);
+        ImageButton rehabButton = (ImageButton) view.findViewById(R.id.image_button_exercise);
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+        diaryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchDiary();
+            }
+        });
+
+        rehabButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchRehab();
+            }
+        });
+
+        return view;
     }
 
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
@@ -105,6 +123,26 @@ public class SubjectWindmillFragment extends BaseFragment {
             case Constants.ACTIVITY_STAND_SIT:
             default:
                 activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+        }
+    }
+
+    // This method gets called from the rehab button in this fragment.
+    private void launchRehab() {
+        Intent LaunchIntent = getContext().getPackageManager().getLaunchIntentForPackage("com.specknet.rehab2");
+        try {
+            startActivity(LaunchIntent);
+        } catch (NullPointerException e) {
+            ((MainActivity) getActivity()).showOnSnackbar("Unable to start Rehab app. Is app installed?");
+        }
+    }
+
+    // This method gets called from the diary button in this fragment.
+    private void launchDiary() {
+        Intent LaunchIntent = getContext().getPackageManager().getLaunchIntentForPackage("com.specknet.rehabdiary");
+        try {
+            startActivity(LaunchIntent);
+        } catch (NullPointerException e) {
+            ((MainActivity) getActivity()).showOnSnackbar("Unable to start Diary app. Is app installed?");
         }
     }
 
