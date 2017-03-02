@@ -10,7 +10,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 23
         versionCode 10
-        versionName "1.4.7"
+        versionName "1.4.9"
 
         // Enabling multidex support.
         multiDexEnabled true

@@ -105,6 +105,7 @@ public class MainActivity extends BaseActivity {
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = String.format(Locale.UK, "Respeck "
                                 + service.getString(R.string.device_connected)
+                                + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".");
                         service.showSnackbarFromHandler(messageRE);
@@ -519,7 +520,7 @@ public class MainActivity extends BaseActivity {
             tabLayout.setupWithViewPager(viewPager);
 
             for (int i = 0; i < subjectFragments.size(); i++) {
-                tabLayout.getTabAt(i).setIcon(((BaseFragment)subjectFragments.get(i)).getIcon());
+                tabLayout.getTabAt(i).setIcon(((BaseFragment) subjectFragments.get(i)).getIcon());
                 tabLayout.getTabAt(i).setText("");
             }
         } else {
@@ -718,12 +719,16 @@ public class MainActivity extends BaseActivity {
                     mSupervisedRESpeckReadingsFragment.setReadings(listValuesRESpeckReadings);
                 }
             } else {
-                mSubjectValuesFragment.updateBreathing(mRespeckSensorReadings);
-                mSubjectWindmillFragment.updateBreathing(mRespeckSensorReadings);
+                if (mShowSubjectValues) {
+                    mSubjectValuesFragment.updateBreathing(mRespeckSensorReadings);
+                }
+                if (mShowSubjectWindmill) {
+                    mSubjectWindmillFragment.updateBreathing(mRespeckSensorReadings);
+                }
             }
 
             // Both fragments below display a breathing signal graph
-            if (mShowSupervisedRESpeckReadings|| mShowSubjectWindmill) {
+            if (mShowSupervisedRESpeckReadings || mShowSubjectWindmill) {
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
                         mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),

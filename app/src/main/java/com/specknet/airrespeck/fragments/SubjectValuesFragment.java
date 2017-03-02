@@ -60,8 +60,8 @@ public class SubjectValuesFragment extends BaseFragment {
     }
 
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
-        Log.i("DF", mRespeckSensorReadings.toString());
 
+        Log.i("DF", mRespeckSensorReadings.toString());
         // Set breathing rate text to currently calculated rates
         breathingRateText.setText(
                 String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));

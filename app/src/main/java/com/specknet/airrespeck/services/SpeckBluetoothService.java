@@ -334,8 +334,8 @@ public class SpeckBluetoothService {
      * @param device BluetoothDevice The device.
      */
     public void connectToDevice(BluetoothDevice device) {
-        if (mGattRespeck == null && device.getName().contains("Respeck")) {
-            Log.i("[Bluetooth]", "Connecting to " + device.getName());
+        if (mGattRespeck == null && device.getAddress().equals(RESPECK_UUID)) {
+            Log.i("[Bluetooth]", "Connecting to " + device.getName() + " Address: " + device.getAddress());
             mRESpeckBluetoothDevice = device;
             mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
             // Log.i("[Bluetooth]", "Connection status: " + mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT));
@@ -629,7 +629,7 @@ public class SpeckBluetoothService {
                     mRespeckConnectionComplete = true;
                     Log.i("Respeck-gattCallback", "STATE_CONNECTED");
                     gatt.discoverServices();
-                    sendMessageToUIHandler(MainActivity.SHOW_RESPECK_CONNECTED, null);
+                    sendMessageToUIHandler(MainActivity.SHOW_RESPECK_CONNECTED, gatt.getDevice().getAddress());
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mRespeckConnectionComplete = false;
