@@ -28,7 +28,9 @@
         <meta-data
             android:name="AA_MODELS"
             android:value="com.specknet.airrespeck.datamodels.User" />
-
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="e95ac1c08b338e8511078e83b9cde8bf2ab72f55" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

@@ -16,17 +16,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.ndk.CrashlyticsNdk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.fragments.BaseFragment;
+import com.specknet.airrespeck.fragments.SubjectHomeFragment;
+import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SubjectHomeFragment;
-import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SupervisedAllGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
@@ -40,6 +42,8 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import io.fabric.sdk.android.Fabric;
 
 
 public class MainActivity extends BaseActivity {
@@ -195,6 +199,9 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialise Fabrics, a tool to get the stacktrace remotely when problems occur.
+        Fabric.with(this, new Crashlytics(), new CrashlyticsNdk());
 
         // Setup the part of the layout which is the same for both modes
         setContentView(R.layout.activity_main_tabs);
