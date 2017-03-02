@@ -101,6 +101,8 @@ public class SpeckBluetoothService {
     private final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
     private final static String RESPECK_BREATH_INTERVALS_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
 
+    public static final String ACTION_RESPECK_LIVE_BROADCAST = "com.specknet.respeck.RESPECK_LIVE_BROADCAST";
+
     // QOE CODE
     private static byte[][] lastPackets_1 = new byte[4][];
     private static byte[][] lastPackets_2 = new byte[5][];
@@ -492,7 +494,8 @@ public class SpeckBluetoothService {
                     int unconvertedHumidity = packetBufferBigEnd.getShort(72);
 
                     double temperature = ((unconvertedTemperature - 3960) / 100.0);
-                    double humidity = (-2.0468 + (0.0367 * unconvertedHumidity) + (-0.0000015955 * unconvertedHumidity * unconvertedHumidity));
+                    double humidity = (-2.0468 + (0.0367 * unconvertedHumidity) +
+                            (-0.0000015955 * unconvertedHumidity * unconvertedHumidity));
 
                     /*
                     Log.i("[QOE]", "PM1: " + pm1);
@@ -927,11 +930,37 @@ public class SpeckBluetoothService {
                             // Store the important data in the external storage if set in config
                             if (mIsStoreDataLocally) {
                                 String storedLine = interpolatedPhoneTimestampOfCurrentSample + "," +
-                                        mCurrentRESpeckTimestamp + "." + currentSequenceNumberInBatch + "," + x + "," + y + "," + z + "," + breathingSignal +
+                                        mCurrentRESpeckTimestamp + "." + currentSequenceNumberInBatch + "," + x +
+                                        "," + y + "," + z + "," + breathingSignal +
                                         "," + breathingRate + "," + activityLevel + "," + activityType;
                                 writeToRESpeckAndMergedFile(storedLine);
                             }
 
+                            final String ACTION_RESPECK_LIVE_BROADCAST = 
+                                    "com.specknet.respeck.RESPECK_LIVE_BROADCAST";
+                            final String EXTRA_RESPECK_BS_TIMESTAMP = "RESPECK_BS_TIMESTAMP";
+                            final String EXTRA_RESPECK_RS_TIMESTAMP = "RESPECK_RS_TIMESTAMP";
+                            final String EXTRA_RESPECK_SEQ = "RESPECK_SEQ";
+                            final String EXTRA_RESPECK_LIVE_X = "RESPECK_LIVE_X";
+                            final String EXTRA_RESPECK_LIVE_Y = "RESPECK_LIVE_Y";
+                            final String EXTRA_RESPECK_LIVE_Z = "RESPECK_LIVE_Z";
+                            final String EXTRA_RESPECK_LIVE_BR = "RESPECK_LIVE_BR";
+                            final String EXTRA_RESPECK_LIVE_AVE_BR = "RESPECK_LIVE_AVE_BR";
+                            final String EXTRA_RESPECK_LIVE_N_BR = "RESPECK_LIVE_N_BR";
+                            final String EXTRA_RESPECK_LIVE_SD_BR = "RESPECK_LIVE_SD_BR";
+                            final String EXTRA_RESPECK_LIVE_ACTIVITY = "RESPECK_LIVE_ACTIVITY";
+                            
+                            // Send intent for other apps
+                            Intent intent = new Intent(ACTION_RESPECK_LIVE_BROADCAST);
+                            intent.putExtra(EXTRA_RESPECK_BS_TIMESTAMP, interpolatedPhoneTimestampOfCurrentSample);
+                            intent.putExtra(EXTRA_RESPECK_RS_TIMESTAMP, mCurrentRESpeckTimestamp);
+                            intent.putExtra(EXTRA_RESPECK_SEQ, sequenceNumber);
+                            intent.putExtra(EXTRA_RESPECK_LIVE_X, x);
+                            intent.putExtra(EXTRA_RESPECK_LIVE_Y, y);
+                            intent.putExtra(EXTRA_RESPECK_LIVE_Z, z);
+                            intent.putExtra(EXTRA_RESPECK_LIVE_BR, breathingRate);
+                            mainActivity.sendBroadcast(intent);
+                            
                         } catch (IndexOutOfBoundsException e) {
                             e.printStackTrace();
                         }
