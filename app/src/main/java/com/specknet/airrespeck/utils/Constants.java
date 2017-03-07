@@ -238,20 +238,22 @@ public class Constants {
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
-    public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0";
+    public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0,"+
+            "gpsLongitude,gpsLatitude,gpsAltitude";
 
     public static final String AIRSPECK_DATA_HEADER_ALL = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3,"+
-            "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total";
+            "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total,"+
+            "gpsLongitude,gpsLatitude,gpsAltitude";;
 
     public static final String MERGED_DATA_HEADER_SUBSET = "interpolatedPhoneTimestamp,"+
             "respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,temperature,humidity,no2,"+
-            "o3,bin0";
+            "o3,bin0,gpsLongitude,gpsLatitude,gpsAltitude";
 
     public static final String MERGED_DATA_HEADER_ALL = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,"+
             "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,pm1,pm2_5,pm10," +
             "temperature,humidity,no2,o3,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,"+
-            "bin14,bin15,total";
+            "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";;
 
     /*
     PCA zero mean signal calculation

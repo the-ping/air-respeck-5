@@ -55,7 +55,7 @@ public class LocationUtils implements
         mLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLocation != null) {
-            String lat =  Double.toString(mLocation.getLatitude());
+            String lat = Double.toString(mLocation.getLatitude());
             String lon = Double.toString(mLocation.getLongitude());
             Log.i("GPLOC", "Lat:" + lat + ", " + "lon:" + lon);
 
@@ -84,7 +84,8 @@ public class LocationUtils implements
     @Override
     public void onLocationChanged(Location location) {
         mLocation = location;
-        Log.e("GPLOC", "Location updated: " + Double.toString(location.getLatitude()) + ", " + Double.toString(location.getLatitude()));
+        Log.e("GPLOC", "Location updated: " + Double.toString(location.getLatitude()) + ", " + Double.toString(
+                location.getLatitude()));
     }
 
     @Override

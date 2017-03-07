@@ -214,9 +214,9 @@ public class SpeckBluetoothService {
 
         // Set most recent Airspeck data to be empty
         if (mIsStoreAllAirspeckFields) {
-            mMostRecentAirspeckData = "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-";
+            mMostRecentAirspeckData = ",,,,,,,,,,,,,,,,,,,,,,,,,,,";
         } else {
-            mMostRecentAirspeckData = "-,-,-,-,-,-";
+            mMostRecentAirspeckData = ",,,,,,,,";
         }
     }
 
@@ -509,16 +509,19 @@ public class SpeckBluetoothService {
                     long currentPhoneTimestamp = mUtils.getUnixTimestamp();
 
                     // Get location
-                    double latitude = 0;
-                    double longitude = 0;
-                    double altitude = 0;
+                    double latitude = -1;
+                    double longitude = -1;
+                    double altitude = -1;
                     try {
                         latitude = mLocationUtils.getLatitude();
                         longitude = mLocationUtils.getLongitude();
                         altitude = mLocationUtils.getAltitude();
                     } catch (Exception e) {
-                        Log.e("[QOE]", "Location permissions not granted.");
+                        Log.i("[QOE]", "Location permissions not granted or GPS turned off. Store empty values.");
                     }
+
+                    //Log.i("[GPS]",
+                    //        String.format("Gps signal: lat %.4f, long %.4f, alt %.4f", latitude, longitude, altitude));
 
                     // Upload data to server if set in config
                     if (mIsUploadDataToServer) {
@@ -597,15 +600,25 @@ public class SpeckBluetoothService {
                     // Store the important data in the external storage if set in config
                     if (mIsStoreDataLocally) {
                         String storedLine;
+
+                        String location;
+                        if (longitude == -1) {
+                            location = ",,";
+                        } else {
+                            location = longitude + "," + latitude + "," + altitude;
+                        }
+                        Log.i("[GPS]", "Gps signal: " + location);
+
                         if (mIsStoreAllAirspeckFields) {
                             storedLine = currentPhoneTimestamp + "," + pm1 + "," + pm2_5 + "," + pm10 + "," +
                                     temperature + "," + humidity + "," + no2_ae +
                                     "," + o3_ae + "," + bin0 + "," + bin1 + "," + bin2 + "," + bin3 + "," + bin4 +
                                     "," + bin5 + "," + bin6 + "," + bin7 + "," + bin8 + "," + bin9 + "," + bin10 +
-                                    "," + bin11 + "," + bin12 + "," + bin13 + "," + bin14 + "," + bin15 + "," + total;
+                                    "," + bin11 + "," + bin12 + "," + bin13 + "," + bin14 + "," + bin15 + "," + total +
+                                    "," + location;
                         } else {
                             storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
-                                    "," + o3_ae + "," + bin0;
+                                    "," + o3_ae + "," + bin0 + "," + location;
                         }
                         writeToAirspeckFile(storedLine);
 
@@ -936,7 +949,7 @@ public class SpeckBluetoothService {
                                 writeToRESpeckAndMergedFile(storedLine);
                             }
 
-                            final String ACTION_RESPECK_LIVE_BROADCAST = 
+                            final String ACTION_RESPECK_LIVE_BROADCAST =
                                     "com.specknet.respeck.RESPECK_LIVE_BROADCAST";
                             final String EXTRA_RESPECK_BS_TIMESTAMP = "RESPECK_BS_TIMESTAMP";
                             final String EXTRA_RESPECK_RS_TIMESTAMP = "RESPECK_RS_TIMESTAMP";
@@ -949,7 +962,7 @@ public class SpeckBluetoothService {
                             final String EXTRA_RESPECK_LIVE_N_BR = "RESPECK_LIVE_N_BR";
                             final String EXTRA_RESPECK_LIVE_SD_BR = "RESPECK_LIVE_SD_BR";
                             final String EXTRA_RESPECK_LIVE_ACTIVITY = "RESPECK_LIVE_ACTIVITY";
-                            
+
                             // Send intent for other apps
                             Intent intent = new Intent(ACTION_RESPECK_LIVE_BROADCAST);
                             intent.putExtra(EXTRA_RESPECK_BS_TIMESTAMP, interpolatedPhoneTimestampOfCurrentSample);
@@ -960,7 +973,7 @@ public class SpeckBluetoothService {
                             intent.putExtra(EXTRA_RESPECK_LIVE_Z, z);
                             intent.putExtra(EXTRA_RESPECK_LIVE_BR, breathingRate);
                             mainActivity.sendBroadcast(intent);
-                            
+
                         } catch (IndexOutOfBoundsException e) {
                             e.printStackTrace();
                         }
@@ -1148,11 +1161,11 @@ public class SpeckBluetoothService {
     }
 
     private void startActivityClassificationTask() {
-// We want to summarise predictions every 10 minutes.
+        // We want to summarise predictions every 10 minutes.
         final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
 
-// How often do we update the activity classification?
-// half the window size for the activity predictions, in milliseconds
+        // How often do we update the activity classification?
+        // half the window size for the activity predictions, in milliseconds
         final int delay = 2000;
 
         Timer timer = new Timer();
