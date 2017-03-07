@@ -1,112 +1,102 @@
-//
-// Created by Darius on 09.02.2017.
-//
+/**
+ *
+ */
 
-#include <string.h>
 #include <jni.h>
 
 #include "breathing/breathing.h"
-#include "breathing/breathing_rate.h"
-#include "breathing/ma_stats.h"
+#include "breathing/breath_detection.h"
+#include "breathing/breathing_rate_stats.h"
 #include "activityclassification/predictions.h"
 
-static breathing_filter breathing;
-static threshold_filter thresholds;
-static bpm_filter bpm;
-static ma_stats_filter maf;
-static int count;
+static BreathingBuffer breathing_buffer;
+static ThresholdBuffer threshold_buffer;
+static CurrentBreath current_breath;
+static BreathingRateBuffer breathing_rate_buffer;
 
 // Activity classification
 static int current_activity_classification = -1;
 
 JNIEXPORT jstring JNICALL
-                  Java_com_specknet_airrespeck_services_SpeckBluetoothService_getMsgFromJni(JNIEnv *env, jobject instance) {
+Java_com_specknet_airrespeck_services_SpeckBluetoothService_getMsgFromJni(JNIEnv *env, jobject instance) {
     return (*env)->NewStringUTF(env, "It works");
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing( JNIEnv* env, jobject this )
-{
-    BRG_init(&breathing);
-    threshold_init(&thresholds);
-    bpm_init(&bpm);
-    MA_stats_init(&maf);
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing(JNIEnv *env, jobject this) {
+    initialise_breathing_buffer(&breathing_buffer);
+    initialise_rms_threshold_buffer(&threshold_buffer);
+    initialise_breath(&current_breath);
+    initialise_breathing_rate_buffer(&breathing_rate_buffer);
 
-    breathing.sample_rate = SAMPLE_RATE;
-    breathing.sample_rate_valid = true;
-    count = 0;
+    breathing_buffer.is_breathing_initialised = true;
 }
 
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing(JNIEnv *env, jobject this, float x, float y, float z)
-{
-    double accel[3] = {x,y,z};
-    BRG_update(accel, &breathing);
-    update_threshold(breathing.bs, &thresholds);
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing(JNIEnv *env, jobject this, float x,
+                                                                                 float y, float z) {
+    double new_accel_data[3] = {x, y, z};
+    update_breathing(new_accel_data, &breathing_buffer);
+    update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
-    float ut = thresholds.upper_value / 2.f;
-    float lt = thresholds.lower_value / 2.f;
-    bpm_update(breathing.bs, ut, lt, &bpm);
-    count++;
+    // TODO: why do we divide the threshold value by 2?
+    double ut = threshold_buffer.upper_threshold_value / 2.f;
+    double lt = threshold_buffer.lower_threshold_value / 2.f;
+    update_breath(breathing_buffer.signal, ut, lt, &current_breath);
 
-    if (bpm.updated && !isnan(bpm.bpm)) {
-        count = 0;
-        MA_stats_update(bpm.bpm, &maf);
-        bpm.updated = false;
+    // If the breathing rate has been updated, add it to the
+    if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
+        update_breathing_rate_buffer(current_breath.breathing_rate, &breathing_rate_buffer);
+        current_breath.is_complete = false;
     }
 }
 
-jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingSignal( JNIEnv* env, jobject this)
-{
-    return (jfloat) breathing.bs;
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingSignal(JNIEnv *env, jobject this) {
+    return (jfloat) breathing_buffer.signal;
 }
 
-jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingAngle( JNIEnv* env, jobject this)
-{
-    return (jfloat) breathing.ba;
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingAngle(JNIEnv *env, jobject this) {
+    return (jfloat) breathing_buffer.angle;
 }
 
-jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingRate( JNIEnv* env, jobject this)
-{
-    return (jfloat) bpm.bpm;
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingRate(JNIEnv *env, jobject this) {
+    return (jfloat) current_breath.breathing_rate;
 }
 
-jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getAverageBreathingRate( JNIEnv* env, jobject this)
-{
-    return (jfloat) MA_stats_mean(&maf);
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getAverageBreathingRate(JNIEnv *env, jobject this) {
+    return (jfloat) breathing_rate_mean(&breathing_rate_buffer);
 }
 
-jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getStdDevBreathingRate( JNIEnv* env, jobject this)
-{
-    return (jfloat) MA_stats_sd(&maf);
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getStdDevBreathingRate(JNIEnv *env, jobject this) {
+    return (jfloat) breathing_rate_standard_deviation(&breathing_rate_buffer);
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_resetMedianAverageBreathing( JNIEnv* env, jobject this)
-{
-    MA_stats_init(&maf);
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_resetMedianAverageBreathing(JNIEnv *env,
+                                                                                             jobject this) {
+    initialise_breathing_rate_buffer(&breathing_rate_buffer);
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_calculateMedianAverageBreathing( JNIEnv* env, jobject this)
-{
-    MA_stats_calculate(&maf);
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_calculateMedianAverageBreathing(JNIEnv *env,
+                                                                                                 jobject this) {
+    calculate_breathing_rate_stats(&breathing_rate_buffer);
 }
 
-jint Java_com_specknet_airrespeck_services_SpeckBluetoothService_getNumberOfBreaths( JNIEnv* env, jobject this)
-{
-    return (jint) MA_stats_num(&maf);
+jint Java_com_specknet_airrespeck_services_SpeckBluetoothService_getNumberOfBreaths(JNIEnv *env, jobject this) {
+    return (jint) breathing_rate_number_of_breaths(&breathing_rate_buffer);
 }
 
-jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getActivityLevel( JNIEnv* env, jobject this)
-{
-    return (jfloat) breathing.activity;
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getActivityLevel(JNIEnv *env, jobject this) {
+    return (jfloat) breathing_buffer.max_act_level;
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateActivityClassification(JNIEnv *env, jobject instance) {
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateActivityClassification(JNIEnv *env,
+                                                                                              jobject instance) {
     // Only do something if buffer is filled
     if (get_is_buffer_full()) {
         current_activity_classification = simple_predict();
     }
 }
 
-jint Java_com_specknet_airrespeck_services_SpeckBluetoothService_getCurrentActivityClassification(JNIEnv *env, jobject instance) {
+jint Java_com_specknet_airrespeck_services_SpeckBluetoothService_getCurrentActivityClassification(JNIEnv *env,
+                                                                                                  jobject instance) {
     return (jint) current_activity_classification;
 }

@@ -9,16 +9,15 @@
 
 typedef struct
 {
-	float bs;
-    float ba;
-	bool valid;
-	float activity;
-	float sample_rate;
-	bool sample_rate_valid;
+	double signal;
+	double angle;
+	bool is_valid;
+	double max_act_level;
+	bool is_breathing_initialised;
 
-} breathing_filter;
+} BreathingBuffer;
 
-void BRG_init(breathing_filter* filter);
-void BRG_update(double value[3], breathing_filter* filter);
+void initialise_breathing_buffer(BreathingBuffer *breathing_buffer);
+void update_breathing(double *new_accel_data, BreathingBuffer *breathing_buffer);
 
 #endif

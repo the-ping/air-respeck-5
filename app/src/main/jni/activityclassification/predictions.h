@@ -13,7 +13,7 @@ static int is_buffer_full = 0;
 
 int simple_predict();
 
-void update_act_class_buffer(double *accel, double max_act_level);
+void update_activity_classification_buffer(double *accel, double act_level);
 
 int get_is_buffer_full();
 
