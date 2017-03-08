@@ -16,10 +16,10 @@ typedef struct
 {
 
 	int current_position, fill;
-	double values[ACTIVITY_LEVEL_BUFFER_SIZE];
+	double activity_levels[ACTIVITY_LEVEL_BUFFER_SIZE];
 
 	double previous_accel[3];
-	bool prev_accel_valid;
+	bool previous_accel_valid;
 
 	double max;
 	bool is_valid;

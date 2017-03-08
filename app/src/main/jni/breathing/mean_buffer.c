@@ -6,7 +6,7 @@ void initialise_mean_buffer(MeanBuffer *mean_buffer) {
     mean_buffer->is_valid = false;
     mean_buffer->sum = 0;
 
-    for (int i = 0; i < MEAN_BUFFER_SIZE; i++) {
+    for (int i = 0; i < MEAN_ACCEL_FILTER_SIZE; i++) {
         mean_buffer->values[i] = 0;
     }
 }
@@ -19,18 +19,18 @@ void update_mean_buffer(double value, MeanBuffer *mean_buffer) {
     mean_buffer->values[mean_buffer->current_position] = value;
     mean_buffer->sum += mean_buffer->values[mean_buffer->current_position];
 
-    mean_buffer->current_position = (mean_buffer->current_position + 1) % MEAN_BUFFER_SIZE;
+    mean_buffer->current_position = (mean_buffer->current_position + 1) % MEAN_ACCEL_FILTER_SIZE;
 
-    if (mean_buffer->fill < MEAN_BUFFER_SIZE) {
+    if (mean_buffer->fill < MEAN_ACCEL_FILTER_SIZE) {
         mean_buffer->fill++;
     }
 
-    if (mean_buffer->fill < MEAN_BUFFER_SIZE) {
+    if (mean_buffer->fill < MEAN_ACCEL_FILTER_SIZE) {
         mean_buffer->is_valid = false;
         return;
     }
 
     // If the buffer is filled, the sum devided by the size gives us the mean of the values in the buffer
-    mean_buffer->value = mean_buffer->sum / MEAN_BUFFER_SIZE;
+    mean_buffer->value = mean_buffer->sum / MEAN_ACCEL_FILTER_SIZE;
     mean_buffer->is_valid = true;
 }

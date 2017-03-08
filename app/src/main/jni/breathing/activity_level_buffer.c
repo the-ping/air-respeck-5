@@ -7,7 +7,7 @@ void initialise_activity_level_buffer(ActivityLevelBuffer *act_level_buffer) {
     act_level_buffer->fill = 0;
     act_level_buffer->current_position = 0;
     act_level_buffer->is_valid = false;
-    act_level_buffer->prev_accel_valid = false;
+    act_level_buffer->previous_accel_valid = false;
 }
 
 void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *act_level_buffer) {
@@ -19,9 +19,9 @@ void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *ac
     }
 
     // If we don't have any previous values, set the previous values to equal the current ones
-    if (act_level_buffer->prev_accel_valid == false) {
+    if (act_level_buffer->previous_accel_valid == false) {
         copy_accel_vector(act_level_buffer->previous_accel, current_accel);
-        act_level_buffer->prev_accel_valid = true;
+        act_level_buffer->previous_accel_valid = true;
         act_level_buffer->is_valid = false;
         return;
     }
@@ -31,7 +31,8 @@ void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *ac
                                             (current_accel[0] - act_level_buffer->previous_accel[0]) +
              (current_accel[1] - act_level_buffer->previous_accel[1]) * (current_accel[1] - act_level_buffer->previous_accel[1]) +
              (current_accel[2] - act_level_buffer->previous_accel[2]) * (current_accel[2] - act_level_buffer->previous_accel[2]));
-    act_level_buffer->values[act_level_buffer->current_position] = current_act_level;
+    act_level_buffer->activity_levels[act_level_buffer->current_position] = current_act_level;
+
     act_level_buffer->current_position = (act_level_buffer->current_position + 1) % ACTIVITY_LEVEL_BUFFER_SIZE;
 
     // Increase the fill level
@@ -46,10 +47,10 @@ void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *ac
     }
 
     // If the buffer is full, we calculate the maximum activity level in the buffer
-    act_level_buffer->max = act_level_buffer->values[0];
+    act_level_buffer->max = act_level_buffer->activity_levels[0];
     for (int i = 1; i < ACTIVITY_LEVEL_BUFFER_SIZE; i++) {
-        if (act_level_buffer->values[i] > act_level_buffer->max) {
-            act_level_buffer->max = act_level_buffer->values[i];
+        if (act_level_buffer->activity_levels[i] > act_level_buffer->max) {
+            act_level_buffer->max = act_level_buffer->activity_levels[i];
         }
     }
 

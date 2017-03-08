@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MEAN_BUFFER_SIZE 12
+#define MEAN_ACCEL_FILTER_SIZE 12
 
 typedef struct
 {
@@ -13,7 +13,7 @@ typedef struct
 	int current_position;
 	int fill;
 
-	double values[MEAN_BUFFER_SIZE];
+	double values[MEAN_ACCEL_FILTER_SIZE];
 	double value;
 	bool is_valid;
 

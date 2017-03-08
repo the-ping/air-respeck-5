@@ -10,11 +10,11 @@ typedef struct
 {
 
 	double sum[3];
-	int pos;
+	int current_position;
 	int fill;
 
-	double accel_data[MEAN_AXIS_SIZE][3];
-	double value[3];
+	double accel_buffer[MEAN_AXIS_SIZE][3];
+	double mean_axis[3];
 	bool is_valid;
 
 } MeanAxisBuffer;
