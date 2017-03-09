@@ -1,23 +1,24 @@
-//
-// Created by Darius on 11.01.2017.
-//
-
 #include "predictions.h"
-#include <android/log.h>
 #include <memory.h>
 
 static int last_prediction = -1;
+static const int ACT_CLASS_BUFFER_SIZE = 50;
+// First value has to equal ACT_CLASS_BUFFER_SIZE. We store y value and activity level
+static double act_class_buffer[50][2];
+static int current_idx_in_buffer = 0;
+static bool is_buffer_full = 0;
 
 void update_activity_classification_buffer(double *accel, double act_level) {
-    double buffer_entry[4] = {accel[0], accel[1], accel[2], act_level};
-    memcpy(act_class_buffer[current_idx_in_buffer], buffer_entry, 4 * sizeof(double));
+    act_class_buffer[current_idx_in_buffer][0] = accel[1];
+    act_class_buffer[current_idx_in_buffer][1] = act_level;
+
     if (!is_buffer_full && current_idx_in_buffer == ACT_CLASS_BUFFER_SIZE - 1) {
         is_buffer_full = 1;
     }
     current_idx_in_buffer = (current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
 }
 
-int get_is_buffer_full() {
+bool get_is_buffer_full() {
     return is_buffer_full;
 }
 
@@ -60,7 +61,7 @@ double calc_median(const double data[], const int size) {
 
     memcpy(data_copy, data, size * sizeof(double));
 
-    /* sort the copy */
+    // sort the copy
     quick_sort(data_copy, 0, size - 1);
 
     if (size % 2 == 0) {
@@ -73,26 +74,23 @@ double calc_median(const double data[], const int size) {
 }
 
 int simple_predict() {
-    /* If the prediction buffer isn't filled yet, we cannot make any prediction. This should be checked
-     * before calling this method, so return NULL in that case */
+    // If the prediction buffer isn't filled yet, we cannot make any prediction. This should be checked
+    // before calling this method, so return NULL in that case
     if (!is_buffer_full) {
         return -1;
     }
 
-    double xs[ACT_CLASS_BUFFER_SIZE], ys[ACT_CLASS_BUFFER_SIZE], zs[ACT_CLASS_BUFFER_SIZE],
-            act_levels[ACT_CLASS_BUFFER_SIZE];
-    /* Fill in the arrays of the past X acceleration values and maximum max_act_level level */
+    double ys[ACT_CLASS_BUFFER_SIZE], act_levels[ACT_CLASS_BUFFER_SIZE];
+    /* Fill in the arrays of the past X acceleration values and maximum activity level */
     for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
-        xs[buffer_idx] = act_class_buffer[buffer_idx][0];
-        ys[buffer_idx] = act_class_buffer[buffer_idx][1];
-        zs[buffer_idx] = act_class_buffer[buffer_idx][2];
-        act_levels[buffer_idx] = act_class_buffer[buffer_idx][3];
+        ys[buffer_idx] = act_class_buffer[buffer_idx][0];
+        act_levels[buffer_idx] = act_class_buffer[buffer_idx][1];
     }
 
     double y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
 
-    // Is y mean_unit_vector between -0.5 and 0.5?. If yes, we are lying down. Else, check max_act_level levels
-    //if ((-0.5 <= y_median) && (y_median <= 0.5)) { // an angle of > 30° counts as sitting
+    // Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.
+    // -0.4 corresponds to an angle of ~34° from the ground (arccos(0.4))
     if (-0.4 <= y_median) {
         last_prediction = 2; // Lying down
     } else {
@@ -101,15 +99,16 @@ int simple_predict() {
         // again with high enough values
         if (last_prediction == 2) {
             //__android_log_print(ANDROID_LOG_INFO, "DF",
-            //                    "switched from lying do sit/stand -> clear max_act_level level buffer!");
+            //                    "switched from lying do sit/stand -> clear activity level buffer!");
             for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
                 act_class_buffer[buffer_idx][3] = 0;
             }
-            last_prediction = 0; // Predict sitting
+            last_prediction = 0; // Predict sitting/standing
         } else {
+            // A median activity level greater than 0.025 indicates walking
             double al_median = calc_median(act_levels, ACT_CLASS_BUFFER_SIZE);
             // __android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
-            if (al_median >= 0.025) { // Determined with distribution of max_act_level levels with 5 subjects
+            if (al_median >= 0.025) { // Determined with distribution of activity levels with 5 subjects
                 last_prediction = 1; // Walking
             } else {
                 last_prediction = 0; // Sitting/standing

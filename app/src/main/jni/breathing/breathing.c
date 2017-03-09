@@ -1,7 +1,6 @@
 #include "breathing.h"
 
 #include <math.h>
-#include <android/log.h>
 
 #include "mean_accel_filter.h"
 #include "rotation_axis.h"
@@ -107,7 +106,7 @@ void update_breathing(double *new_accel_data_original, BreathingBuffer *breathin
 
     // Breathing signal calculation
     double final_bs = dot_product(rotation_axis_buffer.current_axis, mean_axis_buffer.mean_axis);
-    __android_log_print(ANDROID_LOG_INFO, "BS", "bs: %lf", final_bs);
+//    __android_log_print(ANDROID_LOG_INFO, "BS", "bs: %lf", final_bs);
     // TODO: this should be completely unnecessary, as the amplitude of the breathing signal ins meaningless anyway
     final_bs = final_bs * SAMPLE_RATE * 10.0f;
 

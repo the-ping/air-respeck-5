@@ -32,10 +32,13 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -71,10 +74,6 @@ public class SpeckBluetoothService {
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
     private boolean mIsStoreAllAirspeckFields;
-
-    // Handles to the bluetooth devices
-    private BluetoothManager mBluetoothManager;
-    private BluetoothDevice mRESpeckBluetoothDevice;
 
     // Outputstreams for all the files
     private OutputStreamWriter mRespeckWriter;
@@ -192,7 +191,8 @@ public class SpeckBluetoothService {
 
         // Initializes a Bluetooth adapter. For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
-        mBluetoothManager = (BluetoothManager) mainActivity.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothManager mBluetoothManager = (BluetoothManager) mainActivity.getSystemService(
+                Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
 
         mQOEConnectionComplete = false;
@@ -336,7 +336,6 @@ public class SpeckBluetoothService {
     public void connectToDevice(BluetoothDevice device) {
         if (mGattRespeck == null && device.getAddress().equals(RESPECK_UUID)) {
             Log.i("[Bluetooth]", "Connecting to " + device.getName() + " Address: " + device.getAddress());
-            mRESpeckBluetoothDevice = device;
             mGattRespeck = device.connectGatt(mainActivity.getApplicationContext(), true, mGattCallbackRespeck);
             // Log.i("[Bluetooth]", "Connection status: " + mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT));
         }
@@ -1382,5 +1381,6 @@ public class SpeckBluetoothService {
     public native int getCurrentActivityClassification();
 
     public native void updateActivityClassification();
+
 }
 
