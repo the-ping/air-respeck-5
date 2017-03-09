@@ -2,7 +2,6 @@
 
 #include <math.h>
 
-#include "mean_accel_filter.h"
 #include "rotation_axis.h"
 #include "mean_buffer.h"
 #include "mean_axis_buffer.h"
@@ -10,7 +9,7 @@
 #include "activity_level_buffer.h"
 #include "../activityclassification/predictions.h"
 
-MeanAccelFilter mean_accel_filter;
+MeanUnitAccelBuffer mean_unit_accel_filter;
 RotationAxisBuffer rotation_axis_buffer;
 MeanAxisBuffer mean_axis_buffer;
 MeanUnitAccelBuffer mean_unit_accel_buffer;
@@ -25,10 +24,10 @@ void initialise_breathing_buffer(BreathingBuffer *breathing_buffer) {
     breathing_buffer->angle = NAN;
     breathing_buffer->max_act_level = NAN;
 
-    initialise_mean_accel_filter(&mean_accel_filter);
+    initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, 12);
     initialise_rotation_axis_buffer(&rotation_axis_buffer);
     initialise_mean_axis_buffer(&mean_axis_buffer);
-    initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer);
+    initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
     initialise_mean_buffer(&mean_buffer_breathing_signal);
     initialise_mean_buffer(&mean_buffer_angle);
     initialise_activity_level_buffer(&activity_level_buffer);
@@ -52,7 +51,6 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     float new_accel_data[3];
     copy_accel_vector(new_accel_data, new_accel_data_original);
 
-
     // Update the activity level buffer
     update_activity_level_buffer(new_accel_data, &activity_level_buffer);
 
@@ -74,15 +72,14 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
 
     // Fill up mean filter buffer. This smooths the acceleration values by returning the mean for each window of
     // MEAN_ACCEL_FILTER_SIZE samples
-    update_mean_accel_filter(new_accel_data, &mean_accel_filter);
+    update_mean_unit_accel_buffer(new_accel_data, &mean_unit_accel_filter);
 
-    if (mean_accel_filter.is_valid == false) {
+    if (mean_unit_accel_filter.is_valid == false) {
         return;
     }
 
     // Get the mean acceleration vector as soon as the filter is full and normalise it.
-    copy_accel_vector(new_accel_data, mean_accel_filter.mean_accel_values);
-    normalise_vector_to_unit_length(new_accel_data);
+    copy_accel_vector(new_accel_data, mean_unit_accel_filter.mean_unit_vector);
 
     // Determine rotation axis
     update_rotation_axis_buffer(new_accel_data, &rotation_axis_buffer);

@@ -4,9 +4,11 @@
 void normalise_vector_to_unit_length(float *vector) {
     float length = (float) sqrt(dot_product(vector, vector));
 
-    vector[0] /= length;
-    vector[1] /= length;
-    vector[2] /= length;
+    if (length != 0) {
+        vector[0] /= length;
+        vector[1] /= length;
+        vector[2] /= length;
+    }
 }
 
 void copy_accel_vector(float *out, float *in) {
