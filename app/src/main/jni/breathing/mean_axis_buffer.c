@@ -27,9 +27,8 @@ void update_mean_axis_buffer(double *new_accel_data, MeanAxisBuffer *mean_axis_b
     double reference_axis[3], dot_result;
     get_reference_axis(reference_axis);
 
-    mean_axis_buffer->sum[0] -= mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][0];
-    mean_axis_buffer->sum[1] -= mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][1];
-    mean_axis_buffer->sum[2] -= mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][2];
+    subtract_from_accel_vector(mean_axis_buffer->sum,
+                               mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position]);
 
     copy_accel_vector(mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position], new_accel_data);
 
@@ -42,9 +41,7 @@ void update_mean_axis_buffer(double *new_accel_data, MeanAxisBuffer *mean_axis_b
         mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][2] *= -1.0;
     }
 
-    mean_axis_buffer->sum[0] += mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][0];
-    mean_axis_buffer->sum[1] += mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][1];
-    mean_axis_buffer->sum[2] += mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position][2];
+    add_to_accel_vector(mean_axis_buffer->sum, mean_axis_buffer->accel_buffer[mean_axis_buffer->current_position]);
 
     mean_axis_buffer->current_position = (mean_axis_buffer->current_position + 1) % MEAN_AXIS_SIZE;
 
@@ -57,9 +54,7 @@ void update_mean_axis_buffer(double *new_accel_data, MeanAxisBuffer *mean_axis_b
         return;
     }
 
-    mean_axis_buffer->mean_axis[0] = mean_axis_buffer->sum[0];
-    mean_axis_buffer->mean_axis[1] = mean_axis_buffer->sum[1];
-    mean_axis_buffer->mean_axis[2] = mean_axis_buffer->sum[2];
+    copy_accel_vector(mean_axis_buffer->mean_axis, mean_axis_buffer->sum);
 
     normalise_vector_to_unit_length(mean_axis_buffer->mean_axis);
     mean_axis_buffer->is_valid = true;

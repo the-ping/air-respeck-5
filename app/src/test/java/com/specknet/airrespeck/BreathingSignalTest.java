@@ -127,6 +127,9 @@ public class BreathingSignalTest {
         String comparisonFileName = directory + "example_breathing.csv";
         ArrayList<Float> comparisonBreathingSignal = loadBreathingSignal(comparisonFileName);
 
+        for (int i = 0; i < breathingSignal.size(); i++) {
+            System.out.println(breathingSignal.get(i) + ", " + comparisonBreathingSignal.get(i));
+        }
         assertTrue(breathingSignal.equals(comparisonBreathingSignal));
     }
 }

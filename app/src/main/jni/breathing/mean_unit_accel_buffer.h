@@ -14,7 +14,7 @@ typedef struct {
 
     double values[MEAN_ACCEL_BUFFER_SIZE][3];
     double mean_unit_vector[3];
-    bool valid;
+    bool is_valid;
 
 } MeanUnitAccelBuffer;
 
