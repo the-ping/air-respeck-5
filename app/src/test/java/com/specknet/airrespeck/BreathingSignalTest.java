@@ -3,7 +3,11 @@ package com.specknet.airrespeck;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 
 import org.junit.Test;
+
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.closeTo;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -25,7 +29,7 @@ public class BreathingSignalTest {
     private static final String directory = "C:/Users/Darius/Dropbox/Studium/ArbeitArvind/Work/Other analysis/";
 
     @Test
-    public void breathingSignal_SpeckBluetoothService() {
+    public void breathingSignalSimilar_SpeckBluetoothService() {
         ArrayList<Float[]> accelValues = loadAccelValues();
         SpeckBluetoothService service = new SpeckBluetoothService();
         service.initBreathing();
@@ -39,7 +43,14 @@ public class BreathingSignalTest {
         // Compare to previously stored breathing signal to check whether its the same
         String comparisonFileName = directory + "example_breathing.csv";
         ArrayList<Float> comparisonBreathingSignal = loadBreathingSignal(comparisonFileName);
-        assertTrue(breathingSignal.equals(comparisonBreathingSignal));
+
+        for (int i = 0; i < breathingSignal.size(); i++) {
+            if (breathingSignal.get(i).equals(Float.NaN)) {
+                assertThat(comparisonBreathingSignal.get(i), is(Float.NaN));
+            } else {
+                assertThat((double) breathingSignal.get(i), is(closeTo(comparisonBreathingSignal.get(i), 1E-5f)));
+            }
+        }
     }
 
     // Load sample acceleration data
@@ -98,6 +109,25 @@ public class BreathingSignalTest {
             e.printStackTrace();
         }
         return breathingSignal;
+    }
+
+    @Test
+    public void breathingSignalSame_SpeckBluetoothService() {
+        ArrayList<Float[]> accelValues = loadAccelValues();
+        SpeckBluetoothService service = new SpeckBluetoothService();
+        service.initBreathing();
+
+        ArrayList<Float> breathingSignal = new ArrayList<>();
+        for (Float[] accelVector : accelValues) {
+            service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
+            breathingSignal.add(service.getBreathingSignal());
+        }
+
+        // Compare to previously stored breathing signal to check whether its the same
+        String comparisonFileName = directory + "example_breathing.csv";
+        ArrayList<Float> comparisonBreathingSignal = loadBreathingSignal(comparisonFileName);
+
+        assertTrue(breathingSignal.equals(comparisonBreathingSignal));
     }
 }
 
