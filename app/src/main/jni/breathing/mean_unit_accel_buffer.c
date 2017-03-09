@@ -34,7 +34,7 @@ void update_mean_unit_accel_buffer(float *new_accel_data, MeanUnitAccelBuffer *m
         return;
     }
 
-    // We don't need to devide by the size of the buffer as we are calculating the unit vector afterwards anyway!
+    // We don't need to divide by the size of the buffer as we are calculating the unit vector afterwards anyway!
     copy_accel_vector(mean_accel_buffer->mean_unit_vector, mean_accel_buffer->sum);
 
     normalise_vector_to_unit_length(mean_accel_buffer->mean_unit_vector);

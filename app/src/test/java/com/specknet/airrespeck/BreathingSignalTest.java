@@ -30,13 +30,13 @@ public class BreathingSignalTest {
 
     private static final String directory = "C:/Users/Darius/Dropbox/Studium/ArbeitArvind/Work/Other analysis/" +
             "Comparison data breathing code/";
-    private static final String rawModelFile = directory + "model_accel.csv";
-    private static final String measuresModelFile = directory + "model_measures.csv";
+    private static final String rawModelFilePath = directory + "model_accel.csv";
+    private static final String measuresModelFilePath = directory + "model_measures.csv";
 
     @Test
     public void allBreathingMeasuresSame() {
-        ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary();
-        ArrayList<Float[]> modelMeasures = loadModelMeasures(measuresModelFile);
+        ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary(loadAccel(rawModelFilePath, 1, ","));
+        ArrayList<Float[]> modelMeasures = loadModelMeasures(measuresModelFilePath);
 
         assertThat(allMeasures.size(), is(equalTo(modelMeasures.size())));
 
@@ -54,8 +54,8 @@ public class BreathingSignalTest {
 
     @Test
     public void allBreathingMeasuresSimilar() {
-        ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary();
-        ArrayList<Float[]> modelMeasures = loadModelMeasures(measuresModelFile);
+        ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary(loadAccel(rawModelFilePath, 1, ","));
+        ArrayList<Float[]> modelMeasures = loadModelMeasures(measuresModelFilePath);
 
         assertThat(allMeasures.size(), is(equalTo(modelMeasures.size())));
 
@@ -73,8 +73,43 @@ public class BreathingSignalTest {
         }
     }
 
-    private ArrayList<Float[]> calculateMeasuresBasedOnCurrentLibrary() {
-        ArrayList<Float[]> accelValues = loadExampleAccel();
+    @Test
+    public void generateBreathingSignalsFromAccelFiles() {
+        String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\Gordon Tasks" +
+                "\\WG data\\respeck\\";
+        String pathOutputFile = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
+                "Gordon Tasks\\WG data\\breathing signals c code\\";
+        File[] listOfFiles = new File(pathAccelDir).listFiles();
+        SpeckBluetoothService service = new SpeckBluetoothService();
+        service.initBreathing();
+
+        // Open each file, generate the breathing signal for it, and write the result into another file
+        for (File file : listOfFiles) {
+            ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
+            ArrayList<Float> breathingSignal = new ArrayList<>();
+            for (Float[] accelVector : accelValues) {
+                service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
+                breathingSignal.add(service.getBreathingSignal());
+            }
+            saveBreathingSignal(breathingSignal, pathOutputFile + file.getName());
+        }
+    }
+
+    private static void saveBreathingSignal(ArrayList<Float> breathingSignal, String filePath) {
+        File file = new File(filePath);
+
+        try {
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+            for (Float signalValue : breathingSignal) {
+                out.write(Float.toString(signalValue) + "\n");
+            }
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ArrayList<Float[]> calculateMeasuresBasedOnCurrentLibrary(ArrayList<Float[]> accelValues) {
         SpeckBluetoothService service = new SpeckBluetoothService();
         service.initBreathing();
 
@@ -100,13 +135,13 @@ public class BreathingSignalTest {
     // Should be called with with the .dll which definitely works
     @Test
     public void storeModelData() {
-        ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary();
+        ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary(loadAccel(rawModelFilePath, 1, ","));
         saveModelMeasures(allMeasures);
     }
 
     // Load sample acceleration data
-    private static ArrayList<Float[]> loadExampleAccel() {
-        File accelFile = new File(rawModelFile);
+    private static ArrayList<Float[]> loadAccel(String filename, int accelStartIdx, String delimiter) {
+        File accelFile = new File(filename);
 
         ArrayList<Float[]> accelValues = new ArrayList<>();
         try {
@@ -116,10 +151,13 @@ public class BreathingSignalTest {
 
             String line;
             while ((line = in.readLine()) != null) {
-                String[] allCoeffs = line.split(",");
-                Float[] accelVector = new Float[]{Float.parseFloat(allCoeffs[1]),
-                        Float.parseFloat(allCoeffs[2]), Float.parseFloat(allCoeffs[3])};
-                accelValues.add(accelVector);
+                String[] accelVectorString = line.split(delimiter);
+                if (accelVectorString.length >= 3) {
+                    Float[] accelVector = new Float[]{Float.parseFloat(accelVectorString[accelStartIdx]),
+                            Float.parseFloat(accelVectorString[accelStartIdx + 1]), Float.parseFloat(
+                            accelVectorString[accelStartIdx + 2])};
+                    accelValues.add(accelVector);
+                }
             }
             in.close();
         } catch (IOException e) {
@@ -128,9 +166,9 @@ public class BreathingSignalTest {
         return accelValues;
     }
 
-    // Save all breahting measures in file
+    // Save all breathing measures in file
     private static void saveModelMeasures(ArrayList<Float[]> allMeasures) {
-        File file = new File(measuresModelFile);
+        File file = new File(measuresModelFilePath);
 
         try {
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
