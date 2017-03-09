@@ -4,7 +4,7 @@
 void initialise_mean_unit_accel_buffer(MeanUnitAccelBuffer *mean_accel_buffer) {
 
     mean_accel_buffer->fill = 0;
-    mean_accel_buffer->current_position = 0;
+    mean_accel_buffer->current_position = -1;
     mean_accel_buffer->is_valid = 0;
 
     mean_accel_buffer->sum[0] = 0;
@@ -19,11 +19,12 @@ void initialise_mean_unit_accel_buffer(MeanUnitAccelBuffer *mean_accel_buffer) {
 }
 
 void update_mean_unit_accel_buffer(float *new_accel_data, MeanUnitAccelBuffer *mean_accel_buffer) {
+    // Increment position
+    mean_accel_buffer->current_position = (mean_accel_buffer->current_position + 1) % MEAN_ACCEL_BUFFER_SIZE;
+
     subtract_from_accel_vector(mean_accel_buffer->sum, mean_accel_buffer->values[mean_accel_buffer->current_position]);
     copy_accel_vector(mean_accel_buffer->values[mean_accel_buffer->current_position], new_accel_data);
     add_to_accel_vector(mean_accel_buffer->sum, mean_accel_buffer->values[mean_accel_buffer->current_position]);
-
-    mean_accel_buffer->current_position = (mean_accel_buffer->current_position + 1) % MEAN_ACCEL_BUFFER_SIZE;
 
     if (mean_accel_buffer->fill < MEAN_ACCEL_BUFFER_SIZE) {
         mean_accel_buffer->fill++;

@@ -5,12 +5,14 @@
 
 void initialise_activity_level_buffer(ActivityLevelBuffer *act_level_buffer) {
     act_level_buffer->fill = 0;
-    act_level_buffer->current_position = 0;
+    act_level_buffer->current_position = -1;
     act_level_buffer->is_valid = false;
     act_level_buffer->previous_accel_valid = false;
 }
 
 void update_activity_level_buffer(float *current_accel, ActivityLevelBuffer *act_level_buffer) {
+    // Increment position
+    act_level_buffer->current_position = (act_level_buffer->current_position + 1) % ACTIVITY_LEVEL_BUFFER_SIZE;
 
     // If any of the acceleration values is nan (which shouldn't happen), we do not store them in the buffer
     if (isnan(current_accel[0]) || isnan(current_accel[1]) || isnan(current_accel[2])) {
@@ -34,8 +36,6 @@ void update_activity_level_buffer(float *current_accel, ActivityLevelBuffer *act
                                            (current_accel[2] - act_level_buffer->previous_accel[2]) *
                                            (current_accel[2] - act_level_buffer->previous_accel[2]));
     act_level_buffer->activity_levels[act_level_buffer->current_position] = current_act_level;
-
-    act_level_buffer->current_position = (act_level_buffer->current_position + 1) % ACTIVITY_LEVEL_BUFFER_SIZE;
 
     // Increase the fill level
     if (act_level_buffer->fill < ACTIVITY_LEVEL_BUFFER_SIZE) {

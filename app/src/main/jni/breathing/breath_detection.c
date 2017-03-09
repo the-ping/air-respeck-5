@@ -7,7 +7,7 @@
 
 void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
     threshold_buffer->fill = 0;
-    threshold_buffer->current_position = 0;
+    threshold_buffer->current_position = -1;
     threshold_buffer->is_valid = false;
     threshold_buffer->lower_values_sum = 0;
     threshold_buffer->upper_values_sum = 0;
@@ -19,6 +19,9 @@ void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
 }
 
 void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *threshold_buffer) {
+
+    // Increment position
+    threshold_buffer->current_position = (threshold_buffer->current_position + 1) % THRESHOLD_FILTER_SIZE;
 
     // Overwrite value at current position by first deleting that value from the corresponding sum
     if (threshold_buffer->values_type[threshold_buffer->current_position] == POSITIVE) {
@@ -46,8 +49,6 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
             threshold_buffer->lower_values_sum += squared_value;
         }
     }
-
-    threshold_buffer->current_position = (threshold_buffer->current_position + 1) % THRESHOLD_FILTER_SIZE;
 
     if (threshold_buffer->fill < THRESHOLD_FILTER_SIZE) {
         threshold_buffer->fill++;

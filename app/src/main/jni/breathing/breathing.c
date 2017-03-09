@@ -52,17 +52,13 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     float new_accel_data[3];
     copy_accel_vector(new_accel_data, new_accel_data_original);
 
-    // Save the position where the next activity level will be saved. This is the current position in the buffer.
-    int position_of_next_activity_level = activity_level_buffer.current_position;
 
-    // Update the activity level buffer. The current position will one position after the most recent activity level
-    // after the update.
+    // Update the activity level buffer
     update_activity_level_buffer(new_accel_data, &activity_level_buffer);
 
-    // With the previously saved position, we can now access the most recent activity level and save it in the
-    // classification buffer.
+    // Save the most recent activity level to the classification buffer
     update_activity_classification_buffer(new_accel_data,
-                                          activity_level_buffer.activity_levels[position_of_next_activity_level]);
+                                          activity_level_buffer.activity_levels[activity_level_buffer.current_position]);
 
     // Wait until the activity level buffer is filled before continuing with the breathing signal calculations
     if (activity_level_buffer.is_valid == false) {
