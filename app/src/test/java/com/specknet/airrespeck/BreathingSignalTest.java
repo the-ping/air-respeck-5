@@ -69,7 +69,7 @@ public class BreathingSignalTest {
                             is(closeTo(modelMeasures.get(i)[j], 1E-5f)));
                 }
             }
-            System.out.println();
+//            System.out.println();
         }
     }
 

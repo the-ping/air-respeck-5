@@ -66,7 +66,7 @@ float calc_median(const float data[], const int size) {
 
     if (size % 2 == 0) {
         // if there is an even number of elements, return mean of the two elements in the middle
-        return ((data_copy[size / 2] + data_copy[size / 2 - 1]) / 2.0);
+        return (float) ((data_copy[size / 2] + data_copy[size / 2 - 1]) / 2.0);
     } else {
         // else return the element in the middle
         return data_copy[size / 2];

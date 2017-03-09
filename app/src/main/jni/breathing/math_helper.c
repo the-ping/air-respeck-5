@@ -2,7 +2,7 @@
 #include <math.h>
 
 void normalise_vector_to_unit_length(float *vector) {
-    float length = sqrt(dot_product(vector, vector));
+    float length = (float) sqrt(dot_product(vector, vector));
 
     vector[0] /= length;
     vector[1] /= length;

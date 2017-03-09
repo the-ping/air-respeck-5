@@ -61,7 +61,7 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
     // calculate current upper threshold
     if (threshold_buffer->upper_values_sum_fill > 0) {
         // Calculate the root mean square
-        threshold_buffer->upper_threshold_value = sqrt(
+        threshold_buffer->upper_threshold_value = (float) sqrt(
                 threshold_buffer->upper_values_sum / threshold_buffer->upper_values_sum_fill);
     } else {
         threshold_buffer->upper_threshold_value = NAN;
@@ -70,7 +70,7 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
     // calculate current lower threshold
     if (threshold_buffer->lower_values_sum_fill > 0) {
         // Calculate the root mean square
-        threshold_buffer->lower_threshold_value = -sqrt(
+        threshold_buffer->lower_threshold_value = (float) -sqrt(
                 threshold_buffer->lower_values_sum / threshold_buffer->lower_values_sum_fill);
     }
     else

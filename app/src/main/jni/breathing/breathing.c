@@ -43,8 +43,8 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     }
 
     // Return if any of the acceleration values are NAN. This shouldn't happen.
-    if (isnan((float) new_accel_data_original[0]) || isnan((float) new_accel_data_original[1]) ||
-        isnan((float) new_accel_data_original[2])) {
+    if (isnan(new_accel_data_original[0]) || isnan(new_accel_data_original[1]) ||
+        isnan(new_accel_data_original[2])) {
         return;
     }
 
