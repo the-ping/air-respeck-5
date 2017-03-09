@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
@@ -43,7 +44,8 @@ public class BreathingSignalTest {
                 if (allMeasures.get(i)[j].equals(Float.NaN)) {
                     assertThat(modelMeasures.get(i)[j], is(Float.NaN));
                 } else {
-                    assertThat(allMeasures.get(i)[j], is(equalTo(modelMeasures.get(i)[j])));
+                    assertThat(String.format(Locale.UK, "in: %d, %d", i, j), allMeasures.get(i)[j],
+                            is(equalTo(modelMeasures.get(i)[j])));
                 }
             }
         }
@@ -59,9 +61,10 @@ public class BreathingSignalTest {
         for (int i = 0; i < modelMeasures.size(); i++) {
             for (int j = 0; j < modelMeasures.get(i).length; j++) {
                 if (allMeasures.get(i)[j].equals(Float.NaN)) {
-                    assertThat(modelMeasures.get(i)[j], is(Float.NaN));
+                    assertThat(String.format(Locale.UK, "in: %d, %d", i, j), modelMeasures.get(i)[j], is(Float.NaN));
                 } else {
-                    assertThat((double) allMeasures.get(i)[j], is(closeTo(modelMeasures.get(i)[j], 1E-5f)));
+                    assertThat(String.format(Locale.UK, "in: %d, %d", i, j), (double) allMeasures.get(i)[j],
+                            is(closeTo(modelMeasures.get(i)[j], 1E-5f)));
                 }
             }
         }
