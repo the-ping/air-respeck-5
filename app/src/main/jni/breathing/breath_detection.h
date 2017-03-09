@@ -33,22 +33,22 @@ typedef enum {
 
 typedef struct {
     int current_position, fill;
-    double values[THRESHOLD_FILTER_SIZE];
+    float values[THRESHOLD_FILTER_SIZE];
     threshold_value_type values_type[THRESHOLD_FILTER_SIZE];
     int upper_values_sum_fill, lower_values_sum_fill;
-    double upper_values_sum, lower_values_sum;
+    float upper_values_sum, lower_values_sum;
 
     bool is_valid;
-    double upper_threshold_value, lower_threshold_value;
+    float upper_threshold_value, lower_threshold_value;
 } ThresholdBuffer;
 
 
 typedef struct {
     bpm_state state;
     bool valid;
-    double breathing_rate;
-    double min_threshold;
-    double max_threshold;
+    float breathing_rate;
+    float min_threshold;
+    float max_threshold;
     int sample_count;
     bool is_sample_count_valid;
     bool is_complete;
@@ -57,11 +57,11 @@ typedef struct {
 
 void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer);
 
-void update_rms_threshold(double breathing_signal_value, ThresholdBuffer *threshold_buffer);
+void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *threshold_buffer);
 
 void initialise_breath(CurrentBreath *breath);
 
-void update_breath(double breathing_signal, double upper_threshold, double lower_threshold,
+void update_breath(float breathing_signal, float upper_threshold, float lower_threshold,
                    CurrentBreath *breath);
 
 #endif

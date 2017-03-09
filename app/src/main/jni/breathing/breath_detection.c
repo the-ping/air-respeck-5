@@ -18,7 +18,7 @@ void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
         threshold_buffer->values_type[i] = INVALID;
 }
 
-void update_rms_threshold(double breathing_signal_value, ThresholdBuffer *threshold_buffer) {
+void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *threshold_buffer) {
 
     // Overwrite value at current position by first deleting that value from the corresponding sum
     if (threshold_buffer->values_type[threshold_buffer->current_position] == POSITIVE) {
@@ -32,7 +32,7 @@ void update_rms_threshold(double breathing_signal_value, ThresholdBuffer *thresh
     if (isnan(breathing_signal_value) == true) {
         threshold_buffer->values_type[threshold_buffer->current_position] = INVALID;
     } else {
-        double squared_value = breathing_signal_value * breathing_signal_value;
+        float squared_value = breathing_signal_value * breathing_signal_value;
         threshold_buffer->values[threshold_buffer->current_position] = squared_value;
 
         // Add the squared breathing signal value to the right sum (upper or lower)
@@ -89,8 +89,8 @@ void initialise_breath(CurrentBreath *breath) {
     breath->is_complete = false;
 }
 
-void update_breath(double breathing_signal, double upper_threshold,
-                   double lower_threshold, CurrentBreath *breath) {
+void update_breath(float breathing_signal, float upper_threshold,
+                   float lower_threshold, CurrentBreath *breath) {
     breath->sample_count++;
 
     if (isnan(upper_threshold) || isnan(lower_threshold) || isnan(breathing_signal)) {

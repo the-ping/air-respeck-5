@@ -9,17 +9,17 @@
 typedef struct
 {
 
-	double sum;
+	float sum;
 	int current_position;
 	int fill;
 
-	double values[MEAN_ACCEL_FILTER_SIZE];
-	double value;
+	float values[MEAN_ACCEL_FILTER_SIZE];
+	float value;
 	bool is_valid;
 
 } MeanBuffer;
 
 void initialise_mean_buffer(MeanBuffer *mean_buffer);
-void update_mean_buffer(double value, MeanBuffer *mean_buffer);
+void update_mean_buffer(float value, MeanBuffer *mean_buffer);
 
 #endif

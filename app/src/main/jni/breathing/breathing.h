@@ -9,15 +9,15 @@
 
 typedef struct
 {
-	double signal;
-	double angle;
+	float signal;
+	float angle;
 	bool is_valid;
-	double max_act_level;
+	float max_act_level;
 	bool is_breathing_initialised;
 
 } BreathingBuffer;
 
 void initialise_breathing_buffer(BreathingBuffer *breathing_buffer);
-void update_breathing(double *new_accel_data_original, BreathingBuffer *breathing_buffer);
+void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing_buffer);
 
 #endif

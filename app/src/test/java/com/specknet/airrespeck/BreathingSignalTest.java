@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,13 +61,15 @@ public class BreathingSignalTest {
 
         for (int i = 0; i < modelMeasures.size(); i++) {
             for (int j = 0; j < modelMeasures.get(i).length; j++) {
-                if (allMeasures.get(i)[j].equals(Float.NaN)) {
+//                System.out.print(Double.toString(allMeasures.get(i)[j] - modelMeasures.get(i)[j]) + "\t");
+                if (modelMeasures.get(i)[j].equals(Float.NaN)) {
                     assertThat(String.format(Locale.UK, "in: %d, %d", i, j), modelMeasures.get(i)[j], is(Float.NaN));
                 } else {
                     assertThat(String.format(Locale.UK, "in: %d, %d", i, j), (double) allMeasures.get(i)[j],
                             is(closeTo(modelMeasures.get(i)[j], 1E-5f)));
                 }
             }
+            System.out.println();
         }
     }
 

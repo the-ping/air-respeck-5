@@ -10,10 +10,10 @@ void initialise_activity_level_buffer(ActivityLevelBuffer *act_level_buffer) {
     act_level_buffer->previous_accel_valid = false;
 }
 
-void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *act_level_buffer) {
+void update_activity_level_buffer(float *current_accel, ActivityLevelBuffer *act_level_buffer) {
 
     // If any of the acceleration values is nan (which shouldn't happen), we do not store them in the buffer
-    if (isnan(current_accel[0]) || isnan(current_accel[1]) || isnan(current_accel[2])) {
+    if (isnan((float) current_accel[0]) || isnan((float) current_accel[1]) || isnan((float) current_accel[2])) {
         act_level_buffer->is_valid = false;
         return;
     }
@@ -27,7 +27,7 @@ void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *ac
     }
 
     // Caluclate the current activity level
-    double current_act_level = sqrt((current_accel[0] - act_level_buffer->previous_accel[0]) *
+    float current_act_level = sqrt((current_accel[0] - act_level_buffer->previous_accel[0]) *
                                             (current_accel[0] - act_level_buffer->previous_accel[0]) +
              (current_accel[1] - act_level_buffer->previous_accel[1]) * (current_accel[1] - act_level_buffer->previous_accel[1]) +
              (current_accel[2] - act_level_buffer->previous_accel[2]) * (current_accel[2] - act_level_buffer->previous_accel[2]));

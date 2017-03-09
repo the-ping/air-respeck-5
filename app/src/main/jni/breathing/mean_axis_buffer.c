@@ -3,7 +3,7 @@
 #include "math_helper.h"
 //#include "arm_math.h"
 
-void get_reference_axis(double *ref);
+void get_reference_axis(float *ref);
 
 void initialise_mean_axis_buffer(MeanAxisBuffer *mean_axis_buffer) {
 
@@ -22,9 +22,9 @@ void initialise_mean_axis_buffer(MeanAxisBuffer *mean_axis_buffer) {
     }
 }
 
-void update_mean_axis_buffer(double *new_accel_data, MeanAxisBuffer *mean_axis_buffer) {
+void update_mean_axis_buffer(float *new_accel_data, MeanAxisBuffer *mean_axis_buffer) {
 
-    double reference_axis[3], dot_result;
+    float reference_axis[3], dot_result;
     get_reference_axis(reference_axis);
 
     subtract_from_accel_vector(mean_axis_buffer->sum,
@@ -61,7 +61,7 @@ void update_mean_axis_buffer(double *new_accel_data, MeanAxisBuffer *mean_axis_b
 }
 
 // TODO: why this reference axis and not another one?
-void get_reference_axis(double *ref) {
+void get_reference_axis(float *ref) {
     ref[0] = 0.98499424;
     ref[1] = -0.17221591;
     ref[2] = 0.01131468;

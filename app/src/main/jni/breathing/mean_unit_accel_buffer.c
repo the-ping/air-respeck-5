@@ -18,7 +18,7 @@ void initialise_mean_unit_accel_buffer(MeanUnitAccelBuffer *mean_accel_buffer) {
     }
 }
 
-void update_mean_unit_accel_buffer(double *new_accel_data, MeanUnitAccelBuffer *mean_accel_buffer) {
+void update_mean_unit_accel_buffer(float *new_accel_data, MeanUnitAccelBuffer *mean_accel_buffer) {
     subtract_from_accel_vector(mean_accel_buffer->sum, mean_accel_buffer->values[mean_accel_buffer->current_position]);
     copy_accel_vector(mean_accel_buffer->values[mean_accel_buffer->current_position], new_accel_data);
     add_to_accel_vector(mean_accel_buffer->sum, mean_accel_buffer->values[mean_accel_buffer->current_position]);

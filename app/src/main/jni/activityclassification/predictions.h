@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 int simple_predict();
-void update_activity_classification_buffer(double *accel, double act_level);
+void update_activity_classification_buffer(float *accel, float act_level);
 bool get_is_buffer_full();
 
 #endif

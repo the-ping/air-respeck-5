@@ -4,11 +4,11 @@
 static int last_prediction = -1;
 static const int ACT_CLASS_BUFFER_SIZE = 50;
 // First value has to equal ACT_CLASS_BUFFER_SIZE. We store y value and activity level
-static double act_class_buffer[50][2];
+static float act_class_buffer[50][2];
 static int current_idx_in_buffer = 0;
 static bool is_buffer_full = 0;
 
-void update_activity_classification_buffer(double *accel, double act_level) {
+void update_activity_classification_buffer(float *accel, float act_level) {
     act_class_buffer[current_idx_in_buffer][0] = accel[1];
     act_class_buffer[current_idx_in_buffer][1] = act_level;
 
@@ -23,8 +23,8 @@ bool get_is_buffer_full() {
 }
 
 /* Quicksort. Needed for calculating the median */
-int partition(double a[], int l, int r) {
-    double pivot, tmp;
+int partition(float a[], int l, int r) {
+    float pivot, tmp;
     int i, j;
     pivot = a[l];
     i = l;
@@ -44,7 +44,7 @@ int partition(double a[], int l, int r) {
     return j;
 }
 
-void quick_sort(double a[], int l, int r) {
+void quick_sort(float a[], int l, int r) {
     int j;
 
     if (l < r) {
@@ -55,11 +55,11 @@ void quick_sort(double a[], int l, int r) {
     }
 }
 
-double calc_median(const double data[], const int size) {
+float calc_median(const float data[], const int size) {
 
-    double data_copy[size];
+    float data_copy[size];
 
-    memcpy(data_copy, data, size * sizeof(double));
+    memcpy(data_copy, data, size * sizeof(float));
 
     // sort the copy
     quick_sort(data_copy, 0, size - 1);
@@ -80,14 +80,14 @@ int simple_predict() {
         return -1;
     }
 
-    double ys[ACT_CLASS_BUFFER_SIZE], act_levels[ACT_CLASS_BUFFER_SIZE];
+    float ys[ACT_CLASS_BUFFER_SIZE], act_levels[ACT_CLASS_BUFFER_SIZE];
     /* Fill in the arrays of the past X acceleration values and maximum activity level */
     for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
         ys[buffer_idx] = act_class_buffer[buffer_idx][0];
         act_levels[buffer_idx] = act_class_buffer[buffer_idx][1];
     }
 
-    double y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
+    float y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
 
     // Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.
     // -0.4 corresponds to an angle of ~34° from the ground (arccos(0.4))
@@ -106,7 +106,7 @@ int simple_predict() {
             last_prediction = 0; // Predict sitting/standing
         } else {
             // A median activity level greater than 0.025 indicates walking
-            double al_median = calc_median(act_levels, ACT_CLASS_BUFFER_SIZE);
+            float al_median = calc_median(act_levels, ACT_CLASS_BUFFER_SIZE);
             // __android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
             if (al_median >= 0.025) { // Determined with distribution of activity levels with 5 subjects
                 last_prediction = 1; // Walking

@@ -16,17 +16,17 @@ typedef struct
 {
 
 	int current_position, fill;
-	double activity_levels[ACTIVITY_LEVEL_BUFFER_SIZE];
+	float activity_levels[ACTIVITY_LEVEL_BUFFER_SIZE];
 
-	double previous_accel[3];
+	float previous_accel[3];
 	bool previous_accel_valid;
 
-	double max;
+	float max;
 	bool is_valid;
 
 } ActivityLevelBuffer;
 
 void initialise_activity_level_buffer(ActivityLevelBuffer *act_level_buffer);
-void update_activity_level_buffer(double *current_accel, ActivityLevelBuffer *act_level_buffer);
+void update_activity_level_buffer(float *current_accel, ActivityLevelBuffer *act_level_buffer);
 
 #endif

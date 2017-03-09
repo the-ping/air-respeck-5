@@ -3,12 +3,12 @@
 
 #include <stdint.h>
 
-void normalise_vector_to_unit_length(double *vector);
+void normalise_vector_to_unit_length(float *vector);
 
-void copy_accel_vector(double *out, double *in);
-double dot_product(double *v, double *u);
-void cross_product(double *out, double *in1, double *in2);
-void subtract_from_accel_vector(double *minuend, double *subtrahend);
-void add_to_accel_vector(double *summand1, double *summand2);
+void copy_accel_vector(float *out, float *in);
+float dot_product(float *v, float *u);
+void cross_product(float *out, float *in1, float *in2);
+void subtract_from_accel_vector(float *minuend, float *subtrahend);
+void add_to_accel_vector(float *summand1, float *summand2);
 
 #endif

@@ -17,7 +17,7 @@ void initialise_mean_accel_filter(MeanAccelFilter *mean_accel_filter) {
     }
 }
 
-void update_mean_accel_filter(double *new_accel_data, MeanAccelFilter *mean_accel_filter) {
+void update_mean_accel_filter(float *new_accel_data, MeanAccelFilter *mean_accel_filter) {
 
     subtract_from_accel_vector(mean_accel_filter->sum, mean_accel_filter->values[mean_accel_filter->current_position]);
     copy_accel_vector(mean_accel_filter->values[mean_accel_filter->current_position], new_accel_data);

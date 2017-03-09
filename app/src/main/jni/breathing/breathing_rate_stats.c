@@ -20,7 +20,7 @@ int ascending_compare_function(const void *a, const void *b) {
     return 0;
 }
 
-void update_breathing_rate_buffer(double breathing_rate, BreathingRateBuffer *breathing_rate_buffer) {
+void update_breathing_rate_buffer(float breathing_rate, BreathingRateBuffer *breathing_rate_buffer) {
     if (breathing_rate_buffer->fill < BREATHING_RATES_BUFFER_SIZE) {
         breathing_rate_buffer->breathing_rates[breathing_rate_buffer->fill] = breathing_rate;
         breathing_rate_buffer->fill++;
@@ -32,7 +32,7 @@ void calculate_breathing_rate_stats(BreathingRateBuffer *breathing_rate_buffer) 
     qsort(breathing_rate_buffer->breathing_rates, breathing_rate_buffer->fill,
           sizeof(breathing_rate_buffer->breathing_rates[0]), ascending_compare_function);
 
-    double one_breathing_rate = breathing_rate_buffer->breathing_rates[DISCARD_LOWER_BREATHING_RATES];
+    float one_breathing_rate = breathing_rate_buffer->breathing_rates[DISCARD_LOWER_BREATHING_RATES];
     breathing_rate_buffer->previous_mean = breathing_rate_buffer->current_mean = one_breathing_rate;
     breathing_rate_buffer->previous_variance = 0.0;
     breathing_rate_buffer->max = one_breathing_rate;
@@ -69,15 +69,15 @@ int breathing_rate_number_of_breaths(BreathingRateBuffer *breathing_rate_buffer)
     return breathing_rate_buffer->fill;
 }
 
-double breathing_rate_mean(BreathingRateBuffer *breathing_rate_buffer) {
+float breathing_rate_mean(BreathingRateBuffer *breathing_rate_buffer) {
     return (breathing_rate_buffer->fill > 0) ? breathing_rate_buffer->current_mean : NAN;
 }
 
-double breathing_rate_variance(BreathingRateBuffer *breathing_rate_buffer) {
+float breathing_rate_variance(BreathingRateBuffer *breathing_rate_buffer) {
     return ((breathing_rate_buffer->fill > 1) ? breathing_rate_buffer->current_variance /
                                                        (breathing_rate_buffer->fill - 1) : 0.0f);
 }
 
-double breathing_rate_standard_deviation(BreathingRateBuffer *breathing_rate_buffer) {
+float breathing_rate_standard_deviation(BreathingRateBuffer *breathing_rate_buffer) {
     return sqrt(breathing_rate_variance(breathing_rate_buffer));
 }

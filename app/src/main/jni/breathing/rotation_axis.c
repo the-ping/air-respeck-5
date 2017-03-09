@@ -9,7 +9,7 @@ void initialise_rotation_axis_buffer(RotationAxisBuffer *axis_and_angle_buffer) 
     axis_and_angle_buffer->is_previous_accel_data_valid = false;
 }
 
-void update_rotation_axis_buffer(double *new_accel_data, RotationAxisBuffer *rotation_axis_buffer) {
+void update_rotation_axis_buffer(float *new_accel_data, RotationAxisBuffer *rotation_axis_buffer) {
 
     // If there is no previous acceleration data, store the current data and return
     if (rotation_axis_buffer->is_previous_accel_data_valid == false) {
@@ -21,7 +21,7 @@ void update_rotation_axis_buffer(double *new_accel_data, RotationAxisBuffer *rot
     }
 
     // Store the cross product of the previous and new accel data as the "current axis".
-    double cross_product_out[3];
+    float cross_product_out[3];
     cross_product(cross_product_out, rotation_axis_buffer->previous_accel_data, new_accel_data);
     copy_accel_vector(rotation_axis_buffer->current_axis, cross_product_out);
 

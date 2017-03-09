@@ -11,7 +11,7 @@ void initialise_mean_buffer(MeanBuffer *mean_buffer) {
     }
 }
 
-void update_mean_buffer(double value, MeanBuffer *mean_buffer) {
+void update_mean_buffer(float value, MeanBuffer *mean_buffer) {
 
     // Update the buffer by subtracting the mean_unit_vector stored at the current position from the sum
     // (as that mean_unit_vector is overridden), storing the current mean_unit_vector, and then adding that back to the sum

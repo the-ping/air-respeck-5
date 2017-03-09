@@ -34,13 +34,13 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing(J
 
 void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing(JNIEnv *env, jobject this, float x,
                                                                                  float y, float z) {
-    double new_accel_data[3] = {x, y, z};
+    float new_accel_data[3] = {x, y, z};
     update_breathing(new_accel_data, &breathing_buffer);
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
     // TODO: why do we divide the threshold value by 2?
-    double ut = threshold_buffer.upper_threshold_value / 2.f;
-    double lt = threshold_buffer.lower_threshold_value / 2.f;
+    float ut = threshold_buffer.upper_threshold_value / 2.f;
+    float lt = threshold_buffer.lower_threshold_value / 2.f;
     update_breath(breathing_buffer.signal, ut, lt, &current_breath);
 
     // If the breathing rate has been updated, add it to the
