@@ -123,11 +123,10 @@ void update_breath(float breathing_signal, float upper_threshold,
     // The sum of the absolute threshold values has to lie below 2 * max_threshold
     if (upper_threshold - lower_threshold > breath->max_threshold * 2.0f) {
         breath->state = UNKNOWN;
-        breath->bpm = NAN;
+        breath->breathing_rate = NAN;
         breath->is_sample_count_valid = false;
         return;
-    }
-    */
+    }*/
 
     if (breath->state == LOW && breathing_signal > lower_threshold) {
         breath->state = MID_RISING;
@@ -145,8 +144,7 @@ void update_breath(float breathing_signal, float upper_threshold,
 
         // A full breath cycle is finished. Calculate the breathing rate of the last cycle
         if (breath->is_sample_count_valid) {
-            breath->breathing_rate =
-                    60.0 * SAMPLE_RATE / (float) breath->sample_count;
+            breath->breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
         }
 
         breath->sample_count = 0;

@@ -101,8 +101,8 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     // Breathing signal calculation
     float final_bs = dot_product(rotation_axis_buffer.current_axis, mean_axis_buffer.mean_axis);
 //    __android_log_print(ANDROID_LOG_INFO, "BS", "bs: %lf", final_bs);
-    // TODO: this should be completely unnecessary, as the amplitude of the breathing signal ins meaningless anyway
-    final_bs = final_bs * SAMPLE_RATE * 10.0f;
+    // TODO: Why this factor and not another one?
+    final_bs = (float) (final_bs * SAMPLE_RATE * 10.0f);
 
     // Breathing angle calculation
     float mean_accel_cross_mean_axis[3];
