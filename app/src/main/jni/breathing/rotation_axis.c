@@ -1,15 +1,14 @@
 /**
- * This class currently computes the axis on which consecutive acceleration vectors are turning. No angle is
- * computed, despite the name. TODO: change name if no angles are used!
+ * This class currently computes the axis on which consecutive acceleration vectors are turning.
  */
 #include "rotation_axis.h"
 
-void initialise_rotation_axis_buffer(RotationAxisBuffer *axis_and_angle_buffer) {
+void initialise_rotation_axis_buffer(RotationAxis *axis_and_angle_buffer) {
     axis_and_angle_buffer->is_current_axis_valid = false;
     axis_and_angle_buffer->is_previous_accel_data_valid = false;
 }
 
-void update_rotation_axis_buffer(float *new_accel_data, RotationAxisBuffer *rotation_axis_buffer) {
+void update_rotation_axis_buffer(float *new_accel_data, RotationAxis *rotation_axis_buffer) {
 
     // If there is no previous acceleration data, store the current data and return
     if (rotation_axis_buffer->is_previous_accel_data_valid == false) {

@@ -39,8 +39,8 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
     // TODO: why do we divide the threshold value by 2?
-    float ut = threshold_buffer.upper_threshold_value / 2.f;
-    float lt = threshold_buffer.lower_threshold_value / 2.f;
+    float ut = threshold_buffer.upper_threshold_value / 4.f;
+    float lt = threshold_buffer.lower_threshold_value / 4.f;
     update_breath(breathing_buffer.signal, ut, lt, &current_breath);
 
     // If the breathing rate has been updated, add it to the

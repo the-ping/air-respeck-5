@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -74,11 +73,13 @@ public class BreathingSignalTest {
     }
 
     @Test
-    public void generateBreathingSignalsFromAccelFiles() {
+    public void generateBreathingSignalsAndRatesFromAccelFiles() {
         String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\Gordon Tasks" +
                 "\\WG data\\respeck\\";
-        String pathOutputFile = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
+        String pathOutputFileSignal = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
                 "Gordon Tasks\\WG data\\breathing signals c code\\";
+        String pathOutputFileRates = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
+                "Gordon Tasks\\WG data\\breathing rates c code\\";
         File[] listOfFiles = new File(pathAccelDir).listFiles();
         SpeckBluetoothService service = new SpeckBluetoothService();
         service.initBreathing();
@@ -86,16 +87,19 @@ public class BreathingSignalTest {
         // Open each file, generate the breathing signal for it, and write the result into another file
         for (File file : listOfFiles) {
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
-            ArrayList<Float> breathingSignal = new ArrayList<>();
+            ArrayList<Float> breathingSignals = new ArrayList<>();
+            ArrayList<Float> breathingRates = new ArrayList<>();
             for (Float[] accelVector : accelValues) {
                 service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
-                breathingSignal.add(service.getBreathingSignal());
+                breathingSignals.add(service.getBreathingSignal());
+                breathingRates.add(service.getBreathingRate());
             }
-            saveBreathingSignal(breathingSignal, pathOutputFile + file.getName());
+            saveOneMeasure(breathingSignals, pathOutputFileSignal + file.getName());
+            saveOneMeasure(breathingRates, pathOutputFileRates + file.getName());
         }
     }
 
-    private static void saveBreathingSignal(ArrayList<Float> breathingSignal, String filePath) {
+    private static void saveOneMeasure(ArrayList<Float> breathingSignal, String filePath) {
         File file = new File(filePath);
 
         try {

@@ -10,7 +10,7 @@
 #include "../activityclassification/predictions.h"
 
 MeanUnitAccelBuffer mean_unit_accel_filter;
-RotationAxisBuffer rotation_axis_buffer;
+RotationAxis rotation_axis;
 MeanAxisBuffer mean_axis_buffer;
 MeanUnitAccelBuffer mean_unit_accel_buffer;
 MeanBuffer mean_buffer_breathing_signal;
@@ -25,7 +25,7 @@ void initialise_breathing_buffer(BreathingBuffer *breathing_buffer) {
     breathing_buffer->max_act_level = NAN;
 
     initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, 12);
-    initialise_rotation_axis_buffer(&rotation_axis_buffer);
+    initialise_rotation_axis_buffer(&rotation_axis);
     initialise_mean_axis_buffer(&mean_axis_buffer);
     initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
     initialise_mean_buffer(&mean_buffer_breathing_signal);
@@ -51,7 +51,7 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     float new_accel_data[3];
     copy_accel_vector(new_accel_data, new_accel_data_original);
 
-    // Update the activity level buffer
+    // Fill the buffer for the activity level
     update_activity_level_buffer(new_accel_data, &activity_level_buffer);
 
     // Save the most recent activity level to the classification buffer
@@ -71,7 +71,7 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     }
 
     // Fill up mean filter buffer. This smooths the acceleration values by returning the mean for each window of
-    // MEAN_ACCEL_FILTER_SIZE samples
+    // 12 samples
     update_mean_unit_accel_buffer(new_accel_data, &mean_unit_accel_filter);
 
     if (mean_unit_accel_filter.is_valid == false) {
@@ -82,9 +82,9 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     copy_accel_vector(new_accel_data, mean_unit_accel_filter.mean_unit_vector);
 
     // Determine rotation axis
-    update_rotation_axis_buffer(new_accel_data, &rotation_axis_buffer);
+    update_rotation_axis_buffer(new_accel_data, &rotation_axis);
 
-    if (rotation_axis_buffer.is_current_axis_valid == false) {
+    if (rotation_axis.is_current_axis_valid == false) {
         return;
     }
 
@@ -92,14 +92,14 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     update_mean_unit_accel_buffer(new_accel_data, &mean_unit_accel_buffer);
 
     // Mean rotation axis
-    update_mean_axis_buffer(rotation_axis_buffer.current_axis, &mean_axis_buffer);
+    update_mean_axis_buffer(rotation_axis.current_axis, &mean_axis_buffer);
 
     if (mean_axis_buffer.is_valid == false) {
         return;
     }
 
     // Breathing signal calculation
-    float final_bs = dot_product(rotation_axis_buffer.current_axis, mean_axis_buffer.mean_axis);
+    float final_bs = dot_product(rotation_axis.current_axis, mean_axis_buffer.mean_axis);
 //    __android_log_print(ANDROID_LOG_INFO, "BS", "bs: %lf", final_bs);
     // TODO: Why this factor and not another one?
     final_bs = (float) (final_bs * SAMPLE_RATE * 10.0f);
