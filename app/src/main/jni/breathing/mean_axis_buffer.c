@@ -5,7 +5,7 @@
 
 void get_reference_axis(float *ref);
 
-void initialise_mean_axis_buffer(MeanAxisBuffer *mean_axis_buffer) {
+void initialise_mean_rotation_axis_buffer(MeanRotationAxisBuffer *mean_axis_buffer) {
 
     mean_axis_buffer->fill = 0;
     mean_axis_buffer->current_position = -1;
@@ -22,7 +22,7 @@ void initialise_mean_axis_buffer(MeanAxisBuffer *mean_axis_buffer) {
     }
 }
 
-void update_mean_axis_buffer(float *new_accel_data, MeanAxisBuffer *mean_axis_buffer) {
+void update_mean_rotation_axis_buffer(float *new_accel_data, MeanRotationAxisBuffer *mean_axis_buffer) {
     // Increment position
     mean_axis_buffer->current_position = (mean_axis_buffer->current_position + 1) % MEAN_AXIS_SIZE;
 
@@ -62,7 +62,7 @@ void update_mean_axis_buffer(float *new_accel_data, MeanAxisBuffer *mean_axis_bu
 
 // TODO: why this reference axis and not another one?
 void get_reference_axis(float *ref) {
-    ref[0] = 0.98499424;
-    ref[1] = -0.17221591;
-    ref[2] = 0.01131468;
+    ref[0] = 0.98499424f;
+    ref[1] = -0.17221591f;
+    ref[2] = 0.01131468f;
 }

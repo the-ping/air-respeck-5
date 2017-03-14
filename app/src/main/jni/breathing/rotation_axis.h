@@ -16,6 +16,6 @@ typedef struct {
 
 void initialise_rotation_axis_buffer(RotationAxis *axis_and_angle_buffer);
 
-void update_rotation_axis_buffer(float *new_accel_data, RotationAxis *rotation_axis_buffer);
+void update_rotation_axis(float *new_accel_data, RotationAxis *rotation_axis_buffer);
 
 #endif

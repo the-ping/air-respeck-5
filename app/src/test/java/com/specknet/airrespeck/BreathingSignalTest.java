@@ -73,13 +73,15 @@ public class BreathingSignalTest {
     }
 
     @Test
-    public void generateBreathingSignalsAndRatesFromAccelFiles() {
+    public void generateAndSaveMeasuresFromAccelFiles() {
         String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\Gordon Tasks" +
                 "\\WG data\\respeck\\";
         String pathOutputFileSignal = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
                 "Gordon Tasks\\WG data\\breathing signals c code\\";
         String pathOutputFileRates = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
                 "Gordon Tasks\\WG data\\breathing rates c code\\";
+        String pathOutputFileAngles = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
+                "Gordon Tasks\\WG data\\breathing angles c code\\";
         File[] listOfFiles = new File(pathAccelDir).listFiles();
         SpeckBluetoothService service = new SpeckBluetoothService();
         service.initBreathing();
@@ -89,13 +91,16 @@ public class BreathingSignalTest {
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
             ArrayList<Float> breathingSignals = new ArrayList<>();
             ArrayList<Float> breathingRates = new ArrayList<>();
+            ArrayList<Float> breathingAngles = new ArrayList<>();
             for (Float[] accelVector : accelValues) {
                 service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
                 breathingSignals.add(service.getBreathingSignal());
                 breathingRates.add(service.getBreathingRate());
+                breathingAngles.add(service.getBreathingAngle());
             }
             saveOneMeasure(breathingSignals, pathOutputFileSignal + file.getName());
             saveOneMeasure(breathingRates, pathOutputFileRates + file.getName());
+            saveOneMeasure(breathingAngles, pathOutputFileAngles + file.getName());
         }
     }
 

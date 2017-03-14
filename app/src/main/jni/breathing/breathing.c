@@ -1,3 +1,9 @@
+/*
+ * Main class with the algorithm to calculate the breathing signal and other measures.
+ * Most other classes in the breathing directory are used for calculating the mean of some data. Whenever
+ * this mean is used for smoothing the signal, I have called the struct and variable "filter". When the
+ * mean is used for other purposes, such as getting a "reference axis", I use the term "buffer".
+ */
 #include "breathing.h"
 
 #include <math.h>
@@ -11,7 +17,7 @@
 
 MeanUnitAccelBuffer mean_unit_accel_filter;
 RotationAxis rotation_axis;
-MeanAxisBuffer mean_axis_buffer;
+MeanRotationAxisBuffer mean_rotation_axis_buffer;
 MeanUnitAccelBuffer mean_unit_accel_buffer;
 MeanBuffer mean_buffer_breathing_signal;
 MeanBuffer mean_buffer_angle;
@@ -26,7 +32,7 @@ void initialise_breathing_buffer(BreathingBuffer *breathing_buffer) {
 
     initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, 12);
     initialise_rotation_axis_buffer(&rotation_axis);
-    initialise_mean_axis_buffer(&mean_axis_buffer);
+    initialise_mean_rotation_axis_buffer(&mean_rotation_axis_buffer);
     initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
     initialise_mean_buffer(&mean_buffer_breathing_signal);
     initialise_mean_buffer(&mean_buffer_angle);
@@ -78,35 +84,36 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
         return;
     }
 
-    // Get the mean acceleration vector as soon as the filter is full and normalise it.
+    // Get the mean acceleration vector as soon as the filter is full and normalise it. We than overwrite the
+    // new acceleration values with this value, i.e. this is actually used for smoothing.
     copy_accel_vector(new_accel_data, mean_unit_accel_filter.mean_unit_vector);
 
     // Determine rotation axis
-    update_rotation_axis_buffer(new_accel_data, &rotation_axis);
+    update_rotation_axis(new_accel_data, &rotation_axis);
 
     if (rotation_axis.is_current_axis_valid == false) {
         return;
     }
 
-    // Another mean acceleration vector with unit length
+    // Another mean acceleration vector with unit length. This time, the new_accel_data is not overwritten with the
+    // mean value.
     update_mean_unit_accel_buffer(new_accel_data, &mean_unit_accel_buffer);
 
     // Mean rotation axis
-    update_mean_axis_buffer(rotation_axis.current_axis, &mean_axis_buffer);
+    update_mean_rotation_axis_buffer(rotation_axis.current_axis, &mean_rotation_axis_buffer);
 
-    if (mean_axis_buffer.is_valid == false) {
+    if (mean_rotation_axis_buffer.is_valid == false) {
         return;
     }
 
     // Breathing signal calculation
-    float final_bs = dot_product(rotation_axis.current_axis, mean_axis_buffer.mean_axis);
-//    __android_log_print(ANDROID_LOG_INFO, "BS", "bs: %lf", final_bs);
+    float final_bs = dot_product(rotation_axis.current_axis, mean_rotation_axis_buffer.mean_axis);
     // TODO: Why this factor and not another one?
     final_bs = (float) (final_bs * SAMPLE_RATE * 10.0f);
 
     // Breathing angle calculation
     float mean_accel_cross_mean_axis[3];
-    cross_product(mean_accel_cross_mean_axis, mean_unit_accel_buffer.mean_unit_vector, mean_axis_buffer.mean_axis);
+    cross_product(mean_accel_cross_mean_axis, mean_unit_accel_buffer.mean_unit_vector, mean_rotation_axis_buffer.mean_axis);
     float final_ba;
     final_ba = dot_product(mean_accel_cross_mean_axis, new_accel_data);
 

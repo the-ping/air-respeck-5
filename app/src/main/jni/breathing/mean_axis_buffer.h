@@ -17,9 +17,9 @@ typedef struct
 	float mean_axis[3];
 	bool is_valid;
 
-} MeanAxisBuffer;
+} MeanRotationAxisBuffer;
 
-void initialise_mean_axis_buffer(MeanAxisBuffer *mean_axis_buffer);
-void update_mean_axis_buffer(float *new_accel_data, MeanAxisBuffer *mean_axis_buffer);
+void initialise_mean_rotation_axis_buffer(MeanRotationAxisBuffer *mean_axis_buffer);
+void update_mean_rotation_axis_buffer(float *new_accel_data, MeanRotationAxisBuffer *mean_axis_buffer);
 
 #endif
