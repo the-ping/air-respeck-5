@@ -15,9 +15,9 @@ typedef struct
 	float max_act_level;
 	bool is_breathing_initialised;
 
-} BreathingBuffer;
+} BreathingMeasures;
 
-void initialise_breathing_buffer(BreathingBuffer *breathing_buffer);
-void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing_buffer);
+void initialise_breathing_measures(BreathingMeasures *breathing_measures);
+void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures);
 
 #endif

@@ -9,7 +9,7 @@
 #include "breathing/breathing_rate_stats.h"
 #include "activityclassification/predictions.h"
 
-static BreathingBuffer breathing_buffer;
+static BreathingMeasures breathing_buffer;
 static ThresholdBuffer threshold_buffer;
 static CurrentBreath current_breath;
 static BreathingRateBuffer breathing_rate_buffer;
@@ -23,7 +23,7 @@ Java_com_specknet_airrespeck_services_SpeckBluetoothService_getMsgFromJni(JNIEnv
 }
 
 void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing(JNIEnv *env, jobject this) {
-    initialise_breathing_buffer(&breathing_buffer);
+    initialise_breathing_measures(&breathing_buffer);
     initialise_rms_threshold_buffer(&threshold_buffer);
     initialise_breath(&current_breath);
     initialise_breathing_rate_buffer(&breathing_rate_buffer);
@@ -35,7 +35,7 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing(J
 void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing(JNIEnv *env, jobject this, float x,
                                                                                  float y, float z) {
     float new_accel_data[3] = {x, y, z};
-    update_breathing(new_accel_data, &breathing_buffer);
+    update_breathing_measures(new_accel_data, &breathing_buffer);
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
     // Adjust the rms threshold by some factor which was determined empirically on the Western General data

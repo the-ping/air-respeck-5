@@ -1,8 +1,8 @@
 /*
  * Main class with the algorithm to calculate the breathing signal and other measures.
  * Most other classes in the breathing directory are used for calculating the mean of some data. Whenever
- * this mean is used for smoothing the signal, I have called the struct and variable "filter". When the
- * mean is used for other purposes, such as getting a "reference axis", I use the term "buffer".
+ * this mean is used for smoothing the signal, the struct and variable is called "filter". When the
+ * mean is used for other purposes, such as getting a "reference axis", it is called "buffer".
  */
 #include "breathing.h"
 
@@ -19,31 +19,31 @@ MeanUnitAccelBuffer mean_unit_accel_filter;
 RotationAxis rotation_axis;
 MeanRotationAxisBuffer mean_rotation_axis_buffer;
 MeanUnitAccelBuffer mean_unit_accel_buffer;
-MeanBuffer mean_buffer_breathing_signal;
-MeanBuffer mean_buffer_angle;
+MeanFilter mean_filter_breathing_signal;
+MeanFilter mean_filter_angle;
 ActivityLevelBuffer activity_level_buffer;
 
-void initialise_breathing_buffer(BreathingBuffer *breathing_buffer) {
-    breathing_buffer->is_breathing_initialised = false;
-    breathing_buffer->is_valid = false;
-    breathing_buffer->signal = NAN;
-    breathing_buffer->angle = NAN;
-    breathing_buffer->max_act_level = NAN;
+void initialise_breathing_measures(BreathingMeasures *breathing_measures) {
+    breathing_measures->is_breathing_initialised = false;
+    breathing_measures->is_valid = false;
+    breathing_measures->signal = NAN;
+    breathing_measures->angle = NAN;
+    breathing_measures->max_act_level = NAN;
 
     initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, 12);
-    initialise_rotation_axis_buffer(&rotation_axis);
+    initialise_rotation_axis(&rotation_axis);
     initialise_mean_rotation_axis_buffer(&mean_rotation_axis_buffer);
     initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
-    initialise_mean_buffer(&mean_buffer_breathing_signal);
-    initialise_mean_buffer(&mean_buffer_angle);
+    initialise_mean_filter(&mean_filter_breathing_signal);
+    initialise_mean_filter(&mean_filter_angle);
     initialise_activity_level_buffer(&activity_level_buffer);
 }
 
-void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing_buffer) {
+void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures) {
     // We assume apriori that the current breathing value is not valid.
-    breathing_buffer->is_valid = false;
+    breathing_measures->is_valid = false;
 
-    if (breathing_buffer->is_breathing_initialised == false) {
+    if (breathing_measures->is_breathing_initialised == false) {
         return;
     }
 
@@ -70,9 +70,9 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     }
 
     // Use the maximum activity level in the buffer as a threshold to determine movement
-    breathing_buffer->max_act_level = activity_level_buffer.max;
+    breathing_measures->max_act_level = activity_level_buffer.max;
     if (activity_level_buffer.max > ACTIVITY_CUTOFF) {
-        breathing_buffer->signal = NAN;
+        breathing_measures->signal = NAN;
         return;
     }
 
@@ -120,17 +120,17 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
     breathing_angle = dot_product(mean_accel_cross_mean_axis, new_accel_data);
 
     // Smooth the breathing signal and angles for the last time
-    update_mean_buffer(breathing_signal, &mean_buffer_breathing_signal);
-    update_mean_buffer(breathing_angle, &mean_buffer_angle);
+    update_mean_filter(breathing_signal, &mean_filter_breathing_signal);
+    update_mean_filter(breathing_angle, &mean_filter_angle);
 
-    if (mean_buffer_breathing_signal.is_valid == false) {
+    if (mean_filter_breathing_signal.is_valid == false) {
         return;
     }
 
     // update the breathing signal and breathing angle
-    breathing_buffer->signal = mean_buffer_breathing_signal.mean_value;
-    breathing_buffer->angle = mean_buffer_angle.mean_value;
+    breathing_measures->signal = mean_filter_breathing_signal.mean_value;
+    breathing_measures->angle = mean_filter_angle.mean_value;
 
     // Only if we made it to the end do we have a valid breathing signal
-    breathing_buffer->is_valid = true;
+    breathing_measures->is_valid = true;
 }

@@ -17,9 +17,9 @@ typedef struct
 	float mean_value;
 	bool is_valid;
 
-} MeanBuffer;
+} MeanFilter;
 
-void initialise_mean_buffer(MeanBuffer *mean_buffer);
-void update_mean_buffer(float value, MeanBuffer *mean_buffer);
+void initialise_mean_filter(MeanFilter *mean_buffer);
+void update_mean_filter(float value, MeanFilter *mean_buffer);
 
 #endif

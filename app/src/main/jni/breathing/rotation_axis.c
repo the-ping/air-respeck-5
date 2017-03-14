@@ -3,7 +3,7 @@
  */
 #include "rotation_axis.h"
 
-void initialise_rotation_axis_buffer(RotationAxis *axis_and_angle_buffer) {
+void initialise_rotation_axis(RotationAxis *axis_and_angle_buffer) {
     axis_and_angle_buffer->is_current_axis_valid = false;
     axis_and_angle_buffer->is_previous_accel_data_valid = false;
 }

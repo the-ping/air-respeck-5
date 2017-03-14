@@ -1,6 +1,6 @@
 #include "mean_buffer.h"
 
-void initialise_mean_buffer(MeanBuffer *mean_buffer) {
+void initialise_mean_filter(MeanFilter *mean_buffer) {
     mean_buffer->current_position = -1;
     mean_buffer->fill = 0;
     mean_buffer->is_valid = false;
@@ -11,7 +11,7 @@ void initialise_mean_buffer(MeanBuffer *mean_buffer) {
     }
 }
 
-void update_mean_buffer(float value, MeanBuffer *mean_buffer) {
+void update_mean_filter(float value, MeanFilter *mean_buffer) {
 
     // Increment position
     mean_buffer->current_position = (mean_buffer->current_position + 1) % MEAN_ACCEL_FILTER_SIZE;
