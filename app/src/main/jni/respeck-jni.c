@@ -13,6 +13,8 @@ static BreathingMeasures breathing_buffer;
 static ThresholdBuffer threshold_buffer;
 static CurrentBreath current_breath;
 static BreathingRateBuffer breathing_rate_buffer;
+static float upper_threshold;
+static float lower_threshold;
 
 // Activity classification
 static int current_activity_classification = -1;
@@ -39,15 +41,23 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
     // Adjust the rms threshold by some factor which was determined empirically on the Western General data
-    float ut = threshold_buffer.upper_threshold_value / 4.f;
-    float lt = threshold_buffer.lower_threshold_value / 4.f;
-    update_breath(breathing_buffer.signal, ut, lt, &current_breath);
+    upper_threshold = threshold_buffer.upper_threshold_value / 4.f;
+    lower_threshold = threshold_buffer.lower_threshold_value / 4.f;
+    update_breath(breathing_buffer.signal, upper_threshold, lower_threshold, &current_breath);
 
     // If the breathing rate has been updated, add it to the
     if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
         update_breathing_rate_buffer(current_breath.breathing_rate, &breathing_rate_buffer);
         current_breath.is_complete = false;
     }
+}
+
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getUpperThreshold(JNIEnv *env, jobject this) {
+    return upper_threshold;
+}
+
+jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getLowerThreshold(JNIEnv *env, jobject this) {
+    return lower_threshold;
 }
 
 jfloat Java_com_specknet_airrespeck_services_SpeckBluetoothService_getBreathingSignal(JNIEnv *env, jobject this) {

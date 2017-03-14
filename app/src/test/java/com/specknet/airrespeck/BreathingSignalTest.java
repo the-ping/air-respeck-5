@@ -76,31 +76,30 @@ public class BreathingSignalTest {
     public void generateAndSaveMeasuresFromAccelFiles() {
         String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\Gordon Tasks" +
                 "\\WG data\\respeck\\";
-        String pathOutputFileSignal = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
-                "Gordon Tasks\\WG data\\breathing signals c code\\";
-        String pathOutputFileRates = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
-                "Gordon Tasks\\WG data\\breathing rates c code\\";
-        String pathOutputFileAngles = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
-                "Gordon Tasks\\WG data\\breathing angles c code\\";
+        String pathOutputFileMeasures = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
+                "Gordon Tasks\\WG data\\breathing measures\\";
+
         File[] listOfFiles = new File(pathAccelDir).listFiles();
         SpeckBluetoothService service = new SpeckBluetoothService();
-        service.initBreathing();
 
         // Open each file, generate the breathing signal for it, and write the result into another file
         for (File file : listOfFiles) {
+            service.initBreathing();
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
-            ArrayList<Float> breathingSignals = new ArrayList<>();
-            ArrayList<Float> breathingRates = new ArrayList<>();
-            ArrayList<Float> breathingAngles = new ArrayList<>();
+            ArrayList<Float[]> allMeasures = new ArrayList<>();
+
+            Float[] measures;
             for (Float[] accelVector : accelValues) {
+                measures = new Float[5];
                 service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
-                breathingSignals.add(service.getBreathingSignal());
-                breathingRates.add(service.getBreathingRate());
-                breathingAngles.add(service.getBreathingAngle());
+                measures[0] = service.getBreathingSignal();
+                measures[1] = service.getBreathingRate();
+                measures[2] = service.getBreathingAngle();
+                measures[3] = service.getLowerThreshold();
+                measures[4] = service.getUpperThreshold();
+                allMeasures.add(measures);
             }
-            saveOneMeasure(breathingSignals, pathOutputFileSignal + file.getName());
-            saveOneMeasure(breathingRates, pathOutputFileRates + file.getName());
-            saveOneMeasure(breathingAngles, pathOutputFileAngles + file.getName());
+            saveMeasures(allMeasures, pathOutputFileMeasures + file.getName());
         }
     }
 
@@ -145,7 +144,7 @@ public class BreathingSignalTest {
     @Test
     public void storeModelData() {
         ArrayList<Float[]> allMeasures = calculateMeasuresBasedOnCurrentLibrary(loadAccel(rawModelFilePath, 1, ","));
-        saveModelMeasures(allMeasures);
+        saveMeasures(allMeasures, measuresModelFilePath);
     }
 
     // Load sample acceleration data
@@ -176,8 +175,8 @@ public class BreathingSignalTest {
     }
 
     // Save all breathing measures in file
-    private static void saveModelMeasures(ArrayList<Float[]> allMeasures) {
-        File file = new File(measuresModelFilePath);
+    private static void saveMeasures(ArrayList<Float[]> allMeasures, String filename) {
+        File file = new File(filename);
 
         try {
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));

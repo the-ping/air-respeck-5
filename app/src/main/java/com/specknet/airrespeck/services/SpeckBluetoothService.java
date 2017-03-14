@@ -1382,5 +1382,8 @@ public class SpeckBluetoothService {
 
     public native void updateActivityClassification();
 
+    public native float getUpperThreshold();
+
+    public native float getLowerThreshold();
 }
 

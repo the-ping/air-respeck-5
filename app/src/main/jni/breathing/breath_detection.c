@@ -13,6 +13,8 @@ void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
     threshold_buffer->upper_values_sum = 0;
     threshold_buffer->upper_values_sum_fill = 0;
     threshold_buffer->lower_values_sum_fill = 0;
+    threshold_buffer->upper_threshold_value = 0;
+    threshold_buffer->lower_threshold_value = 0;
 
     for (int i = 0; i < THRESHOLD_FILTER_SIZE; i++)
         threshold_buffer->values_type[i] = INVALID;
@@ -73,8 +75,7 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
         // Calculate the root mean square
         threshold_buffer->lower_threshold_value = (float) -sqrt(
                 threshold_buffer->lower_values_sum / threshold_buffer->lower_values_sum_fill);
-    }
-    else
+    } else
         threshold_buffer->lower_threshold_value = NAN;
 
     threshold_buffer->is_valid = true;
@@ -83,10 +84,10 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
 void initialise_breath(CurrentBreath *breath) {
     breath->state = UNKNOWN;
     breath->breathing_rate = NAN;
-    breath->min_threshold = 0.02/4.;
+    breath->min_threshold = (float) (0.02 / 4.);
     breath->max_threshold = 0.5;
     breath->sample_count = 0;
-    breath->is_sample_count_valid = false;
+    breath->is_current_breath_valid = false;
     breath->is_complete = false;
 }
 
@@ -96,7 +97,7 @@ void update_breath(float breathing_signal, float upper_threshold,
 
     if (isnan(upper_threshold) || isnan(lower_threshold) || isnan(breathing_signal)) {
         breath->breathing_rate = NAN;
-        breath->is_sample_count_valid = false;
+        breath->is_current_breath_valid = false;
         return;
     }
 
@@ -115,7 +116,7 @@ void update_breath(float breathing_signal, float upper_threshold,
     if (upper_threshold - lower_threshold < breath->min_threshold * 2.0f) {
         breath->state = UNKNOWN;
         breath->breathing_rate = NAN;
-        breath->is_sample_count_valid = false;
+        breath->is_current_breath_valid = false;
         return;
     }
 
@@ -124,31 +125,35 @@ void update_breath(float breathing_signal, float upper_threshold,
     if (upper_threshold - lower_threshold > breath->max_threshold * 2.0f) {
         breath->state = UNKNOWN;
         breath->breathing_rate = NAN;
-        breath->is_sample_count_valid = false;
+        breath->is_current_breath_valid = false;
         return;
     }*/
 
     if (breath->state == LOW && breathing_signal > lower_threshold) {
         breath->state = MID_RISING;
-    }
-    else if (breath->state == HIGH && breathing_signal < upper_threshold) {
+    } else if (breath->state == HIGH && breathing_signal < upper_threshold) {
         breath->state = MID_FALLING;
-    }
-    else if ((breath->state == MID_RISING || breath->state == MID_UNKNOWN) &&
-             breathing_signal > upper_threshold) {
+    } else if ((breath->state == MID_RISING || breath->state == MID_UNKNOWN) &&
+               breathing_signal > upper_threshold) {
         breath->state = HIGH;
-    }
-    else if ((breath->state == MID_FALLING || breath->state == MID_UNKNOWN) &&
-             breathing_signal < lower_threshold) {
+    } else if ((breath->state == MID_FALLING || breath->state == MID_UNKNOWN) &&
+               breathing_signal < lower_threshold) {
         breath->state = LOW;
 
-        // A full breath cycle is finished. Calculate the breathing rate of the last cycle
-        if (breath->is_sample_count_valid) {
-            breath->breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
-        }
+        if (breath->is_current_breath_valid) {
+            // A full breath cycle is finished. Calculate the breathing rate of the last cycle
+            float new_breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
 
+            // We want the breathing rate to lie in a realistic range
+            if (new_breathing_rate >= LOWEST_POSSIBLE_BREATHING_RATE &&
+                new_breathing_rate <= HIGHEST_POSSIBLE_BREATHING_RATE) {
+                // Current breathing rate is valid -> Store it!
+                breath->breathing_rate = new_breathing_rate;
+                // Signal to caller that the breathing rate has changed
+                breath->is_complete = true;
+            }
+        }
         breath->sample_count = 0;
-        breath->is_sample_count_valid = true;
-        breath->is_complete = true;
+        breath->is_current_breath_valid = true;
     }
 }

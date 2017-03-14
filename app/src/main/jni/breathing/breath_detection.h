@@ -14,6 +14,8 @@
 #include <math.h>
 
 #define THRESHOLD_FILTER_SIZE (12*10)
+#define HIGHEST_POSSIBLE_BREATHING_RATE 45
+#define LOWEST_POSSIBLE_BREATHING_RATE 5
 
 typedef enum {
     POSITIVE,
@@ -50,7 +52,7 @@ typedef struct {
     float min_threshold;
     float max_threshold;
     int sample_count;
-    bool is_sample_count_valid;
+    bool is_current_breath_valid;
     bool is_complete;
 } CurrentBreath;
 
