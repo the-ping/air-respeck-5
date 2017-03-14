@@ -14,7 +14,7 @@ typedef struct
 	int fill;
 
 	float values[MEAN_ACCEL_FILTER_SIZE];
-	float value;
+	float mean_value;
 	bool is_valid;
 
 } MeanBuffer;

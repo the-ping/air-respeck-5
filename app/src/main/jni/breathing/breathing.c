@@ -106,28 +106,30 @@ void update_breathing(float *new_accel_data_original, BreathingBuffer *breathing
         return;
     }
 
-    // Breathing signal calculation
-    float final_bs = dot_product(rotation_axis.current_axis, mean_rotation_axis_buffer.mean_axis);
-    // TODO: Why this factor and not another one?
-    final_bs = (float) (final_bs * SAMPLE_RATE * 10.0f);
+    // Breathing signal calculation. The current rotation axis is proportional to the current angle change.
+    // With the dot product, this value is projected onto the mean rotation axis which makes the
+    // angle changes comparable. This corresponds to the rotational change used in the Python code.
+    float breathing_signal = dot_product(rotation_axis.current_axis, mean_rotation_axis_buffer.mean_axis);
+    // TODO: Modify this factor so it corresponds as close as possible to the spirometer readings
+    breathing_signal = (float) (breathing_signal * SAMPLE_RATE * 10.0f);
 
     // Breathing angle calculation
     float mean_accel_cross_mean_axis[3];
     cross_product(mean_accel_cross_mean_axis, mean_unit_accel_buffer.mean_unit_vector, mean_rotation_axis_buffer.mean_axis);
-    float final_ba;
-    final_ba = dot_product(mean_accel_cross_mean_axis, new_accel_data);
+    float breathing_angle;
+    breathing_angle = dot_product(mean_accel_cross_mean_axis, new_accel_data);
 
     // Smooth the breathing signal and angles for the last time
-    update_mean_buffer(final_bs, &mean_buffer_breathing_signal);
-    update_mean_buffer(final_ba, &mean_buffer_angle);
+    update_mean_buffer(breathing_signal, &mean_buffer_breathing_signal);
+    update_mean_buffer(breathing_angle, &mean_buffer_angle);
 
     if (mean_buffer_breathing_signal.is_valid == false) {
         return;
     }
 
     // update the breathing signal and breathing angle
-    breathing_buffer->signal = mean_buffer_breathing_signal.value;
-    breathing_buffer->angle = mean_buffer_angle.value;
+    breathing_buffer->signal = mean_buffer_breathing_signal.mean_value;
+    breathing_buffer->angle = mean_buffer_angle.mean_value;
 
     // Only if we made it to the end do we have a valid breathing signal
     breathing_buffer->is_valid = true;

@@ -33,6 +33,6 @@ void update_mean_buffer(float value, MeanBuffer *mean_buffer) {
     }
 
     // If the buffer is filled, the sum devided by the size gives us the mean of the values in the buffer
-    mean_buffer->value = mean_buffer->sum / MEAN_ACCEL_FILTER_SIZE;
+    mean_buffer->mean_value = mean_buffer->sum / MEAN_ACCEL_FILTER_SIZE;
     mean_buffer->is_valid = true;
 }
