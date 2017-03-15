@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define THRESHOLD_FILTER_SIZE (12*10)
+#define THRESHOLD_FILTER_SIZE 40 // (12*10)
 #define HIGHEST_POSSIBLE_BREATHING_RATE 45
 #define LOWEST_POSSIBLE_BREATHING_RATE 5
 

@@ -41,8 +41,8 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
     // Adjust the rms threshold by some factor which was determined empirically on the Western General data
-    upper_threshold = threshold_buffer.upper_threshold_value / 4.f;
-    lower_threshold = threshold_buffer.lower_threshold_value / 4.f;
+    upper_threshold = threshold_buffer.upper_threshold_value / 3.f;
+    lower_threshold = threshold_buffer.lower_threshold_value / 3.f;
     update_breath(breathing_buffer.signal, upper_threshold, lower_threshold, &current_breath);
 
     // If the breathing rate has been updated, add it to the

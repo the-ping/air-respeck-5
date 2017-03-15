@@ -13,8 +13,8 @@ void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
     threshold_buffer->upper_values_sum = 0;
     threshold_buffer->upper_values_sum_fill = 0;
     threshold_buffer->lower_values_sum_fill = 0;
-    threshold_buffer->upper_threshold_value = 0;
-    threshold_buffer->lower_threshold_value = 0;
+    threshold_buffer->upper_threshold_value = NAN;
+    threshold_buffer->lower_threshold_value = NAN;
 
     for (int i = 0; i < THRESHOLD_FILTER_SIZE; i++)
         threshold_buffer->values_type[i] = INVALID;
