@@ -1189,9 +1189,9 @@ public class SpeckBluetoothService {
                 // write the summarised data into another external file and empty the temporary file.
                 if (summaryCounter == SUMMARY_COUNT_MAX) {
 
-                    String lineToWrite = getCurrentTimeStamp() + "\t" +
-                            Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "\t" +
-                            Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "\t" +
+                    String lineToWrite = getCurrentTimeStamp() + "," +
+                            Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "," +
+                            Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "," +
                             Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
                     try {
                         mActivitySummaryWriter.append(lineToWrite);

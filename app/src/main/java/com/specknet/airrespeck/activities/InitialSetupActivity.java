@@ -2,6 +2,8 @@ package com.specknet.airrespeck.activities;
 
 
 import android.content.Intent;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -15,7 +17,9 @@ import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Calendar;
 
 import retrofit2.Call;
@@ -52,16 +56,27 @@ public class InitialSetupActivity extends BaseActivity {
             File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
-                Log.i("DF", "Directory created: " + directory);
-                if (!created) {
+                // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
+                // scanFile should force the indexation of the new directory.
+                MediaScannerConnection.scanFile(this, new String[] { directory.toString() }, null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            public void onScanCompleted(String path, Uri uri) {
+                                Log.i("ExternalStorage", "Scanned " + path + ":");
+                                Log.i("ExternalStorage", "-> uri=" + uri);
+                            }
+                        });
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
                     throw new RuntimeException("Couldn't create app root folder on external storage");
                 }
             }
             directory = new File(Constants.RESPECK_DATA_DIRECTORY_PATH);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
-                Log.i("DF", "Directory created: " + directory);
-                if (!created) {
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
                     throw new RuntimeException("Couldn't create Respeck folder on external storage");
                 }
             }
@@ -69,8 +84,9 @@ public class InitialSetupActivity extends BaseActivity {
                 directory = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
-                    Log.i("DF", "Directory created: " + directory);
-                    if (!created) {
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
                         throw new RuntimeException("Couldn't create Airspeck folder on external storage");
                     }
                 }
@@ -79,14 +95,28 @@ public class InitialSetupActivity extends BaseActivity {
                 directory = new File(Constants.MERGED_DATA_DIRECTORY_PATH);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
-                    Log.i("DF", "Directory created: " + directory);
-                    if (!created) {
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
                         throw new RuntimeException("Couldn't create Merged folder on external storage");
                     }
                 }
             }
-        }
 
+            // Create activity summary file if it doesn't exists
+            if (!new File(Constants.ACTIVITY_SUMMARY_FILE_PATH).exists()) {
+                Log.i("DF", "Activity summary file created with header");
+                try {
+                    // Create file and add header to beginning
+                    OutputStreamWriter activityWriter = new OutputStreamWriter(
+                            new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
+                    activityWriter.append(Constants.ACTIVITY_SUMMARY_HEADER).append("\n");
+                    activityWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Override

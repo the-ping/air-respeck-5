@@ -231,10 +231,10 @@ public class Constants {
      */
     public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory(),
             "/AirRespeck").getPath();
-    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Activity_summary.csv";
+    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Activity Summary.csv";
     public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck/";
     public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Airspeck/";
-    public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck_and_Airspeck/";
+    public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck and Airspeck/";
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
@@ -243,7 +243,7 @@ public class Constants {
 
     public static final String AIRSPECK_DATA_HEADER_ALL = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3,"+
             "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total,"+
-            "gpsLongitude,gpsLatitude,gpsAltitude";;
+            "gpsLongitude,gpsLatitude,gpsAltitude";
 
     public static final String MERGED_DATA_HEADER_SUBSET = "interpolatedPhoneTimestamp,"+
             "respeckTimestamp.sequenceNumber,x,y,z," +
@@ -253,10 +253,13 @@ public class Constants {
     public static final String MERGED_DATA_HEADER_ALL = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,"+
             "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,pm1,pm2_5,pm10," +
             "temperature,humidity,no2,o3,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,"+
-            "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";;
+            "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";
+
+    public static final String ACTIVITY_SUMMARY_HEADER = "timestamp_end_of_10_minutes,percentage_standing_sitting,"+
+            "percentage_walking,percentage_lying";
 
     /*
-    PCA zero mean signal calculation
+     * PCA zero mean signal calculation
      */
     public static final int NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA = (int) Math.round(20 * 12.5);
     public static final int NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION = 69;
