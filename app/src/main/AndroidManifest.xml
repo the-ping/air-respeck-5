@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.specknet.airrespeck">
+<manifest package="com.specknet.airrespeck"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:name=".base.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:screenOrientation="portrait"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:screenOrientation="portrait">
+        android:theme="@style/AppTheme">
         <meta-data
             android:name="AA_DB_NAME"
-            android:value="AirRespeck.db" />
+            android:value="AirRespeck.db"/>
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="5" />
+            android:value="5"/>
         <meta-data
             android:name="AA_MODELS"
-            android:value="com.specknet.airrespeck.datamodels.User" />
+            android:value="com.specknet.airrespeck.datamodels.User"/>
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="e95ac1c08b338e8511078e83b9cde8bf2ab72f55" />
+            android:value="e95ac1c08b338e8511078e83b9cde8bf2ab72f55"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -41,29 +42,48 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="@string/google_maps_key"/>
 
         <activity
             android:name=".activities.InitialSetupActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
             android:name=".activities.NewUserActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="com.specknet.respeck.RESPECK_LIVE_BROADCAST"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.respeck.RESPECK_CONNECTED"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.respeck.RESPECK_DISCONNECTED"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.airspeck.AIRSPECK_DISCONNECTED"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.airspeck.AIRSPECK_DISCONNECTED"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.airspeck.AIRSPECK_DISCONNECTED"/>
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -71,21 +91,32 @@
             android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity" />
+                android:value=".activities.MainActivity"/>
         </activity>
         <activity
             android:name=".activities.UserProfileActivity"
             android:label="@string/title_activity_user_profile"
             android:parentActivityName=".activities.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.specknet.airrespeck.activities.MainActivity" />
+                android:value="com.specknet.airrespeck.activities.MainActivity"/>
+
         </activity>
 
         <service
-            android:name="com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService"
+            android:name=".services.SpeckBluetoothService"
+            android:enabled="true"
+            android:process=":bluetooth_speck_process">
+            <intent-filter>
+                <action android:name="SpeckBluetoothService">
+                </action>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".services.respeckuploadservice.RespeckRemoteUploadService"
             android:enabled="true"
             android:exported="true"
             android:process=":upload_process">
@@ -96,7 +127,7 @@
         </service>
 
         <service
-            android:name="com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService"
+            android:name=".services.qoeuploadservice.QOERemoteUploadService"
             android:enabled="true"
             android:exported="true"
             android:process=":upload_process">
@@ -105,6 +136,7 @@
                 </action>
             </intent-filter>
         </service>
+
     </application>
 
 </manifest>

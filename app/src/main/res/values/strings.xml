@@ -81,7 +81,7 @@
 
     <!-- Reading unit -->
     <string name="reading_unit_bpm">BrPM</string>
-    <string name="reading_unit_ug_m3">µg/m³</string>
+    <string name="reading_unit_ug_m3" translatable="false">µg/m³</string>
     <string name="reading_unit_c" translatable="false">°C</string>
     <string name="reading_unit_f" translatable="false">°F</string>
     <string name="reading_unit_percent" translatable="false">%</string>
@@ -243,5 +243,9 @@
     </string-array>
 
     <string name="connection_text_respeck_only">Connecting to RESpeck</string>
+
+    <!-- Strings related to foreground bluetooth service -->
+    <string name="service_notification_title">AirRespeck connection</string>
+    <string name="service_notification_message">Maintaining bluetooth connection AirRespeck devices</string>
 
 </resources>

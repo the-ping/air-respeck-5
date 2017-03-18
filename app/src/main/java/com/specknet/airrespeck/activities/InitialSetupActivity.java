@@ -1,6 +1,9 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.Intent;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -42,7 +45,7 @@ public class InitialSetupActivity extends BaseActivity {
         aua.enableMobileUpdates();
         //aua.checkUpdatesManually();
 
-        Utils mUtils = Utils.getInstance(this);
+        Utils mUtils = Utils.getInstance(getApplicationContext());
         // Look for storage related configs
         boolean isAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));

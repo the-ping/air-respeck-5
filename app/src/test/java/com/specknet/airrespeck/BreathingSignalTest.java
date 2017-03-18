@@ -27,8 +27,8 @@ import static org.hamcrest.Matchers.is;
 
 public class BreathingSignalTest {
 
-    private static final String directory = "C:/Users/Darius/Dropbox/Studium/ArbeitArvind/Work/Other analysis/" +
-            "Comparison data breathing code/";
+    private static final String directory = "C:/Users/Darius/Dropbox/Studium/ArbeitArvind/Projects/Western General" +
+            "/RESpeck vs. Cannula/Comparison data breathing code/";
     private static final String rawModelFilePath = directory + "model_accel.csv";
     private static final String measuresModelFilePath = directory + "model_measures.csv";
 
@@ -74,10 +74,10 @@ public class BreathingSignalTest {
 
     @Test
     public void generateAndSaveMeasuresFromAccelFiles() {
-        String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\Gordon Tasks" +
-                "\\WG data\\respeck\\";
-        String pathOutputFileMeasures = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Work\\" +
-                "Gordon Tasks\\WG data\\breathing measures\\";
+        String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Projects\\Western General" +
+                "\\data\\respeck\\";
+        String pathOutputFileMeasures = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Projects\\Western General" +
+                "\\data\\breathing measures\\";
 
         File[] listOfFiles = new File(pathAccelDir).listFiles();
         SpeckBluetoothService service = new SpeckBluetoothService();

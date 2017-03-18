@@ -66,7 +66,7 @@ public class SubjectValuesFragment extends BaseFragment {
         breathingRateText.setText(
                 String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
         averageBreathingRateText.setText(
-                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
+                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
 
         // Set activity icon to reflect currently predicted activity
         int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));

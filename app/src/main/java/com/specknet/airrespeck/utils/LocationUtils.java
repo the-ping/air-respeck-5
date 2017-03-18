@@ -51,7 +51,7 @@ public class LocationUtils implements
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        Log.i("GPLOC", "Connected!");
+        Log.i("GPLOC", "Location Utils connected!");
         mLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLocation != null) {

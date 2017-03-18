@@ -3,7 +3,6 @@ package com.specknet.airrespeck.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,9 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
@@ -109,7 +106,7 @@ public class SubjectWindmillFragment extends BaseFragment {
                 String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
         averageBreathingRateText.setText(
                 String.format(Locale.UK, "%.2f BrPM",
-                        mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
+                        mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
 
         // Set activity icon to reflect currently predicted activity
         int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));

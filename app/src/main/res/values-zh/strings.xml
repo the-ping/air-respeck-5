@@ -78,9 +78,7 @@
     <string name="reading_bins">Bins total</string>
 
     <!-- Reading unit -->
-    <string name="reading_unit_bpm">bpm</string>
-    <string name="reading_unit_ug_m3">µg/m³</string>
-
+    <string name="reading_unit_bpm">BrPM</string>
 
 
     <!-- Graphs -->

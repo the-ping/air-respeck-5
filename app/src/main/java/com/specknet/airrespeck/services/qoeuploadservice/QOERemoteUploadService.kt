@@ -70,7 +70,9 @@ class QOERemoteUploadService {
                     qoeServer = QOEServer.create(configUrl)
                 }
 
-                else -> { Log.i("QOE", "Invalid message received") }
+                else -> {
+                    Log.i("QOE", "Invalid message received")
+                }
             }
         }
     }
@@ -96,12 +98,12 @@ class QOERemoteUploadService {
                 .subscribe { filequeue.add(it.toString()) }
 
         Observable.interval(10, TimeUnit.SECONDS)
-                  .concatMap { Observable.range(0, filequeue.size()) }
-                  .map { jsonPacketFrom(filequeue.peek()) }
-                  .concatMap { qoeServer.submitData(it, configPath) }
-                  .doOnError { Log.e("QOE", it.toString())}
-                  .retry()
-                  .doOnCompleted {  }
-                  .subscribe { Log.d("QOE", "done: " + it.toString()); filequeue.remove() }
+                .concatMap { Observable.range(0, filequeue.size()) }
+                .map { jsonPacketFrom(filequeue.peek()) }
+                .concatMap { qoeServer.submitData(it, configPath) }
+                .doOnError { Log.e("QOE", it.toString()) }
+                .retry()
+                .doOnCompleted { }
+                .subscribe { Log.d("QOE", "done: " + it.toString()); filequeue.remove() }
     }
 }

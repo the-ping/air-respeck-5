@@ -1,6 +1,12 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -48,7 +54,7 @@ import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends BaseActivity {
 
-    // UI HANDLER
+    // UI handler. Has to be int because Message.what object is int
     public final static int UPDATE_RESPECK_READINGS = 0;
     public final static int UPDATE_QOE_READINGS = 1;
     public final static int SHOW_SNACKBAR_MESSAGE = 2;
@@ -59,7 +65,6 @@ public class MainActivity extends BaseActivity {
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
     private final static int UPDATE_BREATHING_GRAPH = 8;
 
-
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
      */
@@ -67,7 +72,7 @@ public class MainActivity extends BaseActivity {
         // Using a weak reference means you won't prevent garbage collection
         private final WeakReference<MainActivity> mService;
 
-        public UIHandler(MainActivity service) {
+        UIHandler(MainActivity service) {
             mService = new WeakReference<>(service);
         }
 
@@ -82,12 +87,12 @@ public class MainActivity extends BaseActivity {
                     case UPDATE_RESPECK_READINGS:
                         service.updateRespeckReadings((HashMap<String, Float>) msg.obj);
                         // We also update the connection symbol in case it hasn't been updated yet
-                        service.updateRESpeckConnectionSymbol(true);
+                        service.updateRESpeckConnection(true);
                         break;
                     case UPDATE_QOE_READINGS:
                         service.updateQOEReadings((HashMap<String, Float>) msg.obj);
                         // We also update the connection symbol in case it hasn't been updated yet
-                        service.updateAirspeckConnectionSymbol(true);
+                        service.updateAirspeckConnection(true);
                         break;
                     case ACTIVITY_SUMMARY_UPDATE:
                         service.updateActivitySummary();
@@ -101,10 +106,10 @@ public class MainActivity extends BaseActivity {
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".");
                         service.showSnackbarFromHandler(messageAir);
-                        service.updateAirspeckConnectionSymbol(true);
+                        service.updateAirspeckConnection(true);
                         break;
                     case SHOW_AIRSPECK_DISCONNECTED:
-                        service.updateAirspeckConnectionSymbol(false);
+                        service.updateAirspeckConnection(false);
                         break;
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = String.format(Locale.UK, "Respeck "
@@ -113,10 +118,10 @@ public class MainActivity extends BaseActivity {
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".");
                         service.showSnackbarFromHandler(messageRE);
-                        service.updateRESpeckConnectionSymbol(true);
+                        service.updateRESpeckConnection(true);
                         break;
                     case SHOW_RESPECK_DISCONNECTED:
-                        service.updateRESpeckConnectionSymbol(false);
+                        service.updateRESpeckConnection(false);
                         break;
                     case UPDATE_BREATHING_GRAPH:
                         service.updateBreathingGraphs((BreathingGraphData) msg.obj);
@@ -124,15 +129,6 @@ public class MainActivity extends BaseActivity {
                 }
             }
         }
-    }
-
-    /**
-     * A getter for the UI handler
-     *
-     * @return UIHandler The handler.
-     */
-    public Handler getUIHandler() {
-        return mUIHandler;
     }
 
     private final Handler mUIHandler = new UIHandler(this);
@@ -170,20 +166,24 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSubjectWindmill;
 
     // UTILS
-    Utils mUtils;
-    LocationUtils mLocationUtils;
+    private Utils mUtils;
+    private LocationUtils mLocationUtils;
 
     // Layout view for snack bar
     private CoordinatorLayout mCoordinatorLayout;
 
     // READING VALUES
-    HashMap<String, Float> mRespeckSensorReadings = new HashMap<>();
-    HashMap<String, Float> mQOESensorReadings = new HashMap<>();
+    private HashMap<String, Float> mRespeckSensorReadings = new HashMap<>();
+    private HashMap<String, Float> mQOESensorReadings = new HashMap<>();
     private LinkedList<BreathingGraphData> breathingSignalchartDataQueue = new LinkedList<>();
     private int updateDelayBreathingGraph;
 
     // Speck service
-    SpeckBluetoothService mSpeckBluetoothService;
+    final int REQUEST_ENABLE_BT = 1;
+    private BluetoothAdapter mBluetoothAdapter;
+    private BroadcastReceiver mSpeckServiceReceiver;
+    private boolean mIsRESpeckConnected;
+    private boolean mIsAirspeckConnected;
 
     // Variable to switch modes: subject mode or supervised mode
     private static final String IS_SUPERVISED_MODE = "supervised_mode";
@@ -219,13 +219,13 @@ public class MainActivity extends BaseActivity {
         wakeLock.acquire();
 
         // Utils
-        mUtils = Utils.getInstance(this);
+        mUtils = Utils.getInstance(getApplicationContext());
 
         // Load configuration
         loadConfig();
 
         // Load location Utils
-        mLocationUtils = LocationUtils.getInstance(this);
+        mLocationUtils = LocationUtils.getInstance(getApplicationContext());
         mLocationUtils.startLocationManager();
 
         // Set activity title
@@ -270,12 +270,110 @@ public class MainActivity extends BaseActivity {
         // Initialize Readings hash maps
         initReadingMaps();
 
-        // Start Speck Service
-        mSpeckBluetoothService = new SpeckBluetoothService();
-        mSpeckBluetoothService.initSpeckService(this);
+        // Open request for bluetooth if turned off
+        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
+                Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else {
+            startSpeckService();
+        }
+
+        // Initialise broadcast receiver which receives data from the speck service
+        initSpeckServiceReceiver();
 
         startActivitySummaryUpdaterTask();
         startBreathingGraphUpdaterTask();
+    }
+
+    private void startSpeckService() {
+        Intent intentStartService = new Intent(this, SpeckBluetoothService.class);
+        startService(intentStartService);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            startSpeckService();
+        } else {
+            // Show dialog again
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+    }
+
+    private void initSpeckServiceReceiver() {
+        mSpeckServiceReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                //Log.i("SpeckService", "Intent received in MainActivity: " + intent.getAction());
+                switch (intent.getAction()) {
+                    case Constants.ACTION_RESPECK_LIVE_BROADCAST:
+                        // Load data into value arraylist
+                        HashMap<String, Float> liveReadings = new HashMap<>();
+                        liveReadings.put(Constants.RESPECK_X, intent.getFloatExtra(Constants.RESPECK_X, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_Y, intent.getFloatExtra(Constants.RESPECK_Y, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_Z, intent.getFloatExtra(Constants.RESPECK_Z, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_ACTIVITY_TYPE,
+                                intent.getFloatExtra(Constants.RESPECK_ACTIVITY_TYPE, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_BREATHING_SIGNAL,
+                                intent.getFloatExtra(Constants.RESPECK_BREATHING_SIGNAL, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_BREATHING_RATE,
+                                intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                                intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN));
+
+                        // As the phone timestamp is a long instead of float, we will have to convert it
+                        float cutoffInterpolatedTimestamp = mUtils.onlyKeepTimeInDay(
+                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0));
+                        liveReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, cutoffInterpolatedTimestamp);
+
+                        liveReadings.put(Constants.RESPECK_BATTERY_PERCENT,
+                                intent.getFloatExtra(Constants.RESPECK_BATTERY_PERCENT, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_REQUEST_CHARGE,
+                                intent.getFloatExtra(Constants.RESPECK_REQUEST_CHARGE, Float.NaN));
+
+                        sendMessageToHandler(UPDATE_RESPECK_READINGS, liveReadings);
+                        break;
+                    case Constants.ACTION_RESPECK_CONNECTED:
+                        String uuid = intent.getStringExtra(Constants.RESPECK_UUID);
+                        sendMessageToHandler(SHOW_RESPECK_CONNECTED, uuid);
+                        break;
+                    case Constants.ACTION_RESPECK_DISCONNECTED:
+                        sendMessageToHandler(SHOW_RESPECK_DISCONNECTED, null);
+                        break;
+                    case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
+                        HashMap<String, Float> readings = (HashMap<String, Float>) intent.getSerializableExtra(
+                                Constants.AIRSPECK_ALL_MEASURES);
+                        sendMessageToHandler(UPDATE_QOE_READINGS, readings);
+                        break;
+                    case Constants.ACTION_AIRSPECK_CONNECTED:
+                        sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, null);
+                        break;
+                    case Constants.ACTION_AIRSPECK_DISCONNECTED:
+                        sendMessageToHandler(SHOW_AIRSPECK_DISCONNECTED, null);
+                        break;
+                }
+            }
+        };
+
+        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                Constants.ACTION_RESPECK_LIVE_BROADCAST));
+        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                Constants.ACTION_RESPECK_CONNECTED));
+        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                Constants.ACTION_RESPECK_DISCONNECTED));
+    }
+
+    private void sendMessageToHandler(int what, Object obj) {
+        Message msg = Message.obtain();
+        msg.obj = obj;
+        msg.what = what;
+        msg.setTarget(mUIHandler);
+        msg.sendToTarget();
     }
 
     private void loadConfig() {
@@ -541,28 +639,17 @@ public class MainActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
 
-        // Bluetooth startup
-        mSpeckBluetoothService.startServiceAndBluetoothScanning();
-
         // Start location manager
         //mLocationUtils.startLocationManager();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        mSpeckBluetoothService.stopBluetoothScanning();
-
-        // Stop location manager
-        // mLocationUtils.stopLocationManager();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        mSpeckBluetoothService.stopSpeckService();
+        Intent intentStopService = new Intent(this, SpeckBluetoothService.class);
+        stopService(intentStopService);
+
         // Stop location manager
         //mLocationUtils.stopLocationManager();
     }
@@ -683,7 +770,7 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
-        mRespeckSensorReadings.put(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -721,7 +808,7 @@ public class MainActivity extends BaseActivity {
                             mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
                     listValuesRESpeckReadings.add(
                             mUtils.roundToTwoDigits(
-                                    mRespeckSensorReadings.get(Constants.RESPECK_AVERAGE_BREATHING_RATE)));
+                                    mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
 
                     mSupervisedRESpeckReadingsFragment.setReadings(listValuesRESpeckReadings);
                 }
@@ -738,7 +825,7 @@ public class MainActivity extends BaseActivity {
             if (mShowSupervisedRESpeckReadings || mShowSubjectWindmill) {
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
-                        mRespeckSensorReadings.get(Constants.RESPECK_LIVE_INTERPOLATED_TIMESTAMP),
+                        mRespeckSensorReadings.get(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP),
                         mRespeckSensorReadings.get(Constants.RESPECK_X),
                         mRespeckSensorReadings.get(Constants.RESPECK_Y),
                         mRespeckSensorReadings.get(Constants.RESPECK_Z),
@@ -813,8 +900,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void updateConnectionLoadingLayout() {
-        boolean isConnecting = mSpeckBluetoothService.isConnecting();
-        // TODO: show loading symbol instead of X-mark in subject mode
+        boolean isConnecting = !mIsRESpeckConnected && (!mIsAirspeckEnabled || !mIsAirspeckConnected);
         if (isSupervisedMode) {
             mSupervisedOverviewFragment.showConnecting(isConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
@@ -849,7 +935,8 @@ public class MainActivity extends BaseActivity {
         updateQOEUI();
     }
 
-    private void updateRESpeckConnectionSymbol(boolean isConnected) {
+    private void updateRESpeckConnection(boolean isConnected) {
+        mIsRESpeckConnected = isConnected;
         if (!isSupervisedMode && mShowSubjectHome) {
             mSubjectHomeFragment.updateRESpeckConnectionSymbol(isConnected);
         }
@@ -858,7 +945,8 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void updateAirspeckConnectionSymbol(boolean isConnected) {
+    private void updateAirspeckConnection(boolean isConnected) {
+        mIsAirspeckConnected = isConnected;
         if (!isSupervisedMode && mShowSubjectHome) {
             mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
         }

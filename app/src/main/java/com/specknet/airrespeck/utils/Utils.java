@@ -375,4 +375,9 @@ public final class Utils {
             return (aCopy[middle - 1] + aCopy[middle]) / 2.0f;
         }
     }
+
+    public float onlyKeepTimeInDay(long timestamp) {
+        long millisInHour = 36000000;
+        return (float) (timestamp % millisInHour);
+    }
 }

@@ -79,8 +79,6 @@
 
     <!-- Reading unit -->
     <string name="reading_unit_bpm">resp/min</string>
-    <string name="reading_unit_ug_m3">µg/m³</string>
-
 
 
     <!-- Graphs -->
