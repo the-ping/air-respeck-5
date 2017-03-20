@@ -122,6 +122,9 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
             LinearLayout pcaGraphContainer = (LinearLayout) view.findViewById(R.id.pca_chart_container);
             pcaGraphContainer.setVisibility(View.GONE);
         }
+
+        mIsCreated = true;
+
         return view;
     }
 
@@ -330,7 +333,7 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
     }
 
     public void setReadings(final List<Float> values) {
-        if (mReadingItems != null) {
+        if (mIsCreated) {
             for (int i = 0; i < mReadingItems.size() && i < values.size(); ++i) {
                 mReadingItems.get(i).value = values.get(i);
             }

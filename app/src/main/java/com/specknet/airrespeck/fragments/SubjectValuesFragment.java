@@ -51,6 +51,8 @@ public class SubjectValuesFragment extends BaseFragment {
 
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
+        mIsCreated = true;
+
         return view;
     }
 
@@ -60,26 +62,30 @@ public class SubjectValuesFragment extends BaseFragment {
     }
 
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
+        // Only update view if fragment has been created!
+        if (mIsCreated) {
+            Log.i("DF", mRespeckSensorReadings.toString());
+            // Set breathing rate text to currently calculated rates
+            breathingRateText.setText(
+                    String.format(Locale.UK, "%.2f BrPM",
+                            mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+            averageBreathingRateText.setText(
+                    String.format(Locale.UK, "%.2f BrPM",
+                            mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
 
-        Log.i("DF", mRespeckSensorReadings.toString());
-        // Set breathing rate text to currently calculated rates
-        breathingRateText.setText(
-                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-        averageBreathingRateText.setText(
-                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
-
-        // Set activity icon to reflect currently predicted activity
-        int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));
-        switch(activityType) {
-            case Constants.ACTIVITY_LYING:
-                activityIcon.setImageResource(R.drawable.vec_lying);
-                break;
-            case Constants.ACTIVITY_WALKING:
-                activityIcon.setImageResource(R.drawable.vec_walking);
-                break;
-            case Constants.ACTIVITY_STAND_SIT:
-            default:
-                activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+            // Set activity icon to reflect currently predicted activity
+            int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));
+            switch (activityType) {
+                case Constants.ACTIVITY_LYING:
+                    activityIcon.setImageResource(R.drawable.vec_lying);
+                    break;
+                case Constants.ACTIVITY_WALKING:
+                    activityIcon.setImageResource(R.drawable.vec_walking);
+                    break;
+                case Constants.ACTIVITY_STAND_SIT:
+                default:
+                    activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+            }
         }
     }
 

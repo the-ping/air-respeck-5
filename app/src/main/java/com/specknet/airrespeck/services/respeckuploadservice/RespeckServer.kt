@@ -14,9 +14,10 @@ import rx.Observable
 
 interface RespeckServer {
     @POST("{path}")
-    public fun submitData(@Body bodyData: JsonObject, @Path("path") path: String): Observable<JsonObject>
+    fun submitData(@Body bodyData: JsonObject, @Path("path") path: String): Observable<JsonObject>
+
     companion object {
-        fun create(baseUrl: String) : RespeckServer {
+        fun create(baseUrl: String): RespeckServer {
             val gsonBuilder = GsonBuilder()
             val restAdapter = Retrofit.Builder()
                     .baseUrl(baseUrl)

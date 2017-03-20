@@ -40,24 +40,12 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
             mPM10 = pm10;
         }
 
-        public void setPM1(final float pm1) {
-            mPM1 = pm1;
-        }
-
         public float getPM1() {
             return mPM1;
         }
 
-        public void setPM2_5(final float pm2_5) {
-            mPM2_5 = pm2_5;
-        }
-
         public float getPM2_5() {
             return mPM2_5;
-        }
-
-        public void setPM10(final float pm10) {
-            mPM10 = pm10;
         }
 
         public float getPM10() {
@@ -68,12 +56,9 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
     private int BINS_NUMBER = 16;
     private List<Float> mBinsData;
     private List<PMs> mPMsData;
-    private List<Float> mBreathingSignalData;
 
     private LineChart mBinsLineChart;
     private LineChart mPMsLineChart;
-    private LineChart mBreathingSignalChart;
-
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -89,15 +74,14 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
         // initialize the utilities
         Utils.init(getContext());
 
-        mPMsData = new ArrayList<PMs>();
+        mPMsData = new ArrayList<>();
         mPMsData.add(new PMs(0f, 0f, 0f));
 
-        mBinsData = new ArrayList<Float>();
+        mBinsData = new ArrayList<>();
         for (int i = 0; i < BINS_NUMBER; ++i) {
             mBinsData.add(0f);
         }
 
-        mBreathingSignalData = new ArrayList<Float>();
     }
 
     @Override
@@ -121,6 +105,8 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
 
         setupPMsChart();
         setupBinsChart();
+
+        mIsCreated = true;
 
         return view;
     }
@@ -238,7 +224,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
      * @param pMs PMs The new values.
      */
     public void addPMsChartData(final PMs pMs) {
-        if (mPMsData != null && mPMsLineChart != null) {
+        if (mIsCreated) {
             mPMsData.add(pMs);
             addPMEntries(pMs);
         }
@@ -324,7 +310,7 @@ public class SupervisedAllGraphsFragment extends BaseFragment {
      * @param binsData List<Float> The new values.
      */
     public void setBinsChartData(List<Float> binsData) {
-        if (mBinsData != null && mBinsLineChart != null) {
+        if (mIsCreated) {
             mBinsData = binsData;
             updateBinsChartData();
         }

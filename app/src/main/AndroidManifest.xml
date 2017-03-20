@@ -75,10 +75,10 @@
                 <action android:name="com.specknet.respeck.RESPECK_DISCONNECTED"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="com.specknet.airspeck.AIRSPECK_DISCONNECTED"/>
+                <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="com.specknet.airspeck.AIRSPECK_DISCONNECTED"/>
+                <action android:name="com.specknet.airspeck.AIRSPECK_CONNECTED"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="com.specknet.airspeck.AIRSPECK_DISCONNECTED"/>
@@ -119,10 +119,9 @@
             android:name=".services.respeckuploadservice.RespeckRemoteUploadService"
             android:enabled="true"
             android:exported="true"
-            android:process=":upload_process">
+            android:process=":upload_process_respeck">
             <intent-filter>
-                <action android:name="com.specknet.airrespeck.respeckuploadservice.RespeckRemoteUploadService">
-                </action>
+                <action android:name="com.specknet.respeck.RESPECK_LIVE_BROADCAST"/>
             </intent-filter>
         </service>
 
@@ -130,10 +129,9 @@
             android:name=".services.qoeuploadservice.QOERemoteUploadService"
             android:enabled="true"
             android:exported="true"
-            android:process=":upload_process">
+            android:process=":upload_process_airspeck">
             <intent-filter>
-                <action android:name="com.specknet.airrespeck.qoeuploadservice.QOERemoteUploadService">
-                </action>
+                <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
             </intent-filter>
         </service>
 

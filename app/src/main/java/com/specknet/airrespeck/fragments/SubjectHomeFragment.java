@@ -46,6 +46,8 @@ public class SubjectHomeFragment extends BaseFragment {
 
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
+        mIsCreated = true;
+
         return view;
     }
 
@@ -60,7 +62,7 @@ public class SubjectHomeFragment extends BaseFragment {
     }
 
     public void updateRESpeckConnectionSymbol(boolean isConnected) {
-        if (connectedStatusRESpeck != null) {
+        if (mIsCreated) {
             if (isConnected) {
                 // "Flash" with symbol when updating to indicate data coming in
                 connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
@@ -81,7 +83,7 @@ public class SubjectHomeFragment extends BaseFragment {
     }
 
     public void updateAirspeckConnectionSymbol(boolean isConnected) {
-        if (connectedStatusAirspeck != null) {
+        if (mIsCreated) {
             if (isConnected) {
                 // "Flash" with symbol when updating to indicate data coming in
                 connectedStatusAirspeck.setImageResource(R.drawable.vec_wireless);

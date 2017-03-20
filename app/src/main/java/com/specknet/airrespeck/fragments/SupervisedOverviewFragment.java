@@ -112,6 +112,8 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
             updateFeedback();
         }
 
+        mIsCreated = true;
+
         return view;
     }
 
@@ -259,7 +261,7 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
      * Helper setter
      */
     public void setReadings(final List<Float> values) {
-        if (mReadingItems != null) {
+        if (mIsCreated) {
             for (int i = 0; i < mReadingItems.size() && i < values.size(); ++i) {
                 mReadingItems.get(i).value = values.get(i);
             }

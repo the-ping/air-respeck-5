@@ -95,31 +95,36 @@ public class SubjectWindmillFragment extends BaseFragment {
             }
         });
 
+        mIsCreated = true;
+
         return view;
     }
 
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
-        Log.i("DF", mRespeckSensorReadings.toString());
+        if (mIsCreated) {
+            Log.i("DF", mRespeckSensorReadings.toString());
 
-        // Set breathing rate text to currently calculated rates
-        breathingRateText.setText(
-                String.format(Locale.UK, "%.2f BrPM", mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-        averageBreathingRateText.setText(
-                String.format(Locale.UK, "%.2f BrPM",
-                        mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
+            // Set breathing rate text to currently calculated rates
+            breathingRateText.setText(
+                    String.format(Locale.UK, "%.2f BrPM",
+                            mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
+            averageBreathingRateText.setText(
+                    String.format(Locale.UK, "%.2f BrPM",
+                            mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
 
-        // Set activity icon to reflect currently predicted activity
-        int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));
-        switch (activityType) {
-            case Constants.ACTIVITY_LYING:
-                activityIcon.setImageResource(R.drawable.vec_lying);
-                break;
-            case Constants.ACTIVITY_WALKING:
-                activityIcon.setImageResource(R.drawable.vec_walking);
-                break;
-            case Constants.ACTIVITY_STAND_SIT:
-            default:
-                activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+            // Set activity icon to reflect currently predicted activity
+            int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));
+            switch (activityType) {
+                case Constants.ACTIVITY_LYING:
+                    activityIcon.setImageResource(R.drawable.vec_lying);
+                    break;
+                case Constants.ACTIVITY_WALKING:
+                    activityIcon.setImageResource(R.drawable.vec_walking);
+                    break;
+                case Constants.ACTIVITY_STAND_SIT:
+                default:
+                    activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+            }
         }
     }
 
@@ -211,13 +216,9 @@ public class SubjectWindmillFragment extends BaseFragment {
             Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
             // Set the limits based on the graph type
             float negativeLowerLimit = -2.0f;
-            ;
             float negativeUpperLimit = -0.3f;
-            ;
             float positiveLowerLimit = 0.3f;
-            ;
             float positiveUpperLimit = 2.0f;
-            ;
 
             LineDataSet dataSet = (LineDataSet) mBreathingFlowChart.getData().getDataSetByIndex(0);
             dataSet.addEntry(newEntry);

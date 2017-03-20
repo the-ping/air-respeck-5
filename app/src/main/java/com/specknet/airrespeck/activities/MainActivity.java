@@ -37,6 +37,8 @@ import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
+import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
+import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
@@ -164,6 +166,7 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSubjectHome;
     private boolean mShowSubjectValues;
     private boolean mShowSubjectWindmill;
+    private boolean mIsUploadDataToServer;
 
     // UTILS
     private Utils mUtils;
@@ -281,6 +284,17 @@ public class MainActivity extends BaseActivity {
             startSpeckService();
         }
 
+        // Initialise upload services if desired
+        if (mIsUploadDataToServer) {
+            Intent startUploadRESpeckIntent = new Intent(this, RespeckRemoteUploadService.class);
+            startService(startUploadRESpeckIntent);
+
+            if (mIsAirspeckEnabled) {
+                Intent startUploadAirspeckIntent = new Intent(this, QOERemoteUploadService.class);
+                startService(startUploadAirspeckIntent);
+            }
+        }
+
         // Initialise broadcast receiver which receives data from the speck service
         initSpeckServiceReceiver();
 
@@ -328,8 +342,8 @@ public class MainActivity extends BaseActivity {
 
                         // As the phone timestamp is a long instead of float, we will have to convert it
                         float cutoffInterpolatedTimestamp = mUtils.onlyKeepTimeInDay(
-                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0));
-                        liveReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, cutoffInterpolatedTimestamp);
+                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0));
+                        liveReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, cutoffInterpolatedTimestamp);
 
                         liveReadings.put(Constants.RESPECK_BATTERY_PERCENT,
                                 intent.getFloatExtra(Constants.RESPECK_BATTERY_PERCENT, Float.NaN));
@@ -416,6 +430,9 @@ public class MainActivity extends BaseActivity {
             mShowSupervisedAirspeckReadings = false;
             mShowSupervisedAQGraphs = false;
         }
+
+        mIsUploadDataToServer = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
     }
 
     private void setupViewPager() {
@@ -647,8 +664,13 @@ public class MainActivity extends BaseActivity {
     public void onDestroy() {
         super.onDestroy();
 
-        Intent intentStopService = new Intent(this, SpeckBluetoothService.class);
-        stopService(intentStopService);
+        // Stop services
+        Intent intentStopSpeckService = new Intent(this, SpeckBluetoothService.class);
+        stopService(intentStopSpeckService);
+        Intent intentStopUploadRespeck = new Intent(this, RespeckRemoteUploadService.class);
+        stopService(intentStopUploadRespeck);
+        Intent intentStopUploadAirspeck = new Intent(this, QOERemoteUploadService.class);
+        stopService(intentStopUploadAirspeck);
 
         // Stop location manager
         //mLocationUtils.stopLocationManager();
@@ -770,7 +792,7 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
-        mRespeckSensorReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0f);
+        mRespeckSensorReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -825,7 +847,7 @@ public class MainActivity extends BaseActivity {
             if (mShowSupervisedRESpeckReadings || mShowSubjectWindmill) {
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
-                        mRespeckSensorReadings.get(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP),
+                        mRespeckSensorReadings.get(Constants.INTERPOLATED_PHONE_TIMESTAMP),
                         mRespeckSensorReadings.get(Constants.RESPECK_X),
                         mRespeckSensorReadings.get(Constants.RESPECK_Y),
                         mRespeckSensorReadings.get(Constants.RESPECK_Z),

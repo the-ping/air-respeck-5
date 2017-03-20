@@ -1,15 +1,21 @@
 package com.specknet.airrespeck.services.respeckuploadservice
 
 
+import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.IBinder
 import android.util.Log
 
 import com.google.gson.*
+import com.specknet.airrespeck.utils.Constants
+import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
 import com.squareup.tape.SerializedConverter
+import org.json.JSONException
+import org.json.JSONObject
 import rx.subjects.PublishSubject
 import rx.Observable
 
@@ -18,14 +24,8 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-class RespeckRemoteUploadService {
+class RespeckRemoteUploadService : Service() {
     companion object {
-        const val MSG_UPLOAD = "com.specknet.airrespeck.services.respeckuploadservice.MSG_UPLOAD"
-        const val MSG_CONFIG = "com.specknet.airrespeck.services.respeckuploadservice.MSG_CONFIG"
-        const val MSG_UPLOAD_DATA = "com.specknet.airrespeck.services.respeckuploadservice.live_data"
-        const val MSG_CONFIG_JSON_HEADERS = "com.specknet.airrespeck.services.respeckuploadservice.config_headers"
-        const val MSG_CONFIG_URL = "com.specknet.airrespeck.services.respeckuploadservice.config_url"
-        const val MSG_CONFIG_PATH = "com.specknet.airrespeck.services.respeckuploadservice.config_path"
         const val FILENAME = "respeck_upload_queue6"
 
         internal lateinit var filequeue: FileObjectQueue<String>
@@ -37,9 +37,7 @@ class RespeckRemoteUploadService {
         internal lateinit var respeckServer: RespeckServer
     }
 
-    lateinit var ctx: Context
-
-    internal fun jsonArrayFrom(list: List<JsonObject>):JsonArray {
+    internal fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
         val jsonArray = JsonArray().asJsonArray
         for (item in list) {
             jsonArray.add(item)
@@ -53,40 +51,53 @@ class RespeckRemoteUploadService {
         return jsonData
     }
 
-    class MyReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent:Intent) {
-            when (intent.action) {
-                MSG_UPLOAD -> {
-                    Log.i("Respeck", "MSG_UPLOAD message received")
-                    mySubject.onNext(Gson().fromJson(intent.getStringExtra(MSG_UPLOAD_DATA), JsonElement::class.java).asJsonObject)
-                }
-
-                MSG_CONFIG -> {
-                    Log.i("Respeck", "MSG_CONFIG message received")
-                    jsonHeaders = Gson().fromJson(intent.getStringExtra(MSG_CONFIG_JSON_HEADERS), JsonElement::class.java).asJsonObject
-                    configUrl = intent.getStringExtra(MSG_CONFIG_URL)
-                    configPath = intent.getStringExtra(MSG_CONFIG_PATH)
-                    respeckServer = RespeckServer.create(configUrl)
-                }
-
-                else -> { Log.i("Respeck", "Invalid message received") }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        object : Thread() {
+            override fun run() {
+                Log.i("SpeckService", "Starting SpeckService...")
+                initRespeckUploadService()
             }
-        }
+        }.start()
+        return Service.START_STICKY
     }
 
-    fun onCreate(ctx:Context) {
-        Log.i("Respeck", "Service Started.")
-        this.ctx = ctx
-        val myReceiver = MyReceiver()
-        ctx.registerReceiver(myReceiver, IntentFilter(RespeckRemoteUploadService.MSG_UPLOAD))
-        ctx.registerReceiver(myReceiver, IntentFilter(RespeckRemoteUploadService.MSG_CONFIG))
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
+    }
 
-        val queueFile = File(ctx.filesDir, FILENAME)
+    private fun initRespeckUploadService() {
+        val utils = Utils.getInstance(applicationContext)
+
+        // Create header json object
+        val json = JSONObject()
+        try {
+            json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
+            json.put("respeck_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
+            json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
+            json.put("qoe_uuid", utils.properties.getProperty(Constants.Config.QOEUUID))
+            json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
+            json.put("app_version", utils.appVersionCode)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // Set server parameters
+        jsonHeaders = Gson().fromJson(json.toString(), JsonElement::class.java).asJsonObject
+        configUrl = Constants.UPLOAD_SERVER_URL
+        configPath = Constants.UPLOAD_SERVER_PATH
+        respeckServer = RespeckServer.create(configUrl)
+
+        val respeckReceiver = RespeckReceiver()
+        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST))
+        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_BROADCAST))
+
+        // Setup upload queue which stores data until it can be uploaded
+        val queueFile = File(filesDir, FILENAME)
 
         try {
             filequeue = FileObjectQueue(queueFile, SerializedConverter<String>())
         } catch (ex: IOException) {
-            Log.d("Respeck", "IOException" + ex.toString())
+            Log.d("Upload", "Respeck IOException" + ex.toString())
         }
 
         mySubject.buffer(10, TimeUnit.SECONDS, 500)
@@ -95,12 +106,88 @@ class RespeckRemoteUploadService {
                 .subscribe { filequeue.add(it.toString()) }
 
         Observable.interval(10, TimeUnit.SECONDS)
-                  .concatMap { Observable.range(0,filequeue.size()) }
-                  .map { jsonPacketFrom(filequeue.peek()) }
-                  .concatMap { respeckServer.submitData(it, configPath) }
-                  .doOnError { Log.e("Respeck", it.toString()) }
-                  .retry()
-                  .doOnCompleted {  }
-                  .subscribe { Log.d("Respeck", "done: " + it.toString()); filequeue.remove() }
+                .concatMap { Observable.range(0, filequeue.size()) }
+                .map { jsonPacketFrom(filequeue.peek()) }
+                .concatMap { respeckServer.submitData(it, configPath) }
+                .doOnError { Log.e("Upload", "Respeck: " + it.toString()) }
+                .retry()
+                .doOnCompleted { }
+                .subscribe { Log.d("Upload", "Respeck done: " + it.toString()); filequeue.remove() }
+        Log.i("Upload", "Respeck upload service started.")
+    }
+
+    class RespeckReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Constants.ACTION_RESPECK_LIVE_BROADCAST -> {
+                    val jsonLiveData = JSONObject()
+                    try {
+                        jsonLiveData.put("messagetype", "respeck_data")
+                        // TODO: originally, we had "null" instead of Float.NaN, but Kotlin doesn't accept null
+                        jsonLiveData.put(Constants.RESPECK_X,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_X, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_Y,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_Y, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_Z,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_Z, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_ACTIVITY_TYPE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_ACTIVITY_TYPE, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_BREATHING_RATE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_BREATHING_SIGNAL,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_SIGNAL, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_BREATHING_ANGLE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_ANGLE, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_ACTIVITY_LEVEL,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_ACTIVITY_LEVEL, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_ACTIVITY_TYPE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_ACTIVITY_TYPE, Float.NaN)))
+                        jsonLiveData.put(Constants.RESPECK_SEQUENCE_NUMBER,
+                                intent.getIntExtra(Constants.RESPECK_SEQUENCE_NUMBER, 0))
+                        jsonLiveData.put(Constants.RESPECK_SENSOR_TIMESTAMP,
+                                intent.getLongExtra(Constants.RESPECK_SENSOR_TIMESTAMP, 0))
+                        jsonLiveData.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
+                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+
+                    // Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
+                    Log.i("Upload", "Respeck upload live broadcast data")
+                    mySubject.onNext(Gson().fromJson(jsonLiveData.toString(), JsonElement::class.java).asJsonObject)
+                }
+                Constants.ACTION_RESPECK_AVG_BROADCAST -> {
+                    val jsonAverageData = JSONObject()
+                    try {
+                        jsonAverageData.put("messagetype", "respeck_processed")
+                        jsonAverageData.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
+                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        jsonAverageData.put(Constants.RESPECK_BREATHING_RATE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN)))
+                        jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,
+                                intent.getIntExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, 0))
+                        jsonAverageData.put(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE, Float.NaN)))
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+
+                    Log.i("Upload", "Respeck upload averaged broadcast data")
+                    mySubject.onNext(Gson().fromJson(jsonAverageData.toString(), JsonElement::class.java).asJsonObject)
+                }
+
+                else -> {
+                    Log.i("Upload", "Respeck invalid message received")
+                }
+            }
+        }
+
+        private fun nanToNull(value: Float): Double? {
+            if (value.isNaN()) {
+                return null
+            } else {
+                return value.toDouble()
+            }
+        }
     }
 }

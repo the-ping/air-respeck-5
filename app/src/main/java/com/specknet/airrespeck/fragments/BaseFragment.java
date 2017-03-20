@@ -27,6 +27,8 @@ public class BaseFragment extends Fragment {
     // Connecting layout
     protected LinearLayout mConnectingLayout;
 
+    protected boolean mIsCreated = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +79,12 @@ public class BaseFragment extends Fragment {
                 restartFragment();
             }
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        mIsCreated = false;
+        super.onDestroyView();
     }
 
     /**

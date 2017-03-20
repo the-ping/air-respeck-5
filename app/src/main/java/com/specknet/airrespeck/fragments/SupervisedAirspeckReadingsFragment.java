@@ -87,7 +87,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
             textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
         }
 
-
         // Set the adapter
         if (mReadingsModeAQReadingsScreen.equals(Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST)) {
             ListView listView = (ListView) view.findViewById(R.id.listView_item_list);
@@ -116,6 +115,9 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
             mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
             recyclerView.setAdapter(mArcProgressAdapter);
         }
+
+        mIsCreated = true;
+
         return view;
     }
 
@@ -494,7 +496,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
      * Helper setter
      */
     public void setReadings(final HashMap<String, Float> values) {
-        if (mReadingItems != null && getContext() != null) {
+        if (mIsCreated) {
             int i = 0;
             for (String key : Constants.READINGS_QOE) {
                 mReadingItems.get(i).value = values.get(key);

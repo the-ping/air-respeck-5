@@ -101,6 +101,9 @@ public class Constants {
 
     public static final String ACTION_RESPECK_LIVE_BROADCAST =
             "com.specknet.respeck.RESPECK_LIVE_BROADCAST";
+    public static final String ACTION_RESPECK_AVG_BROADCAST =
+            "com.specknet.respeck.RESPECK_AVG_BROADCAST";
+
     public static final String ACTION_RESPECK_CONNECTED =
             "com.specknet.respeck.RESPECK_CONNECTED";
     public static final String ACTION_RESPECK_DISCONNECTED =
@@ -129,9 +132,9 @@ public class Constants {
     public static final String RESPECK_ACTIVITY_TYPE = "RESPECK_ACTIVITY_TYPE";
     public static final String RESPECK_SEQUENCE_NUMBER = "RESPECK_SEQ";
     public static final String RESPECK_SENSOR_TIMESTAMP = "RESPECK_RS_TIMESTAMP";
-    public static final String RESPECK_INTERPOLATED_PHONE_TIMESTAMP = "RESPECK_BS_TIMESTAMP";
     public static final String RESPECK_BATTERY_PERCENT = "RESPECK_BATTERY_PERCENT";
     public static final String RESPECK_REQUEST_CHARGE = "RESPECK_REQUEST_CHARGE";
+    public static final String INTERPOLATED_PHONE_TIMESTAMP = "RESPECK_BS_TIMESTAMP";
 
     public static final String QOE_PM1 = "pm1";
     public static final String QOE_PM2_5 = "pm2_5";
@@ -174,7 +177,6 @@ public class Constants {
     public static final String LOC_LATITUDE = "latitude";
     public static final String LOC_LONGITUDE = "longitude";
     public static final String LOC_ALTITUDE = "altitude";
-    public static final String UNIX_TIMESTAMP = "timestamp";
 
 
     /**
