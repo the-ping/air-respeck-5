@@ -30,9 +30,9 @@ public class RESpeckStoredSample {
     public Long getPhoneTimestamp() {return this.phoneTimestamp;};
     public Long getRESpeckTimestamp() { return this.RESpeckTimestamp;};
     public Integer getSequenceNumber() { return this.sequenceNumber;};
-    public Integer getNBreaths() {return this.numberOfBreaths;};
-    public Float getMeanBr(){ return this.meanBreathingRate; };
-    public Float getSdBr(){ return this.sdBreathingRate; };
+    public Integer getNumberOfBreaths() {return this.numberOfBreaths;};
+    public Float getAverageBreathingRate(){ return this.meanBreathingRate; };
+    public Float getStdBreathingRate(){ return this.sdBreathingRate; };
     public Float getActivityLevel(){ return this.activityLevel; };
 }
 

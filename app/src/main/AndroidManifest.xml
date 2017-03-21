@@ -123,6 +123,12 @@
             <intent-filter>
                 <action android:name="com.specknet.respeck.RESPECK_LIVE_BROADCAST"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.respeck.RESPECK_AVG_BROADCAST"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.respeck.RESPECK_AVG_STORED_BROADCAST"/>
+            </intent-filter>
         </service>
 
         <service

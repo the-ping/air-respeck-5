@@ -754,13 +754,23 @@ public class SpeckBluetoothService extends Service {
 
                             Long currentTimeOffset = currentPhoneTimestamp / 1000 - mCurrentRESpeckTimestamp;
 
-                            Log.i("1", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
-                            Log.i("1", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
-                            Log.i("1", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getMeanBr());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNBreaths());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getSdBr());
-                            Log.i("1", "EXTRA_RESPECK_LIVE_ACTIVITY " + s.getActivityLevel());
+                            Log.i("stored", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
+                            Log.i("stored", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
+                            Log.i("stored", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
+                            Log.i("stored", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
+                            Log.i("stored", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
+                            Log.i("stored", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
+
+                            // Send stored data broadcast
+                            Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST);
+                            liveDataIntent.putExtra(Constants.RESPECK_STORED_TIMESTAMP_OFFSET, currentTimeOffset);
+                            liveDataIntent.putExtra(Constants.RESPECK_STORED_SENSOR_TIMESTAMP, s.getRESpeckTimestamp());
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                                    s.getAverageBreathingRate());
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                                    s.getStdBreathingRate());
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, s.getNumberOfBreaths());
+                            sendBroadcast(liveDataIntent);
                         }
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
                         //Log.v("DF", "Acceleration packet received from RESpeck");

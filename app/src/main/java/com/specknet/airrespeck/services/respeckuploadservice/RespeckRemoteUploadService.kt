@@ -92,6 +92,7 @@ class RespeckRemoteUploadService : Service() {
         val respeckReceiver = RespeckReceiver()
         registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST))
         registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_BROADCAST))
+        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST))
 
         // Setup upload queue which stores data until it can be uploaded
         val queueFile = File(filesDir, FILENAME)
@@ -150,6 +151,8 @@ class RespeckRemoteUploadService : Service() {
                                 intent.getLongExtra(Constants.RESPECK_SENSOR_TIMESTAMP, 0))
                         jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                 intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        jsonLiveData.put(Constants.RESPECK_IS_DISCONNECTED_MODE, 0)
+
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
@@ -164,18 +167,39 @@ class RespeckRemoteUploadService : Service() {
                         jsonAverageData.put("messagetype", "respeck_processed")
                         jsonAverageData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                 intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
-                        jsonAverageData.put(Constants.RESPECK_BREATHING_RATE,
-                                nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN)))
+                        jsonAverageData.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN)))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,
                                 intent.getIntExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, 0))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE, Float.NaN)))
+                        jsonAverageData.put(Constants.RESPECK_IS_DISCONNECTED_MODE, 0)
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
 
                     Log.i("Upload", "Respeck upload averaged broadcast data")
                     mySubject.onNext(Gson().fromJson(jsonAverageData.toString(), JsonElement::class.java).asJsonObject)
+                }
+                Constants.ACTION_RESPECK_AVG_STORED_BROADCAST -> {
+                    val jsonAverageStoredData = JSONObject()
+                    try {
+                        jsonAverageStoredData.put("messagetype", "respeck_processed")
+                        jsonAverageStoredData.put(Constants.RESPECK_STORED_SENSOR_TIMESTAMP,
+                                intent.getLongExtra(Constants.RESPECK_STORED_SENSOR_TIMESTAMP, 0))
+                        jsonAverageStoredData.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN)))
+                        jsonAverageStoredData.put(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                                nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE, Float.NaN)))
+                        jsonAverageStoredData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,
+                                intent.getIntExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, 0))
+                        jsonAverageStoredData.put(Constants.RESPECK_IS_DISCONNECTED_MODE, 1)
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+
+                    Log.i("Upload", "Respeck upload averaged stored broadcast data")
+                    mySubject.onNext(Gson().fromJson(jsonAverageStoredData.toString(), JsonElement::class.java).asJsonObject)
                 }
 
                 else -> {
