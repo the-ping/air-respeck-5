@@ -248,4 +248,9 @@
     <string name="service_notification_title">AirRespeck connection</string>
     <string name="service_notification_message">Maintaining bluetooth connection AirRespeck devices</string>
 
+    <!-- Password dialog -->
+    <string name="supervised_mode_dialog_message">Enter password to access supervised mode</string>
+    <string name="supervised_mode_dialog_enter">Enter</string>
+    <string name="supervised_mode_dialog_cancel">Cancel</string>
+
 </resources>

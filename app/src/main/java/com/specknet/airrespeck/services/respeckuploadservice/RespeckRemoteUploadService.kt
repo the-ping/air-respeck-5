@@ -72,9 +72,11 @@ class RespeckRemoteUploadService : Service() {
         val json = JSONObject()
         try {
             json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
-            json.put("respeck_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
-            json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            json.put("qoe_uuid", utils.properties.getProperty(Constants.Config.QOEUUID))
+            var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
+            if (qoeuuid == null) {
+                qoeuuid = ""
+            }
+            json.put("qoe_uuid", qoeuuid)
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
@@ -146,22 +148,22 @@ class RespeckRemoteUploadService : Service() {
                                 intent.getIntExtra(Constants.RESPECK_SEQUENCE_NUMBER, 0))
                         jsonLiveData.put(Constants.RESPECK_SENSOR_TIMESTAMP,
                                 intent.getLongExtra(Constants.RESPECK_SENSOR_TIMESTAMP, 0))
-                        jsonLiveData.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
-                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
+                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
 
                     // Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
-                    Log.i("Upload", "Respeck upload live broadcast data")
+                    //Log.i("Upload", "Respeck upload live broadcast data")
                     mySubject.onNext(Gson().fromJson(jsonLiveData.toString(), JsonElement::class.java).asJsonObject)
                 }
                 Constants.ACTION_RESPECK_AVG_BROADCAST -> {
                     val jsonAverageData = JSONObject()
                     try {
                         jsonAverageData.put("messagetype", "respeck_processed")
-                        jsonAverageData.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
-                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        jsonAverageData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
+                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
                         jsonAverageData.put(Constants.RESPECK_BREATHING_RATE,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN)))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,

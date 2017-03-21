@@ -67,7 +67,10 @@ class QOERemoteUploadService : Service() {
             json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
             json.put("respeck_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
             json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            json.put("qoe_uuid", utils.properties.getProperty(Constants.Config.QOEUUID))
+            var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
+            if (qoeuuid == null) {
+                qoeuuid = ""
+            }
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
@@ -114,8 +117,8 @@ class QOERemoteUploadService : Service() {
                     val json = JSONObject()
                     try {
                         json.put("messagetype", "qoe_data")
-                        json.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
-                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        json.put(Constants.QOE_TIMESTAMP,
+                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
                         json.put(Constants.QOE_PM1, nanToNull(intent.getFloatExtra(Constants.QOE_PM1, Float.NaN)))
                         json.put(Constants.QOE_PM2_5, nanToNull(intent.getFloatExtra(Constants.QOE_PM2_5, Float.NaN)))
                         json.put(Constants.QOE_PM10, nanToNull(intent.getFloatExtra(Constants.QOE_PM10, Float.NaN)))

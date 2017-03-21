@@ -1,6 +1,7 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -26,6 +27,7 @@ import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
+import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
@@ -342,8 +344,8 @@ public class MainActivity extends BaseActivity {
 
                         // As the phone timestamp is a long instead of float, we will have to convert it
                         float cutoffInterpolatedTimestamp = mUtils.onlyKeepTimeInDay(
-                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0));
-                        liveReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, cutoffInterpolatedTimestamp);
+                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0));
+                        liveReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, cutoffInterpolatedTimestamp);
 
                         liveReadings.put(Constants.RESPECK_BATTERY_PERCENT,
                                 intent.getFloatExtra(Constants.RESPECK_BATTERY_PERCENT, Float.NaN));
@@ -609,7 +611,7 @@ public class MainActivity extends BaseActivity {
         handler.postDelayed(new breathingUpdaterRunner(), updateDelayBreathingGraph);
     }
 
-    private void displaySupervisedMode() {
+    public void displaySupervisedMode() {
         isSupervisedMode = true;
 
         // Update displayed Fragments to reflect mode
@@ -630,7 +632,7 @@ public class MainActivity extends BaseActivity {
         invalidateOptionsMenu();
     }
 
-    private void displaySubjectMode() {
+    public void displaySubjectMode() {
         isSupervisedMode = false;
 
         // Update displayed Fragments to reflect mode
@@ -750,7 +752,8 @@ public class MainActivity extends BaseActivity {
             startActivity(intent);
         }*/
         if (id == R.id.action_supervised_mode) {
-            displaySupervisedMode();
+            DialogFragment supervisedPasswordDialog = new SupervisedPasswordDialog();
+            supervisedPasswordDialog.show(getFragmentManager(), "dialog");
         } else if (id == R.id.action_subject_mode) {
             displaySubjectMode();
         }
@@ -792,7 +795,7 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
-        mRespeckSensorReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0f);
+        mRespeckSensorReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -847,7 +850,7 @@ public class MainActivity extends BaseActivity {
             if (mShowSupervisedRESpeckReadings || mShowSubjectWindmill) {
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
-                        mRespeckSensorReadings.get(Constants.INTERPOLATED_PHONE_TIMESTAMP),
+                        mRespeckSensorReadings.get(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP),
                         mRespeckSensorReadings.get(Constants.RESPECK_X),
                         mRespeckSensorReadings.get(Constants.RESPECK_Y),
                         mRespeckSensorReadings.get(Constants.RESPECK_Z),

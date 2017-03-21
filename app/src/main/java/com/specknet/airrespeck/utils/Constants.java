@@ -119,23 +119,24 @@ public class Constants {
     /**
      * Readings
      */
-    public static final String RESPECK_X = "RESPECK_LIVE_X";
-    public static final String RESPECK_Y = "RESPECK_LIVE_Y";
-    public static final String RESPECK_Z = "RESPECK_LIVE_Z";
-    public static final String RESPECK_BREATHING_RATE = "RESPECK_LIVE_BR";
-    public static final String RESPECK_BREATHING_SIGNAL = "RESPECK_BREATHING_SIGNAL";
-    public static final String RESPECK_BREATHING_ANGLE = "RESPECK_BREATHING_ANGLE";
-    public static final String RESPECK_MINUTE_AVG_BREATHING_RATE = "RESPECK_LIVE_AVE_BR";
-    public static final String RESPECK_MINUTE_STD_BREATHING_RATE = "RESPECK_LIVE_SD_BR";
-    public static final String RESPECK_MINUTE_NUMBER_OF_BREATHS = "RESPECK_LIVE_N_BR";
-    public static final String RESPECK_ACTIVITY_LEVEL = "RESPECK_LIVE_ACTIVITY";
-    public static final String RESPECK_ACTIVITY_TYPE = "RESPECK_ACTIVITY_TYPE";
-    public static final String RESPECK_SEQUENCE_NUMBER = "RESPECK_SEQ";
-    public static final String RESPECK_SENSOR_TIMESTAMP = "RESPECK_RS_TIMESTAMP";
-    public static final String RESPECK_BATTERY_PERCENT = "RESPECK_BATTERY_PERCENT";
-    public static final String RESPECK_REQUEST_CHARGE = "RESPECK_REQUEST_CHARGE";
-    public static final String INTERPOLATED_PHONE_TIMESTAMP = "RESPECK_BS_TIMESTAMP";
+    public static final String RESPECK_X = "respeck_x";
+    public static final String RESPECK_Y = "respeck_y";
+    public static final String RESPECK_Z = "respeck_z";
+    public static final String RESPECK_BREATHING_RATE = "respeck_breathing_rate";
+    public static final String RESPECK_BREATHING_SIGNAL = "respeck_breathing_signal";
+    public static final String RESPECK_BREATHING_ANGLE = "respeck_breathing_angle";
+    public static final String RESPECK_MINUTE_AVG_BREATHING_RATE = "respeck_minute_avg_breathing_rate";
+    public static final String RESPECK_MINUTE_STD_BREATHING_RATE = "respeck_minute_std_breathing_rate";
+    public static final String RESPECK_MINUTE_NUMBER_OF_BREATHS = "respeck_minute_number_of_breaths";
+    public static final String RESPECK_ACTIVITY_LEVEL = "respeck_activity_level";
+    public static final String RESPECK_ACTIVITY_TYPE = "respeck_activity_type";
+    public static final String RESPECK_SEQUENCE_NUMBER = "respeck_sequence_number";
+    public static final String RESPECK_SENSOR_TIMESTAMP = "respeck_sensor_timestamp";
+    public static final String RESPECK_BATTERY_PERCENT = "respeck_battery_percent";
+    public static final String RESPECK_REQUEST_CHARGE = "respeck_request_charge";
+    public static final String RESPECK_INTERPOLATED_PHONE_TIMESTAMP = "respeck_interpolated_phone_timestamp";
 
+    public static final String QOE_TIMESTAMP = "timestamp";
     public static final String QOE_PM1 = "pm1";
     public static final String QOE_PM2_5 = "pm2_5";
     public static final String QOE_PM10 = "pm10";
@@ -164,7 +165,7 @@ public class Constants {
     public static final String QOE_BINS_14 = "bins14";
     public static final String QOE_BINS_15 = "bins15";
     public static final String QOE_BINS_TOTAL = "bins_total";
-    public static final String AIRSPECK_ALL_MEASURES = "all airspeck measures";
+    public static final String AIRSPECK_ALL_MEASURES = "all_airspeck_measures";
 
     public static final String ACTIVITY_SUMMARY_HOUR = "hour";
     public static final String ACTIVITY_SUMMARY_DAY = "day";

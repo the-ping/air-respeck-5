@@ -257,7 +257,13 @@ public class SpeckBluetoothService extends Service {
         // Add the devices's addresses that we need for scanning
         mScanFilters = new ArrayList<>();
         mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(RESPECK_UUID).build());
-        mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
+        if (mIsAirspeckEnabled) {
+            if (QOE_UUID != null && !QOE_UUID.equals("")) {
+                mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
+            } else {
+                Log.e("Bluetooth", "Airspeck enabled but QOE_UUID not set in config");
+            }
+        }
 
         // Start Bluetooth scanning
         BluetoothManager mBluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
@@ -567,6 +573,7 @@ public class SpeckBluetoothService extends Service {
                     readings.put(Constants.QOE_BINS_TOTAL, (float) total);
 
                     Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
+                    intentData.putExtra(Constants.QOE_TIMESTAMP, currentPhoneTimestamp);
                     intentData.putExtra(Constants.AIRSPECK_ALL_MEASURES, readings);
                     sendBroadcast(intentData);
 
@@ -803,7 +810,7 @@ public class SpeckBluetoothService extends Service {
 
                             // Send live broadcast intent
                             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
-                            liveDataIntent.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP,
+                            liveDataIntent.putExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                     interpolatedPhoneTimestampOfCurrentSample);
                             liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP, mCurrentRESpeckTimestamp);
                             liveDataIntent.putExtra(Constants.RESPECK_X, x);
@@ -835,7 +842,7 @@ public class SpeckBluetoothService extends Service {
                                 Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
                                 // The averaged data is not attached to a particular sensor record, so we only
                                 // store the interpolated phone timestamp
-                                avgDataIntent.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP,
+                                avgDataIntent.putExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                         interpolatedPhoneTimestampOfCurrentSample);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                         averageBreathingRate);
