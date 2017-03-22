@@ -20,6 +20,7 @@ import rx.Observable
 
 import java.io.File
 import java.io.IOException
+import java.util.HashMap
 import java.util.concurrent.TimeUnit
 
 class QOERemoteUploadService : Service() {
@@ -65,12 +66,11 @@ class QOERemoteUploadService : Service() {
         val json = JSONObject()
         try {
             json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
-            json.put("respeck_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
-            json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
+            json.put("airspeck_uuid", qoeuuid)
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
@@ -118,52 +118,41 @@ class QOERemoteUploadService : Service() {
                     try {
                         json.put("messagetype", "qoe_data")
                         json.put(Constants.QOE_TIMESTAMP,
-                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
-                        json.put(Constants.QOE_PM1, nanToNull(intent.getFloatExtra(Constants.QOE_PM1, Float.NaN)))
-                        json.put(Constants.QOE_PM2_5, nanToNull(intent.getFloatExtra(Constants.QOE_PM2_5, Float.NaN)))
-                        json.put(Constants.QOE_PM10, nanToNull(intent.getFloatExtra(Constants.QOE_PM10, Float.NaN)))
-                        json.put(Constants.QOE_TEMPERATURE,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_TEMPERATURE, Float.NaN)))
-                        json.put(Constants.QOE_HUMIDITY,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_HUMIDITY, Float.NaN)))
-                        json.put(Constants.QOE_S1ae_NO2,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_S1ae_NO2, Float.NaN)))
-                        json.put(Constants.QOE_S1we_NO2,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_S1we_NO2, Float.NaN)))
-                        json.put(Constants.QOE_S2ae_O3,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_S2ae_O3, Float.NaN)))
-                        json.put(Constants.QOE_S2we_O3,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_S2we_O3, Float.NaN)))
-                        json.put(Constants.QOE_BINS_0, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_0, Float.NaN)))
-                        json.put(Constants.QOE_BINS_1, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_1, Float.NaN)))
-                        json.put(Constants.QOE_BINS_2, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_2, Float.NaN)))
-                        json.put(Constants.QOE_BINS_3, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_3, Float.NaN)))
-                        json.put(Constants.QOE_BINS_4, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_4, Float.NaN)))
-                        json.put(Constants.QOE_BINS_5, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_5, Float.NaN)))
-                        json.put(Constants.QOE_BINS_6, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_6, Float.NaN)))
-                        json.put(Constants.QOE_BINS_7, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_7, Float.NaN)))
-                        json.put(Constants.QOE_BINS_8, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_8, Float.NaN)))
-                        json.put(Constants.QOE_BINS_9, nanToNull(intent.getFloatExtra(Constants.QOE_BINS_9, Float.NaN)))
-                        json.put(Constants.QOE_BINS_10,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_10, Float.NaN)))
-                        json.put(Constants.QOE_BINS_11,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_11, Float.NaN)))
-                        json.put(Constants.QOE_BINS_12,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_12, Float.NaN)))
-                        json.put(Constants.QOE_BINS_13,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_13, Float.NaN)))
-                        json.put(Constants.QOE_BINS_14,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_14, Float.NaN)))
-                        json.put(Constants.QOE_BINS_15,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_15, Float.NaN)))
-                        json.put(Constants.QOE_BINS_TOTAL,
-                                nanToNull(intent.getFloatExtra(Constants.QOE_BINS_TOTAL, Float.NaN)))
-                        json.put(Constants.LOC_LATITUDE,
-                                nanToNull(intent.getFloatExtra(Constants.LOC_LATITUDE, Float.NaN)))
-                        json.put(Constants.LOC_LONGITUDE,
-                                nanToNull(intent.getFloatExtra(Constants.LOC_LONGITUDE, Float.NaN)))
-                        json.put(Constants.LOC_ALTITUDE,
-                                nanToNull(intent.getFloatExtra(Constants.LOC_ALTITUDE, Float.NaN)))
+                                intent.getLongExtra(Constants.QOE_TIMESTAMP, 0))
+
+                        val readings = intent.getSerializableExtra(Constants.AIRSPECK_ALL_MEASURES)
+                                as HashMap<String, Float>
+
+                        json.put(Constants.QOE_PM1, nanToNull(readings[Constants.QOE_PM1]))
+                        json.put(Constants.QOE_PM2_5, nanToNull(readings[Constants.QOE_PM2_5]))
+                        json.put(Constants.QOE_PM10, nanToNull(readings[Constants.QOE_PM10]))
+                        json.put(Constants.QOE_TEMPERATURE, nanToNull(readings[Constants.QOE_TEMPERATURE]))
+                        json.put(Constants.QOE_HUMIDITY, nanToNull(readings[Constants.QOE_HUMIDITY]))
+                        json.put(Constants.QOE_S1ae_NO2, nanToNull(readings[Constants.QOE_S1ae_NO2]))
+                        json.put(Constants.QOE_S1we_NO2, nanToNull(readings[Constants.QOE_S1we_NO2]))
+                        json.put(Constants.QOE_S2ae_O3, nanToNull(readings[Constants.QOE_S2ae_O3]))
+                        json.put(Constants.QOE_S2we_O3, nanToNull(readings[Constants.QOE_S2we_O3]))
+                        json.put(Constants.QOE_BINS_0, nanToNull(readings[Constants.QOE_BINS_0]))
+                        json.put(Constants.QOE_BINS_1, nanToNull(readings[Constants.QOE_BINS_1]))
+                        json.put(Constants.QOE_BINS_2, nanToNull(readings[Constants.QOE_BINS_2]))
+                        json.put(Constants.QOE_BINS_3, nanToNull(readings[Constants.QOE_BINS_3]))
+                        json.put(Constants.QOE_BINS_4, nanToNull(readings[Constants.QOE_BINS_4]))
+                        json.put(Constants.QOE_BINS_5, nanToNull(readings[Constants.QOE_BINS_5]))
+                        json.put(Constants.QOE_BINS_6, nanToNull(readings[Constants.QOE_BINS_6]))
+                        json.put(Constants.QOE_BINS_7, nanToNull(readings[Constants.QOE_BINS_7]))
+                        json.put(Constants.QOE_BINS_8, nanToNull(readings[Constants.QOE_BINS_8]))
+                        json.put(Constants.QOE_BINS_9, nanToNull(readings[Constants.QOE_BINS_9]))
+                        json.put(Constants.QOE_BINS_10, nanToNull(readings[Constants.QOE_BINS_10]))
+                        json.put(Constants.QOE_BINS_11, nanToNull(readings[Constants.QOE_BINS_11]))
+                        json.put(Constants.QOE_BINS_12, nanToNull(readings[Constants.QOE_BINS_12]))
+                        json.put(Constants.QOE_BINS_13, nanToNull(readings[Constants.QOE_BINS_13]))
+                        json.put(Constants.QOE_BINS_14, nanToNull(readings[Constants.QOE_BINS_14]))
+                        json.put(Constants.QOE_BINS_15, nanToNull(readings[Constants.QOE_BINS_15]))
+                        json.put(Constants.QOE_BINS_TOTAL, nanToNull(readings[Constants.QOE_BINS_TOTAL]))
+                        json.put(Constants.LOC_LATITUDE, nanToNull(readings[Constants.LOC_LATITUDE]))
+                        json.put(Constants.LOC_LONGITUDE, nanToNull(readings[Constants.LOC_LONGITUDE]))
+                        json.put(Constants.LOC_ALTITUDE, nanToNull(readings[Constants.LOC_ALTITUDE]))
+
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
@@ -178,8 +167,10 @@ class QOERemoteUploadService : Service() {
             }
         }
 
-        private fun nanToNull(value: Float): Double? {
-            if (value.isNaN()) {
+        private fun nanToNull(value: Float?): Double? {
+            if (value == null) {
+                return null
+            } else if (value.isNaN()) {
                 return null
             } else {
                 return value.toDouble()

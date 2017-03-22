@@ -140,6 +140,7 @@ public class Constants {
     public static final String RESPECK_STORED_SENSOR_TIMESTAMP = "timestamp";
     public static final String RESPECK_STORED_TIMESTAMP_OFFSET = "timestamp_offset";
     public static final String RESPECK_IS_DISCONNECTED_MODE = "stored";
+    public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";
 
 
     public static final String QOE_TIMESTAMP = "timestamp";
