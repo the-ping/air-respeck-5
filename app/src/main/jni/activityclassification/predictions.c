@@ -88,30 +88,49 @@ int simple_predict() {
     }
 
     float y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
+    // A median activity level greater than 0.025 indicates walking
+    float al_median = calc_median(act_levels, ACT_CLASS_BUFFER_SIZE);
 
-    // Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.
-    // -0.4 corresponds to an angle of ~34° from the ground (arccos(0.4))
-    if (-0.4 <= y_median) {
-        last_prediction = 2; // Lying down
+    // First, check whether we have an invalid orientation.
+    // ==================
+
+    // Is the sensor is turned by 180° on the y-axis (vertical) above an angle which cannot occur while lying down?
+    // This position can never occur except for a hand stand which we don't expect from the subjects.
+    if (0.8 <= y_median) {
+        last_prediction = WRONG_ORIENTATION;
+    }
+
+    if (0.8 <= y_median) {
+        last_prediction = WRONG_ORIENTATION;
+    } else if (-0.4 <= y_median) {
+        /* Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.
+         * -0.4 corresponds to an angle of ~23° from the ground (degrees(arccos(-0.4)))
+         * If the activity level is above a certain threshold, we assume the
+         * orientation is wrong, as walking during lying is not possible. Note that we use a considerably
+         * higher activity level threshold than below as high activity values during posture changes are common
+         * in lying position */
+        if (al_median >= 0.11) {
+            last_prediction = WRONG_ORIENTATION;
+        } else {
+            last_prediction = LYING;
+        }
     } else {
         // If the last prediction was lying down, we don't want to predict walking if the person is getting up.
         // We circumvent that by clearing the max_act_level level buffer. Walking can only be predicted when it is filled
         // again with high enough values
-        if (last_prediction == 2) {
+        if (last_prediction == LYING) {
             //__android_log_print(ANDROID_LOG_INFO, "DF",
             //                    "switched from lying do sit/stand -> clear activity level buffer!");
             for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
-                act_class_buffer[buffer_idx][3] = 0;
+                act_class_buffer[buffer_idx][1] = 0;
             }
-            last_prediction = 0; // Predict sitting/standing
+            last_prediction = STAND_SIT;
         } else {
-            // A median activity level greater than 0.025 indicates walking
-            float al_median = calc_median(act_levels, ACT_CLASS_BUFFER_SIZE);
             // __android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
-            if (al_median >= 0.025) { // Determined with distribution of activity levels with 5 subjects
-                last_prediction = 1; // Walking
+            if (al_median >= 0.043) { // Determined with distribution of activity levels with 5 subjects
+                last_prediction = WALKING;
             } else {
-                last_prediction = 0; // Sitting/standing
+                last_prediction = STAND_SIT;
             }
         }
     }

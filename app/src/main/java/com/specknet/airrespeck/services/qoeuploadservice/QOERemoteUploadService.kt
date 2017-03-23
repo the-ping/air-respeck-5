@@ -70,7 +70,7 @@ class QOERemoteUploadService : Service() {
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
-            json.put("airspeck_uuid", qoeuuid)
+            json.put("qoe_uuid", qoeuuid)
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {

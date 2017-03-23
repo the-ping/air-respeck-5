@@ -5,6 +5,11 @@
 #ifndef __PREDICTIONS_H__
 #define __PREDICTIONS_H__
 
+#define STAND_SIT 0
+#define WALKING 1
+#define LYING 2
+#define WRONG_ORIENTATION 3
+
 #include <stdbool.h>
 
 int simple_predict();

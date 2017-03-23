@@ -83,8 +83,11 @@ public class SubjectValuesFragment extends BaseFragment {
                     activityIcon.setImageResource(R.drawable.vec_walking);
                     break;
                 case Constants.ACTIVITY_STAND_SIT:
-                default:
                     activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+                    break;
+                case Constants.WRONG_ORIENTATION:
+                default:
+                    activityIcon.setImageResource(R.drawable.vec_xmark);
             }
         }
     }

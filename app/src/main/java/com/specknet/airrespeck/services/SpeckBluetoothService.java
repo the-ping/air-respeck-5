@@ -787,7 +787,7 @@ public class SpeckBluetoothService extends Service {
                             final float breathingSignal = getBreathingSignal();
                             final float breathingAngle = getBreathingAngle();
                             final float activityLevel = getActivityLevel();
-                            final float activityType = getCurrentActivityClassification();
+                            final int activityType = getCurrentActivityClassification();
 
                             // Calculate interpolated timestamp of current sample based on sequence number
                             // There are 32 samples in each acceleration batch the RESpeck sends.
@@ -830,6 +830,8 @@ public class SpeckBluetoothService extends Service {
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_RATE, breathingRate);
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
                             liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, sequenceNumber);
+                            liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
+                            liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                             liveDataIntent.putExtra(Constants.RESPECK_BATTERY_PERCENT, latestBatteryPercent);
                             liveDataIntent.putExtra(Constants.RESPECK_REQUEST_CHARGE, latestRequestCharge);
                             sendBroadcast(liveDataIntent);
@@ -1007,7 +1009,7 @@ public class SpeckBluetoothService extends Service {
 
             // We summarise the currently stored predictions when the counter reaches max
             int summaryCounter = 0;
-            int temporaryStoragePredictions[] = new int[Constants.NUM_ACT_CLASSES];
+            int temporaryStoragePredictions[] = new int[Constants.NUMBER_OF_ACTIVITY_TYPES];
 
             @Override
             public void run() {
@@ -1015,7 +1017,7 @@ public class SpeckBluetoothService extends Service {
                 int predictionIdx = getCurrentActivityClassification();
                 // an index of -1 means that the acceleration buffer has not been filled yet, so we have to wait.
                 if (predictionIdx != -1) {
-                    // Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
+                    Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
                     temporaryStoragePredictions[predictionIdx]++;
                     summaryCounter++;
                 }

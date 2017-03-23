@@ -19,6 +19,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -333,14 +334,16 @@ public class MainActivity extends BaseActivity {
                         liveReadings.put(Constants.RESPECK_X, intent.getFloatExtra(Constants.RESPECK_X, Float.NaN));
                         liveReadings.put(Constants.RESPECK_Y, intent.getFloatExtra(Constants.RESPECK_Y, Float.NaN));
                         liveReadings.put(Constants.RESPECK_Z, intent.getFloatExtra(Constants.RESPECK_Z, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_ACTIVITY_TYPE,
-                                intent.getFloatExtra(Constants.RESPECK_ACTIVITY_TYPE, Float.NaN));
                         liveReadings.put(Constants.RESPECK_BREATHING_SIGNAL,
                                 intent.getFloatExtra(Constants.RESPECK_BREATHING_SIGNAL, Float.NaN));
                         liveReadings.put(Constants.RESPECK_BREATHING_RATE,
                                 intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN));
                         liveReadings.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                 intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_ACTIVITY_LEVEL,
+                                intent.getFloatExtra(Constants.RESPECK_ACTIVITY_LEVEL, Float.NaN));
+                        liveReadings.put(Constants.RESPECK_ACTIVITY_TYPE, (float)
+                                intent.getIntExtra(Constants.RESPECK_ACTIVITY_TYPE, Constants.WRONG_ORIENTATION));
 
                         // As the phone timestamp is a long instead of float, we will have to convert it
                         float cutoffInterpolatedTimestamp = mUtils.onlyKeepTimeInDay(
