@@ -856,6 +856,7 @@ public class SpeckBluetoothService extends Service {
                                 // store the interpolated phone timestamp
                                 avgDataIntent.putExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                         interpolatedPhoneTimestampOfCurrentSample);
+                                liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP, mCurrentRESpeckTimestamp);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                         averageBreathingRate);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,

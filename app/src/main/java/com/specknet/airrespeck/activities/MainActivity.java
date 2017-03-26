@@ -944,7 +944,7 @@ public class MainActivity extends BaseActivity {
      */
     private void updateRespeckReadings(HashMap<String, Float> newValues) {
         // If the sensor is in the wrong orientation, show a dialog
-        if (!wrong) {
+        if (!mIsWrongOrientationDialogDisplayed) {
             int activityType = Math.round(newValues.get(Constants.RESPECK_ACTIVITY_TYPE));
             if (activityType == Constants.WRONG_ORIENTATION) {
                 mIsWrongOrientationDialogDisplayed = true;
@@ -961,7 +961,18 @@ public class MainActivity extends BaseActivity {
     }
 
     public void setWrongOrientationDialogDisplayed(boolean isDisplayed) {
-        mIsWrongOrientationDialogDisplayed = isDisplayed;
+        if (!isDisplayed) {
+            // Release the "lock" on the dialog only after 3 seconds so that the activity type buffer can adapt to the
+            // new orientation
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mIsWrongOrientationDialogDisplayed = false;
+                }
+            }, 3000);
+        } else {
+            mIsWrongOrientationDialogDisplayed = true;
+        }
     }
 
     /**
@@ -1022,5 +1033,13 @@ public class MainActivity extends BaseActivity {
         if (!isSupervisedMode && mShowSubjectWindmill) {
             mSubjectWindmillFragment.updateBreathingGraph(data);
         }
+    }
+
+    public boolean getIsRESpeckConnected() {
+        return mIsRESpeckConnected;
+    }
+
+    public boolean getIsAirspeckConnected() {
+        return mIsAirspeckConnected;
     }
 }

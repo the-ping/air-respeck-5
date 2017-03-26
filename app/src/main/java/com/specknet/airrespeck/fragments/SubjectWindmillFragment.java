@@ -97,6 +97,9 @@ public class SubjectWindmillFragment extends BaseFragment {
 
         mIsCreated = true;
 
+        // Update connection symbol based on state stored in MainActivity
+        updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
+
         return view;
     }
 

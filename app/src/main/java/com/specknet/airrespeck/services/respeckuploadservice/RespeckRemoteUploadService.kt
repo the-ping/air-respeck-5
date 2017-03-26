@@ -71,19 +71,18 @@ class RespeckRemoteUploadService : Service() {
         // Create header json object
         val json = JSONObject()
         try {
-            // TODO: eliminate this redundancy in new database schema
             json.put("bs_name", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
+            json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
             json.put("qoe_uuid", qoeuuid)
-            json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             json.put("capture_name", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
             json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
-            //json.put("app_version", utils.appVersionCode)
+            json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -133,8 +132,10 @@ class RespeckRemoteUploadService : Service() {
                         jsonLiveData.put("messagetype", "respeck_data")
                         jsonLiveData.put(Constants.RESPECK_SENSOR_TIMESTAMP,
                                 intent.getLongExtra(Constants.RESPECK_SENSOR_TIMESTAMP, 0))
-                        jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
-                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        // The upload server expects time in seconds without milliseconds
+                        val put = jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
+                                Math.round((intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0)
+                                        / 1000).toDouble()));
                         jsonLiveData.put(Constants.RESPECK_X,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_X, Float.NaN)))
                         jsonLiveData.put(Constants.RESPECK_Y,
@@ -167,12 +168,13 @@ class RespeckRemoteUploadService : Service() {
                     try {
                         jsonAverageData.put("messagetype", "respeck_processed")
                         jsonAverageData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
-                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
+                                Math.round((intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0)
+                                        / 1000).toDouble()));
                         jsonAverageData.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN)))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,
                                 intent.getIntExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, 0))
-                        jsonAverageData.put(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                        jsonAverageData.put("sd_br",
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE, Float.NaN)))
                         // We don't calculate a minute average activity level at the moment
                         jsonAverageData.put(Constants.RESPECK_ACTIVITY_LEVEL, null)
@@ -189,11 +191,11 @@ class RespeckRemoteUploadService : Service() {
                     val jsonAverageStoredData = JSONObject()
                     try {
                         jsonAverageStoredData.put("messagetype", "respeck_processed")
-                        jsonAverageStoredData.put(Constants.RESPECK_STORED_SENSOR_TIMESTAMP,
+                        jsonAverageStoredData.put("timestamp",
                                 intent.getLongExtra(Constants.RESPECK_STORED_SENSOR_TIMESTAMP, 0))
                         jsonAverageStoredData.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN)))
-                        jsonAverageStoredData.put(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                        jsonAverageStoredData.put("sd_br",
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE, Float.NaN)))
                         jsonAverageStoredData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,
                                 intent.getIntExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, 0))

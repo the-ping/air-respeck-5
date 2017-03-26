@@ -65,13 +65,17 @@ class QOERemoteUploadService : Service() {
         // Create header json object
         val json = JSONObject()
         try {
-            json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
+            json.put("bs_name", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
+            json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
+            json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
+            json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
             json.put("qoe_uuid", qoeuuid)
-            json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
+            json.put("capture_name", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
+            json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()

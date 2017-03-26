@@ -121,23 +121,23 @@ public class Constants {
     /**
      * Readings
      */
-    public static final String RESPECK_X = "accelx";
-    public static final String RESPECK_Y = "accely";
-    public static final String RESPECK_Z = "accelz";
+    public static final String RESPECK_X = "x";
+    public static final String RESPECK_Y = "y";
+    public static final String RESPECK_Z = "z";
     public static final String RESPECK_BREATHING_RATE = "breathing_rate";
     public static final String RESPECK_BREATHING_SIGNAL = "breathing_signal";
     public static final String RESPECK_BREATHING_ANGLE = "respeck_breathing_angle";
-    public static final String RESPECK_MINUTE_AVG_BREATHING_RATE = "breathing_rate";
-    public static final String RESPECK_MINUTE_STD_BREATHING_RATE = "sd_br";
+    public static final String RESPECK_MINUTE_AVG_BREATHING_RATE = "average_breathing_rate";
+    public static final String RESPECK_MINUTE_STD_BREATHING_RATE = "std_dev_breathing_rate";
     public static final String RESPECK_MINUTE_NUMBER_OF_BREATHS = "n_breaths";
     public static final String RESPECK_ACTIVITY_LEVEL = "activity";
     public static final String RESPECK_ACTIVITY_TYPE = "activity_category";
-    public static final String RESPECK_SEQUENCE_NUMBER = "seq_number";
+    public static final String RESPECK_SEQUENCE_NUMBER = "live_seq";
     public static final String RESPECK_BATTERY_PERCENT = "respeck_battery_percent";
     public static final String RESPECK_REQUEST_CHARGE = "respeck_request_charge";
-    public static final String RESPECK_SENSOR_TIMESTAMP = "rs_timestamp";
-    public static final String RESPECK_INTERPOLATED_PHONE_TIMESTAMP = "bs_timestamp";
-    public static final String RESPECK_STORED_SENSOR_TIMESTAMP = "timestamp";
+    public static final String RESPECK_SENSOR_TIMESTAMP = "live_rs_timestamp";
+    public static final String RESPECK_STORED_SENSOR_TIMESTAMP = "live_rs_timestamp";
+    public static final String RESPECK_INTERPOLATED_PHONE_TIMESTAMP = "timestamp";
     public static final String RESPECK_STORED_TIMESTAMP_OFFSET = "timestamp_offset";
     public static final String RESPECK_IS_DISCONNECTED_MODE = "stored";
     public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";

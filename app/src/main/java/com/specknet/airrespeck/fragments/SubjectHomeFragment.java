@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.utils.Constants;
 
 /**
@@ -47,6 +48,10 @@ public class SubjectHomeFragment extends BaseFragment {
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
         mIsCreated = true;
+
+        // Update connection symbol based on state stored in MainActivity
+        updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
+        updateAirspeckConnectionSymbol(((MainActivity) getActivity()).getIsAirspeckConnected());
 
         return view;
     }
