@@ -19,7 +19,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +28,7 @@ import com.crashlytics.android.ndk.CrashlyticsNdk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
+import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
@@ -91,12 +91,10 @@ public class MainActivity extends BaseActivity {
                 switch (what) {
                     case UPDATE_RESPECK_READINGS:
                         service.updateRespeckReadings((HashMap<String, Float>) msg.obj);
-                        // We also update the connection symbol in case it hasn't been updated yet
                         service.updateRESpeckConnection(true);
                         break;
                     case UPDATE_QOE_READINGS:
                         service.updateQOEReadings((HashMap<String, Float>) msg.obj);
-                        // We also update the connection symbol in case it hasn't been updated yet
                         service.updateAirspeckConnection(true);
                         break;
                     case ACTIVITY_SUMMARY_UPDATE:
@@ -193,7 +191,7 @@ public class MainActivity extends BaseActivity {
 
     // Variable to switch modes: subject mode or supervised mode
     private static final String IS_SUPERVISED_MODE = "supervised_mode";
-    boolean isSupervisedMode;
+    private boolean isSupervisedMode;
 
     TabLayout tabLayout;
     ViewPager viewPager;
@@ -201,6 +199,8 @@ public class MainActivity extends BaseActivity {
     ArrayList<String> supervisedTitles = new ArrayList<>();
     ArrayList<Fragment> subjectFragments = new ArrayList<>();
     ArrayList<String> subjectTitles = new ArrayList<>();
+
+    private boolean mIsWrongOrientationDialogDisplayed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -756,7 +756,7 @@ public class MainActivity extends BaseActivity {
         }*/
         if (id == R.id.action_supervised_mode) {
             DialogFragment supervisedPasswordDialog = new SupervisedPasswordDialog();
-            supervisedPasswordDialog.show(getFragmentManager(), "dialog");
+            supervisedPasswordDialog.show(getFragmentManager(), "password_dialog");
         } else if (id == R.id.action_subject_mode) {
             displaySubjectMode();
         }
@@ -943,11 +943,25 @@ public class MainActivity extends BaseActivity {
      * @param newValues HashMap<String, Float> The Respeck sensor readings.
      */
     private void updateRespeckReadings(HashMap<String, Float> newValues) {
+        // If the sensor is in the wrong orientation, show a dialog
+        if (!wrong) {
+            int activityType = Math.round(newValues.get(Constants.RESPECK_ACTIVITY_TYPE));
+            if (activityType == Constants.WRONG_ORIENTATION) {
+                mIsWrongOrientationDialogDisplayed = true;
+                DialogFragment mWrongOrientationDialog = new WrongOrientationDialog();
+                mWrongOrientationDialog.show(getFragmentManager(), "wrong_orientation_dialog");
+            }
+        }
+
         // Update local values
         mRespeckSensorReadings = newValues;
 
         // Update the UI
         updateRespeckUI();
+    }
+
+    public void setWrongOrientationDialogDisplayed(boolean isDisplayed) {
+        mIsWrongOrientationDialogDisplayed = isDisplayed;
     }
 
     /**

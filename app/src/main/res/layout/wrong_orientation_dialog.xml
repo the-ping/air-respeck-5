@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="10dp">
+
+    <ImageView
+        android:id="@+id/diagram_orientation"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:contentDescription="Image depicting correct orientation of RESpeck"
+        android:src="@drawable/vec_orientation_respeck"/>
+
+    <TextView
+        android:id="@+id/wrong_orientation_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:labelFor="@+id/editTextDialogUserInput"
+        android:text="@string/wrong_orientation_message"
+        android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+</LinearLayout>

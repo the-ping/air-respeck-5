@@ -5,17 +5,18 @@ static int last_prediction = -1;
 static const int ACT_CLASS_BUFFER_SIZE = 50;
 // First value has to equal ACT_CLASS_BUFFER_SIZE. We store y value and activity level
 static float act_class_buffer[50][2];
-static int current_idx_in_buffer = 0;
+static int current_idx_in_buffer = -1;
 static bool is_buffer_full = 0;
 
 void update_activity_classification_buffer(float *accel, float act_level) {
+    current_idx_in_buffer = (current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
+
     act_class_buffer[current_idx_in_buffer][0] = accel[1];
     act_class_buffer[current_idx_in_buffer][1] = act_level;
 
     if (!is_buffer_full && current_idx_in_buffer == ACT_CLASS_BUFFER_SIZE - 1) {
         is_buffer_full = 1;
     }
-    current_idx_in_buffer = (current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
 }
 
 bool get_is_buffer_full() {
@@ -94,13 +95,9 @@ int simple_predict() {
     // First, check whether we have an invalid orientation.
     // ==================
 
-    // Is the sensor is turned by 180° on the y-axis (vertical) above an angle which cannot occur while lying down?
-    // This position can never occur except for a hand stand which we don't expect from the subjects.
-    if (0.8 <= y_median) {
-        last_prediction = WRONG_ORIENTATION;
-    }
-
-    if (0.8 <= y_median) {
+    // Is the sensor currently turned by 180° on the y-axis (vertical) above an angle which cannot occur while lying
+    // down? This position can never occur except for a hand stand which we don't expect from the subjects.
+    if (0.8 <= ys[current_idx_in_buffer]) {
         last_prediction = WRONG_ORIENTATION;
     } else if (-0.4 <= y_median) {
         /* Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.

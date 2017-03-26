@@ -253,4 +253,9 @@
     <string name="supervised_mode_dialog_enter">Enter</string>
     <string name="supervised_mode_dialog_cancel">Cancel</string>
 
+    <!-- Wrong orientation dialog -->
+    <string name="wrong_orientation_message">The RESpeck sensor seems to be fastened in the wrong position.
+        Please fasten it as depicted in the image.</string>
+    <string name="wrong_orientation_done">Done</string>
+
 </resources>

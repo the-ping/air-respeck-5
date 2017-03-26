@@ -75,6 +75,11 @@ class RespeckRemoteUploadService : Service() {
             json.put("bs_name", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
+            var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
+            if (qoeuuid == null) {
+                qoeuuid = ""
+            }
+            json.put("qoe_uuid", qoeuuid)
             json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             json.put("capture_name", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
             json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
@@ -143,7 +148,8 @@ class RespeckRemoteUploadService : Service() {
                         jsonLiveData.put(Constants.RESPECK_ACTIVITY_LEVEL,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_ACTIVITY_LEVEL, Float.NaN)))
                         jsonLiveData.put(Constants.RESPECK_ACTIVITY_TYPE,
-                                nanToNull(intent.getFloatExtra(Constants.RESPECK_ACTIVITY_TYPE, Float.NaN)))
+                                nanToNull(intent.getIntExtra(Constants.RESPECK_ACTIVITY_TYPE,
+                                        Constants.WRONG_ORIENTATION).toFloat()))
                         jsonLiveData.put(Constants.RESPECK_SEQUENCE_NUMBER,
                                 intent.getIntExtra(Constants.RESPECK_SEQUENCE_NUMBER, 0))
                         jsonLiveData.put(Constants.RESPECK_IS_DISCONNECTED_MODE, 0)
