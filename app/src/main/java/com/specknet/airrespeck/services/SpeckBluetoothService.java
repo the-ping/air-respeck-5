@@ -829,7 +829,7 @@ public class SpeckBluetoothService extends Service {
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_RATE, breathingRate);
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
-                            liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, sequenceNumber);
+                            liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, currentSequenceNumberInBatch);
                             liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
                             liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_TYPE, activityType);
                             liveDataIntent.putExtra(Constants.RESPECK_BATTERY_PERCENT, latestBatteryPercent);

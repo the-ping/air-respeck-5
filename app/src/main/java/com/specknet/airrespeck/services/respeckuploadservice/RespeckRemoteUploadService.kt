@@ -133,7 +133,9 @@ class RespeckRemoteUploadService : Service() {
                         jsonLiveData.put(Constants.RESPECK_SENSOR_TIMESTAMP,
                                 intent.getLongExtra(Constants.RESPECK_SENSOR_TIMESTAMP, 0))
                         // The upload server expects time in seconds without milliseconds
-                        val put = jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
+                        //jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
+                        //      intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0))
+                        jsonLiveData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                 Math.round((intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0)
                                         / 1000).toDouble()));
                         jsonLiveData.put(Constants.RESPECK_X,

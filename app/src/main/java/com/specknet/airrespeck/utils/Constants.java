@@ -127,8 +127,8 @@ public class Constants {
     public static final String RESPECK_BREATHING_RATE = "breathing_rate";
     public static final String RESPECK_BREATHING_SIGNAL = "breathing_signal";
     public static final String RESPECK_BREATHING_ANGLE = "respeck_breathing_angle";
-    public static final String RESPECK_MINUTE_AVG_BREATHING_RATE = "average_breathing_rate";
-    public static final String RESPECK_MINUTE_STD_BREATHING_RATE = "std_dev_breathing_rate";
+    public static final String RESPECK_MINUTE_AVG_BREATHING_RATE = "breathing_rate";
+    public static final String RESPECK_MINUTE_STD_BREATHING_RATE = "sd_br";
     public static final String RESPECK_MINUTE_NUMBER_OF_BREATHS = "n_breaths";
     public static final String RESPECK_ACTIVITY_LEVEL = "activity";
     public static final String RESPECK_ACTIVITY_TYPE = "activity_category";
