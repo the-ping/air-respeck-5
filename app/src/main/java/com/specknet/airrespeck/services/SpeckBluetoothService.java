@@ -99,13 +99,13 @@ public class SpeckBluetoothService extends Service {
     int lastSample = 0;
 
     // RESPECK CODE
-    private int latestLiveRespeckSeq = -1;
+    private int latestPacketSequenceNumber = -1;
     private long currentPhoneTimestamp = -1;
-    private long mCurrentRESpeckTimestamp = -1;
+    private long mRESpeckTimestampCurrentPacketReceived = -1;
     private Queue<RESpeckStoredSample> storedQueue;
 
-    private long timestampOfPreviousSequence = -1;
-    private long timestampOfCurrentSequence = -1;
+    private long phoneTimestampPreviousPacketReceived = -1;
+    private long phoneTimestampCurrentPacketReceived = -1;
 
     private long latestProcessedMinute = 0L;
     private int currentSequenceNumberInBatch = -1;
@@ -120,8 +120,8 @@ public class SpeckBluetoothService extends Service {
     private static final int BATTERY_FULL_LEVEL = 1152; // was 1139
     private static final int BATTERY_EMPTY_LEVEL = 889;
     private final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
-    private float latestBatteryPercent = 0f;
-    private float latestRequestCharge = 0f;
+    private float mLatestBatteryPercent = 0f;
+    private boolean mLatestRequestCharge = false;
 
     // References to Context and Utils
     private Utils mUtils;
@@ -701,14 +701,14 @@ public class SpeckBluetoothService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
             if (characteristic.getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
                 final byte[] accelBytes = characteristic.getValue();
-                final int sequenceNumber = accelBytes[0] & 0xFF;
+                final int packetSequenceNumber = accelBytes[0] & 0xFF;
 
                 //Check if the reading is not repeated
-                if (sequenceNumber == latestLiveRespeckSeq) {
-                    Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(sequenceNumber));
+                if (packetSequenceNumber == latestPacketSequenceNumber) {
+                    Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(packetSequenceNumber));
                     return;
                 } else {
-                    latestLiveRespeckSeq = sequenceNumber;
+                    latestPacketSequenceNumber = packetSequenceNumber;
                 }
 
                 for (int i = 1; i < accelBytes.length; i += 7) {
@@ -723,36 +723,39 @@ public class SpeckBluetoothService extends Service {
                         Byte ts_3 = accelBytes[i + 3];
                         Byte ts_4 = accelBytes[i + 4];
 
-                        Long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
-                        if (newRESpeckTimestamp == mCurrentRESpeckTimestamp) {
+                        Long respeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3,
+                                ts_4) * 197 / 32768;
+                        if (respeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
                             Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
                             return;
                         }
-                        mCurrentRESpeckTimestamp = newRESpeckTimestamp;
+                        mRESpeckTimestampCurrentPacketReceived = respeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
                         currentPhoneTimestamp = mUtils.getUnixTimestamp();
 
-                        if (timestampOfPreviousSequence == -1) {
+                        if (phoneTimestampPreviousPacketReceived == -1) {
                             // If this is our first sequence, we use the typical time difference between the
                             // RESpeck packets for determining the previous timestamp
-                            timestampOfPreviousSequence = currentPhoneTimestamp -
+                            phoneTimestampPreviousPacketReceived = currentPhoneTimestamp -
                                     Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS;
                         } else {
-                            timestampOfPreviousSequence = timestampOfCurrentSequence;
+                            phoneTimestampPreviousPacketReceived = phoneTimestampCurrentPacketReceived;
                         }
-                        // Update the current sequence timestamp to the current phone timestamp
-                        timestampOfCurrentSequence = currentPhoneTimestamp;
+
+                        phoneTimestampCurrentPacketReceived = currentPhoneTimestamp;
 
                         currentSequenceNumberInBatch = 0;
 
-                        // process any queued stored data
+                        // process any queued stored data. TODO:test this if the stored mode is activated again in the
+                        // RESpeck.
                         while (!storedQueue.isEmpty()) {
                             // TODO: this doesn't seem to be reached? Is the queue only for the case when
                             // the RESpeck was disconnected from the phone? Comment above if applicable!
                             RESpeckStoredSample s = storedQueue.remove();
 
-                            Long currentTimeOffset = currentPhoneTimestamp / 1000 - mCurrentRESpeckTimestamp;
+                            Long currentTimeOffset = currentPhoneTimestamp / 1000 -
+                                    mRESpeckTimestampCurrentPacketReceived;
 
                             Log.i("stored", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
                             Log.i("stored", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
@@ -772,6 +775,7 @@ public class SpeckBluetoothService extends Service {
                             liveDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, s.getNumberOfBreaths());
                             sendBroadcast(liveDataIntent);
                         }
+
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
                         //Log.v("DF", "Acceleration packet received from RESpeck");
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
@@ -791,12 +795,14 @@ public class SpeckBluetoothService extends Service {
 
                             // Calculate interpolated timestamp of current sample based on sequence number
                             // There are 32 samples in each acceleration batch the RESpeck sends.
-                            long interpolatedPhoneTimestampOfCurrentSample = (long) ((timestampOfCurrentSequence -
-                                    timestampOfPreviousSequence) * (currentSequenceNumberInBatch * 1. /
-                                    Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + timestampOfPreviousSequence;
+                            long interpolatedPhoneTimestampOfCurrentSample = (long)
+                                    ((phoneTimestampCurrentPacketReceived - phoneTimestampPreviousPacketReceived) *
+                                            (currentSequenceNumberInBatch * 1. /
+                                                    Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
+                                    phoneTimestampPreviousPacketReceived;
                             /*
                             Log.i("2", "BS_TIMESTAMP " + String.valueOf(currentPhoneTimestamp));
-                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(mCurrentRESpeckTimestamp));
+                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(mRESpeckTimestampCurrentPacketReceived));
                             Log.i("2", "Interpolated timestamp " + String.valueOf(
                                     cutoffInterpolatedTimestamp));
                             Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(currentSequenceNumberInBatch));
@@ -812,8 +818,8 @@ public class SpeckBluetoothService extends Service {
                             // Store the important data in the external storage if set in config
                             if (mIsStoreDataLocally) {
                                 String storedLine = interpolatedPhoneTimestampOfCurrentSample + "," +
-                                        mCurrentRESpeckTimestamp + "." + currentSequenceNumberInBatch + "," + x +
-                                        "," + y + "," + z + "," + breathingSignal +
+                                        mRESpeckTimestampCurrentPacketReceived + "." + currentSequenceNumberInBatch +
+                                        "," + x + "," + y + "," + z + "," + breathingSignal +
                                         "," + breathingRate + "," + activityLevel + "," + activityType;
                                 writeToRESpeckAndMergedFile(storedLine);
                             }
@@ -822,7 +828,8 @@ public class SpeckBluetoothService extends Service {
                             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
                             liveDataIntent.putExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
                                     interpolatedPhoneTimestampOfCurrentSample);
-                            liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP, mCurrentRESpeckTimestamp);
+                            liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP,
+                                    mRESpeckTimestampCurrentPacketReceived);
                             liveDataIntent.putExtra(Constants.RESPECK_X, x);
                             liveDataIntent.putExtra(Constants.RESPECK_Y, y);
                             liveDataIntent.putExtra(Constants.RESPECK_Z, z);
@@ -832,15 +839,15 @@ public class SpeckBluetoothService extends Service {
                             liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, currentSequenceNumberInBatch);
                             liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
                             liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_TYPE, activityType);
-                            liveDataIntent.putExtra(Constants.RESPECK_BATTERY_PERCENT, latestBatteryPercent);
-                            liveDataIntent.putExtra(Constants.RESPECK_REQUEST_CHARGE, latestRequestCharge);
+                            liveDataIntent.putExtra(Constants.RESPECK_BATTERY_PERCENT, mLatestBatteryPercent);
+                            liveDataIntent.putExtra(Constants.RESPECK_REQUEST_CHARGE, mLatestRequestCharge);
                             sendBroadcast(liveDataIntent);
 
                             // Every full minute, calculate the average breathing rate in that minute. This value will
                             // only change after a call to "calculateMedianAverageBreathing".
-                            long currentMinute = DateUtils.truncate(new Date(currentPhoneTimestamp),
+                            long currentProcessedMinute = DateUtils.truncate(new Date(currentPhoneTimestamp),
                                     Calendar.MINUTE).getTime();
-                            if (currentMinute != latestProcessedMinute) {
+                            if (currentProcessedMinute != latestProcessedMinute) {
                                 calculateMedianAverageBreathing();
 
                                 final float averageBreathingRate = getAverageBreathingRate();
@@ -854,9 +861,8 @@ public class SpeckBluetoothService extends Service {
                                 Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
                                 // The averaged data is not attached to a particular sensor record, so we only
                                 // store the interpolated phone timestamp
-                                avgDataIntent.putExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
-                                        interpolatedPhoneTimestampOfCurrentSample);
-                                liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP, mCurrentRESpeckTimestamp);
+                                avgDataIntent.putExtra(Constants.RESPECK_TIMESTAMP_MINUTE_AVG,
+                                        currentProcessedMinute);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                         averageBreathingRate);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
@@ -872,7 +878,7 @@ public class SpeckBluetoothService extends Service {
                                 Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY " + activityLevel);
                                 */
 
-                                latestProcessedMinute = currentMinute;
+                                latestProcessedMinute = currentProcessedMinute;
                             }
 
                         } catch (IndexOutOfBoundsException e) {
@@ -893,22 +899,17 @@ public class SpeckBluetoothService extends Service {
                 int chargePercentage = (100 * (battLevel - BATTERY_EMPTY_LEVEL) /
                         (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
 
-                if (chargePercentage < 1)
+                if (chargePercentage < 1) {
                     chargePercentage = 1;
-                else if (chargePercentage > 100)
+                } else if (chargePercentage > 100) {
                     chargePercentage = 100;
-
-                latestBatteryPercent = (float) chargePercentage;
-
-                boolean requiresCharging = battLevel <= PROMPT_TO_CHARGE_LEVEL;
-                if (requiresCharging) {
-                    latestRequestCharge = 1f;
-                } else {
-                    latestRequestCharge = 0;
                 }
 
+                mLatestBatteryPercent = (float) chargePercentage;
+                mLatestRequestCharge = battLevel <= PROMPT_TO_CHARGE_LEVEL;
+
                 // Log.i("RAT", "Battery level: " + Float.toString(
-                //         latestBatteryPercent) + ", request charge: " + Float.toString(latestRequestCharge));
+                //         mLatestBatteryPercent) + ", request charge: " + Float.toString(mLatestRequestCharge));
 
             } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
                 // Breathing rates packet received. This only happens when the RESpeck was disconnected and
@@ -1018,7 +1019,7 @@ public class SpeckBluetoothService extends Service {
                 int predictionIdx = getCurrentActivityClassification();
                 // an index of -1 means that the acceleration buffer has not been filled yet, so we have to wait.
                 if (predictionIdx != -1) {
-                    Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
+                    // Log.i("DF", String.format("Prediction: %s", Constants.ACT_CLASS_NAMES[predictionIdx]));
                     temporaryStoragePredictions[predictionIdx]++;
                     summaryCounter++;
                 }

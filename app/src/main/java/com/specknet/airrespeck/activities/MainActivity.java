@@ -662,7 +662,7 @@ public class MainActivity extends BaseActivity {
         super.onResume();
 
         // Start location manager
-        //mLocationUtils.startLocationManager();
+        mLocationUtils.startLocationManager();
     }
 
     @Override
@@ -678,7 +678,7 @@ public class MainActivity extends BaseActivity {
         stopService(intentStopUploadAirspeck);
 
         // Stop location manager
-        //mLocationUtils.stopLocationManager();
+        mLocationUtils.stopLocationManager();
     }
 
     @Override

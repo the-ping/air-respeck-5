@@ -169,9 +169,8 @@ class RespeckRemoteUploadService : Service() {
                     val jsonAverageData = JSONObject()
                     try {
                         jsonAverageData.put("messagetype", "respeck_processed")
-                        jsonAverageData.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
-                                Math.round((intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0)
-                                        / 1000).toDouble()));
+                        jsonAverageData.put(Constants.RESPECK_TIMESTAMP_MINUTE_AVG,
+                                intent.getLongExtra(Constants.RESPECK_TIMESTAMP_MINUTE_AVG, 0))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN)))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,

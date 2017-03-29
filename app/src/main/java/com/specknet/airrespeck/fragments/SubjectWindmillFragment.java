@@ -105,8 +105,6 @@ public class SubjectWindmillFragment extends BaseFragment {
 
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
         if (mIsCreated) {
-            Log.i("DF", mRespeckSensorReadings.toString());
-
             // Set breathing rate text to currently calculated rates
             breathingRateText.setText(
                     String.format(Locale.UK, "%.2f BrPM",

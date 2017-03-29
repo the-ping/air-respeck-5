@@ -64,7 +64,6 @@ public class SubjectValuesFragment extends BaseFragment {
     public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
         // Only update view if fragment has been created!
         if (mIsCreated) {
-            Log.i("DF", mRespeckSensorReadings.toString());
             // Set breathing rate text to currently calculated rates
             breathingRateText.setText(
                     String.format(Locale.UK, "%.2f BrPM",

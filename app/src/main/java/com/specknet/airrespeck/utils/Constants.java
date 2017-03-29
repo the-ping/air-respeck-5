@@ -138,6 +138,7 @@ public class Constants {
     public static final String RESPECK_SENSOR_TIMESTAMP = "live_rs_timestamp";
     public static final String RESPECK_STORED_SENSOR_TIMESTAMP = "live_rs_timestamp";
     public static final String RESPECK_INTERPOLATED_PHONE_TIMESTAMP = "timestamp";
+    public static final String RESPECK_TIMESTAMP_MINUTE_AVG = "timestamp";
     public static final String RESPECK_STORED_TIMESTAMP_OFFSET = "timestamp_offset";
     public static final String RESPECK_IS_DISCONNECTED_MODE = "stored";
     public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";
@@ -250,7 +251,10 @@ public class Constants {
     /*
     Others
      */
+    // The typical difference between two RESpeck packets determined by looking at a sample of consecutive timestamps
     public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = 2535;
+    // This was set as a compromise between optimising communication frequency (as low as possible) #
+    // and update frequency (as high as possible)
     public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
 
     /**
