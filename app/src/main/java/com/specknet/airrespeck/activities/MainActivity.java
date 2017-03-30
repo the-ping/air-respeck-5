@@ -19,6 +19,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -353,7 +354,7 @@ public class MainActivity extends BaseActivity {
                         liveReadings.put(Constants.RESPECK_BATTERY_PERCENT,
                                 intent.getFloatExtra(Constants.RESPECK_BATTERY_PERCENT, Float.NaN));
                         liveReadings.put(Constants.RESPECK_REQUEST_CHARGE,
-                                intent.getFloatExtra(Constants.RESPECK_REQUEST_CHARGE, Float.NaN));
+                                intent.getBooleanExtra(Constants.RESPECK_REQUEST_CHARGE, false) ? 1.f : 0.f);
 
                         sendMessageToHandler(UPDATE_RESPECK_READINGS, liveReadings);
                         break;
@@ -667,7 +668,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        Log.i("DF", "App is being destroyed");
 
         // Stop services
         Intent intentStopSpeckService = new Intent(this, SpeckBluetoothService.class);
@@ -679,6 +680,8 @@ public class MainActivity extends BaseActivity {
 
         // Stop location manager
         mLocationUtils.stopLocationManager();
+
+        super.onDestroy();
     }
 
     @Override

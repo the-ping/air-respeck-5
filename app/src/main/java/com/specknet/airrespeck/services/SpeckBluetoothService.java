@@ -301,6 +301,7 @@ public class SpeckBluetoothService extends Service {
         // Close the OutputWritingStreams
         try {
             if (mRespeckWriter != null) {
+                Log.i("DF", "Respeck writer was closed");
                 mRespeckWriter.close();
             }
             if (mAirspeckWriter != null) {
