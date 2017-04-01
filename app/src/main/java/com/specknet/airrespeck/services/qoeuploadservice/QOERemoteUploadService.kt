@@ -34,6 +34,8 @@ class QOERemoteUploadService : Service() {
 
         internal var mySubject = PublishSubject.create<JsonObject>()
         internal lateinit var qoeServer: QOEServer
+
+        internal val qoeReceiver = QOEReceiver()
     }
 
     internal fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
@@ -53,6 +55,12 @@ class QOERemoteUploadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         initQOEUploadService()
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(qoeReceiver)
+        super.onDestroy()
+        Log.i("Upload", "QOE upload has been stopped")
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -86,7 +94,6 @@ class QOERemoteUploadService : Service() {
         configPath = Constants.UPLOAD_SERVER_PATH
         qoeServer = QOEServer.create(configUrl)
 
-        val qoeReceiver = QOEReceiver()
         registerReceiver(qoeReceiver, IntentFilter(Constants.ACTION_AIRSPECK_LIVE_BROADCAST))
 
         // Setup upload queue which stores data until it can be uploaded

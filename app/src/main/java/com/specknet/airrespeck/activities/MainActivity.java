@@ -668,20 +668,26 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onDestroy() {
-        Log.i("DF", "App is being destroyed");
+        stopServices();
 
-        // Stop services
+        // Stop location manager
+        mLocationUtils.stopLocationManager();
+
+        // Unregister receivers
+        unregisterReceiver(mSpeckServiceReceiver);
+
+        Log.i("DF", "App is being destroyed");
+        super.onDestroy();
+    }
+
+    private void stopServices() {
+        Log.i("DF", "Services are being stopped");
         Intent intentStopSpeckService = new Intent(this, SpeckBluetoothService.class);
         stopService(intentStopSpeckService);
         Intent intentStopUploadRespeck = new Intent(this, RespeckRemoteUploadService.class);
         stopService(intentStopUploadRespeck);
         Intent intentStopUploadAirspeck = new Intent(this, QOERemoteUploadService.class);
         stopService(intentStopUploadAirspeck);
-
-        // Stop location manager
-        mLocationUtils.stopLocationManager();
-
-        super.onDestroy();
     }
 
     @Override
@@ -762,6 +768,8 @@ public class MainActivity extends BaseActivity {
             supervisedPasswordDialog.show(getFragmentManager(), "password_dialog");
         } else if (id == R.id.action_subject_mode) {
             displaySubjectMode();
+        } else if (id == R.id.action_close_app) {
+            finish();
         }
 
         return super.onOptionsItemSelected(item);

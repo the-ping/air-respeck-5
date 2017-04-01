@@ -166,6 +166,7 @@ public class SpeckBluetoothService extends Service {
     public void onDestroy() {
         stopBluetoothScanning();
         stopSpeckService();
+        Log.i("SpeckService", "SpeckService has been stopped");
     }
 
     @Nullable
@@ -285,6 +286,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     public void stopSpeckService() {
+        Log.i("Bluetooth", "Stopping Speck Service");
         // Cleanup Bluetooth handlers
         if (mGattRespeck == null && mGattQOE == null) {
             return;
