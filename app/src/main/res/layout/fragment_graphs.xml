@@ -22,7 +22,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:text="@string/graphs_pms_title" />
+                    android:layout_marginTop="15dp"
+                    android:text="@string/graphs_pms_title"/>
 
                 <com.github.mikephil.charting.charts.LineChart
                     android:id="@+id/pms_line_chart"
