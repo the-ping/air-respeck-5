@@ -88,7 +88,7 @@ public final class Utils {
      *
      * @return long The timestamp.
      */
-    public long getUnixTimestamp() {
+    public static long getUnixTimestamp() {
         return System.currentTimeMillis();
     }
 
@@ -376,8 +376,17 @@ public final class Utils {
         }
     }
 
-    public float onlyKeepTimeInDay(long timestamp) {
+    public static float onlyKeepTimeInHour(long timestamp) {
         long millisInHour = 36000000;
         return (float) (timestamp % millisInHour);
+    }
+
+    public static float[] toPrimitiveFloatArray(Float[] array) {
+        float[] floatArray = new float[array.length];
+        int i = 0;
+        for (Float f : array) {
+            floatArray[i++] = (f != null ? f : Float.NaN);
+        }
+        return floatArray;
     }
 }

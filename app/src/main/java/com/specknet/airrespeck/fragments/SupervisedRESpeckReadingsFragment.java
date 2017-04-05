@@ -2,13 +2,11 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -31,7 +29,6 @@ import com.specknet.airrespeck.utils.Utils;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Queue;
 
 import Jama.Matrix;
@@ -43,7 +40,7 @@ import Jama.Matrix;
 
 public class SupervisedRESpeckReadingsFragment extends BaseFragment {
 
-    // Breathing values
+    // Breathing text values
     private ArrayList<ReadingItem> mReadingItems;
     private ReadingItemArrayAdapter mListViewAdapter;
 
@@ -167,6 +164,12 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
         dataSets.add(dataSet);
         chart.setData(new LineData(dataSets));
+
+        // Disable helper lines showing an element the user touched
+        chart.getData().setHighlightEnabled(false);
+
+        // Disable zoom on double tap
+        chart.setDoubleTapToZoomEnabled(false);
     }
 
     // This method is called from the UI handler to update the graph
@@ -290,7 +293,7 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         dataSet.addEntry(newEntry);
 
         // Remove any values older than the number of breathing signal points we want to display
-        while (dataSet.getValues().size() > Constants.NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART) {
+        while (dataSet.getValues().size() > Constants.BREATHING_SIGNAL_CHART_NUMBER_OF_SAMPLES) {
             dataSet.removeFirst();
         }
 

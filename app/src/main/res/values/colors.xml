@@ -23,4 +23,5 @@
     </integer-array>
 
     <color name="breathing_graph_line_color">#303F9F</color>
+    <color name="bins_graph_color">#bbbbbb</color>
 </resources>

@@ -132,19 +132,22 @@ public class Constants {
     public static final String RESPECK_MINUTE_NUMBER_OF_BREATHS = "n_breaths";
     public static final String RESPECK_ACTIVITY_LEVEL = "activity";
     public static final String RESPECK_ACTIVITY_TYPE = "activity_category";
-    public static final String RESPECK_SEQUENCE_NUMBER = "live_seq";
     public static final String RESPECK_BATTERY_PERCENT = "respeck_battery_percent";
     public static final String RESPECK_REQUEST_CHARGE = "respeck_request_charge";
+
     public static final String RESPECK_SENSOR_TIMESTAMP = "live_rs_timestamp";
+    public static final String RESPECK_SEQUENCE_NUMBER = "live_seq";
     public static final String RESPECK_STORED_SENSOR_TIMESTAMP = "live_rs_timestamp";
-    public static final String RESPECK_INTERPOLATED_PHONE_TIMESTAMP = "timestamp";
     public static final String RESPECK_TIMESTAMP_MINUTE_AVG = "timestamp";
+
+    public static final String INTERPOLATED_PHONE_TIMESTAMP = "timestamp";
+    public static final String PHONE_TIMESTAMP_HOUR = "timestamp hour";
+
     public static final String RESPECK_STORED_TIMESTAMP_OFFSET = "timestamp_offset";
     public static final String RESPECK_IS_DISCONNECTED_MODE = "stored";
     public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";
 
 
-    public static final String QOE_TIMESTAMP = "timestamp";
     public static final String QOE_PM1 = "pm1";
     public static final String QOE_PM2_5 = "pm2_5";
     public static final String QOE_PM10 = "pm10";
@@ -206,7 +209,8 @@ public class Constants {
     /**
      * GRAPHS FRAGMENT UI
      */
-    public static final int NUMBER_BREATHING_SIGNAL_SAMPLES_ON_CHART = (int) Math.round(15 * 12.5);
+    public static final int BREATHING_SIGNAL_CHART_NUMBER_OF_SAMPLES = (int) Math.round(15 * 12.5);
+    public static final int PM_CHART_NUMBER_OF_SAMPLES = 30;
 
 
     /**

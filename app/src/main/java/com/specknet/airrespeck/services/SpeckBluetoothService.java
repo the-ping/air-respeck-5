@@ -167,6 +167,7 @@ public class SpeckBluetoothService extends Service {
         stopBluetoothScanning();
         stopSpeckService();
         Log.i("SpeckService", "SpeckService has been stopped");
+        super.onDestroy();
     }
 
     @Nullable
@@ -506,6 +507,7 @@ public class SpeckBluetoothService extends Service {
                     float pm2_5 = packetBufferLittleEnd.getFloat();
                     float pm10 = packetBufferLittleEnd.getFloat();
 
+                    // AE: auxiliary electrode, WE: working electrode
                     int o3_ae = packetBufferBigEnd.getShort(62);
                     int o3_we = packetBufferBigEnd.getShort(64);
 
@@ -531,7 +533,7 @@ public class SpeckBluetoothService extends Service {
                     lastSample = sampleIDs_2[0];
 
                     // Get timestamp
-                    long currentPhoneTimestamp = mUtils.getUnixTimestamp();
+                    long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
                     // Get location
                     double latitude = -1;
@@ -576,7 +578,7 @@ public class SpeckBluetoothService extends Service {
                     readings.put(Constants.QOE_BINS_TOTAL, (float) total);
 
                     Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
-                    intentData.putExtra(Constants.QOE_TIMESTAMP, currentPhoneTimestamp);
+                    intentData.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, currentPhoneTimestamp);
                     intentData.putExtra(Constants.AIRSPECK_ALL_MEASURES, readings);
                     sendBroadcast(intentData);
 
@@ -735,7 +737,7 @@ public class SpeckBluetoothService extends Service {
                         mRESpeckTimestampCurrentPacketReceived = respeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
-                        currentPhoneTimestamp = mUtils.getUnixTimestamp();
+                        currentPhoneTimestamp = Utils.getUnixTimestamp();
 
                         if (phoneTimestampPreviousPacketReceived == -1) {
                             // If this is our first sequence, we use the typical time difference between the
@@ -829,7 +831,7 @@ public class SpeckBluetoothService extends Service {
 
                             // Send live broadcast intent
                             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
-                            liveDataIntent.putExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP,
+                            liveDataIntent.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP,
                                     interpolatedPhoneTimestampOfCurrentSample);
                             liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP,
                                     mRESpeckTimestampCurrentPacketReceived);

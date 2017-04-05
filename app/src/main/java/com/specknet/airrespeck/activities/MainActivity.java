@@ -36,7 +36,7 @@ import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedAllGraphsFragment;
+import com.specknet.airrespeck.fragments.SupervisedAQGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
@@ -62,7 +62,7 @@ public class MainActivity extends BaseActivity {
 
     // UI handler. Has to be int because Message.what object is int
     public final static int UPDATE_RESPECK_READINGS = 0;
-    public final static int UPDATE_QOE_READINGS = 1;
+    public final static int UPDATE_AIRSPECK_READINGS = 1;
     public final static int SHOW_SNACKBAR_MESSAGE = 2;
     public final static int SHOW_RESPECK_CONNECTED = 3;
     public final static int SHOW_RESPECK_DISCONNECTED = 4;
@@ -94,7 +94,7 @@ public class MainActivity extends BaseActivity {
                         service.updateRespeckReadings((HashMap<String, Float>) msg.obj);
                         service.updateRESpeckConnection(true);
                         break;
-                    case UPDATE_QOE_READINGS:
+                    case UPDATE_AIRSPECK_READINGS:
                         service.updateQOEReadings((HashMap<String, Float>) msg.obj);
                         service.updateAirspeckConnection(true);
                         break;
@@ -152,7 +152,7 @@ public class MainActivity extends BaseActivity {
     private SubjectWindmillFragment mSubjectWindmillFragment;
     private SupervisedOverviewFragment mSupervisedOverviewFragment;
     private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
-    private SupervisedAllGraphsFragment mSupervisedAllGraphsFragment;
+    private SupervisedAQGraphsFragment mSupervisedAQGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
 
@@ -304,6 +304,56 @@ public class MainActivity extends BaseActivity {
 
         startActivitySummaryUpdaterTask();
         startBreathingGraphUpdaterTask();
+
+        // This is used for testing the AQ graphs without an Airspeck
+        startDummyAirspeckDataTask();
+    }
+
+    private void startDummyAirspeckDataTask() {
+        if (!mIsAirspeckEnabled) {
+            // Only allow if no real Airspeck data is coming in!
+            final int delay = 2000;
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    // Generate random Airspeck readings
+                    HashMap<String, Float> rndReadings = new HashMap<>();
+                    rndReadings.put(Constants.QOE_PM1, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_PM2_5, (float) Math.random() * 35);
+                    rndReadings.put(Constants.QOE_PM10, (float) Math.random() * 150);
+                    rndReadings.put(Constants.QOE_TEMPERATURE, (float) Math.random() * 30);
+                    rndReadings.put(Constants.QOE_HUMIDITY, (float) Math.random() * 100);
+                    rndReadings.put(Constants.QOE_NO2, (float) Math.random());
+                    rndReadings.put(Constants.QOE_O3, (float) Math.random());
+                    rndReadings.put(Constants.QOE_BINS_0, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_1, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_2, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_3, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_4, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_5, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_6, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_7, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_8, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_9, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_10, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_11, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_12, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_13, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_14, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_15, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.QOE_BINS_TOTAL, (float) Math.round(Math.random() * 100));
+                    rndReadings.put(Constants.PHONE_TIMESTAMP_HOUR,
+                            Utils.onlyKeepTimeInHour(Utils.getUnixTimestamp()));
+
+                    Message msg = new Message();
+                    msg.what = UPDATE_AIRSPECK_READINGS;
+                    msg.obj = rndReadings;
+                    msg.setTarget(mUIHandler);
+                    msg.sendToTarget();
+                }
+            }, 0, delay);
+        }
     }
 
     private void startSpeckService() {
@@ -347,9 +397,9 @@ public class MainActivity extends BaseActivity {
                                 intent.getIntExtra(Constants.RESPECK_ACTIVITY_TYPE, Constants.WRONG_ORIENTATION));
 
                         // As the phone timestamp is a long instead of float, we will have to convert it
-                        float cutoffInterpolatedTimestamp = mUtils.onlyKeepTimeInDay(
-                                intent.getLongExtra(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0));
-                        liveReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, cutoffInterpolatedTimestamp);
+                        float cutoffInterpolatedTimestamp = Utils.onlyKeepTimeInHour(
+                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0));
+                        liveReadings.put(Constants.PHONE_TIMESTAMP_HOUR, cutoffInterpolatedTimestamp);
 
                         liveReadings.put(Constants.RESPECK_BATTERY_PERCENT,
                                 intent.getFloatExtra(Constants.RESPECK_BATTERY_PERCENT, Float.NaN));
@@ -368,7 +418,12 @@ public class MainActivity extends BaseActivity {
                     case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
                         HashMap<String, Float> readings = (HashMap<String, Float>) intent.getSerializableExtra(
                                 Constants.AIRSPECK_ALL_MEASURES);
-                        sendMessageToHandler(UPDATE_QOE_READINGS, readings);
+                        // Even though the timestamp was recorded as a long, we are only interested in the float
+                        // value here!
+                        readings.put(Constants.PHONE_TIMESTAMP_HOUR,
+                                Utils.onlyKeepTimeInHour(
+                                        intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0L)));
+                        sendMessageToHandler(UPDATE_AIRSPECK_READINGS, readings);
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
                         sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, null);
@@ -430,13 +485,14 @@ public class MainActivity extends BaseActivity {
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
+        /*
         // If Airspeck is disabled, disable all fragments related to its data. Overwrite settings above.
         if (!mIsAirspeckEnabled) {
             mShowSupervisedOverview = false;
             mShowSupervisedAirspeckReadings = false;
             mShowSupervisedAQGraphs = false;
         }
-
+        */
         mIsUploadDataToServer = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
     }
@@ -460,7 +516,7 @@ public class MainActivity extends BaseActivity {
                 supervisedTitles.add(getString(R.string.menu_air_quality));
             }
             if (mShowSupervisedAQGraphs) {
-                supervisedFragments.add(mSupervisedAllGraphsFragment);
+                supervisedFragments.add(mSupervisedAQGraphsFragment);
                 supervisedTitles.add(getString(R.string.menu_graphs));
             }
             if (mShowSupervisedActivitySummary) {
@@ -502,8 +558,8 @@ public class MainActivity extends BaseActivity {
                     (SupervisedOverviewFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
             mSupervisedAirspeckReadingsFragment =
                     (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
-            mSupervisedAllGraphsFragment =
-                    (SupervisedAllGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
+            mSupervisedAQGraphsFragment =
+                    (SupervisedAQGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
             mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(savedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
             mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
@@ -522,8 +578,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedAirspeckReadingsFragment == null) {
             mSupervisedAirspeckReadingsFragment = new SupervisedAirspeckReadingsFragment();
         }
-        if (mSupervisedAllGraphsFragment == null) {
-            mSupervisedAllGraphsFragment = new SupervisedAllGraphsFragment();
+        if (mSupervisedAQGraphsFragment == null) {
+            mSupervisedAQGraphsFragment = new SupervisedAQGraphsFragment();
         }
         if (mSupervisedActivitySummaryFragment == null) {
             mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
@@ -703,8 +759,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedAirspeckReadingsFragment != null && mSupervisedAirspeckReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mSupervisedAirspeckReadingsFragment);
         }
-        if (mSupervisedAllGraphsFragment != null && mSupervisedAllGraphsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAllGraphsFragment);
+        if (mSupervisedAQGraphsFragment != null && mSupervisedAQGraphsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAQGraphsFragment);
         }
         if (mSupervisedActivitySummaryFragment != null && mSupervisedActivitySummaryFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mSupervisedActivitySummaryFragment);
@@ -809,7 +865,7 @@ public class MainActivity extends BaseActivity {
         mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
         mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
 
-        mRespeckSensorReadings.put(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP, 0f);
+        mRespeckSensorReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
@@ -864,7 +920,7 @@ public class MainActivity extends BaseActivity {
             if (mShowSupervisedRESpeckReadings || mShowSubjectWindmill) {
                 // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
                 BreathingGraphData breathingGraphData = new BreathingGraphData(
-                        mRespeckSensorReadings.get(Constants.RESPECK_INTERPOLATED_PHONE_TIMESTAMP),
+                        mRespeckSensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR),
                         mRespeckSensorReadings.get(Constants.RESPECK_X),
                         mRespeckSensorReadings.get(Constants.RESPECK_Y),
                         mRespeckSensorReadings.get(Constants.RESPECK_Z),
@@ -904,31 +960,32 @@ public class MainActivity extends BaseActivity {
                 mSupervisedAirspeckReadingsFragment.setReadings(values);
 
                 // Graphs fragment UI
-                ArrayList<Float> listValues = new ArrayList<>();
+                ArrayList<Float> binValues = new ArrayList<>();
 
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
-                listValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
+                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
 
-                mSupervisedAllGraphsFragment.setBinsChartData(listValues);
+                mSupervisedAQGraphsFragment.setBinsChartData(binValues);
 
-                mSupervisedAllGraphsFragment.addPMsChartData(new SupervisedAllGraphsFragment.PMs(
-                        mQOESensorReadings.get(Constants.QOE_PM1),
-                        mQOESensorReadings.get(Constants.QOE_PM2_5),
-                        mQOESensorReadings.get(Constants.QOE_PM10)));
+                mSupervisedAQGraphsFragment.addPMsChartData(new SupervisedAQGraphsFragment.PMs(
+                                mQOESensorReadings.get(Constants.QOE_PM1),
+                                mQOESensorReadings.get(Constants.QOE_PM2_5),
+                                mQOESensorReadings.get(Constants.QOE_PM10)),
+                                mQOESensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR));
             } else {
                 // Daphne values fragment
                 mSubjectValuesFragment.updateQOEReadings(mQOESensorReadings);
@@ -944,7 +1001,7 @@ public class MainActivity extends BaseActivity {
             mSupervisedOverviewFragment.showConnecting(isConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(isConnecting);
-            mSupervisedAllGraphsFragment.showConnecting(isConnecting);
+            mSupervisedAQGraphsFragment.showConnecting(isConnecting);
         }
     }
 
