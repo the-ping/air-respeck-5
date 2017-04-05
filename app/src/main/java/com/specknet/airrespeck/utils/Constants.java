@@ -42,6 +42,7 @@ public class Constants {
         public static final String IS_UPLOAD_DATA_TO_SERVER = "UploadToServer";
         public static final String IS_STORE_DATA_LOCALLY = "StoreDataLocally";
         public static final String IS_STORE_MERGED_FILE = "StoreMergedFile";
+        public static final String IS_SHOW_DUMMY_AIRSPECK_DATA = "ShowDummyAirspeckData";
     }
 
     /**

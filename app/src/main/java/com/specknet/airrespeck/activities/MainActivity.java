@@ -305,8 +305,12 @@ public class MainActivity extends BaseActivity {
         startActivitySummaryUpdaterTask();
         startBreathingGraphUpdaterTask();
 
-        // This is used for testing the AQ graphs without an Airspeck
-        startDummyAirspeckDataTask();
+        // Do we show Airspeck dummy data?
+        boolean showDummyAirspeck = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_DUMMY_AIRSPECK_DATA));
+        if (!mIsAirspeckEnabled && showDummyAirspeck) {
+            startDummyAirspeckDataTask();
+        }
     }
 
     private void startDummyAirspeckDataTask() {
