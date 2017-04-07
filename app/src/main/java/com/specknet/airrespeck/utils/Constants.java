@@ -256,11 +256,16 @@ public class Constants {
     /*
     Others
      */
-    // The typical difference between two RESpeck packets determined by looking at a sample of consecutive timestamps
-    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = 2535;
-    // This was set as a compromise between optimising communication frequency (as low as possible) #
+    // This was set as a compromise between optimising communication frequency (as low as possible)
     // and update frequency (as high as possible)
     public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
+    public static final double SAMPLING_FREQUENCY = 12.5;
+
+    // The typical difference between two RESpeck packets dependent on the number of samples per batch
+    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = (int) Math.round(
+            NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
+
+    public static final long TIME_TO_NEXT_TIMESTAMP_SYNCHRONISATION = 1000 * 60 * 60 * 24;
 
     /**
      * Storage
@@ -274,24 +279,24 @@ public class Constants {
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
-    public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0,"+
+    public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String AIRSPECK_DATA_HEADER_ALL = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3,"+
-            "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total,"+
+    public static final String AIRSPECK_DATA_HEADER_ALL = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3," +
+            "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String MERGED_DATA_HEADER_SUBSET = "interpolatedPhoneTimestamp,"+
+    public static final String MERGED_DATA_HEADER_SUBSET = "interpolatedPhoneTimestamp," +
             "respeckTimestamp.sequenceNumber,x,y,z," +
-            "breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,temperature,humidity,no2,"+
+            "breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,temperature,humidity,no2," +
             "o3,bin0,gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String MERGED_DATA_HEADER_ALL = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,"+
+    public static final String MERGED_DATA_HEADER_ALL = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber," +
             "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,pm1,pm2_5,pm10," +
-            "temperature,humidity,no2,o3,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,"+
+            "temperature,humidity,no2,o3,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13," +
             "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String ACTIVITY_SUMMARY_HEADER = "timestamp_end_of_10_minutes,percentage_standing_sitting,"+
+    public static final String ACTIVITY_SUMMARY_HEADER = "timestamp_end_of_10_minutes,percentage_standing_sitting," +
             "percentage_walking,percentage_lying";
 
     /*

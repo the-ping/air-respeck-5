@@ -100,12 +100,10 @@ public class SpeckBluetoothService extends Service {
 
     // RESPECK CODE
     private int latestPacketSequenceNumber = -1;
-    private long currentPhoneTimestamp = -1;
+    private long mPhoneTimestampCurrentPacketReceived = -1;
+    private long mPhoneTimestampLastPacketReceived = -1;
     private long mRESpeckTimestampCurrentPacketReceived = -1;
     private Queue<RESpeckStoredSample> storedQueue;
-
-    private long phoneTimestampPreviousPacketReceived = -1;
-    private long phoneTimestampCurrentPacketReceived = -1;
 
     private long latestProcessedMinute = 0L;
     private int currentSequenceNumberInBatch = -1;
@@ -115,7 +113,6 @@ public class SpeckBluetoothService extends Service {
     private int latestStoredRespeckSeq = -1;
 
     // BATTERY MONITORING
-
     private static final int PROMPT_TO_CHARGE_LEVEL = 1152;
     private static final int BATTERY_FULL_LEVEL = 1152; // was 1139
     private static final int BATTERY_EMPTY_LEVEL = 889;
@@ -127,6 +124,12 @@ public class SpeckBluetoothService extends Service {
     private Utils mUtils;
     private LocationUtils mLocationUtils;
 
+    // Timestamp synchronisation
+    private long lastRESpeckTimestampSynchronisationTime = -1;
+    private long mRESpeckPhoneTimestampSynchroDiff = -1;
+    private boolean mIsCurrentlyTimestampSynchronise;
+    private long mLastRESpeckTimestampDiff;
+
     public SpeckBluetoothService() {
 
     }
@@ -135,6 +138,7 @@ public class SpeckBluetoothService extends Service {
     public void onCreate() {
         super.onCreate();
         /*
+        // TODO: Code for running service in foreground so it doesn't close/restart when app is closed. This doesn't work yet.
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -728,27 +732,50 @@ public class SpeckBluetoothService extends Service {
                         Byte ts_3 = accelBytes[i + 3];
                         Byte ts_4 = accelBytes[i + 4];
 
-                        Long respeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3,
+                        Long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3,
                                 ts_4) * 197 / 32768;
-                        if (respeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
+                        if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
                             Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
                             return;
                         }
-                        mRESpeckTimestampCurrentPacketReceived = respeckTimestamp;
+                        Long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
+                        mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
-                        currentPhoneTimestamp = Utils.getUnixTimestamp();
-
-                        if (phoneTimestampPreviousPacketReceived == -1) {
+                        Long newPhoneTimestamp = Utils.getUnixTimestamp();
+                        if (mPhoneTimestampCurrentPacketReceived == -1) {
                             // If this is our first sequence, we use the typical time difference between the
                             // RESpeck packets for determining the previous timestamp
-                            phoneTimestampPreviousPacketReceived = currentPhoneTimestamp -
+                            mPhoneTimestampLastPacketReceived = newPhoneTimestamp -
                                     Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS;
                         } else {
-                            phoneTimestampPreviousPacketReceived = phoneTimestampCurrentPacketReceived;
+                            mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
                         }
+                        mPhoneTimestampCurrentPacketReceived = newPhoneTimestamp;
 
-                        phoneTimestampCurrentPacketReceived = currentPhoneTimestamp;
+                        // Resynchronise timestamps. This is done by waiting until there are three consecutive RESpeck
+                        // timestamps with a difference of 3 seconds each. The middle timestamp will then be very
+                        // close to the actual timestamp (plus the delay of transmission which we ignore)
+                        Log.i("Timestamp synchronise",
+                                "Time diff all: " + (mPhoneTimestampCurrentPacketReceived -
+                                        mRESpeckTimestampCurrentPacketReceived * 1000));
+
+                        if (mIsCurrentlyTimestampSynchronise) {
+                            int currentRESpeckTimestampDiff = (int) (mRESpeckTimestampCurrentPacketReceived - lastRESpeckTimestamp);
+                            if (currentRESpeckTimestampDiff == 3 && mLastRESpeckTimestampDiff == 3) {
+                                mRESpeckPhoneTimestampSynchroDiff = mPhoneTimestampLastPacketReceived - lastRESpeckTimestamp * 1000;
+                                lastRESpeckTimestampSynchronisationTime = mPhoneTimestampCurrentPacketReceived;
+                                mIsCurrentlyTimestampSynchronise = false;
+                                Log.i("Timestamp synchronise",
+                                        "Synchronise diff: " + mRESpeckPhoneTimestampSynchroDiff);
+                            }
+                            mLastRESpeckTimestampDiff = currentRESpeckTimestampDiff;
+                        } else if (mPhoneTimestampCurrentPacketReceived - lastRESpeckTimestampSynchronisationTime > 30000) {
+                            // If the last RESpeck <-> phone timestamp synchronisation was more than one day ago, resynchronise!
+                            // Calculate difference between current and last received packet
+                            mLastRESpeckTimestampDiff = mRESpeckTimestampCurrentPacketReceived - lastRESpeckTimestamp;
+                            mIsCurrentlyTimestampSynchronise = true;
+                        }
 
                         currentSequenceNumberInBatch = 0;
 
@@ -759,7 +786,8 @@ public class SpeckBluetoothService extends Service {
                             // the RESpeck was disconnected from the phone? Comment above if applicable!
                             RESpeckStoredSample s = storedQueue.remove();
 
-                            Long currentTimeOffset = currentPhoneTimestamp / 1000 -
+                            // TODO: why do we need the offset of the livedata for the stored sample?
+                            Long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
                                     mRESpeckTimestampCurrentPacketReceived;
 
                             Log.i("stored", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
@@ -782,6 +810,11 @@ public class SpeckBluetoothService extends Service {
                         }
 
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
+                        // Only do something with data if the timestamps are synchronised
+                        if (!isRESpeckTimestampSynchronised()) {
+                            return;
+                        }
+
                         //Log.v("DF", "Acceleration packet received from RESpeck");
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
                         // packets before the first timestamp
@@ -801,12 +834,12 @@ public class SpeckBluetoothService extends Service {
                             // Calculate interpolated timestamp of current sample based on sequence number
                             // There are 32 samples in each acceleration batch the RESpeck sends.
                             long interpolatedPhoneTimestampOfCurrentSample = (long)
-                                    ((phoneTimestampCurrentPacketReceived - phoneTimestampPreviousPacketReceived) *
+                                    ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) *
                                             (currentSequenceNumberInBatch * 1. /
                                                     Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
-                                    phoneTimestampPreviousPacketReceived;
+                                    mPhoneTimestampLastPacketReceived;
                             /*
-                            Log.i("2", "BS_TIMESTAMP " + String.valueOf(currentPhoneTimestamp));
+                            Log.i("2", "BS_TIMESTAMP " + String.valueOf(mPhoneTimestampCurrentPacketReceived));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(mRESpeckTimestampCurrentPacketReceived));
                             Log.i("2", "Interpolated timestamp " + String.valueOf(
                                     cutoffInterpolatedTimestamp));
@@ -850,7 +883,8 @@ public class SpeckBluetoothService extends Service {
 
                             // Every full minute, calculate the average breathing rate in that minute. This value will
                             // only change after a call to "calculateMedianAverageBreathing".
-                            long currentProcessedMinute = DateUtils.truncate(new Date(currentPhoneTimestamp),
+                            long currentProcessedMinute = DateUtils.truncate(new Date(
+                                            mPhoneTimestampCurrentPacketReceived),
                                     Calendar.MINUTE).getTime();
                             if (currentProcessedMinute != latestProcessedMinute) {
                                 calculateMedianAverageBreathing();
@@ -967,10 +1001,13 @@ public class SpeckBluetoothService extends Service {
                     //Log.i("RAT", "BREATH AVERAGES: " + Arrays.toString(breath_averages));
                     //updateTextBox("Breath Averages: " + Arrays.toString(breath_averages));
                 }
-
             }
         }
     };
+
+    private boolean isRESpeckTimestampSynchronised() {
+        return lastRESpeckTimestampSynchronisationTime != -1;
+    }
 
     private long combineTimestampBytes(Byte upper, Byte upper_middle, Byte lower_middle, Byte lower) {
         short unsigned_upper = (short) (upper & 0xFF);

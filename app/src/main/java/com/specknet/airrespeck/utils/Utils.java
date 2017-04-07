@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.datamodels.User;
@@ -144,19 +145,21 @@ public final class Utils {
      */
     private void loadPropertiesFile(final String fileName) {
         try {
+            mProperties = new Properties();
+
             // Load file
             File file = new File(Environment.getExternalStorageDirectory(), fileName);
             InputStream inputStream = new FileInputStream(file);
 
             // Load file stream
-            mProperties = new Properties();
             mProperties.load(inputStream);
             Log.i("DF", "Loaded properties file");
         } catch (FileNotFoundException e) {
-            Log.i("DF", "Properties file not found.");
+            Toast.makeText(mContext, "Properties file not found", Toast.LENGTH_LONG).show();
+            Log.e("DF", "Properties file not found.");
             e.printStackTrace();
         } catch (IOException e) {
-            Log.i("DF", "Cannot load properties file.");
+            Log.e("DF", "Cannot load properties file.");
             e.printStackTrace();
         }
     }

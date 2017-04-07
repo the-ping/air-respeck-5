@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
@@ -255,9 +256,6 @@ public class MainActivity extends BaseActivity {
             isSupervisedMode = false;
         } else if (mIsSupervisedModeEnabled) {
             isSupervisedMode = true;
-        } else {
-            throw new RuntimeException(
-                    "Neither subject more, nor supervised mode enabled in Configs. Nothing to display!");
         }
 
         // Call displayMode methods so the tabs are set correctly
@@ -460,6 +458,14 @@ public class MainActivity extends BaseActivity {
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
         mIsSubjectModeEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUBJECT_MODE_ENABLED));
+
+        if (!mIsSubjectModeEnabled && !mIsSupervisedModeEnabled) {
+            Log.e("DF", "Neither subject more, nor supervised mode enabled in config file");
+            Toast.makeText(getApplicationContext(),
+                    "Neither subject more, nor supervised mode are enabled in config file. Showing subject mode as default.",
+                    Toast.LENGTH_LONG).show();
+            mIsSubjectModeEnabled = true;
+        }
 
         // Load supervised mode config if enabled
         if (mIsSupervisedModeEnabled) {
@@ -989,7 +995,7 @@ public class MainActivity extends BaseActivity {
                                 mQOESensorReadings.get(Constants.QOE_PM1),
                                 mQOESensorReadings.get(Constants.QOE_PM2_5),
                                 mQOESensorReadings.get(Constants.QOE_PM10)),
-                                mQOESensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR));
+                        mQOESensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR));
             } else {
                 // Daphne values fragment
                 mSubjectValuesFragment.updateQOEReadings(mQOESensorReadings);
