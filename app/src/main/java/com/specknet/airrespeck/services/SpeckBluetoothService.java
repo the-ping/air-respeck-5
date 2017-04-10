@@ -24,7 +24,6 @@ import android.widget.Toast;
 
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -122,7 +121,6 @@ public class SpeckBluetoothService extends Service {
 
     // References to Context and Utils
     private Utils mUtils;
-    private LocationUtils mLocationUtils;
 
     // Timestamp synchronisation
     private long lastRESpeckTimestampSynchronisationTime = -1;
@@ -207,9 +205,9 @@ public class SpeckBluetoothService extends Service {
         mIsStoreMergedFile = (Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && mIsAirspeckEnabled);
 
-        // Get reference to LocationUtils
-        mLocationUtils = LocationUtils.getInstance(getApplicationContext());
-        mLocationUtils.startLocationManager();
+        // Look whether Airspeck is enabled in config
+        mIsAirspeckEnabled = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
         // Initialise stored queue
         storedQueue = new LinkedList<>();
@@ -307,6 +305,7 @@ public class SpeckBluetoothService extends Service {
 
         // Close the OutputWritingStreams
         try {
+            mActivitySummaryWriter.close();
             if (mRespeckWriter != null) {
                 Log.i("DF", "Respeck writer was closed");
                 mRespeckWriter.close();
@@ -539,18 +538,6 @@ public class SpeckBluetoothService extends Service {
                     // Get timestamp
                     long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
-                    // Get location
-                    double latitude = -1;
-                    double longitude = -1;
-                    double altitude = -1;
-                    try {
-                        latitude = mLocationUtils.getLatitude();
-                        longitude = mLocationUtils.getLongitude();
-                        altitude = mLocationUtils.getAltitude();
-                    } catch (Exception e) {
-                        Log.i("[QOE]", "Location permissions not granted or GPS turned off. Store empty values.");
-                    }
-
                     //Log.i("[GPS]",
                     //        String.format("Gps signal: lat %.4f, long %.4f, alt %.4f", latitude, longitude, altitude));
 
@@ -590,13 +577,8 @@ public class SpeckBluetoothService extends Service {
                     if (mIsStoreDataLocally) {
                         String storedLine;
 
-                        String location;
-                        if (longitude == -1) {
-                            location = ",,";
-                        } else {
-                            location = longitude + "," + latitude + "," + altitude;
-                        }
-                        Log.i("[GPS]", "Gps signal: " + location);
+                        // TODO: get real location from new Airspeck
+                        String location = "";
 
                         if (mIsStoreAllAirspeckFields) {
                             storedLine = currentPhoneTimestamp + "," + pm1 + "," + pm2_5 + "," + pm10 + "," +
@@ -732,17 +714,17 @@ public class SpeckBluetoothService extends Service {
                         Byte ts_3 = accelBytes[i + 3];
                         Byte ts_4 = accelBytes[i + 4];
 
-                        Long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3,
+                        long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3,
                                 ts_4) * 197 / 32768;
                         if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
                             Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
                             return;
                         }
-                        Long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
+                        long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
                         mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
-                        Long newPhoneTimestamp = Utils.getUnixTimestamp();
+                        long newPhoneTimestamp = Utils.getUnixTimestamp();
                         if (mPhoneTimestampCurrentPacketReceived == -1) {
                             // If this is our first sequence, we use the typical time difference between the
                             // RESpeck packets for determining the previous timestamp
@@ -756,9 +738,14 @@ public class SpeckBluetoothService extends Service {
                         // Resynchronise timestamps. This is done by waiting until there are three consecutive RESpeck
                         // timestamps with a difference of 3 seconds each. The middle timestamp will then be very
                         // close to the actual timestamp (plus the delay of transmission which we ignore)
-                        Log.i("Timestamp synchronise",
-                                "Time diff all: " + (mPhoneTimestampCurrentPacketReceived -
-                                        mRESpeckTimestampCurrentPacketReceived * 1000));
+                        long currentTimestampDiff = (mPhoneTimestampCurrentPacketReceived -
+                                mRESpeckTimestampCurrentPacketReceived * 1000);
+                        Log.i("Timestamp synchronise", "Time diff all: " + mPhoneTimestampCurrentPacketReceived + "," +
+                                Long.toString(currentTimestampDiff));
+
+                        Utils.writeToFile(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH + "timestamp_diff.csv",
+                                mPhoneTimestampCurrentPacketReceived + "," +
+                                        Long.toString(currentTimestampDiff) + "\n");
 
                         if (mIsCurrentlyTimestampSynchronise) {
                             int currentRESpeckTimestampDiff = (int) (mRESpeckTimestampCurrentPacketReceived - lastRESpeckTimestamp);
@@ -767,7 +754,11 @@ public class SpeckBluetoothService extends Service {
                                 lastRESpeckTimestampSynchronisationTime = mPhoneTimestampCurrentPacketReceived;
                                 mIsCurrentlyTimestampSynchronise = false;
                                 Log.i("Timestamp synchronise",
-                                        "Synchronise diff: " + mRESpeckPhoneTimestampSynchroDiff);
+                                        "Synchronise diff: " + mPhoneTimestampCurrentPacketReceived + "," +
+                                                Long.toString(mRESpeckPhoneTimestampSynchroDiff));
+                                Utils.writeToFile(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH + "timestamp_sync.csv",
+                                        mPhoneTimestampCurrentPacketReceived + "," +
+                                                Long.toString(mRESpeckPhoneTimestampSynchroDiff) + "\n");
                             }
                             mLastRESpeckTimestampDiff = currentRESpeckTimestampDiff;
                         } else if (mPhoneTimestampCurrentPacketReceived - lastRESpeckTimestampSynchronisationTime > 30000) {
@@ -787,7 +778,7 @@ public class SpeckBluetoothService extends Service {
                             RESpeckStoredSample s = storedQueue.remove();
 
                             // TODO: why do we need the offset of the livedata for the stored sample?
-                            Long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
+                            long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
                                     mRESpeckTimestampCurrentPacketReceived;
 
                             Log.i("stored", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
@@ -1041,7 +1032,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void startActivityClassificationTask() {
-        // We want to summarise predictions every 10 minutes.
+        // We want to summarise predictions every 10 minutes. (we count the 2 second updates)
         final int SUMMARY_COUNT_MAX = (int) (10 * 60 / 2.);
 
         // How often do we update the activity classification?
@@ -1069,13 +1060,13 @@ public class SpeckBluetoothService extends Service {
                 // If the temporary prediction recording is full, i.e. count is MAX, we
                 // write the summarised data into another external file and empty the temporary file.
                 if (summaryCounter == SUMMARY_COUNT_MAX) {
-
                     String lineToWrite = getCurrentTimeStamp() + "," +
                             Math.round(temporaryStoragePredictions[0] * 100. / SUMMARY_COUNT_MAX) + "," +
                             Math.round(temporaryStoragePredictions[1] * 100. / SUMMARY_COUNT_MAX) + "," +
                             Math.round(temporaryStoragePredictions[2] * 100. / SUMMARY_COUNT_MAX) + "\n";
                     try {
                         mActivitySummaryWriter.append(lineToWrite);
+                        mActivitySummaryWriter.flush();
                     } catch (IOException e) {
                         Log.e("DF", "Activity summary file write failed: " + e.toString());
                     }

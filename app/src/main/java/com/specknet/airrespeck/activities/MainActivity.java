@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +31,7 @@ import com.crashlytics.android.ndk.CrashlyticsNdk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
+import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
@@ -41,11 +43,11 @@ import com.specknet.airrespeck.fragments.SupervisedAQGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
+import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.LocationUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.lang.ref.WeakReference;
@@ -170,10 +172,10 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSubjectValues;
     private boolean mShowSubjectWindmill;
     private boolean mIsUploadDataToServer;
+    private boolean mIsStorePhoneGPS;
 
     // UTILS
     private Utils mUtils;
-    private LocationUtils mLocationUtils;
 
     // Layout view for snack bar
     private CoordinatorLayout mCoordinatorLayout;
@@ -203,6 +205,10 @@ public class MainActivity extends BaseActivity {
     ArrayList<String> subjectTitles = new ArrayList<>();
 
     private boolean mIsWrongOrientationDialogDisplayed = false;
+    private boolean mIsGPSDialogDisplayed = false;
+
+    private boolean mIsActivityRunning = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,9 +238,14 @@ public class MainActivity extends BaseActivity {
         // Load configuration
         loadConfig();
 
-        // Load location Utils
-        mLocationUtils = LocationUtils.getInstance(getApplicationContext());
-        mLocationUtils.startLocationManager();
+        // Start GPS tasks
+        if (mIsStorePhoneGPS) {
+            // Start task to regularly check if GPS is still turned on.
+            startGPSCheckTask();
+            // Start the service which will regularly check GPS and store the data
+            Intent startGPSServiecIntent = new Intent(this, PhoneGPSService.class);
+            startService(startGPSServiecIntent);
+        }
 
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
@@ -309,6 +320,42 @@ public class MainActivity extends BaseActivity {
         if (!mIsAirspeckEnabled && showDummyAirspeck) {
             startDummyAirspeckDataTask();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mIsActivityRunning = true;
+    }
+
+    @Override
+    protected void onPause() {
+        mIsActivityRunning = false;
+        super.onPause();
+    }
+
+    private void startGPSCheckTask() {
+        final Handler h = new Handler();
+        final int delay = 20000; //milliseconds
+
+        h.postDelayed(new Runnable() {
+            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+            public void run() {
+                // Check if GPS is turned on
+                Log.i("DF", "Check if GPS is turned on");
+                if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(LocationManager.GPS_PROVIDER) && mIsActivityRunning) {
+                    mIsGPSDialogDisplayed = true;
+                    DialogFragment turnGPSOnDialog = new TurnGPSOnDialog();
+                    turnGPSOnDialog.show(getFragmentManager(), "turn_gps_on_dialog");
+                }
+                h.postDelayed(this, delay);
+            }
+        }, 0);
+    }
+
+    public void setIsGPSDialogDisplayed(boolean isDisplayed) {
+        mIsGPSDialogDisplayed = isDisplayed;
     }
 
     private void startDummyAirspeckDataTask() {
@@ -491,20 +538,14 @@ public class MainActivity extends BaseActivity {
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_WINDMILL));
         }
 
-
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
-        /*
-        // If Airspeck is disabled, disable all fragments related to its data. Overwrite settings above.
-        if (!mIsAirspeckEnabled) {
-            mShowSupervisedOverview = false;
-            mShowSupervisedAirspeckReadings = false;
-            mShowSupervisedAQGraphs = false;
-        }
-        */
         mIsUploadDataToServer = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
+
+        mIsStorePhoneGPS = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_PHONE_GPS));
     }
 
     private void setupViewPager() {
@@ -725,19 +766,8 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        // Start location manager
-        mLocationUtils.startLocationManager();
-    }
-
-    @Override
     public void onDestroy() {
         stopServices();
-
-        // Stop location manager
-        mLocationUtils.stopLocationManager();
 
         // Unregister receivers
         unregisterReceiver(mSpeckServiceReceiver);
@@ -754,6 +784,8 @@ public class MainActivity extends BaseActivity {
         stopService(intentStopUploadRespeck);
         Intent intentStopUploadAirspeck = new Intent(this, QOERemoteUploadService.class);
         stopService(intentStopUploadAirspeck);
+        Intent intentStopGPSService = new Intent(this, PhoneGPSService.class);
+        stopService(intentStopGPSService);
     }
 
     @Override
@@ -1024,7 +1056,7 @@ public class MainActivity extends BaseActivity {
         // If the sensor is in the wrong orientation, show a dialog
         if (!mIsWrongOrientationDialogDisplayed) {
             int activityType = Math.round(newValues.get(Constants.RESPECK_ACTIVITY_TYPE));
-            if (activityType == Constants.WRONG_ORIENTATION) {
+            if (activityType == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
                 mIsWrongOrientationDialogDisplayed = true;
                 DialogFragment mWrongOrientationDialog = new WrongOrientationDialog();
                 mWrongOrientationDialog.show(getFragmentManager(), "wrong_orientation_dialog");

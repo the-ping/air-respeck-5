@@ -1,10 +1,10 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
+import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.http.HttpApi;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -33,6 +34,7 @@ import retrofit2.Response;
 public class InitialSetupActivity extends BaseActivity {
 
     private AutoUpdateApk aua;
+    private boolean mIsStoreGPS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +63,7 @@ public class InitialSetupActivity extends BaseActivity {
                 boolean created = directory.mkdirs();
                 // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
                 // scanFile should force the indexation of the new directory.
-                MediaScannerConnection.scanFile(this, new String[] { directory.toString() }, null,
+                MediaScannerConnection.scanFile(this, new String[]{directory.toString()}, null,
                         new MediaScannerConnection.OnScanCompletedListener() {
                             public void onScanCompleted(String path, Uri uri) {
                                 Log.i("ExternalStorage", "Scanned " + path + ":");
@@ -125,7 +127,6 @@ public class InitialSetupActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-
         setupUser();
 
         // NOTE: This will not be used on initial deployment of the application. Instead, a user

@@ -392,4 +392,15 @@ public final class Utils {
         }
         return floatArray;
     }
+
+    public static void writeToFile(String filename, String line) {
+        OutputStreamWriter writer;
+        try {
+            writer = new OutputStreamWriter(new FileOutputStream(filename, true));
+            writer.append(line);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

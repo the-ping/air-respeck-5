@@ -141,6 +141,13 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".services.PhoneGPSService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":phone_gps_service">
+        </service>
+
     </application>
 
 </manifest>

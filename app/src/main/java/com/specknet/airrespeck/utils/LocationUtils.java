@@ -3,6 +3,7 @@ package com.specknet.airrespeck.utils;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -54,14 +55,8 @@ public class LocationUtils implements
         Log.i("GPLOC", "Location Utils connected!");
         mLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        if (mLocation != null) {
-            String lat = Double.toString(mLocation.getLatitude());
-            String lon = Double.toString(mLocation.getLongitude());
-            Log.i("GPLOC", "Lat:" + lat + ", " + "lon:" + lon);
-
-            createLocationRequest();
-            startLocationUpdates();
-        }
+        createLocationRequest();
+        startLocationUpdates();
     }
 
     @Override
@@ -84,8 +79,8 @@ public class LocationUtils implements
     @Override
     public void onLocationChanged(Location location) {
         mLocation = location;
-        Log.e("GPLOC", "Location updated: " + Double.toString(location.getLatitude()) + ", " + Double.toString(
-                location.getLatitude()));
+        Log.e("GPLOC", "Location updated: " + location.getLongitude() + ", " + location.getLatitude() +
+                ", " + location.getAltitude());
     }
 
     @Override

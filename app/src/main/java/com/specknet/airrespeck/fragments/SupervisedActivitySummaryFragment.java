@@ -82,9 +82,8 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
     private List<String> loadSummaryValues() {
         List<String> readings = new ArrayList<>();
 
-        File summaryDirectory = new File(Environment.getExternalStorageDirectory(),
-                "/" + Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
-        final String filenameSummaryStorage = summaryDirectory + "/" + Constants.ACTIVITY_SUMMARY_FILE_PATH;
+        final String filenameSummaryStorage = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
+                Constants.ACTIVITY_SUMMARY_FILE_PATH;
 
         if (new File(filenameSummaryStorage).exists()) {
             try {

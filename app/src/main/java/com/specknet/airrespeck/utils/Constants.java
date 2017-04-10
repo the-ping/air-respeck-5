@@ -43,6 +43,7 @@ public class Constants {
         public static final String IS_STORE_DATA_LOCALLY = "StoreDataLocally";
         public static final String IS_STORE_MERGED_FILE = "StoreMergedFile";
         public static final String IS_SHOW_DUMMY_AIRSPECK_DATA = "ShowDummyAirspeckData";
+        public static final String IS_STORE_PHONE_GPS = "EnablePhoneLocationStorage";
     }
 
     /**
@@ -270,12 +271,12 @@ public class Constants {
     /**
      * Storage
      */
-    public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory(),
-            "/AirRespeck").getPath();
-    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Activity Summary.csv";
-    public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck/";
-    public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/Airspeck/";
-    public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "/RESpeck and Airspeck/";
+    public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory() +
+            "/AirRespeck").getPath() + "/";
+    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Activity Summary.csv";
+    public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck/";
+    public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Airspeck/";
+    public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck and Airspeck/";
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 

@@ -259,4 +259,7 @@
         Please fasten it as depicted in the image.</string>
     <string name="wrong_orientation_done">Done</string>
 
+    <!-- GPS dialog -->
+    <string name="gps_disabled_message">App requires GPS to be turned on.</string>
+
 </resources>
