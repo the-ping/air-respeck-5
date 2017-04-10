@@ -82,10 +82,13 @@ public class Constants {
 
 
     /**
-     * Google play: Location Manager
+     * GPS Phone update. The active update interval specifies the time in between active updates of the GPS location,
+     * i.e. how often the app explicitly asks for the location. The passive time specifies how often the app checks for
+     * updates which are calculated for other apps. This might be Google Maps running in the foreground. As the
+     * location is updated less than 5 seconds anyway, we can also use that location!
      */
-    public static final Long UPDATE_INTERVAL = 5000L;
-    public static final Long FASTEST_INTERVAL = 1000L;
+    public static final Long GPS_UPDATE_INTERVAL_ACTIVE = 5000L;
+    public static final Long GPS_UPDATE_INTERVAL_PASSIVE = 1000L;
 
 
     /**
@@ -299,6 +302,8 @@ public class Constants {
 
     public static final String ACTIVITY_SUMMARY_HEADER = "timestamp_end_of_10_minutes,percentage_standing_sitting," +
             "percentage_walking,percentage_lying";
+
+    public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude";
 
     /*
      * PCA zero mean signal calculation
