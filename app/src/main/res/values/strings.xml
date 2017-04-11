@@ -111,17 +111,12 @@
     <string name="action_subject_mode">Subject mode</string>
     <string name="action_close_app">Close app</string>
 
-
-
     <!-- Strings related to AirSpeck and RESpeck apps -->
     <string name="airspeck_not_found">AirSpeck app not found</string>
     <string name="respeck_not_found">RESpeck app not found</string>
 
-
-
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">Settings</string>
-
 
     <!-- Strings related to General Settings -->
     <string name="pref_category_ui_general">General</string>
@@ -261,5 +256,12 @@
 
     <!-- GPS dialog -->
     <string name="gps_disabled_message">App requires GPS to be turned on.</string>
+
+    <!-- Services -->
+    <string name="notification_gps_title">Airrespeck: GPS</string>
+    <string name="notification_gps_text">Airrespeck is collecting location information</string>
+
+    <string name="notification_speck_title">RESpeck and Airspeck</string>
+    <string name="notification_speck_text">Airrespeck is receiving data from the Speck sensors</string>
 
 </resources>

@@ -1,5 +1,7 @@
 package com.specknet.airrespeck.services;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -22,6 +24,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -128,6 +132,8 @@ public class SpeckBluetoothService extends Service {
     private boolean mIsCurrentlyTimestampSynchronise;
     private long mLastRESpeckTimestampDiff;
 
+    private final int SERVICE_NOTIFICATION_ID = 8598001;
+
     public SpeckBluetoothService() {
 
     }
@@ -157,11 +163,26 @@ public class SpeckBluetoothService extends Service {
             @Override
             public void run() {
                 Log.i("SpeckService", "Starting SpeckService...");
+                startInForeground();
                 initSpeckService();
                 startServiceAndBluetoothScanning();
             }
         }.start();
         return START_STICKY;
+    }
+
+    private void startInForeground() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Notification notification = new Notification.Builder(this)
+                .setContentTitle(getText(R.string.notification_speck_title))
+                .setContentText(getText(R.string.notification_speck_text))
+                .setSmallIcon(R.drawable.vec_wireless)
+                .setContentIntent(pendingIntent)
+                .build();
+
+        startForeground(SERVICE_NOTIFICATION_ID, notification);
     }
 
     @Override

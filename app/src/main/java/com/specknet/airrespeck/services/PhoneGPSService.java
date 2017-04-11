@@ -1,6 +1,8 @@
 package com.specknet.airrespeck.services;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,15 +19,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Timer;
 
 /**
  * Service which listens to GPS updates of the phone and stores the data on the external directory
@@ -39,6 +41,8 @@ public class PhoneGPSService extends Service implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private OutputStreamWriter mGPSWriter;
+    // Just in case there could be a conflict with another notification, we give it a high "random" integer
+    private final int SERVICE_NOTIFICATION_ID = 2148914;
 
     @Nullable
     @Override
@@ -52,6 +56,18 @@ public class PhoneGPSService extends Service implements
             @Override
             public void run() {
                 Log.i("GPS Service", "Starting GPS service...");
+                Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
+
+                Notification notification = new Notification.Builder(PhoneGPSService.this)
+                        .setContentTitle(getText(R.string.notification_gps_title))
+                        .setContentText(getText(R.string.notification_gps_text))
+                        .setSmallIcon(R.drawable.vec_location)
+                        .setContentIntent(pendingIntent)
+                        .build();
+
+                startForeground(SERVICE_NOTIFICATION_ID, notification);
+
                 mGoogleApiClient = new GoogleApiClient.Builder(PhoneGPSService.this)
                         .addConnectionCallbacks(PhoneGPSService.this)
                         .addOnConnectionFailedListener(PhoneGPSService.this)
