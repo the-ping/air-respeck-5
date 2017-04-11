@@ -765,8 +765,8 @@ public class SpeckBluetoothService extends Service {
                                 Long.toString(currentTimestampDiff));
 
                         Utils.writeToFile(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH + "timestamp_diff.csv",
-                                mPhoneTimestampCurrentPacketReceived + "," +
-                                        Long.toString(currentTimestampDiff) + "\n");
+                                mPhoneTimestampCurrentPacketReceived + "," + mRESpeckTimestampCurrentPacketReceived +
+                                        "," + Long.toString(currentTimestampDiff) + "\n");
 
                         if (mIsCurrentlyTimestampSynchronise) {
                             int currentRESpeckTimestampDiff = (int) (mRESpeckTimestampCurrentPacketReceived - lastRESpeckTimestamp);
@@ -778,8 +778,8 @@ public class SpeckBluetoothService extends Service {
                                         "Synchronise diff: " + mPhoneTimestampCurrentPacketReceived + "," +
                                                 Long.toString(mRESpeckPhoneTimestampSynchroDiff));
                                 Utils.writeToFile(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH + "timestamp_sync.csv",
-                                        mPhoneTimestampCurrentPacketReceived + "," +
-                                                Long.toString(mRESpeckPhoneTimestampSynchroDiff) + "\n");
+                                        mPhoneTimestampCurrentPacketReceived + "," + mRESpeckTimestampCurrentPacketReceived +
+                                                "," + Long.toString(mRESpeckPhoneTimestampSynchroDiff) + "\n");
                             }
                             mLastRESpeckTimestampDiff = currentRESpeckTimestampDiff;
                         } else if (mPhoneTimestampCurrentPacketReceived - lastRESpeckTimestampSynchronisationTime > 30000) {
