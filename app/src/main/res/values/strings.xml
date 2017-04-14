@@ -259,9 +259,9 @@
 
     <!-- Services -->
     <string name="notification_gps_title">Airrespeck: GPS</string>
-    <string name="notification_gps_text">Airrespeck is collecting location information</string>
+    <string name="notification_gps_text">Collecting location information</string>
 
     <string name="notification_speck_title">RESpeck and Airspeck</string>
-    <string name="notification_speck_text">Airrespeck is receiving data from the Speck sensors</string>
+    <string name="notification_speck_text">Listening for sensor data</string>
 
 </resources>

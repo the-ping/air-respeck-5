@@ -2,6 +2,7 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -82,12 +84,9 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
     private List<String> loadSummaryValues() {
         List<String> readings = new ArrayList<>();
 
-        final String filenameSummaryStorage = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
-                Constants.ACTIVITY_SUMMARY_FILE_PATH;
-
-        if (new File(filenameSummaryStorage).exists()) {
+        if (new File(Constants.ACTIVITY_SUMMARY_FILE_PATH).exists()) {
             try {
-                InputStream inputStream = new FileInputStream(filenameSummaryStorage);
+                InputStream inputStream = new FileInputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
                 DateFormat simpleFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK);
@@ -101,6 +100,8 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                 ArrayList<String> hourBeforeStats = new ArrayList<>();
 
                 String line;
+                // Jump over first line as that is the header!
+                bufferedReader.readLine();
                 while ((line = bufferedReader.readLine()) != null) {
                     String parts[] = line.split("\t");
                     String timestamp = parts[0];
@@ -139,7 +140,7 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
         int sumLying = 0;
 
         for (String line : lines) {
-            String[] parts = line.split("\t");
+            String[] parts = line.split(",");
             sumSitStand += Integer.parseInt(parts[1]);
             sumWalking += Integer.parseInt(parts[2]);
             sumLying += Integer.parseInt(parts[3]);

@@ -134,6 +134,8 @@ public class SpeckBluetoothService extends Service {
 
     private final int SERVICE_NOTIFICATION_ID = 8598001;
 
+    private ArrayList<Long> mTimestampMeanBuffer = new ArrayList<>();
+
     public SpeckBluetoothService() {
 
     }
@@ -756,6 +758,8 @@ public class SpeckBluetoothService extends Service {
                         }
                         mPhoneTimestampCurrentPacketReceived = newPhoneTimestamp;
 
+
+                        /*
                         // Resynchronise timestamps. This is done by waiting until there are three consecutive RESpeck
                         // timestamps with a difference of 3 seconds each. The middle timestamp will then be very
                         // close to the actual timestamp (plus the delay of transmission which we ignore)
@@ -769,6 +773,9 @@ public class SpeckBluetoothService extends Service {
                                         "," + Long.toString(currentTimestampDiff) + "\n");
 
                         if (mIsCurrentlyTimestampSynchronise) {
+                            if (mTimestampMeanBuffer.size() >= Constants.NUMBER_OF_TIMSTAMPS_FOR_SYNCHRONISATION) {
+                                Long meanTimestamp = Utils.mean(mTimestampMeanBuffer);
+                            }
                             int currentRESpeckTimestampDiff = (int) (mRESpeckTimestampCurrentPacketReceived - lastRESpeckTimestamp);
                             if (currentRESpeckTimestampDiff == 3 && mLastRESpeckTimestampDiff == 3) {
                                 mRESpeckPhoneTimestampSynchroDiff = mPhoneTimestampLastPacketReceived - lastRESpeckTimestamp * 1000;
@@ -785,9 +792,10 @@ public class SpeckBluetoothService extends Service {
                         } else if (mPhoneTimestampCurrentPacketReceived - lastRESpeckTimestampSynchronisationTime > 30000) {
                             // If the last RESpeck <-> phone timestamp synchronisation was more than one day ago, resynchronise!
                             // Calculate difference between current and last received packet
-                            mLastRESpeckTimestampDiff = mRESpeckTimestampCurrentPacketReceived - lastRESpeckTimestamp;
+                            mTimestampMeanBuffer = new ArrayList<>();
                             mIsCurrentlyTimestampSynchronise = true;
                         }
+                        */
 
                         currentSequenceNumberInBatch = 0;
 
@@ -823,9 +831,11 @@ public class SpeckBluetoothService extends Service {
 
                     } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
                         // Only do something with data if the timestamps are synchronised
+                        /*
                         if (!isRESpeckTimestampSynchronised()) {
                             return;
                         }
+                        */
 
                         //Log.v("DF", "Acceleration packet received from RESpeck");
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration

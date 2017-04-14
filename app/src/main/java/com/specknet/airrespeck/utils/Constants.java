@@ -312,4 +312,6 @@ public class Constants {
     public static final int NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION = 69;
     public static final int NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER = 7;
     public static final int NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER = 5;
+
+    public static final int NUMBER_OF_TIMSTAMPS_FOR_SYNCHRONISATION = 100;
 }

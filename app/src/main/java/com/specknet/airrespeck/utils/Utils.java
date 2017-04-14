@@ -356,6 +356,14 @@ public final class Utils {
         return sum / a.length;
     }
 
+    public static float mean(Long[] a) {
+        long sum = 0;
+        for (Long elem : a) {
+            sum += elem;
+        }
+        return sum / a.length;
+    }
+
     public static float mean(float[] a) {
         float sum = 0f;
         for (float elem : a) {
