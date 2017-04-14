@@ -14,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.lib.Segment;
 import com.specknet.airrespeck.lib.SegmentedBar;
 import com.specknet.airrespeck.lib.SegmentedBarSideTextStyle;
@@ -58,6 +59,7 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
 
         init();
         loadData();
+
     }
 
     @Override

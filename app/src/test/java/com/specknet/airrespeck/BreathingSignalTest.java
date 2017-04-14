@@ -130,7 +130,7 @@ public class BreathingSignalTest {
             measures[1] = service.getBreathingAngle();
             measures[2] = service.getBreathingRate();
             measures[3] = service.getActivityLevel();
-            service.calculateMedianAverageBreathing();
+            service.calculateAverageBreathing();
             measures[4] = service.getAverageBreathingRate();
             measures[5] = service.getStdDevBreathingRate();
             measures[6] = (float) service.getNumberOfBreaths();

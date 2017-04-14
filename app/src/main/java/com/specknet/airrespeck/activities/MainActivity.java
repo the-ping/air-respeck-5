@@ -204,6 +204,7 @@ public class MainActivity extends BaseActivity {
     ArrayList<Fragment> subjectFragments = new ArrayList<>();
     ArrayList<String> subjectTitles = new ArrayList<>();
 
+    private DialogFragment mWrongOrientationDialog;
     private boolean mIsWrongOrientationDialogDisplayed = false;
     private boolean mIsGPSDialogDisplayed = false;
 
@@ -1037,7 +1038,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void updateConnectionLoadingLayout() {
+    public void updateConnectionLoadingLayout() {
         boolean isConnecting = !mIsRESpeckConnected && (!mIsAirspeckEnabled || !mIsAirspeckConnected);
         if (isSupervisedMode) {
             mSupervisedOverviewFragment.showConnecting(isConnecting);
@@ -1054,12 +1055,18 @@ public class MainActivity extends BaseActivity {
      */
     private void updateRespeckReadings(HashMap<String, Float> newValues) {
         // If the sensor is in the wrong orientation, show a dialog
+        int activityType = Math.round(newValues.get(Constants.RESPECK_ACTIVITY_TYPE));
         if (!mIsWrongOrientationDialogDisplayed) {
-            int activityType = Math.round(newValues.get(Constants.RESPECK_ACTIVITY_TYPE));
             if (activityType == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
                 mIsWrongOrientationDialogDisplayed = true;
-                DialogFragment mWrongOrientationDialog = new WrongOrientationDialog();
+                mWrongOrientationDialog = new WrongOrientationDialog();
                 mWrongOrientationDialog.show(getFragmentManager(), "wrong_orientation_dialog");
+            }
+        } else {
+            // If the current activity is sitting or standing the sensor was put into the correct orientation,
+            // so we can dismiss the dialog
+            if (activityType == Constants.ACTIVITY_STAND_SIT) {
+                mWrongOrientationDialog.dismiss();
             }
         }
 

@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
@@ -79,6 +80,9 @@ public class BaseFragment extends Fragment {
                 restartFragment();
             }
         }
+
+        // Update connection symbol. Calls MainActivity to update all Fragments
+        ((MainActivity) getActivity()).updateConnectionLoadingLayout();
     }
 
     @Override

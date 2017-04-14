@@ -180,7 +180,7 @@ class RespeckRemoteUploadService : Service() {
                         jsonAverageData.put("messagetype", "respeck_processed")
                         jsonAverageData.put(Constants.RESPECK_TIMESTAMP_MINUTE_AVG,
                                 intent.getLongExtra(Constants.RESPECK_TIMESTAMP_MINUTE_AVG, 0))
-                        jsonAverageData.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                        jsonAverageData.put("breathing_rate",
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN)))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS,
                                 intent.getIntExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, 0))
