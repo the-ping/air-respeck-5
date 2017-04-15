@@ -12,7 +12,7 @@
 static BreathingMeasures breathing_buffer;
 static ThresholdBuffer threshold_buffer;
 static CurrentBreath current_breath;
-static BreathingRateStats breathing_rate_stats;
+static BreathingRateBuffer breathing_rate_stats;
 static float upper_threshold;
 static float lower_threshold;
 

@@ -4,7 +4,7 @@
 #include "breathing_rate_stats.h"
 #include <math.h>
 
-void initialise_breathing_rate_buffer(BreathingRateBuffer *breathing_rate_buffer) {
+void initialise_breathing_rate_stats(BreathingRateBuffer *breathing_rate_buffer) {
     breathing_rate_buffer->fill = 0;
     breathing_rate_buffer->is_valid = false;
 }

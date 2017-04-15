@@ -25,7 +25,7 @@ typedef struct {
     float min;
 } BreathingRateBuffer;
 
-void initialise_breathing_rate_buffer(BreathingRateBuffer *breathing_rate_buffer);
+void initialise_breathing_rate_stats(BreathingRateBuffer *breathing_rate_buffer);
 
 void update_breathing_rate_buffer(float breathing_rate, BreathingRateBuffer *breathing_rate_buffer);
 
