@@ -136,27 +136,13 @@ public class SpeckBluetoothService extends Service {
 
     private ArrayList<Long> mTimestampMeanBuffer = new ArrayList<>();
 
+    // Minuate average breathing stats
+    private float mAverageBreathingRate;
+    private float mStdDevBreathingRate;
+    private int mNumberOfBreaths;
+
     public SpeckBluetoothService() {
 
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        /*
-        // TODO: Code for running service in foreground so it doesn't close/restart when app is closed. This doesn't work yet.
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-        Notification notification = new Notification.Builder(this)
-                .setContentTitle(getText(R.string.service_notification_title))
-                .setContentText(getText(R.string.service_notification_message))
-                .setContentIntent(pendingIntent)
-                .setTicker(getText(R.string.service_notification_message))
-                .build();
-
-        startForeground(1, notification);
-        */
     }
 
     @Override
@@ -848,9 +834,6 @@ public class SpeckBluetoothService extends Service {
                             updateBreathing(x, y, z);
 
                             final float breathingRate = getBreathingRate();
-                            final float averageBreathingRate = getAverageBreathingRate();
-                            final float stdDevBreathingRate = getStdDevBreathingRate();
-                            final int numberOfBreaths = getNumberOfBreaths();
                             final float breathingSignal = getBreathingSignal();
                             final float breathingAngle = getBreathingAngle();
                             final float activityLevel = getActivityLevel();
@@ -864,6 +847,7 @@ public class SpeckBluetoothService extends Service {
                                                     Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
                                     mPhoneTimestampLastPacketReceived;
 
+                            /*
                             Log.i("2", "BS_TIMESTAMP " + String.valueOf(mPhoneTimestampCurrentPacketReceived));
                             Log.i("2", "RS_TIMESTAMP " + String.valueOf(mRESpeckTimestampCurrentPacketReceived));
                             Log.i("2", "Interpolated timestamp " + String.valueOf(
@@ -872,11 +856,11 @@ public class SpeckBluetoothService extends Service {
                             Log.i("2", "Breathing Rate " + String.valueOf(breathingRate));
                             Log.i("2", "Breathing Signal " + String.valueOf(breathingSignal));
                             Log.i("2", "Breathing Angle " + String.valueOf(breathingAngle));
-                            Log.i("2", "BRA " + String.valueOf(averageBreathingRate));
-                            Log.i("2", "STDBR " + String.valueOf(stdDevBreathingRate));
-                            Log.i("2", "NBreaths " + String.valueOf(numberOfBreaths));
+                            Log.i("2", "BRA " + String.valueOf(mAverageBreathingRate));
+                            Log.i("2", "STDBR " + String.valueOf(mStdDevBreathingRate));
+                            Log.i("2", "NBreaths " + String.valueOf(mNumberOfBreaths));
                             Log.i("2", "Activity Level " + String.valueOf(activityLevel));
-
+                            */
 
                             // Store the important data in the external storage if set in config
                             if (mIsStoreDataLocally) {
@@ -898,7 +882,7 @@ public class SpeckBluetoothService extends Service {
                             liveDataIntent.putExtra(Constants.RESPECK_Z, z);
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_RATE, breathingRate);
-                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, averageBreathingRate);
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, mAverageBreathingRate);
                             liveDataIntent.putExtra(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
                             liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, currentSequenceNumberInBatch);
                             liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
@@ -915,9 +899,9 @@ public class SpeckBluetoothService extends Service {
                             if (currentProcessedMinute != latestProcessedMinute) {
                                 calculateAverageBreathing();
 
-                                final float updatedAverageBreathingRate = getAverageBreathingRate();
-                                final float updatedStdDevBreathingRate = getStdDevBreathingRate();
-                                final int updatedNumberOfBreaths = getNumberOfBreaths();
+                                mAverageBreathingRate = getAverageBreathingRate();
+                                mStdDevBreathingRate = getStdDevBreathingRate();
+                                mNumberOfBreaths = getNumberOfBreaths();
 
                                 // Empty the minute average window
                                 resetMedianAverageBreathing();
@@ -929,10 +913,10 @@ public class SpeckBluetoothService extends Service {
                                 avgDataIntent.putExtra(Constants.RESPECK_TIMESTAMP_MINUTE_AVG,
                                         currentProcessedMinute);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
-                                        updatedAverageBreathingRate);
+                                        mAverageBreathingRate);
                                 avgDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
-                                        updatedStdDevBreathingRate);
-                                avgDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, updatedNumberOfBreaths);
+                                        mStdDevBreathingRate);
+                                avgDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, mNumberOfBreaths);
                                 sendBroadcast(avgDataIntent);
 
                                 /*

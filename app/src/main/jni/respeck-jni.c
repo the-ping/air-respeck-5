@@ -12,7 +12,7 @@
 static BreathingMeasures breathing_buffer;
 static ThresholdBuffer threshold_buffer;
 static CurrentBreath current_breath;
-static BreathingRateBuffer breathing_rate_stats;
+static BreathingRateStats breathing_rate_stats;
 static float upper_threshold;
 static float lower_threshold;
 
@@ -40,14 +40,14 @@ void Java_com_specknet_airrespeck_services_SpeckBluetoothService_updateBreathing
     update_breathing_measures(new_accel_data, &breathing_buffer);
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
-    // Adjust the rms threshold by some factor which was determined empirically on the Western General data
+    // Adjust the rms threshold by some factor. TODO: determine best factor
     upper_threshold = threshold_buffer.upper_threshold_value / 3.f;
     lower_threshold = threshold_buffer.lower_threshold_value / 3.f;
     update_breath(breathing_buffer.signal, upper_threshold, lower_threshold, &current_breath);
 
     // If the breathing rate has been updated, add it to the
     if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
-        update_breathing_rate_buffer(current_breath.breathing_rate, &breathing_rate_stats);
+        update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
         current_breath.is_complete = false;
     }
 }

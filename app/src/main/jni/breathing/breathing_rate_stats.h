@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define BREATHING_RATES_BUFFER_SIZE 32
+#define BREATHING_RATES_BUFFER_SIZE 50
 #define DISCARD_UPPER_BREATHING_RATES 2
 #define DISCARD_LOWER_BREATHING_RATES 2
 
@@ -23,20 +23,20 @@ typedef struct {
     float current_variance;
     float max;
     float min;
-} BreathingRateBuffer;
+} BreathingRateStats;
 
-void initialise_breathing_rate_stats(BreathingRateBuffer *breathing_rate_buffer);
+void initialise_breathing_rate_stats(BreathingRateStats *breathing_rate_stats);
 
-void update_breathing_rate_buffer(float breathing_rate, BreathingRateBuffer *breathing_rate_buffer);
+void update_breathing_rate_stats(float breathing_rate, BreathingRateStats *breathing_rate_stats);
 
-void calculate_breathing_rate_stats(BreathingRateBuffer *breathing_rate_buffer);
+void calculate_breathing_rate_stats(BreathingRateStats *breathing_rate_stats);
 
-int breathing_rate_number_of_breaths(BreathingRateBuffer *breathing_rate_buffer);
+int breathing_rate_number_of_breaths(BreathingRateStats *breathing_rate_buffer);
 
-float breathing_rate_mean(BreathingRateBuffer *breathing_rate_buffer);
+float breathing_rate_mean(BreathingRateStats *breathing_rate_buffer);
 
-float breathing_rate_variance(BreathingRateBuffer *breathing_rate_buffer);
+float breathing_rate_variance(BreathingRateStats *breathing_rate_stats);
 
-float breathing_rate_standard_deviation(BreathingRateBuffer *breathing_rate_buffer);
+float breathing_rate_standard_deviation(BreathingRateStats *breathing_rate_stats);
 
 #endif
