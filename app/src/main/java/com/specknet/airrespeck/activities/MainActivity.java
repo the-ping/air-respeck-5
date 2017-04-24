@@ -666,7 +666,7 @@ public class MainActivity extends BaseActivity {
 
     private void startBreathingGraphUpdaterTask() {
         final Handler handler = new Handler();
-        final int defaultDelay = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS /
+        final int defaultDelay = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS /
                 Constants.NUMBER_OF_SAMPLES_PER_BATCH;
         updateDelayBreathingGraph = defaultDelay;
 

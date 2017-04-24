@@ -265,9 +265,13 @@ public class Constants {
     public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
     public static final double SAMPLING_FREQUENCY = 12.5;
 
-    // The typical difference between two RESpeck packets dependent on the number of samples per batch
-    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS = (int) Math.round(
-            NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
+    // The typical difference between two RESpeck packets dependent on the number of samples per batch. If the
+    // sampling frequency were exactly 12.5, this would be 32/12.5*1000 = 2560. However, on a recording of 14 hours,
+    // the average time difference was closer to 2563.
+    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS = 2563;
+            // (int) Math.round(NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
+
+    public static final int MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP = 400;
 
     public static final long TIME_TO_NEXT_TIMESTAMP_SYNCHRONISATION = 1000 * 60 * 60 * 24;
 

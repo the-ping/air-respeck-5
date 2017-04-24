@@ -716,27 +716,50 @@ public class SpeckBluetoothService extends Service {
                         Byte ts_3 = accelBytes[i + 3];
                         Byte ts_4 = accelBytes[i + 4];
 
-                        long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3,
-                                ts_4) * 197 / 32768;
+                        long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
+                        // Multiply the timestamp by some factor. TODO: why this one?
+                        long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 / 32768;
                         if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
-                            Log.e("RAT", "DUPLICATE LIVE TIMESTAMP RECEIVED");
+                            Log.e("Speck Service", "RESpeck: duplicate live timestamp received");
                             return;
                         }
                         long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
                         mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
-                        long newPhoneTimestamp = Utils.getUnixTimestamp();
+                        long actualPhoneTimestamp = Utils.getUnixTimestamp();
+
                         if (mPhoneTimestampCurrentPacketReceived == -1) {
                             // If this is our first sequence, we use the typical time difference between the
                             // RESpeck packets for determining the previous timestamp
-                            mPhoneTimestampLastPacketReceived = newPhoneTimestamp -
-                                    Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_PACKETS;
+                            mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
+                                    Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
                         } else {
                             mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
                         }
-                        mPhoneTimestampCurrentPacketReceived = newPhoneTimestamp;
 
+                        long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
+                                Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+
+                        Log.i("Speck service", "extra: " + extrapolatedPhoneTimestamp);
+                        Log.i("Speck service", "actual: " + actualPhoneTimestamp);
+                        Log.i("Speck service",
+                                "diff between the two: " + Math.abs(actualPhoneTimestamp - extrapolatedPhoneTimestamp));
+
+                        // If the last timestamp plus the average time difference is more than
+                        // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
+                        // last plus the average time difference.
+                        if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
+                                Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
+                            Log.i("Speck service", "correction!");
+                            mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
+                        } else {
+                            Log.i("Speck service", "no correction!");
+                            mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
+                        }
+
+                        Log.i("Speck service", "Diff phone timestamps to last: " +
+                                (mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived));
 
                         /*
                         // Resynchronise timestamps. This is done by waiting until there are three consecutive RESpeck
