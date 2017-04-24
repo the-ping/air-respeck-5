@@ -110,9 +110,6 @@ public class SpeckBluetoothService extends Service {
 
     private long latestProcessedMinute = 0L;
     private int currentSequenceNumberInBatch = -1;
-    private long breathAveragePhoneTimestamp = -1;
-    private long breathAverageRESpeckTimestamp = -1;
-    private int breathAverageSequenceNumber = -1;
     private int latestStoredRespeckSeq = -1;
 
     // BATTERY MONITORING
@@ -122,9 +119,6 @@ public class SpeckBluetoothService extends Service {
     private final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
     private float mLatestBatteryPercent = 0f;
     private boolean mLatestRequestCharge = false;
-
-    // References to Context and Utils
-    private Utils mUtils;
 
     // Timestamp synchronisation
     private long lastRESpeckTimestampSynchronisationTime = -1;
@@ -193,9 +187,8 @@ public class SpeckBluetoothService extends Service {
      * Initiate Bluetooth adapter.
      */
     public void initSpeckService() {
-
         // Get references to Utils
-        mUtils = Utils.getInstance(getApplicationContext());
+        Utils mUtils = Utils.getInstance(getApplicationContext());
 
         // Look whether Airspeck is enabled in config
         mIsAirspeckEnabled = Boolean.parseBoolean(
@@ -789,19 +782,20 @@ public class SpeckBluetoothService extends Service {
                         // RESpeck.
                         while (!storedQueue.isEmpty()) {
                             // TODO: this doesn't seem to be reached? Is the queue only for the case when
-                            // the RESpeck was disconnected from the phone? Comment above if applicable!
+                            // the RESpeck was disconnected from the phone?
                             RESpeckStoredSample s = storedQueue.remove();
 
                             // TODO: why do we need the offset of the livedata for the stored sample?
                             long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
                                     mRESpeckTimestampCurrentPacketReceived;
 
-                            Log.i("stored", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
-                            Log.i("stored", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
-                            Log.i("stored", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
-                            Log.i("stored", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
-                            Log.i("stored", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
-                            Log.i("stored", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
+                            Log.i("Speck service", "Stored packet received:");
+                            Log.i("Speck service", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
+                            Log.i("Speck service", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
+                            Log.i("Speck service", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
+                            Log.i("Speck service", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
+                            Log.i("Speck service", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
+                            Log.i("Speck service", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
 
                             // Send stored data broadcast
                             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST);
@@ -826,6 +820,11 @@ public class SpeckBluetoothService extends Service {
                         //Log.v("DF", "Acceleration packet received from RESpeck");
                         // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
                         // packets before the first timestamp
+                        if (currentSequenceNumberInBatch == -1) {
+                            Log.e("Speck service", "RESpeck acceleration packet received before timestamp packet");
+                            return;
+                        }
+
                         try {
                             final float x = combineAccelerationBytes(accelBytes[i + 1], accelBytes[i + 2]);
                             final float y = combineAccelerationBytes(accelBytes[i + 3], accelBytes[i + 4]);
@@ -848,18 +847,18 @@ public class SpeckBluetoothService extends Service {
                                     mPhoneTimestampLastPacketReceived;
 
                             /*
-                            Log.i("2", "BS_TIMESTAMP " + String.valueOf(mPhoneTimestampCurrentPacketReceived));
-                            Log.i("2", "RS_TIMESTAMP " + String.valueOf(mRESpeckTimestampCurrentPacketReceived));
-                            Log.i("2", "Interpolated timestamp " + String.valueOf(
+                            Log.i("Speck service", "BS_TIMESTAMP " + String.valueOf(mPhoneTimestampCurrentPacketReceived));
+                            Log.i("Speck service", "RS_TIMESTAMP " + String.valueOf(mRESpeckTimestampCurrentPacketReceived));
+                            Log.i("Speck service", "Interpolated timestamp " + String.valueOf(
                                     interpolatedPhoneTimestampOfCurrentSample));
-                            Log.i("2", "EXTRA_RESPECK_SEQ " + String.valueOf(currentSequenceNumberInBatch));
-                            Log.i("2", "Breathing Rate " + String.valueOf(breathingRate));
-                            Log.i("2", "Breathing Signal " + String.valueOf(breathingSignal));
-                            Log.i("2", "Breathing Angle " + String.valueOf(breathingAngle));
-                            Log.i("2", "BRA " + String.valueOf(mAverageBreathingRate));
-                            Log.i("2", "STDBR " + String.valueOf(mStdDevBreathingRate));
-                            Log.i("2", "NBreaths " + String.valueOf(mNumberOfBreaths));
-                            Log.i("2", "Activity Level " + String.valueOf(activityLevel));
+                            Log.i("Speck service", "EXTRA_RESPECK_SEQ " + String.valueOf(currentSequenceNumberInBatch));
+                            Log.i("Speck service", "Breathing Rate " + String.valueOf(breathingRate));
+                            Log.i("Speck service", "Breathing Signal " + String.valueOf(breathingSignal));
+                            Log.i("Speck service", "Breathing Angle " + String.valueOf(breathingAngle));
+                            Log.i("Speck service", "BRA " + String.valueOf(mAverageBreathingRate));
+                            Log.i("Speck service", "STDBR " + String.valueOf(mStdDevBreathingRate));
+                            Log.i("Speck service", "NBreaths " + String.valueOf(mNumberOfBreaths));
+                            Log.i("Speck service", "Activity Level " + String.valueOf(activityLevel));
                             */
 
                             // Store the important data in the external storage if set in config
@@ -920,11 +919,11 @@ public class SpeckBluetoothService extends Service {
                                 sendBroadcast(avgDataIntent);
 
                                 /*
-                                Log.i("3", "RESPECK_BS_TIMESTAMP " + ts_minute);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_AVE_BR: " + updatedAverageBreathingRate);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_N_BR: " + updatedNumberOfBreaths);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_SD_BR: " + updatedStdDevBreathingRate);
-                                Log.i("3", "EXTRA_RESPECK_LIVE_ACTIVITY " + activityLevel);
+                                Log.i("Speck service", "RESPECK_BS_TIMESTAMP " + ts_minute);
+                                Log.i("Speck service", "EXTRA_RESPECK_LIVE_AVE_BR: " + updatedAverageBreathingRate);
+                                Log.i("Speck service", "EXTRA_RESPECK_LIVE_N_BR: " + updatedNumberOfBreaths);
+                                Log.i("Speck service", "EXTRA_RESPECK_LIVE_SD_BR: " + updatedStdDevBreathingRate);
+                                Log.i("Speck service", "EXTRA_RESPECK_LIVE_ACTIVITY " + activityLevel);
                                 */
 
                                 latestProcessedMinute = currentProcessedMinute;
@@ -974,6 +973,10 @@ public class SpeckBluetoothService extends Service {
                     latestStoredRespeckSeq = sequenceNumber;
                 }
 
+                long breathAveragePhoneTimestamp = -1;
+                long breathAverageRESpeckTimestamp = -1;
+                int breathAverageSequenceNumber = -1;
+
                 for (int i = 1; i < breathAveragesBytes.length; i += 6) {
                     Byte startByte = breathAveragesBytes[i];
 
@@ -986,6 +989,7 @@ public class SpeckBluetoothService extends Service {
                         breathAveragePhoneTimestamp = System.currentTimeMillis();
                         breathAverageRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
                         breathAverageSequenceNumber = 0;
+
                     } else if (startByte == -2) {
                         // breath average
                         int numberOfBreaths = breathAveragesBytes[i + 1] & 0xFF;
@@ -999,17 +1003,14 @@ public class SpeckBluetoothService extends Service {
                             float combinedActivityLevel = combineActBytes(upperActivityLevel, lowerActivityLevel);
 
                             RESpeckStoredSample ras = new RESpeckStoredSample(breathAveragePhoneTimestamp,
-                                    breathAverageRESpeckTimestamp,
-                                    breathAverageSequenceNumber++, numberOfBreaths, meanBreathingRate,
-                                    sdBreathingRate,
-                                    combinedActivityLevel);
-                            // Log.w("RAT", "Queueing stored sample: " + ras.toString());
+                                    breathAverageRESpeckTimestamp, breathAverageSequenceNumber++, numberOfBreaths,
+                                    meanBreathingRate, sdBreathingRate, combinedActivityLevel);
+
+                            // Add this stored sample to a queue. This way, we will empty the RESpeck buffer as
+                            // quickly as possible until it can send live data again.
                             storedQueue.add(ras);
                         }
                     }
-
-                    //Log.i("RAT", "BREATH AVERAGES: " + Arrays.toString(breath_averages));
-                    //updateTextBox("Breath Averages: " + Arrays.toString(breath_averages));
                 }
             }
         }
