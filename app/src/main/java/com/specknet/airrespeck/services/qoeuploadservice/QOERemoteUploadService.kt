@@ -77,7 +77,7 @@ class QOERemoteUploadService : Service() {
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
+            var qoeuuid = utils.properties.getProperty(Constants.Config.QOE_UUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }

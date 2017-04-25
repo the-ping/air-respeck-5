@@ -92,6 +92,8 @@
     <string name="graphs_breathing_flow_title">Breathing signal (flow rate)</string>
     <string name="graphs_breathing_pca_title">Breathing signal (volume, PCA)</string>
 
+    <string name="graphs_bins_description">Particle count in bin</string>
+
     <!-- Strings related to Menus -->
 
     <!-- Button/tabs menu -->

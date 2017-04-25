@@ -218,7 +218,7 @@ public class SpeckBluetoothService extends Service {
         initBreathing();
 
         // Get Bluetooth address
-        QOE_UUID = mUtils.getProperties().getProperty(Constants.Config.QOEUUID);
+        QOE_UUID = mUtils.getProperties().getProperty(Constants.Config.QOE_UUID);
         RESPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.RESPECK_UUID);
 
         // Initializes a Bluetooth adapter. For API level 18 and above, get a reference to
@@ -266,8 +266,9 @@ public class SpeckBluetoothService extends Service {
         if (mIsAirspeckEnabled) {
             if (QOE_UUID != null && !QOE_UUID.equals("")) {
                 mScanFilters.add(new ScanFilter.Builder().setDeviceAddress(QOE_UUID).build());
+                Log.i("[Bluetooth]", "QOE scan filter set: " + QOE_UUID);
             } else {
-                Log.e("Bluetooth", "Airspeck enabled but QOE_UUID not set in config");
+                Log.e("[Bluetooth]", "Airspeck enabled but QOE_UUID not set in config");
             }
         }
 
@@ -276,7 +277,7 @@ public class SpeckBluetoothService extends Service {
                 Context.BLUETOOTH_SERVICE);
         BluetoothAdapter mBluetoothAdapter = mBluetoothManager.getAdapter();
         if (mBluetoothAdapter.isEnabled()) {
-            Log.i("Bluetooth", "Bluetooth scanning started");
+            Log.i("[Bluetooth]", "Bluetooth scanning started");
             scanLeDevice(true);
         }
 
@@ -291,7 +292,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     public void stopSpeckService() {
-        Log.i("Bluetooth", "Stopping Speck Service");
+        Log.i("[Bluetooth]", "Stopping Speck Service");
         // Cleanup Bluetooth handlers
         if (mGattRespeck == null && mGattQOE == null) {
             return;
@@ -343,16 +344,15 @@ public class SpeckBluetoothService extends Service {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice btDevice = result.getDevice();
-
             if (btDevice != null && btDevice.getName() != null) {
-                Log.i("[Bluetooth]", "Device found: " + btDevice.getName());
+                Log.i("[Bluetooth]", "Bluetooth device found: " + btDevice.getName());
                 connectToDevice(btDevice);
             }
         }
 
         @Override
         public void onScanFailed(int errorCode) {
-            Log.e("[Bluetooth]", "Scan Failed. Error Code: " + errorCode);
+            Log.e("[Bluetooth]", "Bluetooth scan failed. Error code: " + errorCode);
         }
     };
 
@@ -369,7 +369,7 @@ public class SpeckBluetoothService extends Service {
         }
 
         if (mIsAirspeckEnabled) {
-            if (mGattQOE == null && device.getName().contains("QOE")) {
+            if (mGattQOE == null && device.getAddress().equals(QOE_UUID)) {
                 Log.i("[Bluetooth]", "Connecting to " + device.getName());
                 mGattQOE = device.connectGatt(getApplicationContext(), true, mGattCallbackQOE);
             }
@@ -387,21 +387,22 @@ public class SpeckBluetoothService extends Service {
     private final BluetoothGattCallback mGattCallbackQOE = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            Log.i("[QOE]", "onConnectionStateChange - Status: " + status);
+            Log.i("QOE", "QOE onConnectionStateChange - Status: " + status);
 
             switch (newState) {
                 case BluetoothProfile.STATE_CONNECTED:
-                    Log.i("QOE-gattCallback", "STATE_CONNECTED");
+                    Log.i("QOE", "QOE-gattCallback STATE_CONNECTED");
                     gatt.discoverServices();
 
                     Intent intentConnected = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
+                    intentConnected.putExtra(Constants.QOE_UUID, gatt.getDevice().getAddress());
                     sendBroadcast(intentConnected);
 
                     break;
 
                 case BluetoothProfile.STATE_DISCONNECTED:
-                    Log.e("QOE-gattCallback", "STATE_DISCONNECTED");
-                    Log.i("QOE-gattCallback", "reconnecting...");
+                    Log.e("QOE", "QOE-gattCallback STATE_DISCONNECTED");
+                    Log.i("QOE", "QOE-gattCallback reconnecting...");
                     BluetoothDevice device = gatt.getDevice();
                     mGattQOE.close();
                     mGattQOE = null;
@@ -413,7 +414,7 @@ public class SpeckBluetoothService extends Service {
                     break;
 
                 default:
-                    Log.e("QOE-gattCallback", "STATE_OTHER");
+                    Log.e("QOE", "QOE-gattCallback STATE_OTHER");
             }
         }
 
@@ -421,7 +422,7 @@ public class SpeckBluetoothService extends Service {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 List<BluetoothGattService> services = gatt.getServices();
-                Log.i("[QOE]", "onServicesDiscovered - " + services.toString());
+                Log.i("Speck service", "QOE onServicesDiscovered - " + services.toString());
                 //gatt.readCharacteristic(services.get(1).getCharacteristics().get(0));
 
                 for (BluetoothGattService s : services) {
@@ -442,7 +443,7 @@ public class SpeckBluetoothService extends Service {
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             if (descriptor.getCharacteristic().getUuid().equals(UUID.fromString(QOE_LIVE_CHARACTERISTIC))) {
-                Log.i("[QOE]", "onDescriptorWrite - " + status);
+                Log.i("Speck service", "QOE onDescriptorWrite - " + status);
             }
         }
 
@@ -529,11 +530,10 @@ public class SpeckBluetoothService extends Service {
                     double humidity = (-2.0468 + (0.0367 * unconvertedHumidity) +
                             (-0.0000015955 * unconvertedHumidity * unconvertedHumidity));
 
-                    /*
+
                     Log.i("[QOE]", "PM1: " + pm1);
                     Log.i("[QOE]", "PM2.5: " + pm2_5);
                     Log.i("[QOE]", "PM10: " + pm10);
-                    */
 
                     lastSample = sampleIDs_2[0];
 
@@ -593,6 +593,7 @@ public class SpeckBluetoothService extends Service {
                             storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
                                     "," + o3_ae + "," + bin0 + "," + location;
                         }
+                        Log.i("QOE", "Airspeck data received: " + storedLine);
                         writeToAirspeckFile(storedLine);
 
                         // If we want to store a merged file, store the most recent Airspeck data without
@@ -741,25 +742,27 @@ public class SpeckBluetoothService extends Service {
                         long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
                                 Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
 
+                        /*
                         Log.i("Speck service", "extra: " + extrapolatedPhoneTimestamp);
                         Log.i("Speck service", "actual: " + actualPhoneTimestamp);
                         Log.i("Speck service",
                                 "diff between the two: " + Math.abs(actualPhoneTimestamp - extrapolatedPhoneTimestamp));
+                        */
 
                         // If the last timestamp plus the average time difference is more than
                         // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
                         // last plus the average time difference.
                         if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
                                 Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
-                            Log.i("Speck service", "correction!");
+//                            Log.i("Speck service", "correction!");
                             mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
                         } else {
-                            Log.i("Speck service", "no correction!");
+//                            Log.i("Speck service", "no correction!");
                             mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
                         }
 
-                        Log.i("Speck service", "Diff phone timestamps to last: " +
-                                (mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived));
+                        /*Log.i("Speck service", "Diff phone timestamps to last: " +
+                                (mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived));*/
 
                         /*
                         // Resynchronise timestamps. This is done by waiting until there are three consecutive RESpeck
@@ -1244,11 +1247,11 @@ public class SpeckBluetoothService extends Service {
                     } else {
                         mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER_SUBSET).append("\n");
                     }
+                    mAirspeckWriter.flush();
                 } else {
                     // Open new connection to new file
                     mAirspeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameAirspeck, true));
-
                 }
 
             } catch (IOException e) {

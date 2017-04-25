@@ -108,10 +108,11 @@ public class MainActivity extends BaseActivity {
                         service.showSnackbarFromHandler((String) msg.obj);
                         break;
                     case SHOW_AIRSPECK_CONNECTED:
-                        String messageAir = String.format(Locale.UK, "QOE "
+                        String messageAir = "QOE "
                                 + service.getString(R.string.device_connected)
+                                + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
-                                + ".");
+                                + ".";
                         service.showSnackbarFromHandler(messageAir);
                         service.updateAirspeckConnection(true);
                         break;
@@ -119,11 +120,11 @@ public class MainActivity extends BaseActivity {
                         service.updateAirspeckConnection(false);
                         break;
                     case SHOW_RESPECK_CONNECTED:
-                        String messageRE = String.format(Locale.UK, "Respeck "
+                        String messageRE = "Respeck "
                                 + service.getString(R.string.device_connected)
                                 + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
-                                + ".");
+                                + ".";
                         service.showSnackbarFromHandler(messageRE);
                         service.updateRESpeckConnection(true);
                         break;
@@ -345,7 +346,8 @@ public class MainActivity extends BaseActivity {
             public void run() {
                 // Check if GPS is turned on
                 Log.i("DF", "Check if GPS is turned on");
-                if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(LocationManager.GPS_PROVIDER) && mIsActivityRunning) {
+                if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(
+                        LocationManager.GPS_PROVIDER) && mIsActivityRunning) {
                     mIsGPSDialogDisplayed = true;
                     DialogFragment turnGPSOnDialog = new TurnGPSOnDialog();
                     turnGPSOnDialog.show(getFragmentManager(), "turn_gps_on_dialog");
@@ -459,8 +461,8 @@ public class MainActivity extends BaseActivity {
                         sendMessageToHandler(UPDATE_RESPECK_READINGS, liveReadings);
                         break;
                     case Constants.ACTION_RESPECK_CONNECTED:
-                        String uuid = intent.getStringExtra(Constants.RESPECK_UUID);
-                        sendMessageToHandler(SHOW_RESPECK_CONNECTED, uuid);
+                        String respeckUUID = intent.getStringExtra(Constants.RESPECK_UUID);
+                        sendMessageToHandler(SHOW_RESPECK_CONNECTED, respeckUUID);
                         break;
                     case Constants.ACTION_RESPECK_DISCONNECTED:
                         sendMessageToHandler(SHOW_RESPECK_DISCONNECTED, null);
@@ -476,7 +478,8 @@ public class MainActivity extends BaseActivity {
                         sendMessageToHandler(UPDATE_AIRSPECK_READINGS, readings);
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
-                        sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, null);
+                        String qoeUUID = intent.getStringExtra(Constants.QOE_UUID);
+                        sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, qoeUUID);
                         break;
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
                         sendMessageToHandler(SHOW_AIRSPECK_DISCONNECTED, null);
@@ -491,6 +494,14 @@ public class MainActivity extends BaseActivity {
                 Constants.ACTION_RESPECK_CONNECTED));
         registerReceiver(mSpeckServiceReceiver, new IntentFilter(
                 Constants.ACTION_RESPECK_DISCONNECTED));
+        if (mIsAirspeckEnabled) {
+            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                    Constants.ACTION_AIRSPECK_LIVE_BROADCAST));
+            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                    Constants.ACTION_AIRSPECK_CONNECTED));
+            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                    Constants.ACTION_AIRSPECK_DISCONNECTED));
+        }
     }
 
     private void sendMessageToHandler(int what, Object obj) {

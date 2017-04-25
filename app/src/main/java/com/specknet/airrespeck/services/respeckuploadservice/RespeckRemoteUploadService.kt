@@ -82,7 +82,7 @@ class RespeckRemoteUploadService : Service() {
             jsonHeader.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             jsonHeader.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             jsonHeader.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            var qoeuuid = utils.properties.getProperty(Constants.Config.QOEUUID)
+            var qoeuuid = utils.properties.getProperty(Constants.Config.QOE_UUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }

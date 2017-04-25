@@ -20,7 +20,7 @@ public class Constants {
         public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
         public static final String RESPECK_KEY = "RESpeckKey";
         public static final String RESPECK_UUID = "RESpeckUUID";
-        public static final String QOEUUID = "QoEUUID";
+        public static final String QOE_UUID = "QoEUUID";
         public static final String TABLET_SERIAL = "TabletSerial";
         public static final String PATIENT_ID = "PatientID";
         public static final String PATIENT_AGE = "PatientAge";
@@ -122,6 +122,7 @@ public class Constants {
     public static final String ACTION_AIRSPECK_DISCONNECTED =
             "com.specknet.airspeck.AIRSPECK_DISCONNECTED";
     public static final String RESPECK_UUID = "respeck uuid";
+    public static final String QOE_UUID = "respeck uuid";
 
     /**
      * Readings

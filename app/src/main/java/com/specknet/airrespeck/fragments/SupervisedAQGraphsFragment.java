@@ -331,7 +331,7 @@ public class SupervisedAQGraphsFragment extends BaseFragment {
         rightAxis.setDrawGridLines(false);
 
         // Create new data set
-        BarDataSet barData = new BarDataSet(new ArrayList<BarEntry>(), "Count in bins");
+        BarDataSet barData = new BarDataSet(new ArrayList<BarEntry>(), getString(R.string.graphs_bins_description));
         barData.setColor(ContextCompat.getColor(getContext(), R.color.bins_graph_color));
 
         // Add data set to list of data sets
