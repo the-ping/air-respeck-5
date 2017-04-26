@@ -1050,7 +1050,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void updateConnectionLoadingLayout() {
-        boolean isConnecting = !mIsRESpeckConnected && (!mIsAirspeckEnabled || !mIsAirspeckConnected);
+        boolean isConnecting = !mIsRESpeckConnected && (!mIsAirspeckEnabled || mIsAirspeckConnected);
         if (isSupervisedMode) {
             mSupervisedOverviewFragment.showConnecting(isConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
