@@ -54,7 +54,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -1050,7 +1049,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void updateConnectionLoadingLayout() {
-        boolean isConnecting = !mIsRESpeckConnected && (!mIsAirspeckEnabled || mIsAirspeckConnected);
+        boolean isConnecting = !(mIsRESpeckConnected && (!mIsAirspeckEnabled || mIsAirspeckConnected));
         if (isSupervisedMode) {
             mSupervisedOverviewFragment.showConnecting(isConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
