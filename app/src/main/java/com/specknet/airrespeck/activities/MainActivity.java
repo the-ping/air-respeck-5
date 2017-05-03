@@ -168,6 +168,7 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedRESpeckReadings;
     private boolean mIsAirspeckEnabled;
+    private boolean mIsRESpeckEnabled;
     private boolean mShowSubjectHome;
     private boolean mShowSubjectValues;
     private boolean mShowSubjectWindmill;
@@ -300,8 +301,10 @@ public class MainActivity extends BaseActivity {
 
         // Initialise upload services if desired
         if (mIsUploadDataToServer) {
-            Intent startUploadRESpeckIntent = new Intent(this, RespeckRemoteUploadService.class);
-            startService(startUploadRESpeckIntent);
+            if (mIsRESpeckEnabled) {
+                Intent startUploadRESpeckIntent = new Intent(this, RespeckRemoteUploadService.class);
+                startService(startUploadRESpeckIntent);
+            }
 
             if (mIsAirspeckEnabled) {
                 Intent startUploadAirspeckIntent = new Intent(this, QOERemoteUploadService.class);
@@ -486,13 +489,14 @@ public class MainActivity extends BaseActivity {
                 }
             }
         };
-
-        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
-                Constants.ACTION_RESPECK_LIVE_BROADCAST));
-        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
-                Constants.ACTION_RESPECK_CONNECTED));
-        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
-                Constants.ACTION_RESPECK_DISCONNECTED));
+        if (mIsRESpeckEnabled) {
+            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                    Constants.ACTION_RESPECK_LIVE_BROADCAST));
+            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                    Constants.ACTION_RESPECK_CONNECTED));
+            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+                    Constants.ACTION_RESPECK_DISCONNECTED));
+        }
         if (mIsAirspeckEnabled) {
             registerReceiver(mSpeckServiceReceiver, new IntentFilter(
                     Constants.ACTION_AIRSPECK_LIVE_BROADCAST));
@@ -533,8 +537,6 @@ public class MainActivity extends BaseActivity {
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_GRAPHS));
             mShowSupervisedActivitySummary = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
-            mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AIRSPECK_READINGS));
             mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
         }
@@ -552,11 +554,32 @@ public class MainActivity extends BaseActivity {
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
+        mIsRESpeckEnabled = !Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_RESPECK_DISABLED));
+
+        if (!mIsAirspeckEnabled && !mIsRESpeckEnabled) {
+            Log.e("DF", "Neither RESpeck nor Airspeck enabled in Config");
+            Toast.makeText(getApplicationContext(),
+                    "Neither RESpeck nor Airspeck is enabled in config file. Enabling RESpeck by default.",
+                    Toast.LENGTH_LONG).show();
+            mIsRESpeckEnabled = true;
+        }
+
         mIsUploadDataToServer = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
 
         mIsStorePhoneGPS = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_PHONE_GPS));
+
+        // Overwrite configs for certain screens if the corresponding sensor is disabled
+        if (!mIsAirspeckEnabled) {
+            mShowSupervisedAQGraphs = false;
+            mShowSupervisedAirspeckReadings = false;
+        }
+        if (!mIsRESpeckEnabled) {
+            mShowSupervisedRESpeckReadings = false;
+            mShowSupervisedActivitySummary = false;
+        }
     }
 
     private void setupViewPager() {
@@ -838,16 +861,25 @@ public class MainActivity extends BaseActivity {
         if (isSupervisedMode) {
             // We currently only use one setting item in supervised mode, namely for enabling the subject mode.
             // If subject mode is disabled, don't load the menu
-            if (mIsSubjectModeEnabled) {
-                getMenuInflater().inflate(R.menu.menu_supervised, menu);
+            boolean isSpirometerRecordingEnabled = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_VOLUME_CALIBRATION_SCREEN));
+
+            if (mIsSubjectModeEnabled && isSpirometerRecordingEnabled) {
+                getMenuInflater().inflate(R.menu.menu_subject_volume_recording, menu);
+            } else if (mIsSubjectModeEnabled) {
+                getMenuInflater().inflate(R.menu.menu_subject, menu);
+            } else if (isSpirometerRecordingEnabled) {
+                getMenuInflater().inflate(R.menu.menu_volume_recording, menu);
             }
         } else {
             // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
             // If subject mode is disabled, don't load the menu
             if (mIsSupervisedModeEnabled) {
-                getMenuInflater().inflate(R.menu.menu_subject, menu);
+                getMenuInflater().inflate(R.menu.menu_supervised, menu);
             }
         }
+
+
         return true;
     }
 
@@ -879,6 +911,8 @@ public class MainActivity extends BaseActivity {
             displaySubjectMode();
         } else if (id == R.id.action_close_app) {
             finish();
+        } else if (id == R.id.action_volume_recording) {
+            startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -1049,7 +1083,8 @@ public class MainActivity extends BaseActivity {
     }
 
     public void updateConnectionLoadingLayout() {
-        boolean isConnecting = !(mIsRESpeckConnected && (!mIsAirspeckEnabled || mIsAirspeckConnected));
+        boolean isConnecting = !((!mIsRESpeckEnabled || mIsRESpeckConnected) &&
+                (!mIsAirspeckEnabled || mIsAirspeckConnected));
         if (isSupervisedMode) {
             mSupervisedOverviewFragment.showConnecting(isConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);

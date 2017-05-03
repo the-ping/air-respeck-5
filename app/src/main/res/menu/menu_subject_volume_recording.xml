@@ -4,13 +4,19 @@
       tools:context="com.specknet.airrespeck.activities.MainActivity">
 
     <group
-        android:id="@+id/daphne_menu_group">
+        android:id="@+id/main_menu_group">
 
         <item
-            android:id="@+id/action_supervised_mode"
-            android:orderInCategory="90"
-            android:title="@string/action_supervised_mode"
-            app:showAsAction="never" />
+            android:id="@+id/action_subject_mode"
+            android:orderInCategory="10"
+            android:title="@string/action_subject_mode"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/action_volume_recording"
+            android:orderInCategory="11"
+            android:title="@string/action_volume_recording"
+            app:showAsAction="never"/>
 
         <item
             android:id="@+id/action_close_app"

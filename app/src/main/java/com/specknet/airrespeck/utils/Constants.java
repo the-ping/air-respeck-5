@@ -29,6 +29,7 @@ public class Constants {
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
         public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
         public static final String IS_AIRSPECK_ENABLED = "EnableAirspeck";
+        public static final String IS_RESPECK_DISABLED = "DisableRESpeck";
         public static final String IS_STORE_ALL_AIRSPECK_FIELDS = "StoreAllAirspeckFields";
         public static final String SHOW_SUPERVISED_AQ_GRAPHS = "EnableSupervisedAQGraphs";
         public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
@@ -44,6 +45,7 @@ public class Constants {
         public static final String IS_STORE_MERGED_FILE = "StoreMergedFile";
         public static final String IS_SHOW_DUMMY_AIRSPECK_DATA = "ShowDummyAirspeckData";
         public static final String IS_STORE_PHONE_GPS = "EnablePhoneLocationStorage";
+        public static final String IS_SHOW_VOLUME_CALIBRATION_SCREEN = "EnableVolumeCalibration";
     }
 
     /**

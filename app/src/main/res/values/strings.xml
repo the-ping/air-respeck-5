@@ -111,7 +111,11 @@
     <string name="action_connect">Connect</string>
     <string name="action_supervised_mode">Supervised mode</string>
     <string name="action_subject_mode">Subject mode</string>
+    <string name="action_volume_recording">Volume recording</string>
     <string name="action_close_app">Close app</string>
+
+    <!-- Volume recording -->
+    <string name="title_activity_volume_recording">Volume recording</string>
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
     <string name="airspeck_not_found">AirSpeck app not found</string>
