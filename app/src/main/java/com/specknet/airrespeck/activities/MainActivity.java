@@ -108,7 +108,7 @@ public class MainActivity extends BaseActivity {
                         break;
                     case SHOW_AIRSPECK_CONNECTED:
                         String messageAir = "QOE "
-                                + service.getString(R.string.device_connected)
+                                + service.getString(R.string.device_found)
                                 + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
@@ -120,7 +120,7 @@ public class MainActivity extends BaseActivity {
                         break;
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = "Respeck "
-                                + service.getString(R.string.device_connected)
+                                + service.getString(R.string.device_found)
                                 + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
@@ -535,6 +535,8 @@ public class MainActivity extends BaseActivity {
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_OVERVIEW));
             mShowSupervisedAQGraphs = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_GRAPHS));
+            mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AIRSPECK_READINGS));
             mShowSupervisedActivitySummary = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
             mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
@@ -1083,13 +1085,14 @@ public class MainActivity extends BaseActivity {
     }
 
     public void updateConnectionLoadingLayout() {
-        boolean isConnecting = !((!mIsRESpeckEnabled || mIsRESpeckConnected) &&
-                (!mIsAirspeckEnabled || mIsAirspeckConnected));
+        boolean showAirspeckConnecting = mIsAirspeckEnabled && !mIsAirspeckConnected;
+        boolean showRESpeckConnecting = mIsRESpeckEnabled && !mIsRESpeckConnected;
+
         if (isSupervisedMode) {
-            mSupervisedOverviewFragment.showConnecting(isConnecting);
-            mSupervisedRESpeckReadingsFragment.showConnecting(isConnecting);
-            mSupervisedAirspeckReadingsFragment.showConnecting(isConnecting);
-            mSupervisedAQGraphsFragment.showConnecting(isConnecting);
+            mSupervisedOverviewFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
+            mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
+            mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
+            mSupervisedAQGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
         }
     }
 

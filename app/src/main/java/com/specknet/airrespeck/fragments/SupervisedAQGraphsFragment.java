@@ -144,18 +144,6 @@ public class SupervisedAQGraphsFragment extends BaseFragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_graphs, container, false);
 
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
-
-        boolean isAirspeckEnabled = Boolean.parseBoolean(
-                com.specknet.airrespeck.utils.Utils.getInstance(getContext()).getProperties().getProperty(
-                        Constants.Config.IS_AIRSPECK_ENABLED));
-
-        // Change the connection text if we only connect to RESpeck
-        if (!isAirspeckEnabled) {
-            textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
-        }
-
         mPMsLineChart = (LineChart) view.findViewById(R.id.pms_line_chart);
         mBinsLineChart = (BarChart) view.findViewById(R.id.bins_line_chart);
 

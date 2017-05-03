@@ -38,7 +38,7 @@
     <string name="network_required">Internet connection required to setup the user</string>
     <string name="loading_data">Loading user data</string>
     <string name="connecting_to_devices">Connecting to devices</string>
-    <string name="device_connected">connected</string>
+    <string name="device_found">found</string>
     <string name="waiting_for_data">Waiting for data</string>
 
 
@@ -244,7 +244,9 @@
         <item>2</item>
     </string-array>
 
+    <string name="connection_text_both_devices">Connecting to devices</string>
     <string name="connection_text_respeck_only">Connecting to RESpeck</string>
+    <string name="connection_text_airspeck_only">Connecting to Airspeck</string>
 
     <!-- Strings related to foreground bluetooth service -->
     <string name="service_notification_title">AirRespeck connection</string>

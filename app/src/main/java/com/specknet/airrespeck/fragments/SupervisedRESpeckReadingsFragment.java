@@ -89,15 +89,6 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
 
         Utils utils = Utils.getInstance(getContext());
 
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
-        boolean isAirspeckEnabled = Boolean.parseBoolean(
-                utils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
-        // Change the connection text if we only connect to RESpeck
-        if (!isAirspeckEnabled) {
-            textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
-        }
-
         // Attach the adapter to a ListView for displaying the RESpeck readings
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);

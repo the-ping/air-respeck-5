@@ -38,7 +38,7 @@
     <string name="network_required">需要设置用户的互联网连接</string>
     <string name="loading_data">需要设置用户的互联网连接</string>
     <string name="connecting_to_devices">连接到设备</string>
-    <string name="device_connected">连接的</string>
+    <string name="device_found">连接的</string>
     <string name="waiting_for_data">等待数据</string>
 
 

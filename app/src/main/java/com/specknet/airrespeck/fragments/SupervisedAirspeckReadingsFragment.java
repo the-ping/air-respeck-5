@@ -78,42 +78,39 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
         Context context = view.getContext();
 
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-        TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
-        boolean isAirspeckEnabled = Boolean.parseBoolean(
-                Utils.getInstance(context).getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
-        // Change the connection text if we only connect to RESpeck
-        if (!isAirspeckEnabled) {
-            textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
-        }
-
         // Set the adapter
-        if (mReadingsModeAQReadingsScreen.equals(Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST)) {
-            ListView listView = (ListView) view.findViewById(R.id.listView_item_list);
-            mListViewAdapter = new ReadingItemArrayAdapter(context, getReadingItems());
-            listView.setAdapter(mListViewAdapter);
-        } else if (mReadingsModeAQReadingsScreen.equals(Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS)) {
-            RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
+        switch (mReadingsModeAQReadingsScreen) {
+            case Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST:
+                ListView listView = (ListView) view.findViewById(R.id.listView_item_list);
+                mListViewAdapter = new ReadingItemArrayAdapter(context, getReadingItems());
+                listView.setAdapter(mListViewAdapter);
+                break;
+            case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS: {
+                RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
 
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                if (mColumnCount <= 1) {
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                } else {
+                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                }
+
+                mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
+                recyclerView.setAdapter(mSegmentedBarAdapter);
+                break;
             }
+            case Constants.READINGS_MODE_AQREADINGS_SCREEN_ARCS: {
+                RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.ap_item_list);
 
-            mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
-            recyclerView.setAdapter(mSegmentedBarAdapter);
-        } else if (mReadingsModeAQReadingsScreen.equals(Constants.READINGS_MODE_AQREADINGS_SCREEN_ARCS)) {
-            RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.ap_item_list);
+                if (mColumnCount <= 1) {
+                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                } else {
+                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                }
 
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
+                recyclerView.setAdapter(mArcProgressAdapter);
+                break;
             }
-
-            mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
-            recyclerView.setAdapter(mArcProgressAdapter);
         }
 
         mIsCreated = true;

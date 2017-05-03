@@ -101,15 +101,6 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
         }
 
         if (view != null) {
-            mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-            TextView textConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
-            boolean isAirspeckEnabled = Boolean.parseBoolean(
-                    Utils.getInstance(getContext()).getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
-            // Change the connection text if we only connect to RESpeck
-            if (!isAirspeckEnabled) {
-                textConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
-            }
-
             mFeedback = (TextView) view.findViewById(R.id.feedback);
             updateFeedback();
         }

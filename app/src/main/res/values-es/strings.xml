@@ -38,7 +38,7 @@
     <string name="network_required">Se requiere de conexión a Internet para configurar el usuario</string>
     <string name="loading_data">Cargando datos de usuario</string>
     <string name="connecting_to_devices">Conectando con dispositivos</string>
-    <string name="device_connected">conectado</string>
+    <string name="device_found">conectado</string>
     <string name="waiting_for_data">Esperando datos</string>
 
 

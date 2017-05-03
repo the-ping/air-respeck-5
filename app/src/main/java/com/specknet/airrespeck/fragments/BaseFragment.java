@@ -2,15 +2,19 @@ package com.specknet.airrespeck.fragments;
 
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
+import com.specknet.airrespeck.utils.Utils;
 
 
 /**
@@ -27,6 +31,7 @@ public class BaseFragment extends Fragment {
 
     // Connecting layout
     protected LinearLayout mConnectingLayout;
+    protected TextView mTextConnectionLayout;
 
     protected boolean mIsCreated = false;
 
@@ -50,6 +55,14 @@ public class BaseFragment extends Fragment {
 
         mButtonsPadding = Integer.parseInt(PreferencesUtils.getInstance()
                 .getString(Constants.Preferences.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
+
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mConnectingLayout = (LinearLayout) getView().findViewById(R.id.connecting_layout);
+        mTextConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
     }
 
     @Override
@@ -111,9 +124,20 @@ public class BaseFragment extends Fragment {
     /***********************************************************************************************
      * CONNECTING LAYOUT (for Bluetooth connection only)
      **********************************************************************************************/
-    public void showConnecting(final boolean enable) {
+    public void showConnecting(final boolean showAirspeckConnecting, final boolean showRESpeckConnecting) {
         if (mConnectingLayout != null) {
-            mConnectingLayout.setVisibility(enable ? View.VISIBLE : View.INVISIBLE);
+            if (showAirspeckConnecting && showRESpeckConnecting) {
+                mTextConnectionLayout.setText(getString(R.string.connection_text_both_devices));
+                mConnectingLayout.setVisibility(View.VISIBLE);
+            } else if (showAirspeckConnecting) {
+                mTextConnectionLayout.setText(getString(R.string.connection_text_airspeck_only));
+                mConnectingLayout.setVisibility(View.VISIBLE);
+            } else if (showRESpeckConnecting) {
+                mTextConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
+                mConnectingLayout.setVisibility(View.VISIBLE);
+            } else {
+                mConnectingLayout.setVisibility(View.INVISIBLE);
+            }
         }
     }
 }
