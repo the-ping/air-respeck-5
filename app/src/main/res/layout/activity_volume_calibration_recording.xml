@@ -17,7 +17,7 @@
     <Spinner
         android:id="@+id/bag_size_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_weight="0.04"
         android:gravity="center"/>
 
@@ -33,7 +33,7 @@
     <Spinner
         android:id="@+id/activity_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_weight="0.04"/>
 
     <Button
@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_weight="0.04"
-        android:text="Press to record"/>
+        android:text="@string/button_text_start_recording"/>
 
     <Button
         android:id="@+id/cancel_button"
@@ -50,5 +50,5 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:layout_weight="0.04"
-        android:text="Cancel recording"/>
+        android:text="@string/button_text_cancel_recording"/>
 </LinearLayout>

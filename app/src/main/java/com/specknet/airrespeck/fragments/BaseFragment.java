@@ -61,8 +61,10 @@ public class BaseFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mConnectingLayout = (LinearLayout) getView().findViewById(R.id.connecting_layout);
-        mTextConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
+        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        if (mConnectingLayout != null) {
+            mTextConnectionLayout = (TextView) mConnectingLayout.findViewById(R.id.connection_text);
+        }
     }
 
     @Override

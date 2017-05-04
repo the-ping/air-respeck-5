@@ -116,6 +116,9 @@
 
     <!-- Volume recording -->
     <string name="title_activity_volume_recording">Volume recording</string>
+    <string name="button_text_start_recording">Start recording</string>
+    <string name="button_text_stop_recording">Stop recording</string>
+    <string name="button_text_cancel_recording">Cancel recording</string>
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
     <string name="airspeck_not_found">AirSpeck app not found</string>

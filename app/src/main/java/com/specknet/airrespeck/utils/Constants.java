@@ -285,10 +285,14 @@ public class Constants {
             "/AirRespeck").getPath() + "/";
     public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Activity Summary.csv";
     public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck/";
+    public static final String VOLUME_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Airspeck/";
     public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck and Airspeck/";
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
+
+    public static final String VOLUME_DATA_HEADER = "interpolatedPhoneTimestamp,x,y,z," +
+            "breathingSignal,activityTypeSelection,bagSizeSelection";
 
     public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
