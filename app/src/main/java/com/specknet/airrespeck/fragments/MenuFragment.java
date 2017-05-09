@@ -3,7 +3,6 @@ package com.specknet.airrespeck.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -64,7 +63,7 @@ public class MenuFragment extends BaseFragment {
                 Constants.MENU_ICON_HOME));
         mButtons.add(new MenuButton(MenuButton.buttonType.AIR_QUALITY, getString(R.string.menu_air_quality),
                 Constants.MENU_ICON_AIR));
-        mButtons.add(new MenuButton(MenuButton.buttonType.GRAPHS, getString(R.string.menu_graphs),
+        mButtons.add(new MenuButton(MenuButton.buttonType.GRAPHS, getString(R.string.menu_aq_graphs),
                 Constants.MENU_ICON_GRAPHS));
 
         mUtils = Utils.getInstance(getContext());

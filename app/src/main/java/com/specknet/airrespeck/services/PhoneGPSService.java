@@ -19,15 +19,23 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Service which listens to GPS updates of the phone and stores the data on the external directory
@@ -43,6 +51,8 @@ public class PhoneGPSService extends Service implements
     private OutputStreamWriter mGPSWriter;
     // Just in case there could be a conflict with another notification, we give it a high "random" integer
     private final int SERVICE_NOTIFICATION_ID = 2148914;
+
+    private Date mDateofLastWrite = new Date(0);
 
     @Nullable
     @Override
@@ -105,24 +115,10 @@ public class PhoneGPSService extends Service implements
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
         } else {
             // Request regular location updates
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, mLocationRequest, this);
-            // Open GPS writer and write header line if file didn't exist before
-            try {
-                String filename = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH + "GPS Phone.csv";
-                if (!new File(filename).exists()) {
-                    mGPSWriter = new OutputStreamWriter(new FileOutputStream(filename, true));
-                    mGPSWriter.append(Constants.GPS_PHONE_HEADER).append("\n");
-                    mGPSWriter.flush();
-                } else {
-                    mGPSWriter = new OutputStreamWriter(new FileOutputStream(filename, true));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -130,12 +126,63 @@ public class PhoneGPSService extends Service implements
     public void onLocationChanged(Location location) {
         long currentTimestamp = Utils.getUnixTimestamp();
         String locationString = currentTimestamp + "," + location.getLongitude() + "," + location.getLatitude() +
-                "," + location.getAltitude() + "\n";
+                "," + location.getAltitude();
         Log.i("GPS Service", "Location updated: " + locationString);
 
-        // Store location
+        writeToFile(locationString);
+
+        // Broadcast location
+        Intent intentData = new Intent(Constants.ACTION_PHONE_LOCATION_BROADCAST);
+        intentData.putExtra(Constants.PHONE_LOCATION,
+                new LocationData(location.getLatitude(), location.getLongitude(), location.getAltitude()));
+        sendBroadcast(intentData);
+    }
+
+    private void writeToFile(String line) {
+        // Check whether we are in a new day
+        Date now = new Date();
+        long currentWriteDay = DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime();
+        long previousWriteDay = DateUtils.truncate(mDateofLastWrite, Calendar.DAY_OF_MONTH).getTime();
+        long numberOfMillisInDay = 1000 * 60 * 60 * 24;
+
+        String filename = Constants.PHONE_LOCATION_DIRECTORY_PATH +
+                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
+                " GPS Phone.csv";
+
+        // If we are in a new day, create a new file if necessary
+        if (currentWriteDay != previousWriteDay ||
+                now.getTime() - mDateofLastWrite.getTime() > numberOfMillisInDay) {
+            try {
+                // Close old connection if there was one
+                if (mGPSWriter != null) {
+                    mGPSWriter.close();
+                }
+
+                // The file could already exist if we just started the app. If not, add the header
+                if (!new File(filename).exists()) {
+                    Log.i("DF", "GPS data file created with header");
+                    // Open new connection to new file
+                    mGPSWriter = new OutputStreamWriter(
+                            new FileOutputStream(filename, true));
+                    mGPSWriter.append(Constants.GPS_PHONE_HEADER).append("\n");
+
+                    mGPSWriter.flush();
+                } else {
+                    // Open new connection to new file
+                    mGPSWriter = new OutputStreamWriter(
+                            new FileOutputStream(filename, true));
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        mDateofLastWrite = now;
+
+        // Write new line to file
         try {
-            mGPSWriter.append(locationString);
+            mGPSWriter.append(line).append("\n");
             mGPSWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();

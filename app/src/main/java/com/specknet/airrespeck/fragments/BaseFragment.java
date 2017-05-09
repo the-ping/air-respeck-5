@@ -127,7 +127,7 @@ public class BaseFragment extends Fragment {
      * CONNECTING LAYOUT (for Bluetooth connection only)
      **********************************************************************************************/
     public void showConnecting(final boolean showAirspeckConnecting, final boolean showRESpeckConnecting) {
-        if (mConnectingLayout != null) {
+        if (isAdded() && mConnectingLayout != null && mTextConnectionLayout != null) {
             if (showAirspeckConnecting && showRESpeckConnecting) {
                 mTextConnectionLayout.setText(getString(R.string.connection_text_both_devices));
                 mConnectingLayout.setVisibility(View.VISIBLE);

@@ -35,6 +35,7 @@ public class Constants {
         public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
         public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
         public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
+        public static final String SHOW_SUPERVISED_AQ_MAP = "EnableSupervisedAQMap";
         public static final String SHOW_SUPERVISED_OVERVIEW = "EnableSupervisedOverview";
         public static final String SHOW_SUBJECT_HOME = "EnableSubjectHome";
         public static final String SHOW_SUBJECT_VALUES = "EnableSubjectValues";
@@ -125,6 +126,7 @@ public class Constants {
             "com.specknet.airspeck.AIRSPECK_DISCONNECTED";
     public static final String RESPECK_UUID = "respeck uuid";
     public static final String QOE_UUID = "respeck uuid";
+    public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
 
     /**
      * Readings
@@ -189,6 +191,12 @@ public class Constants {
     public static final String ACTIVITY_SUMMARY_HOUR = "hour";
     public static final String ACTIVITY_SUMMARY_DAY = "day";
     public static final String ACTIVITY_SUMMARY_WEEK = "week";
+
+    /*public static final String PHONE_LOCATION_LATITUDE = "phone_location_latitude";
+    public static final String PHONE_LOCATION_LONGITUDE = "phone_location_longitude";
+    public static final String PHONE_LOCATION_ALTITUDE = "phone_location_altitude";*/
+    public static final String PHONE_LOCATION = "phone_location";
+
 
 
     /**
@@ -288,6 +296,8 @@ public class Constants {
     public static final String VOLUME_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Airspeck/";
     public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck and Airspeck/";
+    public static final String PHONE_LOCATION_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Phone GPS/";
+
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
@@ -325,4 +335,8 @@ public class Constants {
     public static final int NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER = 5;
 
     public static final int NUMBER_OF_TIMSTAMPS_FOR_SYNCHRONISATION = 100;
+
+    // Air quality display on map
+    public static final int PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX = 25;
+    public static final int PM10_EUROPEAN_YEARLY_AVERAGE_MAX = 40;
 }

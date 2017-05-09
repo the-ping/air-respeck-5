@@ -55,6 +55,8 @@ public class InitialSetupActivity extends BaseActivity {
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
         boolean isStoreMergedFile = (Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && isAirspeckEnabled);
+        boolean isStorePhoneGPS = (Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_PHONE_GPS)));
 
         if (isStoreDataLocally) {
             // Create directories on external storage if they don't exist
@@ -104,6 +106,18 @@ public class InitialSetupActivity extends BaseActivity {
                         Log.i("DF", "Directory created: " + directory);
                     } else {
                         throw new RuntimeException("Couldn't create Merged folder on external storage");
+                    }
+                }
+            }
+
+            if (isStorePhoneGPS) {
+                directory = new File(Constants.PHONE_LOCATION_DIRECTORY_PATH);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create phone directory on external storage");
                     }
                 }
             }

@@ -93,7 +93,7 @@
     <!-- Button/tabs menu -->
     <string name="menu_home">INICIO</string>
     <string name="menu_air_quality">CALIDAD DEL AIRE</string>
-    <string name="menu_graphs">GRÁFICAS</string>
+    <string name="menu_aq_graphs">GRÁFICAS</string>
     <string name="menu_settings">AJUSTES</string>
 
     <!-- Action Bar menu -->

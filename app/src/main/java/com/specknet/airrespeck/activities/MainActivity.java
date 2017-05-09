@@ -37,6 +37,7 @@ import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
+import com.specknet.airrespeck.fragments.SupervisedAQMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAQGraphsFragment;
@@ -149,6 +150,7 @@ public class MainActivity extends BaseActivity {
     private static final String TAG_SUBJECT_WINDMILL_FRAGMENT = "SUBJECT_WINDMILL_FRAGMENT";
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
+    private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
 
     private SubjectHomeFragment mSubjectHomeFragment;
     private SubjectValuesFragment mSubjectValuesFragment;
@@ -158,6 +160,7 @@ public class MainActivity extends BaseActivity {
     private SupervisedAQGraphsFragment mSupervisedAQGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
+    private SupervisedAQMapLoaderFragment mSupervisedAQMapLoaderFragment;
 
     // Config loaded from RESpeck.config
     private boolean mIsSupervisedModeEnabled;
@@ -167,6 +170,7 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedRESpeckReadings;
+    private boolean mShowSupervisedAQMap;
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
     private boolean mShowSubjectHome;
@@ -541,6 +545,8 @@ public class MainActivity extends BaseActivity {
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
             mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
+            mShowSupervisedAQMap = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_MAP));
         }
 
         // Load subject mode config if enabled
@@ -604,11 +610,15 @@ public class MainActivity extends BaseActivity {
             }
             if (mShowSupervisedAQGraphs) {
                 supervisedFragments.add(mSupervisedAQGraphsFragment);
-                supervisedTitles.add(getString(R.string.menu_graphs));
+                supervisedTitles.add(getString(R.string.menu_aq_graphs));
             }
             if (mShowSupervisedActivitySummary) {
                 supervisedFragments.add(mSupervisedActivitySummaryFragment);
                 supervisedTitles.add(getString(R.string.menu_activity_summary));
+            }
+            if (mShowSupervisedAQMap) {
+                supervisedFragments.add(mSupervisedAQMapLoaderFragment);
+                supervisedTitles.add(getString(R.string.menu_aq_map));
             }
         }
 
@@ -651,6 +661,8 @@ public class MainActivity extends BaseActivity {
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
             mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
+            mSupervisedAQMapLoaderFragment = (SupervisedAQMapLoaderFragment) fm.getFragment(savedInstanceState,
+                    TAG_AQ_MAP_FRAGMENT);
             mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
             mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
                     TAG_SUBJECT_VALUES_FRAGMENT);
@@ -673,6 +685,9 @@ public class MainActivity extends BaseActivity {
         }
         if (mSupervisedRESpeckReadingsFragment == null) {
             mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
+        }
+        if (mSupervisedAQMapLoaderFragment == null) {
+            mSupervisedAQMapLoaderFragment = new SupervisedAQMapLoaderFragment();
         }
         if (mSubjectHomeFragment == null) {
             mSubjectHomeFragment = new SubjectHomeFragment();

@@ -17,15 +17,20 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.location.Location;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -135,6 +140,8 @@ public class SpeckBluetoothService extends Service {
     private float mStdDevBreathingRate;
     private int mNumberOfBreaths;
 
+    private LocationData mLastPhoneLocation;
+
     public SpeckBluetoothService() {
 
     }
@@ -241,6 +248,15 @@ public class SpeckBluetoothService extends Service {
         } else {
             mMostRecentAirspeckData = ",,,,,,,,";
         }
+
+        // Start broadcastreceiver for phone location
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                mLastPhoneLocation = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
+            }
+        };
+        registerReceiver(receiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
     }
 
     /**
@@ -580,7 +596,13 @@ public class SpeckBluetoothService extends Service {
                         String storedLine;
 
                         // TODO: get real location from new Airspeck
-                        String location = "";
+                        String locationOutputString = ",,";
+
+                        // TODO: if Airspeck doesn't send GPS signal, use the phone location.
+                        if (mLastPhoneLocation != null) {
+                            locationOutputString = mLastPhoneLocation.getLongitude() + "," +
+                                    mLastPhoneLocation.getLongitude() + "," + mLastPhoneLocation.getAltitude();
+                        }
 
                         if (mIsStoreAllAirspeckFields) {
                             storedLine = currentPhoneTimestamp + "," + pm1 + "," + pm2_5 + "," + pm10 + "," +
@@ -588,10 +610,10 @@ public class SpeckBluetoothService extends Service {
                                     "," + o3_ae + "," + bin0 + "," + bin1 + "," + bin2 + "," + bin3 + "," + bin4 +
                                     "," + bin5 + "," + bin6 + "," + bin7 + "," + bin8 + "," + bin9 + "," + bin10 +
                                     "," + bin11 + "," + bin12 + "," + bin13 + "," + bin14 + "," + bin15 + "," + total +
-                                    "," + location;
+                                    "," + locationOutputString;
                         } else {
                             storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
-                                    "," + o3_ae + "," + bin0 + "," + location;
+                                    "," + o3_ae + "," + bin0 + "," + locationOutputString;
                         }
                         Log.i("QOE", "Airspeck data received: " + storedLine);
                         writeToAirspeckFile(storedLine);

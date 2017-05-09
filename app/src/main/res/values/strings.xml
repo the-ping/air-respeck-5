@@ -32,7 +32,6 @@
     </string-array>
 
 
-
     <!-- Strings related to login issues -->
     <string name="no_network">No Internet connection</string>
     <string name="network_required">Internet connection required to setup the user</string>
@@ -99,9 +98,10 @@
     <!-- Button/tabs menu -->
     <string name="menu_home">Overview</string>
     <string name="menu_air_quality">Air quality</string>
-    <string name="menu_graphs">AQ Graphs</string>
+    <string name="menu_aq_graphs">AQ Graphs</string>
     <string name="menu_activity_summary">Activity</string>
     <string name="menu_breathing_graph">Breathing</string>
+    <string name="menu_aq_map">AQ Map</string>
 
     <!-- Action Bar menu -->
     <string name="action_air_speck">AirSpeck</string>
@@ -274,5 +274,13 @@
 
     <string name="notification_speck_title">RESpeck and Airspeck</string>
     <string name="notification_speck_text">Listening for sensor data</string>
+
+    <!-- Map -->
+    <string name="title_activity_maps_aq">Map</string>
+    <string name="maps_loader_live_button">Show live map</string>
+    <string name="maps_loader_historical_button">Show historical map</string>
+    <string name="maps_loader_historical_data_title">Chose timeframe for historical data</string>
+
+
 
 </resources>

@@ -93,7 +93,7 @@
     <!-- Button/tabs menu -->
     <string name="menu_home">首页</string>
     <string name="menu_air_quality">空气质量</string>
-    <string name="menu_graphs">图的</string>
+    <string name="menu_aq_graphs">图的</string>
     <string name="menu_settings">设置</string>
 
     <!-- Action Bar menu -->

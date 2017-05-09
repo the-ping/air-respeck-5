@@ -93,7 +93,7 @@
     <!-- Button/tabs menu -->
     <string name="menu_home">घर</string>
     <string name="menu_air_quality">हवा की गुणवत्ता</string>
-    <string name="menu_graphs">रेखांकन</string>
+    <string name="menu_aq_graphs">रेखांकन</string>
     <string name="menu_settings">सेटिंग्स</string>
 
     <!-- Action Bar menu -->

@@ -11,7 +11,11 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-feature android:name="android.hardware.location.gps" />
+
+    <uses-feature android:name="android.hardware.location.gps"/>
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
 
     <application
         android:name=".base.App"
@@ -64,9 +68,9 @@
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/app_name"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:launchMode="singleInstance">
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="com.specknet.respeck.RESPECK_LIVE_BROADCAST"/>
             </intent-filter>
@@ -113,7 +117,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.specknet.airrespeck.activities.MainActivity"/>
-
         </activity>
 
         <service
@@ -121,11 +124,9 @@
             android:enabled="true"
             android:process=":bluetooth_speck_process">
             <intent-filter>
-                <action android:name="SpeckBluetoothService">
-                </action>
+                <action android:name="com.specknet.airrespeck.PHONE_LOCATION"/>
             </intent-filter>
         </service>
-
         <service
             android:name=".services.respeckuploadservice.RespeckRemoteUploadService"
             android:enabled="true"
@@ -141,7 +142,6 @@
                 <action android:name="com.specknet.respeck.RESPECK_AVG_STORED_BROADCAST"/>
             </intent-filter>
         </service>
-
         <service
             android:name=".services.qoeuploadservice.QOERemoteUploadService"
             android:enabled="true"
@@ -151,7 +151,6 @@
                 <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
             </intent-filter>
         </service>
-
         <service
             android:name=".services.PhoneGPSService"
             android:enabled="true"
@@ -159,6 +158,20 @@
             android:process=":phone_gps_service">
         </service>
 
+        <activity
+            android:name=".activities.MapsAQActivity"
+            android:label="@string/title_activity_maps_aq">
+            android:parentActivityName=".activities.MainActivity"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.specknet.airrespeck.activities.MainActivity"/>
+            <intent-filter>
+                <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.airrespeck.PHONE_LOCATION"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
