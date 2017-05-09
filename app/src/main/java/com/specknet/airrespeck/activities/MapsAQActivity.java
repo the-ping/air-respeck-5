@@ -39,6 +39,15 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private LatLng mLastLatLng;
 
+    public static final int MAP_TYPE_LIVE = 0;
+    public static final int MAP_TYPE_HISTORICAL = 1;
+    public static final String MAP_TYPE = "map type";
+    public static final String TIMESTAMP_FROM = "ts from";
+    public static final String TIMESTAMP_TO = "ts to";
+
+    // Default is the live map
+    private int mapType = MAP_TYPE_LIVE;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +57,11 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mQueueMapData = new LinkedList<>();
+        Log.i("Map", "Intent map type: " + getIntent().getExtras().get(MAP_TYPE));
+        Log.i("Map", "Intent TS from: " + getIntent().getExtras().get(TIMESTAMP_FROM));
+        Log.i("Map", "Intent TS to: " + getIntent().getExtras().get(TIMESTAMP_TO));
+
+        mapType = (int) getIntent().getExtras().get(MAP_TYPE);
     }
 
     /**
@@ -57,29 +70,38 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(getApplicationContext(), "Permission for location not granted", Toast.LENGTH_LONG).show();
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mMap.setMyLocationEnabled(true);
 
-        startAQUpdate();
+        if (mapType == MAP_TYPE_LIVE) {
+            if (ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(getApplicationContext(), "Permission for location not granted",
+                        Toast.LENGTH_LONG).show();
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            mMap.setMyLocationEnabled(true);
+            mQueueMapData = new LinkedList<>();
+            startLiveAQUpdate();
+        } else if (mapType == MAP_TYPE_HISTORICAL) {
+            long tsFrom = (long) getIntent().getExtras().get(TIMESTAMP_FROM);
+            long tsTo = (long) getIntent().getExtras().get(TIMESTAMP_TO);
+            Toast.makeText(getApplicationContext(), String.format(Locale.UK, "From: %d, To: %d", tsFrom, tsTo),
+                    Toast.LENGTH_LONG).show();
+            loadStoredData(tsFrom, tsTo);
+        }
     }
 
-    private void startAQUpdate() {
+    private void startLiveAQUpdate() {
         mBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.i("AQ Map", "Receiving broadcast");
                 switch (intent.getAction()) {
                     case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
                         if (mLastLatLng != null) {
@@ -104,7 +126,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                         LatLng newLatLng = new LatLng(loc.getLatitude(), loc.getLongitude());
 
                         if (mLastLatLng == null) {
-                            mLastLatLng =  newLatLng;
+                            mLastLatLng = newLatLng;
                             CameraUpdate center = CameraUpdateFactory.newLatLng(mLastLatLng);
                             CameraUpdate zoom = CameraUpdateFactory.zoomTo(18);
                             mMap.moveCamera(center);
@@ -153,7 +175,14 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(mBroadcastReceiver);
+        if (mapType == MAP_TYPE_LIVE) {
+            unregisterReceiver(mBroadcastReceiver);
+        }
         super.onDestroy();
     }
+
+    private void loadStoredData(long tsFrom, long tsTo) {
+
+    }
+
 }

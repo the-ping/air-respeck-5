@@ -1,7 +1,9 @@
 package com.specknet.airrespeck.fragments;
 
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,16 +12,39 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MapsAQActivity;
+import com.specknet.airrespeck.dialogs.DatePickerFragment;
+import com.specknet.airrespeck.dialogs.TimePickerFragment;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Fragment for loading Google Maps Activity with pollution information
  */
 
-public class SupervisedAQMapLoaderFragment extends BaseFragment {
+public class SupervisedAQMapLoaderFragment extends BaseFragment implements Serializable {
 
+    public static final String KEY_PARENT = "parent";
+    public static final String KEY_TYPE = "type";
+    public static final String TYPE_TO = "to";
+    public static final String TYPE_FROM = "from";
+
+    private final String TIMEPERIOD_LAST_DAY = "last day";
+    private final String TIMEPERIOD_LAST_WEEK = "last week";
+    private final String TIMEPERIOD_CUSTOM = "custom";
+
+    private Button mFromDateButton;
+    private Button mFromTimeButton;
+    private Button mToDateButton;
+    private Button mToTimeButton;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -44,6 +69,7 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 Intent mapIntent = new Intent(getActivity(), MapsAQActivity.class);
+                mapIntent.putExtra(MapsAQActivity.MAP_TYPE, MapsAQActivity.MAP_TYPE_LIVE);
                 startActivity(mapIntent);
             }
         });
@@ -53,9 +79,9 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment {
         customSelectionLayout.setVisibility(View.GONE);
 
         // Load and fill timeframe selection spinner
-        Spinner timeframeSpinner = (Spinner) view.findViewById(R.id.spinner_timeframe);
+        final Spinner timeframeSpinner = (Spinner) view.findViewById(R.id.spinner_timeframe);
 
-        String[] activitySpinnerElements = new String[]{"Last day", "Last week", "Custom"};
+        String[] activitySpinnerElements = new String[]{TIMEPERIOD_LAST_DAY, TIMEPERIOD_LAST_WEEK, TIMEPERIOD_CUSTOM};
         ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
         timeframeSpinner.setAdapter(activityAdapter);
@@ -78,10 +104,119 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment {
         });
 
         // Open date and time pickers when custom view is selected
+        mFromDateButton = (Button) view.findViewById(R.id.date_from);
+        mFromTimeButton = (Button) view.findViewById(R.id.time_from);
+        mToDateButton = (Button) view.findViewById(R.id.date_to);
+        mToTimeButton = (Button) view.findViewById(R.id.time_to);
 
+        mFromTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showTimePicker(TYPE_FROM);
+            }
+        });
+
+        mToTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showTimePicker(TYPE_TO);
+            }
+        });
+
+        mFromDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDatePicker(TYPE_FROM);
+            }
+        });
+
+        mToDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDatePicker(TYPE_TO);
+            }
+        });
 
         // Open historical map when buttton is pressed
+        Button historicalMapButton = (Button) view.findViewById(R.id.historical_loader_button);
+        historicalMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long tsFrom;
+                long tsTo;
 
+                if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_DAY)) {
+                    tsTo = new Date().getTime();
+                    tsFrom = tsTo - 1000 * 60 * 24;
+                } else if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_WEEK)) {
+                    tsTo = new Date().getTime();
+                    tsFrom = tsTo - 1000 * 60 * 24 * 7;
+                } else {
+                    // Custom selection
+                    String tsFromString = mFromDateButton.getText() + " " + mFromTimeButton.getText();
+                    String tsToString = mToDateButton.getText() + " " + mToTimeButton.getText();
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm", Locale.UK);
+
+                    try {
+                        tsFrom = dateFormat.parse(tsFromString).getTime();
+                        tsTo = dateFormat.parse(tsToString).getTime();
+                    } catch (ParseException e) {
+                        Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps_to_before_from),
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+
+                if (tsTo < tsFrom) {
+                    Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps_to_before_from),
+                            Toast.LENGTH_LONG).show();
+                } else if (tsTo > new Date().getTime()) {
+                    Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamp_in_future),
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Intent mapIntent = new Intent(getActivity(), MapsAQActivity.class);
+                    mapIntent.putExtra(MapsAQActivity.MAP_TYPE, MapsAQActivity.MAP_TYPE_HISTORICAL);
+                    mapIntent.putExtra(MapsAQActivity.TIMESTAMP_FROM, tsFrom);
+                    mapIntent.putExtra(MapsAQActivity.TIMESTAMP_TO, tsTo);
+                    startActivity(mapIntent);
+                }
+            }
+        });
         return view;
+    }
+
+    public void showTimePicker(String type) {
+        DialogFragment newFragment = new TimePickerFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_PARENT, this);
+        args.putSerializable(KEY_TYPE, type);
+        newFragment.setArguments(args);
+        newFragment.show(getActivity().getFragmentManager(), "timePicker");
+    }
+
+    public void showDatePicker(String type) {
+        DialogFragment newFragment = new DatePickerFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_PARENT, this);
+        args.putSerializable(KEY_TYPE, type);
+        newFragment.setArguments(args);
+        newFragment.show(getActivity().getFragmentManager(), "datePicker");
+    }
+
+    public void changeToTime(int hourOfDay, int minute) {
+        mToTimeButton.setText(String.format(Locale.UK, "%d:%d", hourOfDay, minute));
+    }
+
+    public void changeFromTime(int hourOfDay, int minute) {
+        mFromTimeButton.setText(String.format(Locale.UK, "%d:%d", hourOfDay, minute));
+    }
+
+    public void changeToDate(int year, int month, int day) {
+        mToDateButton.setText(String.format(Locale.UK, "%d-%d-%d", day, month, year));
+    }
+
+    public void changeFromDate(int year, int month, int day) {
+        mFromDateButton.setText(String.format(Locale.UK, "%d-%d-%d", day, month, year));
     }
 }

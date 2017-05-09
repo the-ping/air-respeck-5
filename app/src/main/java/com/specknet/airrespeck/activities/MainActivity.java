@@ -351,7 +351,7 @@ public class MainActivity extends BaseActivity {
 
             public void run() {
                 // Check if GPS is turned on
-                Log.i("DF", "Check if GPS is turned on");
+                //Log.i("DF", "Checking if GPS is turned on");
                 if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(
                         LocationManager.GPS_PROVIDER) && mIsActivityRunning) {
                     mIsGPSDialogDisplayed = true;
@@ -887,6 +887,8 @@ public class MainActivity extends BaseActivity {
                 getMenuInflater().inflate(R.menu.menu_subject, menu);
             } else if (isSpirometerRecordingEnabled) {
                 getMenuInflater().inflate(R.menu.menu_volume_recording, menu);
+            } else {
+                getMenuInflater().inflate(R.menu.menu_close_app_only, menu);
             }
         } else {
             // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
