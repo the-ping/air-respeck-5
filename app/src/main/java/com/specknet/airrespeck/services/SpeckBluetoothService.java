@@ -601,7 +601,7 @@ public class SpeckBluetoothService extends Service {
                         // TODO: if Airspeck doesn't send GPS signal, use the phone location.
                         if (mLastPhoneLocation != null) {
                             locationOutputString = mLastPhoneLocation.getLongitude() + "," +
-                                    mLastPhoneLocation.getLongitude() + "," + mLastPhoneLocation.getAltitude();
+                                    mLastPhoneLocation.getLatitude() + "," + mLastPhoneLocation.getAltitude();
                         }
 
                         if (mIsStoreAllAirspeckFields) {

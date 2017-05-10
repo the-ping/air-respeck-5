@@ -6,6 +6,7 @@ import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 
@@ -33,15 +34,17 @@ public class DatePickerFragment extends DialogFragment
     }
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
+        Log.i("Date picker", String.format("year %d, month %d, day %d", year, month, day));
         SupervisedAQMapLoaderFragment parent = (SupervisedAQMapLoaderFragment) getArguments().get(
                 SupervisedAQMapLoaderFragment.KEY_PARENT);
         String type = (String) getArguments().get(SupervisedAQMapLoaderFragment.KEY_TYPE);
 
         if (parent != null && type != null) {
             if (type.equals(SupervisedAQMapLoaderFragment.TYPE_FROM)) {
-                parent.changeFromDate(year, month, day);
+                // Months start at zero in picker
+                parent.changeFromDate(year, month + 1, day);
             } else if (type.equals(SupervisedAQMapLoaderFragment.TYPE_TO)) {
-                parent.changeToDate(year, month, day);
+                parent.changeToDate(year, month + 1, day);
             }
 
         }

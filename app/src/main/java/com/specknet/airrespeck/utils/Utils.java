@@ -20,6 +20,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -385,6 +387,21 @@ public final class Utils {
         } else {
             return (aCopy[middle - 1] + aCopy[middle]) / 2.0f;
         }
+    }
+
+    public static long timestampFromString(String timestamp, String format) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.UK);
+        return dateFormat.parse(timestamp).getTime();
+    }
+
+    public static long roundToDay(long timestamp) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timestamp);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
     }
 
     public static float onlyKeepTimeInHour(long timestamp) {

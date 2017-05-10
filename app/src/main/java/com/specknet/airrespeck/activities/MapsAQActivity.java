@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -20,11 +21,20 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.models.AirspeckMapData;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -57,10 +67,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        Log.i("Map", "Intent map type: " + getIntent().getExtras().get(MAP_TYPE));
-        Log.i("Map", "Intent TS from: " + getIntent().getExtras().get(TIMESTAMP_FROM));
-        Log.i("Map", "Intent TS to: " + getIntent().getExtras().get(TIMESTAMP_TO));
-
         mapType = (int) getIntent().getExtras().get(MAP_TYPE);
     }
 
@@ -92,8 +98,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         } else if (mapType == MAP_TYPE_HISTORICAL) {
             long tsFrom = (long) getIntent().getExtras().get(TIMESTAMP_FROM);
             long tsTo = (long) getIntent().getExtras().get(TIMESTAMP_TO);
-            Toast.makeText(getApplicationContext(), String.format(Locale.UK, "From: %d, To: %d", tsFrom, tsTo),
-                    Toast.LENGTH_LONG).show();
             loadStoredData(tsFrom, tsTo);
         }
     }
@@ -166,12 +170,17 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         Log.i("AQ Map", "Updating map");
         mMap.clear();
         for (AirspeckMapData airspeckDataItem : mQueueMapData) {
-            int circleColor = getMobileCircleColor(airspeckDataItem);
-            mMap.addCircle(new CircleOptions().center(airspeckDataItem.getLocation()).radius(10)
-                    .fillColor(circleColor).strokeColor(circleColor).strokeWidth(1));
-            Log.i("AQ Map", "Circle painted at location: " + airspeckDataItem.getLocation());
+            drawCircleOnMap(airspeckDataItem);
         }
     }
+
+    private void drawCircleOnMap(AirspeckMapData airspeckDataItem) {
+        int circleColor = getMobileCircleColor(airspeckDataItem);
+        mMap.addCircle(new CircleOptions().center(airspeckDataItem.getLocation()).radius(10)
+                .fillColor(circleColor).strokeColor(circleColor).strokeWidth(1));
+        // Log.i("AQ Map", "Circle painted at location: " + airspeckDataItem.getLocation());
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -182,7 +191,91 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     }
 
     private void loadStoredData(long tsFrom, long tsTo) {
-
+        // Create new task for loading data
+        new LoadStoredDataTask().execute(tsFrom, tsTo);
     }
 
+    private class LoadStoredDataTask extends AsyncTask<Long, Integer, Void> {
+
+        ArrayList<AirspeckMapData> loadedData = new ArrayList<>();
+
+        protected Void doInBackground(Long... timestamps) {
+            Log.i("Map", "Started loading stored data task");
+
+            long tsFrom = timestamps[0];
+            long tsTo = timestamps[1];
+
+            long dayFrom = Utils.roundToDay(tsFrom);
+            long dayTo = Utils.roundToDay(tsTo);
+
+            Log.i("Map", "Day from: " + dayFrom);
+            Log.i("Map", "Day to: " + dayTo);
+
+            // Go through filenames in Airspeck directory
+            File dir = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
+            File[] directoryListing = dir.listFiles();
+            if (directoryListing != null) {
+                for (File file : directoryListing) {
+                    String fileDate = file.getName().split(" ")[0];
+                    try {
+                        // If file lies in specified time period, open it and read content
+                        long tsFile = Utils.timestampFromString(fileDate, "yyyy-MM-dd");
+
+                        if (tsFile >= dayFrom && tsFile <= dayTo) {
+                            BufferedReader reader = new BufferedReader(new FileReader(file));
+                            // Skip first line as that's the header
+                            reader.readLine();
+                            String currentLine;
+                            while ((currentLine = reader.readLine()) != null) {
+                                String[] row = currentLine.split(",");
+                                long tsRow = Long.parseLong(row[0]);
+                                // Only if the timestamp of the currently read line is in specified time period,
+                                // do we draw a circle on the map corresponding to the measurements
+                                if (tsRow >= tsFrom && tsRow <= tsTo) {
+                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[26]),
+                                            Double.parseDouble(row[25]));
+                                    AirspeckMapData readSample = new AirspeckMapData(tsRow, circleLocation,
+                                            Float.parseFloat(row[1]), Float.parseFloat(row[2]),
+                                            Float.parseFloat(row[3]));
+
+                                    loadedData.add(readSample);
+                                }
+                            }
+                        }
+                    } catch (IOException | ParseException e) {
+                        e.printStackTrace();
+                    } catch(ArrayIndexOutOfBoundsException e) {
+                        Log.i("Map", "Incomplete Airspeck data row (might be because location is missing");
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            // Check if there is something to draw
+            if (loadedData.size() > 0) {
+                // Bounds builder to calculate zoom location and factor so that all markers are in view
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+                // Iterate through data and draw on map
+                for (AirspeckMapData data : loadedData) {
+                    drawCircleOnMap(data);
+                    builder.include(data.getLocation());
+                }
+
+                LatLngBounds bounds = builder.build();
+                int padding = 30; // offset from edges of the map in pixels
+                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                mMap.moveCamera(cu);
+                cu = CameraUpdateFactory.zoomTo(18);
+                mMap.moveCamera(cu);
+            } else {
+                Toast.makeText(getApplicationContext(), "No data in selected time period",
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+    }
 }

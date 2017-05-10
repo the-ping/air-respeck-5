@@ -18,11 +18,13 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MapsAQActivity;
 import com.specknet.airrespeck.dialogs.DatePickerFragment;
 import com.specknet.airrespeck.dialogs.TimePickerFragment;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -37,9 +39,9 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment implements Seria
     public static final String TYPE_TO = "to";
     public static final String TYPE_FROM = "from";
 
-    private final String TIMEPERIOD_LAST_DAY = "last day";
-    private final String TIMEPERIOD_LAST_WEEK = "last week";
-    private final String TIMEPERIOD_CUSTOM = "custom";
+    private final String TIMEPERIOD_LAST_DAY = "Last day";
+    private final String TIMEPERIOD_LAST_WEEK = "Last week";
+    private final String TIMEPERIOD_CUSTOM = "Custom time period";
 
     private Button mFromDateButton;
     private Button mFromTimeButton;
@@ -103,7 +105,7 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment implements Seria
             }
         });
 
-        // Open date and time pickers when custom view is selected
+        // Load date and time pickers for when custom view is selected
         mFromDateButton = (Button) view.findViewById(R.id.date_from);
         mFromTimeButton = (Button) view.findViewById(R.id.time_from);
         mToDateButton = (Button) view.findViewById(R.id.date_to);
@@ -147,22 +149,22 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment implements Seria
 
                 if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_DAY)) {
                     tsTo = new Date().getTime();
-                    tsFrom = tsTo - 1000 * 60 * 24;
+                    // Subtract day
+                    tsFrom = tsTo - 1000 * 60 * 60 * 24;
                 } else if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_WEEK)) {
                     tsTo = new Date().getTime();
-                    tsFrom = tsTo - 1000 * 60 * 24 * 7;
+                    // Subtract week
+                    tsFrom = tsTo - 1000 * 60 * 60 * 24 * 7;
                 } else {
                     // Custom selection
                     String tsFromString = mFromDateButton.getText() + " " + mFromTimeButton.getText();
                     String tsToString = mToDateButton.getText() + " " + mToTimeButton.getText();
 
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm", Locale.UK);
-
                     try {
-                        tsFrom = dateFormat.parse(tsFromString).getTime();
-                        tsTo = dateFormat.parse(tsToString).getTime();
+                        tsFrom = Utils.timestampFromString(tsFromString, "dd-MM-yyyy HH:mm");
+                        tsTo = Utils.timestampFromString(tsToString, "dd-MM-yyyy HH:mm");
                     } catch (ParseException e) {
-                        Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps_to_before_from),
+                        Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps),
                                 Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -205,18 +207,18 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment implements Seria
     }
 
     public void changeToTime(int hourOfDay, int minute) {
-        mToTimeButton.setText(String.format(Locale.UK, "%d:%d", hourOfDay, minute));
+        mToTimeButton.setText(String.format(Locale.UK, "%d:%02d", hourOfDay, minute));
     }
 
     public void changeFromTime(int hourOfDay, int minute) {
-        mFromTimeButton.setText(String.format(Locale.UK, "%d:%d", hourOfDay, minute));
+        mFromTimeButton.setText(String.format(Locale.UK, "%d:%02d", hourOfDay, minute));
     }
 
     public void changeToDate(int year, int month, int day) {
-        mToDateButton.setText(String.format(Locale.UK, "%d-%d-%d", day, month, year));
+        mToDateButton.setText(String.format(Locale.UK, "%d-%02d-%02d", day, month, year));
     }
 
     public void changeFromDate(int year, int month, int day) {
-        mFromDateButton.setText(String.format(Locale.UK, "%d-%d-%d", day, month, year));
+        mFromDateButton.setText(String.format(Locale.UK, "%d-%02d-%02d", day, month, year));
     }
 }
