@@ -24,4 +24,7 @@
 
     <color name="breathing_graph_line_color">#303F9F</color>
     <color name="bins_graph_color">#bbbbbb</color>
+
+    <color name="pollution_low">#00ff00</color>
+    <color name="pollution_high">#ff0000</color>
 </resources>

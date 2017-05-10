@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -151,18 +152,25 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         double pm10 = dataItem.getPm10();
 
         if (pm2_5 < 0 || pm10 < 0) {
-            return Color.GREEN;
+            return ContextCompat.getColor(this, R.color.pollution_low);
         }
 
         if (pm2_5 > Constants.PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX || pm10 > Constants.PM10_EUROPEAN_YEARLY_AVERAGE_MAX) {
-            return Color.RED;
+            return ContextCompat.getColor(this, R.color.pollution_high);
         } else {
             // Return a gradient value with green == 0 and red == MAX of the value with the higher percentage
             // in relation to MAX
-            double perc2_5 = pm2_5 / Constants.PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX;
-            double perc10 = pm10 / Constants.PM10_EUROPEAN_YEARLY_AVERAGE_MAX;
+            double perc2_5 = Math.min(pm2_5 / Constants.PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX, 1.0);
+            double perc10 = Math.min(pm10 / Constants.PM10_EUROPEAN_YEARLY_AVERAGE_MAX, 1.0);
             double maxPerc = Math.max(perc2_5, perc10);
-            return Color.rgb((int) maxPerc * 255, (int) ((1 - maxPerc) * 255), 0);
+
+            int lowColor = ContextCompat.getColor(this, R.color.pollution_low);
+            int highColor = ContextCompat.getColor(this, R.color.pollution_high);
+
+            // Return weighted mix between low and high pollution color depending on maxPerc
+            return Color.rgb((int) (Color.red(lowColor) * (1 - maxPerc) + Color.red(highColor) * maxPerc),
+                    (int) (Color.green(lowColor) * (1 - maxPerc) + Color.green(highColor) * maxPerc),
+                    (int) (Color.blue(lowColor) * (1 - maxPerc) + Color.blue(highColor) * maxPerc));
         }
     }
 
@@ -244,7 +252,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                         }
                     } catch (IOException | ParseException e) {
                         e.printStackTrace();
-                    } catch(ArrayIndexOutOfBoundsException e) {
+                    } catch (ArrayIndexOutOfBoundsException e) {
                         Log.i("Map", "Incomplete Airspeck data row (might be because location is missing");
                     }
                 }
