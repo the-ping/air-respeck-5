@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -20,6 +23,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -94,12 +98,32 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                 return;
             }
             mMap.setMyLocationEnabled(true);
+            zoomToLastKnownLocation();
             mQueueMapData = new LinkedList<>();
             startLiveAQUpdate();
         } else if (mapType == MAP_TYPE_HISTORICAL) {
             long tsFrom = (long) getIntent().getExtras().get(TIMESTAMP_FROM);
             long tsTo = (long) getIntent().getExtras().get(TIMESTAMP_TO);
             loadStoredData(tsFrom, tsTo);
+        }
+    }
+
+    // Initial zoom. This will be updated as soon as we get a location from the PhoneGPSService
+    private void zoomToLastKnownLocation() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+
+        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        if (location != null) {
+            mMap.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(location.getLatitude(),
+                            location.getLongitude()))      // Sets the center of the map to location user
+                    .zoom(18)                   // Sets the zoom
+                    .build();                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
 
