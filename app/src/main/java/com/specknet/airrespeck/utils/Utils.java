@@ -57,7 +57,6 @@ public final class Utils {
         return mUtils;
     }
 
-
     /***********************************************************************************************
      * GENERAL UTIL METHODS
      **********************************************************************************************/
@@ -120,6 +119,10 @@ public final class Utils {
         } catch (IOException e) { }
 
         return properties;
+    }
+
+    public static String getCurrentTimeStamp() {
+        return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
     }
 
     /**
