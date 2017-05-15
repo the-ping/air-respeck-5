@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MEAN_ACCEL_FILTER_SIZE 12
+#define MEAN_ACCEL_FILTER_SIZE 1
 
 typedef struct
 {
@@ -17,9 +17,9 @@ typedef struct
 	float mean_value;
 	bool is_valid;
 
-} MeanFilter;
+} MeanPostFilter;
 
-void initialise_mean_filter(MeanFilter *mean_buffer);
-void update_mean_filter(float value, MeanFilter *mean_buffer);
+void initialise_mean_post_filter(MeanPostFilter *mean_buffer);
+void update_mean_post_filter(float value, MeanPostFilter *mean_buffer);
 
 #endif

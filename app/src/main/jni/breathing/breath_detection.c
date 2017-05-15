@@ -84,7 +84,7 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
 void initialise_breath(CurrentBreath *breath) {
     breath->state = UNKNOWN;
     breath->breathing_rate = NAN;
-    breath->min_threshold = (float) (0.02 / 4.);
+    breath->min_threshold = (float) (0.02f);
     breath->max_threshold = 0.5;
     breath->sample_count = 0;
     breath->is_current_breath_valid = false;

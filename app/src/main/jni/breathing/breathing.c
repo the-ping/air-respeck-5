@@ -9,7 +9,7 @@
 #include <math.h>
 
 #include "rotation_axis.h"
-#include "mean_buffer.h"
+#include "mean_post_filter.h"
 #include "mean_axis_buffer.h"
 #include "mean_unit_accel_buffer.h"
 #include "activity_level_buffer.h"
@@ -19,8 +19,8 @@ MeanUnitAccelBuffer mean_unit_accel_filter;
 RotationAxis rotation_axis;
 MeanRotationAxisBuffer mean_rotation_axis_buffer;
 MeanUnitAccelBuffer mean_unit_accel_buffer;
-MeanFilter mean_filter_breathing_signal;
-MeanFilter mean_filter_angle;
+MeanPostFilter mean_filter_breathing_signal;
+MeanPostFilter mean_filter_angle;
 ActivityLevelBuffer activity_level_buffer;
 
 void initialise_breathing_measures(BreathingMeasures *breathing_measures) {
@@ -34,8 +34,8 @@ void initialise_breathing_measures(BreathingMeasures *breathing_measures) {
     initialise_rotation_axis(&rotation_axis);
     initialise_mean_rotation_axis_buffer(&mean_rotation_axis_buffer);
     initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
-    initialise_mean_filter(&mean_filter_breathing_signal);
-    initialise_mean_filter(&mean_filter_angle);
+    initialise_mean_post_filter(&mean_filter_breathing_signal);
+    initialise_mean_post_filter(&mean_filter_angle);
     initialise_activity_level_buffer(&activity_level_buffer);
 }
 
@@ -115,13 +115,14 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
 
     // Breathing angle calculation
     float mean_accel_cross_mean_axis[3];
-    cross_product(mean_accel_cross_mean_axis, mean_unit_accel_buffer.mean_unit_vector, mean_rotation_axis_buffer.mean_axis);
+    cross_product(mean_accel_cross_mean_axis, mean_unit_accel_buffer.mean_unit_vector,
+                  mean_rotation_axis_buffer.mean_axis);
     float breathing_angle;
     breathing_angle = dot_product(mean_accel_cross_mean_axis, new_accel_data);
 
     // Smooth the breathing signal and angles for the last time
-    update_mean_filter(breathing_signal, &mean_filter_breathing_signal);
-    update_mean_filter(breathing_angle, &mean_filter_angle);
+    update_mean_post_filter(breathing_signal, &mean_filter_breathing_signal);
+    update_mean_post_filter(breathing_angle, &mean_filter_angle);
 
     if (mean_filter_breathing_signal.is_valid == false) {
         return;

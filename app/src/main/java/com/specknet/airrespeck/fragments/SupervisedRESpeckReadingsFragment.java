@@ -216,15 +216,20 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
                 // Subtract the mean from the center value in the queue
                 float correctedPca = mPcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
 
-                mMeanPcaValueQueue.add(correctedPca);
-                limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);
+                boolean isPostFiltered = false;
+                if (isPostFiltered) {
+                    mMeanPcaValueQueue.add(correctedPca);
+                    limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);
 
-                if (mMeanPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER) {
-                    Entry newEntry = new Entry(newData.getTimestamp(), Utils.mean(
-                            mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
+                    if (mMeanPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER) {
+                        Entry newEntry = new Entry(newData.getTimestamp(), Utils.mean(
+                                mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
+                        updateGraph(newEntry, mBreathingPCAChart, PCA_CHART);
+                    }
+                } else {
+                    Entry newEntry = new Entry(newData.getTimestamp(), correctedPca);
                     updateGraph(newEntry, mBreathingPCAChart, PCA_CHART);
                 }
-
             }
         }
 
