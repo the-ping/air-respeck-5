@@ -659,9 +659,8 @@ public class SpeckBluetoothService extends Service {
                         Byte ts_4 = values[i + 4];
 
                         long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
-                        // Multiply the timestamp by some factor. TODO: why this one?
+                        // Convert the timestamp of the RESpeck to correspond to milliseconds
                         long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
-                        //long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
                         if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
                             Log.e("SpeckService", "RESpeck: duplicate live timestamp received");
                             return;
@@ -669,8 +668,8 @@ public class SpeckBluetoothService extends Service {
                         long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
                         mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
-                        Log.i("SpeckService", "respeck ts: " + newRESpeckTimestamp);
-                        Log.i("SpeckService", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
+                        // Log.i("SpeckService", "respeck ts: " + newRESpeckTimestamp);
+                        // Log.i("SpeckService", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
 
                         // Independent of the RESpeck timestamp, we use the phone timestamp
                         long actualPhoneTimestamp = Utils.getUnixTimestamp();
@@ -687,8 +686,8 @@ public class SpeckBluetoothService extends Service {
                         long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
                                 Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
 
-                        Log.i("SpeckService",
-                                "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
+                        //Log.i("SpeckService",
+                        //        "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
 
                         // If the last timestamp plus the average time difference is more than
                         // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
