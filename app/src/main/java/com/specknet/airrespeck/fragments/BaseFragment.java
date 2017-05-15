@@ -14,7 +14,6 @@ import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
-import com.specknet.airrespeck.utils.Utils;
 
 
 /**

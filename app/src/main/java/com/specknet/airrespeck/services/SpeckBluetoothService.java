@@ -4,7 +4,6 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -97,10 +96,12 @@ public class SpeckBluetoothService extends Service {
     private final static String RESPECK_BREATH_INTERVALS_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
 
     // Airspeck
-    private static byte[][] lastPackets = new byte[5][];
-    private static int[] sampleIDs = {0, 1, 2, 3, 4};
-    int lastSample = 0;
-    private ByteBuffer opcBuffer;
+    private byte[] opcData;
+    private boolean[] opcPacketsReceived;
+    private float mLastTemperatureAirspeck = -1f;
+    private float mLastHumidityAirspeck = -1f;
+    private float mLastNO2 = -1f;
+    private float mLastO3 = -1f;
 
     // RESpeck
     private int latestPacketSequenceNumber = -1;
@@ -127,6 +128,7 @@ public class SpeckBluetoothService extends Service {
 
     // GPS
     private LocationData mLastPhoneLocation;
+    private BroadcastReceiver mLocationReceiver;
 
     public SpeckBluetoothService() {
 
@@ -241,13 +243,13 @@ public class SpeckBluetoothService extends Service {
         }
 
         // Start broadcastreceiver for phone location
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        mLocationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mLastPhoneLocation = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
             }
         };
-        registerReceiver(receiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
+        registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
     }
 
     /**
@@ -264,11 +266,12 @@ public class SpeckBluetoothService extends Service {
         mIsAirspeckFound = false;
         mIsRESpeckFound = false;
 
-        opcBuffer = ByteBuffer.allocate(80);
-        opcBuffer.order(ByteOrder.LITTLE_ENDIAN);
-
         rxBleClient = RxBleClient.create(this);
         Log.i("SpeckService", "Scanning..");
+
+        // Initialise opc data arrays
+        opcData = new byte[62];
+        opcPacketsReceived = new boolean[]{false, false, false, false};
 
         scanSubscription = rxBleClient.scanBleDevices()
                 .subscribe(
@@ -378,41 +381,69 @@ public class SpeckBluetoothService extends Service {
         switch (packetType) {
             case SENSOR_TYPE_OPC1:
                 Log.i("SpeckService", "OPC1 packet received");
-                opcBuffer.clear();
-                opcBuffer.put(payload);
+                if (payloadLength == 16) {
+                    System.arraycopy(payload, 0, opcData, 0, 16);
+                    opcPacketsReceived[0] = true;
+                } else {
+                    Log.e("SpeckService", "OPC1 packet with wrong length received: " + payloadLength);
+                }
                 break;
             case SENSOR_TYPE_OPC2:
                 Log.i("SpeckService", "OPC2 packet received");
-                opcBuffer.put(payload);
+                if (payloadLength == 16) {
+                    System.arraycopy(payload, 0, opcData, 16, 16);
+                    opcPacketsReceived[1] = true;
+                } else {
+                    Log.e("SpeckService", "OPC2 packet with wrong length received: " + payloadLength);
+                }
                 break;
             case SENSOR_TYPE_OPC3:
                 Log.i("SpeckService", "OPC3 packet received");
-                opcBuffer.put(payload);
+                if (payloadLength == 16) {
+                    System.arraycopy(payload, 0, opcData, 32, 16);
+                    opcPacketsReceived[2] = true;
+                } else {
+                    Log.e("SpeckService", "OPC3 packet with wrong length received: " + payloadLength);
+                }
                 break;
             case SENSOR_TYPE_OPC4:
                 Log.i("SpeckService", "OPC4 packet received");
-                opcBuffer.put(payload);
-                processOPC(opcBuffer);
-                opcBuffer.clear();
+                if (payloadLength == 14) {
+                    System.arraycopy(payload, 0, opcData, 48, 14);
+                    opcPacketsReceived[3] = true;
+                } else {
+                    Log.e("SpeckService", "OPC4 packet with wrong length received: " + payloadLength);
+                }
                 break;
             case SENSOR_TYPE_TEMPERATURE_HUMIDITY:
                 Log.i("SpeckService", "Temperature/humidity packet received");
                 processTempHumidity(payload);
                 break;
+            case SENSOR_TYPE_GAS:
+                processGasData(payload);
+                break;
             default:
                 Log.e("SpeckService", "Unknown packet type received: " + String.format("0x%02X ", packetType));
                 break;
         }
+
+        if (!Arrays.asList(opcPacketsReceived).contains(false)) {
+            // All opc packets have been sent. Process them and store all other fields (gas, temp, humidity)
+            // with this data as well.
+            processOPC(ByteBuffer.wrap(opcData));
+            opcData = new byte[62];
+            opcPacketsReceived = new boolean[]{false, false, false, false};
+        }
+    }
+
+    private void processGasData(byte[] data) {
+        // TODO: implement
+        mLastNO2 = -1;
+        mLastO3 = -1;
     }
 
     void processOPC(ByteBuffer buffer) {
         Log.i("SpeckService", "Processing OPC data: " + buffer.toString());
-
-
-        if (buffer.position() != 62) {
-            Log.e("SpeckService", "Incorrect amount of data from OPC");
-            return;
-        }
 
         buffer.position(0);
 
@@ -422,15 +453,19 @@ public class SpeckBluetoothService extends Service {
             Log.i("SpeckService", "Bin " + i + ": " + bins[i]);
         }
 
-        // MtoF
+        int binsTotal = Utils.sum(bins);
+
+        // 4 8-bit values denoting average of how long particles were observed in laser beam for bin 1,3,5,7
         buffer.getInt();
         // OPC Temperature
         buffer.getInt();
         // OPC Pressure
         buffer.getInt();
-        // period count
+        // Temperature and pressure are used to determine airflow in OPC
+        // Period count: number of 12 MHz clock cycles in recording period (of processor in OPC), from beginning of
+        // recording period
         buffer.getInt();
-        // uint16_t checksum ????
+        // Checksum: count of all bin, keep last 16 bits.
         buffer.getShort();
 
         float pm1 = buffer.getFloat();
@@ -439,6 +474,79 @@ public class SpeckBluetoothService extends Service {
 
         Log.i("SpeckService", "PM values: " + pm1 + ", " + pm2_5 + ", " + pm10);
 
+        long currentPhoneTimestamp = Utils.getUnixTimestamp();
+
+        //Log.i("SpeckService",
+        //        String.format("Gps signal: lat %.4f, long %.4f, alt %.4f", latitude, longitude, altitude));
+
+        // Send data in broadcast
+        HashMap<String, Float> readings = new HashMap<>();
+        readings.put(Constants.QOE_PM1, pm1);
+        readings.put(Constants.QOE_PM2_5, pm2_5);
+        readings.put(Constants.QOE_PM10, pm10);
+        readings.put(Constants.QOE_TEMPERATURE, mLastTemperatureAirspeck);
+        readings.put(Constants.QOE_HUMIDITY, mLastHumidityAirspeck);
+        // TODO: read these from sensor
+        readings.put(Constants.QOE_NO2, mLastNO2);
+        readings.put(Constants.QOE_O3, mLastO3);
+        readings.put(Constants.QOE_BINS_0, (float) bins[0]);
+        readings.put(Constants.QOE_BINS_1, (float) bins[1]);
+        readings.put(Constants.QOE_BINS_2, (float) bins[2]);
+        readings.put(Constants.QOE_BINS_3, (float) bins[3]);
+        readings.put(Constants.QOE_BINS_4, (float) bins[4]);
+        readings.put(Constants.QOE_BINS_5, (float) bins[5]);
+        readings.put(Constants.QOE_BINS_6, (float) bins[6]);
+        readings.put(Constants.QOE_BINS_7, (float) bins[7]);
+        readings.put(Constants.QOE_BINS_8, (float) bins[8]);
+        readings.put(Constants.QOE_BINS_9, (float) bins[9]);
+        readings.put(Constants.QOE_BINS_10, (float) bins[10]);
+        readings.put(Constants.QOE_BINS_11, (float) bins[11]);
+        readings.put(Constants.QOE_BINS_12, (float) bins[12]);
+        readings.put(Constants.QOE_BINS_13, (float) bins[13]);
+        readings.put(Constants.QOE_BINS_14, (float) bins[14]);
+        readings.put(Constants.QOE_BINS_15, (float) bins[15]);
+
+        readings.put(Constants.QOE_BINS_TOTAL, (float) binsTotal);
+
+
+        Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
+        intentData.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, currentPhoneTimestamp);
+        intentData.putExtra(Constants.AIRSPECK_ALL_MEASURES, readings);
+        sendBroadcast(intentData);
+
+        // Store the important data in the external storage if set in config
+        if (mIsStoreDataLocally) {
+            String storedLine;
+
+            // TODO: get real location from new Airspeck
+            String locationString = ",,";
+
+            // For now, as we don't have the Airspeck GPS value, use the last phone location
+            if (mLastPhoneLocation != null) {
+                locationString = mLastPhoneLocation.getLongitude() + "," +
+                        mLastPhoneLocation.getLatitude() + "," + mLastPhoneLocation.getAltitude();
+            }
+
+            if (mIsStoreAllAirspeckFields) {
+                storedLine = AIRSPECK_UUID + "," + currentPhoneTimestamp + "," + pm1 + "," + pm2_5 + "," + pm10 + "," +
+                        mLastTemperatureAirspeck + "," + mLastHumidityAirspeck + "," + mLastNO2 +
+                        "," + mLastO3 + "," + bins[0] + "," + bins[1] + "," + bins[2] + "," + bins[3] + "," + bins[4] +
+                        "," + bins[5] + "," + bins[6] + "," + bins[7] + "," + bins[8] + "," + bins[9] + "," + bins[10] +
+                        "," + bins[11] + "," + bins[12] + "," + bins[13] + "," + bins[14] + "," + bins[15] + "," +
+                        binsTotal + "," + locationString;
+            } else {
+                storedLine = AIRSPECK_UUID + "," + currentPhoneTimestamp + "," + mLastTemperatureAirspeck + "," +
+                        mLastHumidityAirspeck + "," + mLastNO2 + "," + mLastO3 + "," + bins[0] + "," + locationString;
+            }
+            Log.i("QOE", "Airspeck data received: " + storedLine);
+            writeToAirspeckFile(storedLine);
+
+            // If we want to store a merged file, store the most recent Airspeck data without
+            // timestamp as a string
+            if (mIsStoreMergedFile) {
+                mMostRecentAirspeckData = storedLine;
+            }
+        }
     }
 
     void processTempHumidity(byte[] bytes) {
@@ -448,10 +556,10 @@ public class SpeckBluetoothService extends Service {
         }
 
         ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
-        float temp = ((float) buf.getShort()) * 0.1f;
-        Log.i("SpeckService", "Temp: " + temp);
-        float humidity = ((float) buf.getShort()) * 0.1f;
-        Log.i("SpeckService", "Humidity: " + humidity);
+        mLastTemperatureAirspeck = ((float) buf.getShort()) * 0.1f;
+        Log.i("SpeckService", "Temp: " + mLastTemperatureAirspeck);
+        mLastHumidityAirspeck = ((float) buf.getShort()) * 0.1f;
+        Log.i("SpeckService", "Humidity: " + mLastHumidityAirspeck);
     }
 
     private void connectAndNotifyRespeck() {
@@ -494,7 +602,17 @@ public class SpeckBluetoothService extends Service {
         Log.i("SpeckService", "Stopping Speck Service");
 
         // Close bluetooth scanning
-        scanSubscription.unsubscribe();
+        if (scanSubscription != null) {
+            scanSubscription.unsubscribe();
+        }
+        if (respeckLiveSubscription != null) {
+            respeckLiveSubscription.unsubscribe();
+        }
+        if (airspeckSubscription != null) {
+            airspeckSubscription.unsubscribe();
+        }
+
+        unregisterReceiver(mLocationReceiver);
 
         // Close the OutputWritingStreams
         try {
@@ -516,135 +634,137 @@ public class SpeckBluetoothService extends Service {
 
     private void processRESpeckPacket(final String characteristic, final byte[] values) {
 
-        if (characteristic.equals(RESPECK_LIVE_CHARACTERISTIC)) {
-            final int packetSequenceNumber = values[0] & 0xFF;
+        switch (characteristic) {
+            case RESPECK_LIVE_CHARACTERISTIC:
+                final int packetSequenceNumber = values[0] & 0xFF;
 
-            //Check if the reading is not repeated
-            if (packetSequenceNumber == latestPacketSequenceNumber) {
-                Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(packetSequenceNumber));
-                return;
-            } else {
-                latestPacketSequenceNumber = packetSequenceNumber;
-            }
+                //Check if the reading is not repeated
+                if (packetSequenceNumber == latestPacketSequenceNumber) {
+                    Log.e("RAT", "DUPLICATE SEQUENCE NUMBER: " + Integer.toString(packetSequenceNumber));
+                    return;
+                } else {
+                    latestPacketSequenceNumber = packetSequenceNumber;
+                }
 
-            for (int i = 1; i < values.length; i += 7) {
-                Byte startByte = values[i];
-                if (startByte == -1) {
-                    // Timestamp packet received. Starting a new sequence
-                    // Log.i("DF", "Timestamp received from RESpeck");
+                for (int i = 1; i < values.length; i += 7) {
+                    Byte startByte = values[i];
+                    if (startByte == -1) {
+                        // Timestamp packet received. Starting a new sequence
+                        // Log.i("DF", "Timestamp received from RESpeck");
 
-                    // Read timestamp from packet
-                    Byte ts_1 = values[i + 1];
-                    Byte ts_2 = values[i + 2];
-                    Byte ts_3 = values[i + 3];
-                    Byte ts_4 = values[i + 4];
+                        // Read timestamp from packet
+                        Byte ts_1 = values[i + 1];
+                        Byte ts_2 = values[i + 2];
+                        Byte ts_3 = values[i + 3];
+                        Byte ts_4 = values[i + 4];
 
-                    long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
-                    // Multiply the timestamp by some factor. TODO: why this one?
-                    //long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 / 32768;
-                    long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
-                    if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
-                        Log.e("SpeckService", "RESpeck: duplicate live timestamp received");
-                        return;
-                    }
-                    long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
-                    mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
+                        long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
+                        // Multiply the timestamp by some factor. TODO: why this one?
+                        long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
+                        //long newRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
+                        if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
+                            Log.e("SpeckService", "RESpeck: duplicate live timestamp received");
+                            return;
+                        }
+                        long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
+                        mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
-                    Log.i("SpeckService", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
+                        Log.i("SpeckService", "respeck ts: " + newRESpeckTimestamp);
+                        Log.i("SpeckService", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
 
-                    // Independent of the RESpeck timestamp, we use the phone timestamp
-                    long actualPhoneTimestamp = Utils.getUnixTimestamp();
+                        // Independent of the RESpeck timestamp, we use the phone timestamp
+                        long actualPhoneTimestamp = Utils.getUnixTimestamp();
 
-                    if (mPhoneTimestampCurrentPacketReceived == -1) {
-                        // If this is our first sequence, we use the typical time difference between the
-                        // RESpeck packets for determining the previous timestamp
-                        mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
+                        if (mPhoneTimestampCurrentPacketReceived == -1) {
+                            // If this is our first sequence, we use the typical time difference between the
+                            // RESpeck packets for determining the previous timestamp
+                            mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
+                                    Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+                        } else {
+                            mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
+                        }
+
+                        long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
                                 Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
-                    } else {
-                        mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
-                    }
 
-                    long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
-                            Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+                        Log.i("SpeckService",
+                                "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
 
-                    Log.i("SpeckService",
-                            "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
+                        // If the last timestamp plus the average time difference is more than
+                        // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
+                        // last plus the average time difference.
+                        if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
+                                Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
+                            // Log.i("SpeckService", "correction!");
+                            mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
+                        } else {
+                            // Log.i("SpeckService", "no correction!");
+                            mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
+                        }
 
-                    // If the last timestamp plus the average time difference is more than
-                    // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
-                    // last plus the average time difference.
-                    if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
-                            Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
-                        // Log.i("SpeckService", "correction!");
-                        mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
-                    } else {
-                        // Log.i("SpeckService", "no correction!");
-                        mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
-                    }
+                        currentSequenceNumberInBatch = 0;
 
-                    currentSequenceNumberInBatch = 0;
+                        // process any queued stored data. TODO:test this if the stored mode is activated again in the
+                        // RESpeck.
+                        while (!storedQueue.isEmpty()) {
+                            // TODO: this doesn't seem to be reached? Is the queue only for the case when
+                            // the RESpeck was disconnected from the phone?
+                            RESpeckStoredSample s = storedQueue.remove();
 
-                    // process any queued stored data. TODO:test this if the stored mode is activated again in the
-                    // RESpeck.
-                    while (!storedQueue.isEmpty()) {
-                        // TODO: this doesn't seem to be reached? Is the queue only for the case when
-                        // the RESpeck was disconnected from the phone?
-                        RESpeckStoredSample s = storedQueue.remove();
+                            // TODO: why do we need the offset of the livedata for the stored sample?
+                            long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
+                                    mRESpeckTimestampCurrentPacketReceived;
 
-                        // TODO: why do we need the offset of the livedata for the stored sample?
-                        long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
-                                mRESpeckTimestampCurrentPacketReceived;
+                            Log.i("SpeckService", "Stored packet received:");
+                            Log.i("SpeckService", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
+                            Log.i("SpeckService", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
+                            Log.i("SpeckService", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
+                            Log.i("SpeckService", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
+                            Log.i("SpeckService", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
+                            Log.i("SpeckService", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
 
-                        Log.i("SpeckService", "Stored packet received:");
-                        Log.i("SpeckService", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
-                        Log.i("SpeckService", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
-                        Log.i("SpeckService", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
-                        Log.i("SpeckService", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
-                        Log.i("SpeckService", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
-                        Log.i("SpeckService", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
+                            // Send stored data broadcast
+                            Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST);
+                            liveDataIntent.putExtra(Constants.RESPECK_STORED_TIMESTAMP_OFFSET, currentTimeOffset);
+                            liveDataIntent.putExtra(Constants.RESPECK_STORED_SENSOR_TIMESTAMP, s.getRESpeckTimestamp());
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                                    s.getAverageBreathingRate());
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                                    s.getStdBreathingRate());
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, s.getNumberOfBreaths());
+                            sendBroadcast(liveDataIntent);
+                        }
 
-                        // Send stored data broadcast
-                        Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST);
-                        liveDataIntent.putExtra(Constants.RESPECK_STORED_TIMESTAMP_OFFSET, currentTimeOffset);
-                        liveDataIntent.putExtra(Constants.RESPECK_STORED_SENSOR_TIMESTAMP, s.getRESpeckTimestamp());
-                        liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
-                                s.getAverageBreathingRate());
-                        liveDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
-                                s.getStdBreathingRate());
-                        liveDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, s.getNumberOfBreaths());
-                        sendBroadcast(liveDataIntent);
-                    }
+                    } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
+                        // Only do something with data if the timestamps are synchronised
+                        // Log.v("DF", "Acceleration packet received from RESpeck");
+                        // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
+                        // packets before the first timestamp
+                        if (currentSequenceNumberInBatch == -1) {
+                            Log.e("SpeckService", "RESpeck acceleration packet received before timestamp packet");
+                            return;
+                        }
 
-                } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
-                    // Only do something with data if the timestamps are synchronised
-                    // Log.v("DF", "Acceleration packet received from RESpeck");
-                    // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
-                    // packets before the first timestamp
-                    if (currentSequenceNumberInBatch == -1) {
-                        Log.e("SpeckService", "RESpeck acceleration packet received before timestamp packet");
-                        return;
-                    }
+                        try {
+                            final float x = combineAccelerationBytes(values[i + 1], values[i + 2]);
+                            final float y = combineAccelerationBytes(values[i + 3], values[i + 4]);
+                            final float z = combineAccelerationBytes(values[i + 5], values[i + 6]);
 
-                    try {
-                        final float x = combineAccelerationBytes(values[i + 1], values[i + 2]);
-                        final float y = combineAccelerationBytes(values[i + 3], values[i + 4]);
-                        final float z = combineAccelerationBytes(values[i + 5], values[i + 6]);
+                            updateBreathing(x, y, z);
 
-                        updateBreathing(x, y, z);
+                            final float breathingRate = getBreathingRate();
+                            final float breathingSignal = getBreathingSignal();
+                            final float breathingAngle = getBreathingAngle();
+                            final float activityLevel = getActivityLevel();
+                            final int activityType = getCurrentActivityClassification();
 
-                        final float breathingRate = getBreathingRate();
-                        final float breathingSignal = getBreathingSignal();
-                        final float breathingAngle = getBreathingAngle();
-                        final float activityLevel = getActivityLevel();
-                        final int activityType = getCurrentActivityClassification();
-
-                        // Calculate interpolated timestamp of current sample based on sequence number
-                        // There are 32 samples in each acceleration batch the RESpeck sends.
-                        long interpolatedPhoneTimestampOfCurrentSample = (long)
-                                ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) *
-                                        (currentSequenceNumberInBatch * 1. /
-                                                Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
-                                mPhoneTimestampLastPacketReceived;
+                            // Calculate interpolated timestamp of current sample based on sequence number
+                            // There are 32 samples in each acceleration batch the RESpeck sends.
+                            long interpolatedPhoneTimestampOfCurrentSample = (long)
+                                    ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) *
+                                            (currentSequenceNumberInBatch * 1. /
+                                                    Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
+                                    mPhoneTimestampLastPacketReceived;
 
                             /*
                             Log.i("SpeckService", "BS_TIMESTAMP " + String.valueOf(mPhoneTimestampCurrentPacketReceived));
@@ -661,62 +781,63 @@ public class SpeckBluetoothService extends Service {
                             Log.i("SpeckService", "Activity Level " + String.valueOf(activityLevel));
                             */
 
-                        // Store the important data in the external storage if set in config
-                        if (mIsStoreDataLocally) {
-                            String storedLine = interpolatedPhoneTimestampOfCurrentSample + "," +
-                                    mRESpeckTimestampCurrentPacketReceived + "." + currentSequenceNumberInBatch +
-                                    "," + x + "," + y + "," + z + "," + breathingSignal +
-                                    "," + breathingRate + "," + activityLevel + "," + activityType;
-                            writeToRESpeckAndMergedFile(storedLine);
-                        }
+                            // Store the important data in the external storage if set in config
+                            if (mIsStoreDataLocally) {
+                                String storedLine = RESPECK_UUID + "," + interpolatedPhoneTimestampOfCurrentSample +
+                                        "," + mRESpeckTimestampCurrentPacketReceived + "." +
+                                        currentSequenceNumberInBatch + "," + x + "," + y + "," + z + "," +
+                                        breathingSignal + "," + breathingRate + "," + activityLevel + "," +
+                                        activityType;
+                                writeToRESpeckAndMergedFile(storedLine);
+                            }
 
-                        // Send live broadcast intent
-                        Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
-                        liveDataIntent.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP,
-                                interpolatedPhoneTimestampOfCurrentSample);
-                        liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP,
-                                mRESpeckTimestampCurrentPacketReceived);
-                        liveDataIntent.putExtra(Constants.RESPECK_X, x);
-                        liveDataIntent.putExtra(Constants.RESPECK_Y, y);
-                        liveDataIntent.putExtra(Constants.RESPECK_Z, z);
-                        liveDataIntent.putExtra(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
-                        liveDataIntent.putExtra(Constants.RESPECK_BREATHING_RATE, breathingRate);
-                        liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, mAverageBreathingRate);
-                        liveDataIntent.putExtra(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
-                        liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, currentSequenceNumberInBatch);
-                        liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
-                        liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_TYPE, activityType);
-                        liveDataIntent.putExtra(Constants.RESPECK_BATTERY_PERCENT, mLatestBatteryPercent);
-                        liveDataIntent.putExtra(Constants.RESPECK_REQUEST_CHARGE, mLatestRequestCharge);
-                        sendBroadcast(liveDataIntent);
+                            // Send live broadcast intent
+                            Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
+                            liveDataIntent.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP,
+                                    interpolatedPhoneTimestampOfCurrentSample);
+                            liveDataIntent.putExtra(Constants.RESPECK_SENSOR_TIMESTAMP,
+                                    mRESpeckTimestampCurrentPacketReceived);
+                            liveDataIntent.putExtra(Constants.RESPECK_X, x);
+                            liveDataIntent.putExtra(Constants.RESPECK_Y, y);
+                            liveDataIntent.putExtra(Constants.RESPECK_Z, z);
+                            liveDataIntent.putExtra(Constants.RESPECK_BREATHING_SIGNAL, breathingSignal);
+                            liveDataIntent.putExtra(Constants.RESPECK_BREATHING_RATE, breathingRate);
+                            liveDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, mAverageBreathingRate);
+                            liveDataIntent.putExtra(Constants.RESPECK_BREATHING_ANGLE, breathingAngle);
+                            liveDataIntent.putExtra(Constants.RESPECK_SEQUENCE_NUMBER, currentSequenceNumberInBatch);
+                            liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_LEVEL, activityLevel);
+                            liveDataIntent.putExtra(Constants.RESPECK_ACTIVITY_TYPE, activityType);
+                            liveDataIntent.putExtra(Constants.RESPECK_BATTERY_PERCENT, mLatestBatteryPercent);
+                            liveDataIntent.putExtra(Constants.RESPECK_REQUEST_CHARGE, mLatestRequestCharge);
+                            sendBroadcast(liveDataIntent);
 
-                        // Every full minute, calculate the average breathing rate in that minute. This value will
-                        // only change after a call to "calculateAverageBreathing".
-                        long currentProcessedMinute = DateUtils.truncate(new Date(
-                                        mPhoneTimestampCurrentPacketReceived),
-                                Calendar.MINUTE).getTime();
-                        if (currentProcessedMinute != latestProcessedMinute) {
-                            calculateAverageBreathing();
+                            // Every full minute, calculate the average breathing rate in that minute. This value will
+                            // only change after a call to "calculateAverageBreathing".
+                            long currentProcessedMinute = DateUtils.truncate(new Date(
+                                            mPhoneTimestampCurrentPacketReceived),
+                                    Calendar.MINUTE).getTime();
+                            if (currentProcessedMinute != latestProcessedMinute) {
+                                calculateAverageBreathing();
 
-                            mAverageBreathingRate = getAverageBreathingRate();
-                            mStdDevBreathingRate = getStdDevBreathingRate();
-                            mNumberOfBreaths = getNumberOfBreaths();
+                                mAverageBreathingRate = getAverageBreathingRate();
+                                mStdDevBreathingRate = getStdDevBreathingRate();
+                                mNumberOfBreaths = getNumberOfBreaths();
 
-                            // Empty the minute average window
-                            resetMedianAverageBreathing();
+                                // Empty the minute average window
+                                resetMedianAverageBreathing();
 
-                            // Send average broadcast intent
-                            Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
-                            // The averaged data is not attached to a particular sensor record, so we only
-                            // store the interpolated phone timestamp
-                            avgDataIntent.putExtra(Constants.RESPECK_TIMESTAMP_MINUTE_AVG,
-                                    currentProcessedMinute);
-                            avgDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
-                                    mAverageBreathingRate);
-                            avgDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
-                                    mStdDevBreathingRate);
-                            avgDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, mNumberOfBreaths);
-                            sendBroadcast(avgDataIntent);
+                                // Send average broadcast intent
+                                Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
+                                // The averaged data is not attached to a particular sensor record, so we only
+                                // store the interpolated phone timestamp
+                                avgDataIntent.putExtra(Constants.RESPECK_TIMESTAMP_MINUTE_AVG,
+                                        currentProcessedMinute);
+                                avgDataIntent.putExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
+                                        mAverageBreathingRate);
+                                avgDataIntent.putExtra(Constants.RESPECK_MINUTE_STD_BREATHING_RATE,
+                                        mStdDevBreathingRate);
+                                avgDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, mNumberOfBreaths);
+                                sendBroadcast(avgDataIntent);
 
                                 /*
                                 Log.i("SpeckService", "RESPECK_BS_TIMESTAMP " + ts_minute);
@@ -726,90 +847,94 @@ public class SpeckBluetoothService extends Service {
                                 Log.i("SpeckService", "EXTRA_RESPECK_LIVE_ACTIVITY " + activityLevel);
                                 */
 
-                            latestProcessedMinute = currentProcessedMinute;
+                                latestProcessedMinute = currentProcessedMinute;
+                            }
+
+                        } catch (IndexOutOfBoundsException e) {
+                            e.printStackTrace();
                         }
 
-                    } catch (IndexOutOfBoundsException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Increase sequence number for next incoming sample
-                    currentSequenceNumberInBatch += 1;
-                }
-            }
-        } else if (characteristic.equals(RESPECK_BATTERY_LEVEL_CHARACTERISTIC)) {
-            // Battery packet received which contains the charging level of the battery
-            int batteryLevel = combineBatteryBytes(values[0], values[1]);
-
-            // Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
-
-            int chargePercentage = (100 * (batteryLevel - BATTERY_EMPTY_LEVEL) /
-                    (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
-
-            if (chargePercentage < 1) {
-                chargePercentage = 1;
-            } else if (chargePercentage > 100) {
-                chargePercentage = 100;
-            }
-
-            mLatestBatteryPercent = (float) chargePercentage;
-            mLatestRequestCharge = batteryLevel <= PROMPT_TO_CHARGE_LEVEL;
-
-            // Log.i("RAT", "Battery level: " + Float.toString(
-            //         mLatestBatteryPercent) + ", request charge: " + Float.toString(mLatestRequestCharge));
-
-        } else if (characteristic.equals(RESPECK_BREATHING_RATES_CHARACTERISTIC)){
-            // Breathing rates packet received. This only happens when the RESpeck was disconnected and
-            // therefore only stored the minute averages
-            final int sequenceNumber = values[0] & 0xFF;
-
-            // Duplicate sent?
-            if (sequenceNumber == latestStoredRespeckSeq) {
-                return;
-            } else {
-                latestStoredRespeckSeq = sequenceNumber;
-            }
-
-            long breathAveragePhoneTimestamp = -1;
-            long breathAverageRESpeckTimestamp = -1;
-            int breathAverageSequenceNumber = -1;
-
-            for (int i = 1; i < values.length; i += 6) {
-                Byte startByte = values[i];
-
-                if (startByte == -1) {
-                    // timestamp
-                    Byte ts_1 = values[i + 1];
-                    Byte ts_2 = values[i + 2];
-                    Byte ts_3 = values[i + 3];
-                    Byte ts_4 = values[i + 4];
-                    breathAveragePhoneTimestamp = System.currentTimeMillis();
-                    breathAverageRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
-                    breathAverageSequenceNumber = 0;
-
-                } else if (startByte == -2) {
-                    // breath average
-                    int numberOfBreaths = values[i + 1] & 0xFF;
-                    if (numberOfBreaths > 5) {
-                        float meanBreathingRate = (float) (values[i + 2] & 0xFF) / 5.0f;
-                        float sdBreathingRate = (float) Math.sqrt((float) (values[i + 3] & 0xFF) /
-                                10.0f);
-
-                        Byte upperActivityLevel = values[i + 4];
-                        Byte lowerActivityLevel = values[i + 5];
-                        float combinedActivityLevel = combineActivityLevelBytes(upperActivityLevel, lowerActivityLevel);
-
-                        RESpeckStoredSample ras = new RESpeckStoredSample(breathAveragePhoneTimestamp,
-                                breathAverageRESpeckTimestamp, breathAverageSequenceNumber++, numberOfBreaths,
-                                meanBreathingRate, sdBreathingRate, combinedActivityLevel);
-
-                        // Add this stored sample to a queue. This way, we will empty the RESpeck buffer as
-                        // quickly as possible until it can send live data again.
-                        storedQueue.add(ras);
+                        // Increase sequence number for next incoming sample
+                        currentSequenceNumberInBatch += 1;
                     }
                 }
-            }
+                break;
+            case RESPECK_BATTERY_LEVEL_CHARACTERISTIC:
+                // Battery packet received which contains the charging level of the battery
+                int batteryLevel = combineBatteryBytes(values[0], values[1]);
 
+                // Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
+
+                int chargePercentage = (100 * (batteryLevel - BATTERY_EMPTY_LEVEL) /
+                        (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
+
+                if (chargePercentage < 1) {
+                    chargePercentage = 1;
+                } else if (chargePercentage > 100) {
+                    chargePercentage = 100;
+                }
+
+                mLatestBatteryPercent = (float) chargePercentage;
+                mLatestRequestCharge = batteryLevel <= PROMPT_TO_CHARGE_LEVEL;
+
+                // Log.i("RAT", "Battery level: " + Float.toString(
+                //         mLatestBatteryPercent) + ", request charge: " + Float.toString(mLatestRequestCharge));
+
+                break;
+            case RESPECK_BREATHING_RATES_CHARACTERISTIC:
+                // Breathing rates packet received. This only happens when the RESpeck was disconnected and
+                // therefore only stored the minute averages
+                final int sequenceNumber = values[0] & 0xFF;
+
+                // Duplicate sent?
+                if (sequenceNumber == latestStoredRespeckSeq) {
+                    return;
+                } else {
+                    latestStoredRespeckSeq = sequenceNumber;
+                }
+
+                long breathAveragePhoneTimestamp = -1;
+                long breathAverageRESpeckTimestamp = -1;
+                int breathAverageSequenceNumber = -1;
+
+                for (int i = 1; i < values.length; i += 6) {
+                    Byte startByte = values[i];
+
+                    if (startByte == -1) {
+                        // timestamp
+                        Byte ts_1 = values[i + 1];
+                        Byte ts_2 = values[i + 2];
+                        Byte ts_3 = values[i + 3];
+                        Byte ts_4 = values[i + 4];
+                        breathAveragePhoneTimestamp = System.currentTimeMillis();
+                        breathAverageRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
+                        breathAverageSequenceNumber = 0;
+
+                    } else if (startByte == -2) {
+                        // breath average
+                        int numberOfBreaths = values[i + 1] & 0xFF;
+                        if (numberOfBreaths > 5) {
+                            float meanBreathingRate = (float) (values[i + 2] & 0xFF) / 5.0f;
+                            float sdBreathingRate = (float) Math.sqrt((float) (values[i + 3] & 0xFF) /
+                                    10.0f);
+
+                            Byte upperActivityLevel = values[i + 4];
+                            Byte lowerActivityLevel = values[i + 5];
+                            float combinedActivityLevel = combineActivityLevelBytes(upperActivityLevel,
+                                    lowerActivityLevel);
+
+                            RESpeckStoredSample ras = new RESpeckStoredSample(breathAveragePhoneTimestamp,
+                                    breathAverageRESpeckTimestamp, breathAverageSequenceNumber++, numberOfBreaths,
+                                    meanBreathingRate, sdBreathingRate, combinedActivityLevel);
+
+                            // Add this stored sample to a queue. This way, we will empty the RESpeck buffer as
+                            // quickly as possible until it can send live data again.
+                            storedQueue.add(ras);
+                        }
+                    }
+                }
+
+                break;
         }
     }
 

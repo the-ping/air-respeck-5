@@ -298,26 +298,26 @@ public class Constants {
     public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck and Airspeck/";
     public static final String PHONE_LOCATION_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Phone GPS/";
 
-    public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
+    public static final String RESPECK_DATA_HEADER = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
     public static final String VOLUME_DATA_HEADER = "interpolatedPhoneTimestamp,x,y,z," +
             "breathingSignal,activityTypeSelection,bagSizeSelection";
 
-    public static final String AIRSPECK_DATA_HEADER_SUBSET = "phoneTimestamp,temperature,humidity,no2,o3,bin0," +
+    public static final String AIRSPECK_DATA_HEADER_SUBSET = "airspeckUUID,phoneTimestamp,temperature,humidity,no2,o3,bin0," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String AIRSPECK_DATA_HEADER_ALL = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3," +
+    public static final String AIRSPECK_DATA_HEADER_ALL = "airspeckUUID,phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3," +
             "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String MERGED_DATA_HEADER_SUBSET = "interpolatedPhoneTimestamp," +
+    public static final String MERGED_DATA_HEADER_SUBSET = "respeckUUID,interpolatedPhoneTimestamp," +
             "respeckTimestamp.sequenceNumber,x,y,z," +
-            "breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,temperature,humidity,no2," +
+            "breathingSignal,breathingRate,activityLevel,activityType,airspeckUUID,airspeckTimestamp,temperature,humidity,no2," +
             "o3,bin0,gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String MERGED_DATA_HEADER_ALL = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber," +
-            "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckTimestamp,pm1,pm2_5,pm10," +
+    public static final String MERGED_DATA_HEADER_ALL = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber," +
+            "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckUUID,airspeckTimestamp,pm1,pm2_5,pm10," +
             "temperature,humidity,no2,o3,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13," +
             "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";
 

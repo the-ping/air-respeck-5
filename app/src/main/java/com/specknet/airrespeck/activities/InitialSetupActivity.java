@@ -1,10 +1,7 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.app.DialogFragment;
-import android.content.Context;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,7 +12,6 @@ import android.widget.Toast;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.datamodels.User;
-import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.http.HttpApi;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;

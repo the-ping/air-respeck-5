@@ -10,8 +10,8 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
-import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.view.MenuItem;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.lib.SeekBarListPreference;

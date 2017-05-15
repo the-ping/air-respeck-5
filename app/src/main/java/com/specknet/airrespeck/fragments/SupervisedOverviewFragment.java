@@ -14,19 +14,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.lib.Segment;
 import com.specknet.airrespeck.lib.SegmentedBar;
 import com.specknet.airrespeck.lib.SegmentedBarSideTextStyle;
 import com.specknet.airrespeck.models.ReadingItem;
-import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.specknet.airrespeck.R.styleable.SegmentedBar;
 
 
 public class SupervisedOverviewFragment extends BaseFragment implements View.OnClickListener {

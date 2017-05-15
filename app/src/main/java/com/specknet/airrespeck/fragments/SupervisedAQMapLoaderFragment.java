@@ -3,7 +3,6 @@ package com.specknet.airrespeck.fragments;
 import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,10 +20,7 @@ import com.specknet.airrespeck.dialogs.TimePickerFragment;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 

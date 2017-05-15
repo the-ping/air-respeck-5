@@ -23,14 +23,12 @@ import java.util.List;
 public class ReadingItemSegmentedBarAdapter extends
         RecyclerView.Adapter<ReadingItemSegmentedBarAdapter.ViewHolder> {
 
-    private final Context mContext;
     private final List<ReadingItem> mValues;
     private final SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener mListener;
 
     public ReadingItemSegmentedBarAdapter(Context context,
                                           List<ReadingItem> items,
                                           SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener listener) {
-        mContext = context;
         mValues = items;
         mListener = listener;
     }

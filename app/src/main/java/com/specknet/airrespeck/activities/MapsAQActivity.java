@@ -27,7 +27,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.models.AirspeckMapData;
 import com.specknet.airrespeck.models.LocationData;
@@ -273,6 +272,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                                     loadedData.add(readSample);
                                 }
                             }
+                            reader.close();
                         }
                     } catch (IOException | ParseException e) {
                         e.printStackTrace();

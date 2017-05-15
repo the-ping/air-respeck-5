@@ -8,8 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
@@ -44,6 +42,8 @@ public class SupervisedAQGraphsFragment extends BaseFragment {
         private float mPM1;
         private float mPM2_5;
         private float mPM10;
+
+        final static long serialVersionUID = 1023902941124L;
 
         public PMs(final float pm1, final float pm2_5, final float pm10) {
             mPM1 = pm1;

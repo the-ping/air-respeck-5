@@ -353,6 +353,14 @@ public final class Utils {
         }*/
     }
 
+    public static int sum(int[] intArray) {
+        int sum = 0;
+        for (int val: intArray) {
+            sum += val;
+        }
+        return sum;
+    }
+
     public static float mean(Float[] a) {
         Float sum = 0f;
         for (Float elem : a) {
