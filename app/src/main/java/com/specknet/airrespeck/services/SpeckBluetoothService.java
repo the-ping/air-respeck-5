@@ -4,12 +4,8 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +40,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 import java.util.Timer;
@@ -67,7 +62,7 @@ public class SpeckBluetoothService extends Service {
     private boolean mIsRESpeckFound;
     private Subscription scanSubscription;
     private Subscription airspeckSubscription;
-    private Subscription respeckSubscription;
+    private Subscription respeckLiveSubscription;
 
     // Config settings
     private boolean mIsAirspeckEnabled;
@@ -322,8 +317,7 @@ public class SpeckBluetoothService extends Service {
                 .subscribe(
                         bytes -> {
                             // Given characteristic has been changes, here is the value.
-                            Log.i("SpeckService", "AIRSPECK NOTIFICATION");
-                            //processAirspeckPacketOld(bytes);
+                            processAirspeckPacket(bytes);
                         },
                         throwable -> {
                             // Handle an error here.
@@ -338,67 +332,6 @@ public class SpeckBluetoothService extends Service {
         connectAndNotifyAirspeck();
     }
 
-    private void connectAndNotifyRespeck() {
-        if ((mIsAirspeckFound && mIsRESpeckFound) || !mIsAirspeckEnabled)
-            scanSubscription.unsubscribe();
-
-        RxBleDevice device = rxBleClient.getBleDevice(RESPECK_UUID);
-        respeckSubscription = device.establishConnection(true)
-                .flatMap(rxBleConnection -> rxBleConnection.setupNotification(
-                        UUID.fromString(RESPECK_LIVE_CHARACTERISTIC)))
-                .doOnNext(notificationObservable -> {
-                    // Notification has been set up
-                    Log.i("SpeckService", "Subscribed to RESPECK");
-                })
-                .flatMap(
-                        notificationObservable -> notificationObservable) // <-- Notification has been set up, now observe value changes.
-                .subscribe(
-                        characteristicValue -> {
-                            // Given characteristic has been changes, here is the value.
-                            Log.i("SpeckService", "RESPECK NOTIFICATION: " + Arrays.toString(characteristicValue));
-                            //processRESpeckPacket(characteristicValue);
-                        },
-                        throwable -> {
-                            // Handle an error here.
-                            if (throwable instanceof BleDisconnectedException) {
-                                Log.i("SpeckService", "RESPECK DISCONNECTED: " + throwable.toString());
-                                reconnectRespeck();
-                            } else {
-                                Log.e("SpeckService", "Notification handling error: " + throwable.toString());
-                            }
-                        }
-                );
-    }
-
-    private void reconnectRespeck() {
-        respeckSubscription.unsubscribe();
-        connectAndNotifyRespeck();
-    }
-
-    public void stopSpeckService() {
-        Log.i("SpeckService", "Stopping Speck Service");
-
-        // Close bluetooth scanning
-        scanSubscription.unsubscribe();
-
-        // Close the OutputWritingStreams
-        try {
-            mActivitySummaryWriter.close();
-            if (mRespeckWriter != null) {
-                Log.i("SpeckService", "Respeck writer was closed");
-                mRespeckWriter.close();
-            }
-            if (mAirspeckWriter != null) {
-                mAirspeckWriter.close();
-            }
-            if (mMergedWriter != null) {
-                mMergedWriter.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     void processAirspeckPacket(byte[] bytes) {
         // Packet Format
 
@@ -409,8 +342,8 @@ public class SpeckBluetoothService extends Service {
         // 2B Mini Timestamp
 
         int headerLength = 4;
-        int packetLength = bytes.length;
         int payloadLength = bytes[0];
+        int packetLength = bytes.length;
         Log.i("SpeckService", "Payload length: " + payloadLength);
 
         if (packetLength != payloadLength + headerLength) {
@@ -505,6 +438,7 @@ public class SpeckBluetoothService extends Service {
         float pm10 = buffer.getFloat();
 
         Log.i("SpeckService", "PM values: " + pm1 + ", " + pm2_5 + ", " + pm10);
+
     }
 
     void processTempHumidity(byte[] bytes) {
@@ -520,174 +454,70 @@ public class SpeckBluetoothService extends Service {
         Log.i("SpeckService", "Humidity: " + humidity);
     }
 
-    private void processAirspeckPacketOld(BluetoothGattCharacteristic characteristic) {
-        int sampleId = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-        int packetNumber = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1);
+    private void connectAndNotifyRespeck() {
+        if ((mIsAirspeckFound && mIsRESpeckFound) || !mIsAirspeckEnabled)
+            scanSubscription.unsubscribe();
 
-        lastPackets[packetNumber] = characteristic.getValue();
-        sampleIDs[packetNumber] = sampleId;
+        RxBleDevice device = rxBleClient.getBleDevice(RESPECK_UUID);
+        respeckLiveSubscription = device.establishConnection(true)
+                .flatMap(rxBleConnection -> rxBleConnection.setupNotification(
+                        UUID.fromString(RESPECK_LIVE_CHARACTERISTIC)))
+                .doOnNext(notificationObservable -> {
+                    // Notification has been set up
+                    Log.i("SpeckService", "Subscribed to RESPECK");
+                })
+                .flatMap(
+                        notificationObservable -> notificationObservable) // <-- Notification has been set up, now observe value changes.
+                .subscribe(
+                        characteristicValue -> {
+                            // Given characteristic has been changes, here is the value.
+                            processRESpeckPacket(RESPECK_LIVE_CHARACTERISTIC, characteristicValue);
+                        },
+                        throwable -> {
+                            // Handle an error here.
+                            if (throwable instanceof BleDisconnectedException) {
+                                Log.i("SpeckService", "RESPECK DISCONNECTED: " + throwable.toString());
+                                reconnectRespeck();
+                            } else {
+                                Log.e("SpeckService", "Notification handling error: " + throwable.toString());
+                            }
+                        }
+                );
+    }
 
-        if (characteristic.getUuid().equals(UUID.fromString(AIRSPECK_LIVE_CHARACTERISTIC))) {
-            if ((sampleIDs[0] == sampleIDs[1]) && lastSample != sampleIDs[0] &&
-                    (sampleIDs[1] == sampleIDs[2] && (sampleIDs[2] == sampleIDs[3]) &&
-                            (sampleIDs[3] == sampleIDs[4]))) {
+    private void reconnectRespeck() {
+        respeckLiveSubscription.unsubscribe();
+        connectAndNotifyRespeck();
+    }
 
-                byte[] finalPacket;
-                int size = 5;
+    public void stopSpeckService() {
+        Log.i("SpeckService", "Stopping Speck Service");
 
-                finalPacket = new byte[lastPackets[0].length + lastPackets[1].length +
-                        lastPackets[2].length + lastPackets[3].length + lastPackets[4].length - 8];
-                int finalPacketIndex = 0;
-                for (int i = 0; i < size; i++) {
-                    for (int j = 2; j < lastPackets[i].length; j++) {
-                        finalPacket[finalPacketIndex] = lastPackets[i][j];
-                        finalPacketIndex++;
-                    }
-                }
+        // Close bluetooth scanning
+        scanSubscription.unsubscribe();
 
-                ByteBuffer packetBufferLittleEnd = ByteBuffer.wrap(finalPacket).order(ByteOrder.LITTLE_ENDIAN);
-                ByteBuffer packetBufferBigEnd = ByteBuffer.wrap(finalPacket).order(ByteOrder.BIG_ENDIAN);
-
-                int bin0 = packetBufferLittleEnd.getShort();
-                int bin1 = packetBufferLittleEnd.getShort();
-                int bin2 = packetBufferLittleEnd.getShort();
-                int bin3 = packetBufferLittleEnd.getShort();
-                int bin4 = packetBufferLittleEnd.getShort();
-                int bin5 = packetBufferLittleEnd.getShort();
-                int bin6 = packetBufferLittleEnd.getShort();
-                int bin7 = packetBufferLittleEnd.getShort();
-                int bin8 = packetBufferLittleEnd.getShort();
-                int bin9 = packetBufferLittleEnd.getShort();
-                int bin10 = packetBufferLittleEnd.getShort();
-                int bin11 = packetBufferLittleEnd.getShort();
-                int bin12 = packetBufferLittleEnd.getShort();
-                int bin13 = packetBufferLittleEnd.getShort();
-                int bin14 = packetBufferLittleEnd.getShort();
-                int bin15 = packetBufferLittleEnd.getShort();
-
-                int total = bin0 + bin1 + bin2 + bin3
-                        + bin4 + bin5 + bin6 + bin7
-                        + bin8 + bin9 + bin10 + bin11
-                        + bin12 + bin13 + bin14 + bin15;
-
-                // MtoF
-                packetBufferLittleEnd.getInt();
-                // OPC temperature
-                packetBufferLittleEnd.getInt();
-                // OPC Pressure
-                packetBufferLittleEnd.getInt();
-                // Üeriod count
-                packetBufferLittleEnd.getInt();
-                // uint16_t checksum ????
-                packetBufferLittleEnd.getShort();
-
-                float pm1 = packetBufferLittleEnd.getFloat();
-                float pm2_5 = packetBufferLittleEnd.getFloat();
-                float pm10 = packetBufferLittleEnd.getFloat();
-
-                // AE: auxiliary electrode, WE: working electrode
-                int o3_ae = packetBufferBigEnd.getShort(62);
-                int o3_we = packetBufferBigEnd.getShort(64);
-
-                int no2_ae = packetBufferBigEnd.getShort(66);
-                int no2_we = packetBufferBigEnd.getShort(68);
-
-                /* uint16_t temperature */
-                int unconvertedTemperature = packetBufferBigEnd.getShort(70) & 0xffff;
-
-                /* uint16_t humidity */
-                int unconvertedHumidity = packetBufferBigEnd.getShort(72);
-
-                double temperature = ((unconvertedTemperature - 3960) / 100.0);
-                double humidity = (-2.0468 + (0.0367 * unconvertedHumidity) +
-                        (-0.0000015955 * unconvertedHumidity * unconvertedHumidity));
-
-
-                Log.i("[QOE]", "PM1: " + pm1);
-                Log.i("[QOE]", "PM2.5: " + pm2_5);
-                Log.i("[QOE]", "PM10: " + pm10);
-
-                lastSample = sampleIDs[0];
-
-                // Get timestamp
-                long currentPhoneTimestamp = Utils.getUnixTimestamp();
-
-                //Log.i("[GPS]",
-                //        String.format("Gps signal: lat %.4f, long %.4f, alt %.4f", latitude, longitude, altitude));
-
-                // Send data in broadcast
-                HashMap<String, Float> readings = new HashMap<>();
-                readings.put(Constants.QOE_PM1, pm1);
-                readings.put(Constants.QOE_PM2_5, pm2_5);
-                readings.put(Constants.QOE_PM10, pm10);
-                readings.put(Constants.QOE_TEMPERATURE, (float) temperature);
-                readings.put(Constants.QOE_HUMIDITY, (float) humidity);
-                readings.put(Constants.QOE_NO2, (float) no2_ae);
-                readings.put(Constants.QOE_O3, (float) o3_ae);
-                readings.put(Constants.QOE_BINS_0, (float) bin0);
-                readings.put(Constants.QOE_BINS_1, (float) bin1);
-                readings.put(Constants.QOE_BINS_2, (float) bin2);
-                readings.put(Constants.QOE_BINS_3, (float) bin3);
-                readings.put(Constants.QOE_BINS_4, (float) bin4);
-                readings.put(Constants.QOE_BINS_5, (float) bin5);
-                readings.put(Constants.QOE_BINS_6, (float) bin6);
-                readings.put(Constants.QOE_BINS_7, (float) bin7);
-                readings.put(Constants.QOE_BINS_8, (float) bin8);
-                readings.put(Constants.QOE_BINS_9, (float) bin9);
-                readings.put(Constants.QOE_BINS_10, (float) bin10);
-                readings.put(Constants.QOE_BINS_11, (float) bin11);
-                readings.put(Constants.QOE_BINS_12, (float) bin12);
-                readings.put(Constants.QOE_BINS_13, (float) bin13);
-                readings.put(Constants.QOE_BINS_14, (float) bin14);
-                readings.put(Constants.QOE_BINS_15, (float) bin15);
-                readings.put(Constants.QOE_BINS_TOTAL, (float) total);
-
-                Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
-                intentData.putExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, currentPhoneTimestamp);
-                intentData.putExtra(Constants.AIRSPECK_ALL_MEASURES, readings);
-                sendBroadcast(intentData);
-
-                // Store the important data in the external storage if set in config
-                if (mIsStoreDataLocally) {
-                    String storedLine;
-
-                    // TODO: get real location from new Airspeck
-                    String locationOutputString = ",,";
-
-                    // TODO: if Airspeck doesn't send GPS signal, use the phone location.
-                    if (mLastPhoneLocation != null) {
-                        locationOutputString = mLastPhoneLocation.getLongitude() + "," +
-                                mLastPhoneLocation.getLatitude() + "," + mLastPhoneLocation.getAltitude();
-                    }
-
-                    if (mIsStoreAllAirspeckFields) {
-                        storedLine = currentPhoneTimestamp + "," + pm1 + "," + pm2_5 + "," + pm10 + "," +
-                                temperature + "," + humidity + "," + no2_ae +
-                                "," + o3_ae + "," + bin0 + "," + bin1 + "," + bin2 + "," + bin3 + "," + bin4 +
-                                "," + bin5 + "," + bin6 + "," + bin7 + "," + bin8 + "," + bin9 + "," + bin10 +
-                                "," + bin11 + "," + bin12 + "," + bin13 + "," + bin14 + "," + bin15 + "," + total +
-                                "," + locationOutputString;
-                    } else {
-                        storedLine = currentPhoneTimestamp + "," + temperature + "," + humidity + "," + no2_ae +
-                                "," + o3_ae + "," + bin0 + "," + locationOutputString;
-                    }
-                    Log.i("QOE", "Airspeck data received: " + storedLine);
-                    writeToAirspeckFile(storedLine);
-
-                    // If we want to store a merged file, store the most recent Airspeck data without
-                    // timestamp as a string
-                    if (mIsStoreMergedFile) {
-                        mMostRecentAirspeckData = storedLine;
-                    }
-                }
+        // Close the OutputWritingStreams
+        try {
+            mActivitySummaryWriter.close();
+            if (mRespeckWriter != null) {
+                Log.i("SpeckService", "Respeck writer was closed");
+                mRespeckWriter.close();
             }
+            if (mAirspeckWriter != null) {
+                mAirspeckWriter.close();
+            }
+            if (mMergedWriter != null) {
+                mMergedWriter.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private void processRESpeckPacket(BluetoothGattCharacteristic characteristic) {
-        if (characteristic.getUuid().equals(UUID.fromString(RESPECK_LIVE_CHARACTERISTIC))) {
-            final byte[] accelBytes = characteristic.getValue();
-            final int packetSequenceNumber = accelBytes[0] & 0xFF;
+    private void processRESpeckPacket(final String characteristic, final byte[] values) {
+
+        if (characteristic.equals(RESPECK_LIVE_CHARACTERISTIC)) {
+            final int packetSequenceNumber = values[0] & 0xFF;
 
             //Check if the reading is not repeated
             if (packetSequenceNumber == latestPacketSequenceNumber) {
@@ -697,17 +527,17 @@ public class SpeckBluetoothService extends Service {
                 latestPacketSequenceNumber = packetSequenceNumber;
             }
 
-            for (int i = 1; i < accelBytes.length; i += 7) {
-                Byte startByte = accelBytes[i];
+            for (int i = 1; i < values.length; i += 7) {
+                Byte startByte = values[i];
                 if (startByte == -1) {
                     // Timestamp packet received. Starting a new sequence
                     // Log.i("DF", "Timestamp received from RESpeck");
 
                     // Read timestamp from packet
-                    Byte ts_1 = accelBytes[i + 1];
-                    Byte ts_2 = accelBytes[i + 2];
-                    Byte ts_3 = accelBytes[i + 3];
-                    Byte ts_4 = accelBytes[i + 4];
+                    Byte ts_1 = values[i + 1];
+                    Byte ts_2 = values[i + 2];
+                    Byte ts_3 = values[i + 3];
+                    Byte ts_4 = values[i + 4];
 
                     long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
                     // Multiply the timestamp by some factor. TODO: why this one?
@@ -796,9 +626,9 @@ public class SpeckBluetoothService extends Service {
                     }
 
                     try {
-                        final float x = combineAccelerationBytes(accelBytes[i + 1], accelBytes[i + 2]);
-                        final float y = combineAccelerationBytes(accelBytes[i + 3], accelBytes[i + 4]);
-                        final float z = combineAccelerationBytes(accelBytes[i + 5], accelBytes[i + 6]);
+                        final float x = combineAccelerationBytes(values[i + 1], values[i + 2]);
+                        final float y = combineAccelerationBytes(values[i + 3], values[i + 4]);
+                        final float z = combineAccelerationBytes(values[i + 5], values[i + 6]);
 
                         updateBreathing(x, y, z);
 
@@ -907,10 +737,9 @@ public class SpeckBluetoothService extends Service {
                     currentSequenceNumberInBatch += 1;
                 }
             }
-        } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BATTERY_LEVEL_CHARACTERISTIC))) {
+        } else if (characteristic.equals(RESPECK_BATTERY_LEVEL_CHARACTERISTIC)) {
             // Battery packet received which contains the charging level of the battery
-            final byte[] batteryLevelBytes = characteristic.getValue();
-            int batteryLevel = combineBatteryBytes(batteryLevelBytes[0], batteryLevelBytes[1]);
+            int batteryLevel = combineBatteryBytes(values[0], values[1]);
 
             // Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
 
@@ -929,12 +758,10 @@ public class SpeckBluetoothService extends Service {
             // Log.i("RAT", "Battery level: " + Float.toString(
             //         mLatestBatteryPercent) + ", request charge: " + Float.toString(mLatestRequestCharge));
 
-        } else if (characteristic.getUuid().equals(UUID.fromString(RESPECK_BREATHING_RATES_CHARACTERISTIC))) {
+        } else if (characteristic.equals(RESPECK_BREATHING_RATES_CHARACTERISTIC)){
             // Breathing rates packet received. This only happens when the RESpeck was disconnected and
             // therefore only stored the minute averages
-            final byte[] breathAveragesBytes = characteristic.getValue();
-
-            final int sequenceNumber = breathAveragesBytes[0] & 0xFF;
+            final int sequenceNumber = values[0] & 0xFF;
 
             // Duplicate sent?
             if (sequenceNumber == latestStoredRespeckSeq) {
@@ -947,29 +774,29 @@ public class SpeckBluetoothService extends Service {
             long breathAverageRESpeckTimestamp = -1;
             int breathAverageSequenceNumber = -1;
 
-            for (int i = 1; i < breathAveragesBytes.length; i += 6) {
-                Byte startByte = breathAveragesBytes[i];
+            for (int i = 1; i < values.length; i += 6) {
+                Byte startByte = values[i];
 
                 if (startByte == -1) {
                     // timestamp
-                    Byte ts_1 = breathAveragesBytes[i + 1];
-                    Byte ts_2 = breathAveragesBytes[i + 2];
-                    Byte ts_3 = breathAveragesBytes[i + 3];
-                    Byte ts_4 = breathAveragesBytes[i + 4];
+                    Byte ts_1 = values[i + 1];
+                    Byte ts_2 = values[i + 2];
+                    Byte ts_3 = values[i + 3];
+                    Byte ts_4 = values[i + 4];
                     breathAveragePhoneTimestamp = System.currentTimeMillis();
                     breathAverageRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4) * 197 / 32768;
                     breathAverageSequenceNumber = 0;
 
                 } else if (startByte == -2) {
                     // breath average
-                    int numberOfBreaths = breathAveragesBytes[i + 1] & 0xFF;
+                    int numberOfBreaths = values[i + 1] & 0xFF;
                     if (numberOfBreaths > 5) {
-                        float meanBreathingRate = (float) (breathAveragesBytes[i + 2] & 0xFF) / 5.0f;
-                        float sdBreathingRate = (float) Math.sqrt((float) (breathAveragesBytes[i + 3] & 0xFF) /
+                        float meanBreathingRate = (float) (values[i + 2] & 0xFF) / 5.0f;
+                        float sdBreathingRate = (float) Math.sqrt((float) (values[i + 3] & 0xFF) /
                                 10.0f);
 
-                        Byte upperActivityLevel = breathAveragesBytes[i + 4];
-                        Byte lowerActivityLevel = breathAveragesBytes[i + 5];
+                        Byte upperActivityLevel = values[i + 4];
+                        Byte lowerActivityLevel = values[i + 5];
                         float combinedActivityLevel = combineActivityLevelBytes(upperActivityLevel, lowerActivityLevel);
 
                         RESpeckStoredSample ras = new RESpeckStoredSample(breathAveragePhoneTimestamp,
