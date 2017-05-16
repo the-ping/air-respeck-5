@@ -47,6 +47,7 @@ public class Constants {
         public static final String IS_SHOW_DUMMY_AIRSPECK_DATA = "ShowDummyAirspeckData";
         public static final String IS_STORE_PHONE_GPS = "EnablePhoneLocationStorage";
         public static final String IS_SHOW_VOLUME_CALIBRATION_SCREEN = "EnableVolumeCalibration";
+        public static final String IS_POST_FILTER_BREATHING_SIGNAL_DISABLED = "DisablePostFilterBreathing";
     }
 
     /**

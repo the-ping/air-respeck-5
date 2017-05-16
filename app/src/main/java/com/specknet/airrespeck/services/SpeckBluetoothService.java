@@ -69,6 +69,7 @@ public class SpeckBluetoothService extends Service {
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
     private boolean mIsStoreAllAirspeckFields;
+    private boolean mIsPostFilterBreathingSignalEnabled;
 
     // Outputstreamwriters for all the files
     private OutputStreamWriter mRespeckWriter;
@@ -96,7 +97,7 @@ public class SpeckBluetoothService extends Service {
     private final static String RESPECK_BREATH_INTERVALS_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
 
     // Airspeck
-    private byte[] opcData;
+    private ByteBuffer opcData;
     private boolean[] opcPacketsReceived;
     private float mLastTemperatureAirspeck = -1f;
     private float mLastHumidityAirspeck = -1f;
@@ -211,11 +212,15 @@ public class SpeckBluetoothService extends Service {
         mIsAirspeckEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
+        // Do we want to enable the post-filtering of the breathing signal?
+        mIsPostFilterBreathingSignalEnabled = !Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_POST_FILTER_BREATHING_SIGNAL_DISABLED));
+
         // Initialise stored queue
         storedQueue = new LinkedList<>();
 
         //Initialize Breathing Functions
-        initBreathing();
+        initBreathing(mIsPostFilterBreathingSignalEnabled);
 
         // Get Bluetooth address
         AIRSPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.QOE_UUID);
@@ -270,7 +275,7 @@ public class SpeckBluetoothService extends Service {
         Log.i("SpeckService", "Scanning..");
 
         // Initialise opc data arrays
-        opcData = new byte[62];
+        opcData = ByteBuffer.allocate(62);
         opcPacketsReceived = new boolean[]{false, false, false, false};
 
         scanSubscription = rxBleClient.scanBleDevices()
@@ -381,39 +386,22 @@ public class SpeckBluetoothService extends Service {
         switch (packetType) {
             case SENSOR_TYPE_OPC1:
                 Log.i("SpeckService", "OPC1 packet received");
-                if (payloadLength == 16) {
-                    System.arraycopy(payload, 0, opcData, 0, 16);
-                    opcPacketsReceived[0] = true;
-                } else {
-                    Log.e("SpeckService", "OPC1 packet with wrong length received: " + payloadLength);
-                }
+                opcData.clear();
+                opcData.put(payload);
                 break;
             case SENSOR_TYPE_OPC2:
                 Log.i("SpeckService", "OPC2 packet received");
-                if (payloadLength == 16) {
-                    System.arraycopy(payload, 0, opcData, 16, 16);
-                    opcPacketsReceived[1] = true;
-                } else {
-                    Log.e("SpeckService", "OPC2 packet with wrong length received: " + payloadLength);
-                }
+                opcData.put(payload);
                 break;
             case SENSOR_TYPE_OPC3:
                 Log.i("SpeckService", "OPC3 packet received");
-                if (payloadLength == 16) {
-                    System.arraycopy(payload, 0, opcData, 32, 16);
-                    opcPacketsReceived[2] = true;
-                } else {
-                    Log.e("SpeckService", "OPC3 packet with wrong length received: " + payloadLength);
-                }
+                opcData.put(payload);
                 break;
             case SENSOR_TYPE_OPC4:
                 Log.i("SpeckService", "OPC4 packet received");
-                if (payloadLength == 14) {
-                    System.arraycopy(payload, 0, opcData, 48, 14);
-                    opcPacketsReceived[3] = true;
-                } else {
-                    Log.e("SpeckService", "OPC4 packet with wrong length received: " + payloadLength);
-                }
+                opcData.put(payload);
+                processOPC(opcData);
+                opcData.clear();
                 break;
             case SENSOR_TYPE_TEMPERATURE_HUMIDITY:
                 Log.i("SpeckService", "Temperature/humidity packet received");
@@ -425,14 +413,6 @@ public class SpeckBluetoothService extends Service {
             default:
                 Log.e("SpeckService", "Unknown packet type received: " + String.format("0x%02X ", packetType));
                 break;
-        }
-
-        if (!Arrays.asList(opcPacketsReceived).contains(false)) {
-            // All opc packets have been sent. Process them and store all other fields (gas, temp, humidity)
-            // with this data as well.
-            processOPC(ByteBuffer.wrap(opcData));
-            opcData = new byte[62];
-            opcPacketsReceived = new boolean[]{false, false, false, false};
         }
     }
 
@@ -1162,7 +1142,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     // JNI methods
-    public native void initBreathing();
+    public native void initBreathing(boolean isPostFilteringEnabled);
 
     public native void updateBreathing(float x, float y, float z);
 
