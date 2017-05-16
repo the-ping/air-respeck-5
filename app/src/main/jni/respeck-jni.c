@@ -24,8 +24,9 @@ Java_com_specknet_airrespeck_services_SpeckBluetoothService_getMsgFromJni(JNIEnv
     return (*env)->NewStringUTF(env, "It works");
 }
 
-void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing(JNIEnv *env, jobject this) {
-    initialise_breathing_measures(&breathing_buffer);
+void Java_com_specknet_airrespeck_services_SpeckBluetoothService_initBreathing(JNIEnv *env, jobject this,
+                                                                               bool isPostFilteringEnabled) {
+    initialise_breathing_measures(&breathing_buffer, isPostFilteringEnabled);
     initialise_rms_threshold_buffer(&threshold_buffer);
     initialise_breath(&current_breath);
     initialise_breathing_rate_stats(&breathing_rate_stats);

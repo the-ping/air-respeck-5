@@ -17,7 +17,7 @@ typedef struct
 
 } BreathingMeasures;
 
-void initialise_breathing_measures(BreathingMeasures *breathing_measures);
+void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled);
 void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures);
 
 #endif

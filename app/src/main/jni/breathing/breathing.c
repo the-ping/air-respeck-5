@@ -23,7 +23,7 @@ MeanPostFilter mean_filter_breathing_signal;
 MeanPostFilter mean_filter_angle;
 ActivityLevelBuffer activity_level_buffer;
 
-void initialise_breathing_measures(BreathingMeasures *breathing_measures) {
+void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled) {
     breathing_measures->is_breathing_initialised = false;
     breathing_measures->is_valid = false;
     breathing_measures->signal = NAN;
@@ -34,8 +34,8 @@ void initialise_breathing_measures(BreathingMeasures *breathing_measures) {
     initialise_rotation_axis(&rotation_axis);
     initialise_mean_rotation_axis_buffer(&mean_rotation_axis_buffer);
     initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
-    initialise_mean_post_filter(&mean_filter_breathing_signal);
-    initialise_mean_post_filter(&mean_filter_angle);
+    initialise_mean_post_filter(&mean_filter_breathing_signal, isPostFilteringEnabled);
+    initialise_mean_post_filter(&mean_filter_angle, isPostFilteringEnabled);
     initialise_activity_level_buffer(&activity_level_buffer);
 }
 

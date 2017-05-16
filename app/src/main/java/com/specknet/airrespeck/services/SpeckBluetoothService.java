@@ -69,7 +69,6 @@ public class SpeckBluetoothService extends Service {
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
     private boolean mIsStoreAllAirspeckFields;
-    private boolean mIsPostFilterBreathingSignalEnabled;
 
     // Outputstreamwriters for all the files
     private OutputStreamWriter mRespeckWriter;
@@ -99,10 +98,10 @@ public class SpeckBluetoothService extends Service {
     // Airspeck
     private ByteBuffer opcData;
     private boolean[] opcPacketsReceived;
-    private float mLastTemperatureAirspeck = -1f;
-    private float mLastHumidityAirspeck = -1f;
-    private float mLastNO2 = -1f;
-    private float mLastO3 = -1f;
+    private float mLastTemperatureAirspeck = Float.NaN;
+    private float mLastHumidityAirspeck = Float.NaN;
+    private float mLastNO2 = Float.NaN;
+    private float mLastO3 = Float.NaN;
 
     // RESpeck
     private int latestPacketSequenceNumber = -1;
@@ -213,14 +212,15 @@ public class SpeckBluetoothService extends Service {
                 mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
 
         // Do we want to enable the post-filtering of the breathing signal?
-        mIsPostFilterBreathingSignalEnabled = !Boolean.parseBoolean(
+        boolean isPostFilterBreathingSignalEnabled = !Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_POST_FILTER_BREATHING_SIGNAL_DISABLED));
 
         // Initialise stored queue
         storedQueue = new LinkedList<>();
 
+        Log.i("SpeckService", "Filtering enabled: " + isPostFilterBreathingSignalEnabled);
         //Initialize Breathing Functions
-        initBreathing(mIsPostFilterBreathingSignalEnabled);
+        initBreathing(isPostFilterBreathingSignalEnabled);
 
         // Get Bluetooth address
         AIRSPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.QOE_UUID);
@@ -276,6 +276,7 @@ public class SpeckBluetoothService extends Service {
 
         // Initialise opc data arrays
         opcData = ByteBuffer.allocate(62);
+        opcData.order(ByteOrder.LITTLE_ENDIAN);
         opcPacketsReceived = new boolean[]{false, false, false, false};
 
         scanSubscription = rxBleClient.scanBleDevices()
@@ -466,7 +467,6 @@ public class SpeckBluetoothService extends Service {
         readings.put(Constants.QOE_PM10, pm10);
         readings.put(Constants.QOE_TEMPERATURE, mLastTemperatureAirspeck);
         readings.put(Constants.QOE_HUMIDITY, mLastHumidityAirspeck);
-        // TODO: read these from sensor
         readings.put(Constants.QOE_NO2, mLastNO2);
         readings.put(Constants.QOE_O3, mLastO3);
         readings.put(Constants.QOE_BINS_0, (float) bins[0]);
@@ -518,7 +518,7 @@ public class SpeckBluetoothService extends Service {
                 storedLine = AIRSPECK_UUID + "," + currentPhoneTimestamp + "," + mLastTemperatureAirspeck + "," +
                         mLastHumidityAirspeck + "," + mLastNO2 + "," + mLastO3 + "," + bins[0] + "," + locationString;
             }
-            Log.i("QOE", "Airspeck data received: " + storedLine);
+            Log.i("SpeckService", "Airspeck data received: " + storedLine);
             writeToAirspeckFile(storedLine);
 
             // If we want to store a merged file, store the most recent Airspeck data without
