@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MEAN_ACCEL_FILTER_SIZE 1
+#define MEAN_ACCEL_FILTER_SIZE 12
 
 typedef struct
 {

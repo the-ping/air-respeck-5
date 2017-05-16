@@ -216,7 +216,7 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
                 // Subtract the mean from the center value in the queue
                 float correctedPca = mPcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
 
-                boolean isPostFiltered = false;
+                boolean isPostFiltered = true;
                 if (isPostFiltered) {
                     mMeanPcaValueQueue.add(correctedPca);
                     limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);

@@ -89,7 +89,7 @@ public class SpeckBluetoothService extends Service {
 
     // Characteristics which determine packet type
     private static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
-    private static final String AIRSPECK_LIVE_CHARACTERISTIC = "00002002-e117-4bff-b00d-b20878bc3f44";
+    private static final String AIRSPECK_LIVE_CHARACTERISTIC = "00001524-1212-efde-1523-784feabcd123";
     private final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
     private final static String RESPECK_LIVE_CHARACTERISTIC = "00002010-0000-1000-8000-00805f9b34fb";
     private final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";

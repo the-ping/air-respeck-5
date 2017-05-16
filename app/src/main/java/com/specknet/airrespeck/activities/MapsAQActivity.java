@@ -48,7 +48,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private GoogleMap mMap;
     private Deque<AirspeckMapData> mQueueMapData;
-    private final int MAX_DISPLAYED_DATA = 200;
+    private final int MAX_DISPLAYED_DATA = 400;
     private BroadcastReceiver mBroadcastReceiver;
 
     private LatLng mLastLatLng;
@@ -259,15 +259,15 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                             String currentLine;
                             while ((currentLine = reader.readLine()) != null) {
                                 String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[0]);
+                                long tsRow = Long.parseLong(row[1]);
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= tsFrom && tsRow <= tsTo) {
-                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[26]),
-                                            Double.parseDouble(row[25]));
+                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[27]),
+                                            Double.parseDouble(row[26]));
                                     AirspeckMapData readSample = new AirspeckMapData(tsRow, circleLocation,
-                                            Float.parseFloat(row[1]), Float.parseFloat(row[2]),
-                                            Float.parseFloat(row[3]));
+                                            Float.parseFloat(row[2]), Float.parseFloat(row[3]),
+                                            Float.parseFloat(row[4]));
 
                                     loadedData.add(readSample);
                                 }
