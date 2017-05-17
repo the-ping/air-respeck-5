@@ -1029,7 +1029,6 @@ public class MainActivity extends BaseActivity {
             displaySubjectMode();
         } else if (id == R.id.action_close_app) {
             finish();
-            System.exit(0);
         } else if (id == R.id.action_volume_recording) {
             startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
         }

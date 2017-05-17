@@ -311,8 +311,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             int padding = 30; // offset from edges of the map in pixels
             CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
             mMap.moveCamera(cu);
-            cu = CameraUpdateFactory.zoomTo(18);
-            mMap.moveCamera(cu);
         } else {
             Toast.makeText(getApplicationContext(), "No data in selected time period",
                     Toast.LENGTH_LONG).show();
