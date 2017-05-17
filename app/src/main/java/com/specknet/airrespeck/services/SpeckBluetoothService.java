@@ -97,7 +97,6 @@ public class SpeckBluetoothService extends Service {
 
     // Airspeck
     private ByteBuffer opcData;
-    private boolean[] opcPacketsReceived;
     private float mLastTemperatureAirspeck = Float.NaN;
     private float mLastHumidityAirspeck = Float.NaN;
     private float mLastNO2 = Float.NaN;
@@ -277,7 +276,6 @@ public class SpeckBluetoothService extends Service {
         // Initialise opc data arrays
         opcData = ByteBuffer.allocate(62);
         opcData.order(ByteOrder.LITTLE_ENDIAN);
-        opcPacketsReceived = new boolean[]{false, false, false, false};
 
         scanSubscription = rxBleClient.scanBleDevices()
                 .subscribe(
@@ -314,6 +312,7 @@ public class SpeckBluetoothService extends Service {
             scanSubscription.unsubscribe();
 
         RxBleDevice device = rxBleClient.getBleDevice(AIRSPECK_UUID);
+        // Given characteristic has been changes, here is the value.
         airspeckSubscription = device.establishConnection(true)
                 .flatMap(rxBleConnection -> rxBleConnection.setupNotification(UUID.fromString(
                         AIRSPECK_LIVE_CHARACTERISTIC)))
@@ -324,10 +323,7 @@ public class SpeckBluetoothService extends Service {
                 .flatMap(
                         notificationObservable -> notificationObservable) // <-- Notification has been set up, now observe value changes.
                 .subscribe(
-                        bytes -> {
-                            // Given characteristic has been changes, here is the value.
-                            processAirspeckPacket(bytes);
-                        },
+                        this::processAirspeckPacket,
                         throwable -> {
                             // Handle an error here.
                             Log.i("SpeckService", "AIRSPECK DISCONNECTED: " + throwable.toString());

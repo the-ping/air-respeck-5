@@ -121,7 +121,6 @@ public class MainActivity extends BaseActivity {
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
                         service.showSnackbarFromHandler(messageAir);
-                        service.updateAirspeckConnection(true);
                         break;
                     case SHOW_AIRSPECK_DISCONNECTED:
                         service.updateAirspeckConnection(false);
@@ -133,7 +132,6 @@ public class MainActivity extends BaseActivity {
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
                         service.showSnackbarFromHandler(messageRE);
-                        service.updateRESpeckConnection(true);
                         break;
                     case SHOW_RESPECK_DISCONNECTED:
                         service.updateRESpeckConnection(false);
@@ -1031,6 +1029,7 @@ public class MainActivity extends BaseActivity {
             displaySubjectMode();
         } else if (id == R.id.action_close_app) {
             finish();
+            System.exit(0);
         } else if (id == R.id.action_volume_recording) {
             startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
         }

@@ -38,9 +38,6 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
     private ArrayList<SegmentedBar> mSegmentedBars;
     private SegmentedBar mCurrentSegmentedBar;
 
-    // Feedback
-    private TextView mFeedback;
-
     /**
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
