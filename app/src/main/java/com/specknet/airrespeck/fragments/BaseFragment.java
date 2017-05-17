@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 
@@ -22,7 +21,6 @@ import com.specknet.airrespeck.utils.PreferencesUtils;
 public class BaseFragment extends Fragment {
 
     // Preferences
-    protected User mCurrentUser;
     protected String mReadingsModeHomeScreen;
     protected String mReadingsModeAQReadingsScreen;
     protected boolean mGraphsScreen;
@@ -39,9 +37,6 @@ public class BaseFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         PreferencesUtils.getInstance(getContext());
-
-        mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance()
-                .getString(Constants.Preferences.USER_ID));
 
         mReadingsModeHomeScreen = PreferencesUtils.getInstance().getString(
                 Constants.Preferences.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST);

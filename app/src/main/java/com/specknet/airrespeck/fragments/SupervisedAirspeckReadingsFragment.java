@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.adapters.ReadingItemArcProgressAdapter;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.adapters.ReadingItemSegmentedBarAdapter;
 import com.specknet.airrespeck.lib.Segment;
@@ -35,7 +34,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
     private ReadingItemArrayAdapter mListViewAdapter;
     private ReadingItemSegmentedBarAdapter mSegmentedBarAdapter;
-    private ReadingItemArcProgressAdapter mArcProgressAdapter;
 
     private OnAQFragmentInteractionListener mListener;
 
@@ -94,19 +92,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
                 mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
                 recyclerView.setAdapter(mSegmentedBarAdapter);
-                break;
-            }
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_ARCS: {
-                RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.ap_item_list);
-
-                if (mColumnCount <= 1) {
-                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                } else {
-                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-                }
-
-                mArcProgressAdapter = new ReadingItemArcProgressAdapter(context, getReadingItems(), mListener);
-                recyclerView.setAdapter(mArcProgressAdapter);
                 break;
             }
         }
@@ -196,9 +181,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                 break;
             case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS:
                 mSegmentedBarAdapter.notifyDataSetChanged();
-                break;
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_ARCS:
-                mArcProgressAdapter.notifyDataSetChanged();
                 break;
         }
     }

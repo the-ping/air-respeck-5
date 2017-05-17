@@ -4,54 +4,15 @@
 
 
     <!-- Strings related to Initial Setup -->
-    <string name="new_user_title">Detalles del usuario</string>
-    <string name="new_user_register">Registrar</string>
-    <string name="new_user_empty_fields">Debe completar todos los campos</string>
-
-    <string name="new_user_first_name">Nombre</string>
-    <string name="new_user_last_name">Apellido</string>
-    <string name="new_user_birth_date">Fecha de nacimiento</string>
-    <string name="new_user_gender">Género</string>
-    <string-array name="new_user_gender_list">
-        <item>Masculino</item>
-        <item>Femenino</item>
-    </string-array>
-    <string-array name="new_user_gender_list_values">
-        <item>M</item>
-        <item>F</item>
-    </string-array>
-    <string name="new_user_illiterate">Analfabeto</string>
-    <string name="new_user_usertype">Tipo de usuario</string>
-    <string-array name="new_user_usertype_list">
-        <item>Sujeto</item>
-        <item>Investigador</item>
-    </string-array>
-    <string-array name="new_user_usertype_list_values">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
 
 
     <!-- Strings related to login issues -->
-    <string name="no_network">Sin conexión a Internet</string>
-    <string name="network_required">Se requiere de conexión a Internet para configurar el usuario</string>
-    <string name="loading_data">Cargando datos de usuario</string>
     <string name="connecting_to_devices">Conectando con dispositivos</string>
     <string name="device_found">conectado</string>
     <string name="waiting_for_data">Esperando datos</string>
 
 
     <!-- Strings related to User Profile -->
-    <string name="title_activity_user_profile">Perfil del usuario</string>
-    <string name="user_profile_name">Nombre:</string>
-    <string name="user_profile_birth_date">Fecha de nacimiento:</string>
-    <string name="user_profile_gender">Género:</string>
-    <string name="user_profile_user_type">Tipo de usuario:</string>
-    <string name="user_profile_illiterate">Analfabeto:</string>
-    <string name="user_profile_yes">Sí</string>
-    <string name="user_profile_no">No</string>
-
 
 
     <!-- Strings related to SegmentedBar -->
@@ -64,7 +25,6 @@
     <string name="readings_title">Datos en tiempo real</string>
 
     <!-- Readings -->
-    <string name="reading_no_data">No datos disponibles</string>
 
     <string name="reading_respiratory_rate">Frecuencia respiratoria</string>
     <string name="reading_pm10">PM 10</string>
@@ -84,8 +44,6 @@
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
     <string name="graphs_bins_title">Bins: 0 – 15</string>
-    <string name="graphs_breathing_signal_title">Curva de respiración</string>
-
 
 
     <!-- Strings related to Menus -->
@@ -94,22 +52,13 @@
     <string name="menu_home">INICIO</string>
     <string name="menu_air_quality">CALIDAD DEL AIRE</string>
     <string name="menu_aq_graphs">GRÁFICAS</string>
-    <string name="menu_settings">AJUSTES</string>
 
     <!-- Action Bar menu -->
-    <string name="action_air_speck">AirSpeck</string>
-    <string name="action_re_speck">RESpeck</string>
-    <string name="action_settings">Ajustes</string>
-    <string name="action_user_profile">Perfil</string>
-    <string name="action_connect">Conectar</string>
     <string name="action_supervised_mode">Modo supervisado</string>
 
 
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
-    <string name="airspeck_not_found">Aplicación AirSpeck no encontrada</string>
-    <string name="respeck_not_found">Aplicación RESpeck no encontrada</string>
-
 
 
     <!-- Strings related to Settings -->
@@ -195,9 +144,6 @@
         <item>20</item>
     </string-array>
 
-    <string name="pref_title_icons_in_tabs">Iconos en pestañas</string>
-    <string name="pref_description_icons_in_tabs">Mostrar iconos en pestañas</string>
-
     <string name="pref_title_menu_graphs_screen">Pantalla de Gráficas</string>
     <string name="pref_description_menu_graphs_screen">Habilitar acceso a la Pantalla de Gráficas</string>
 
@@ -215,7 +161,6 @@
     <!-- Strings related to Readings Settings -->
     <string name="pref_category_ui_readings">Lecturas de calidad del aire</string>
 
-    <string name="pref_title_readings_display_mode">Modo de visualización in la pantalla de inicio</string>
     <string-array name="pref_readings_mode_home_screen_list">
         <item>Listado</item>
         <item>Gráfico: Barra</item>

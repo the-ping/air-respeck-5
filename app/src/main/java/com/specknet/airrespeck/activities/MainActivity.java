@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.LocationManager;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -28,6 +30,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
+import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
@@ -51,6 +54,10 @@ import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUpload
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -178,6 +185,8 @@ public class MainActivity extends BaseActivity {
     private boolean mShowSubjectWindmill;
     private boolean mIsUploadDataToServer;
     private boolean mIsStorePhoneGPS;
+    private boolean mIsStoreDataLocally;
+    private boolean mIsStoreMergedFile;
 
     // UTILS
     private Utils mUtils;
@@ -220,6 +229,8 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        AutoUpdateApk.enableMobileUpdates();
+
         // Initialise Fabrics, a tool to get the stacktrace remotely when problems occur.
         Fabric.with(this, new Crashlytics(), new CrashlyticsNdk());
 
@@ -243,6 +254,9 @@ public class MainActivity extends BaseActivity {
 
         // Load configuration
         loadConfig();
+
+        // Create the external directories for storing the data
+        createExternalDirectories();
 
         // Start GPS tasks
         if (mIsStorePhoneGPS) {
@@ -327,6 +341,87 @@ public class MainActivity extends BaseActivity {
                 mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_DUMMY_AIRSPECK_DATA));
         if (!mIsAirspeckEnabled && showDummyAirspeck) {
             startDummyAirspeckDataTask();
+        }
+    }
+
+    private void createExternalDirectories() {
+        if (mIsStoreDataLocally) {
+            // Create directories on external storage if they don't exist
+            File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
+                // scanFile should force the indexation of the new directory.
+                MediaScannerConnection.scanFile(this, new String[]{directory.toString()}, null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            public void onScanCompleted(String path, Uri uri) {
+                                Log.i("ExternalStorage", "Scanned " + path + ":");
+                                Log.i("ExternalStorage", "-> uri=" + uri);
+                            }
+                        });
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create app root folder on external storage");
+                }
+            }
+            directory = new File(Constants.RESPECK_DATA_DIRECTORY_PATH);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create Respeck folder on external storage");
+                }
+            }
+            if (mIsAirspeckEnabled) {
+                directory = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create Airspeck folder on external storage");
+                    }
+                }
+            }
+            if (mIsStoreMergedFile) {
+                directory = new File(Constants.MERGED_DATA_DIRECTORY_PATH);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create Merged folder on external storage");
+                    }
+                }
+            }
+
+            if (mIsStorePhoneGPS) {
+                directory = new File(Constants.PHONE_LOCATION_DIRECTORY_PATH);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create phone directory on external storage");
+                    }
+                }
+            }
+
+            // Create activity summary file if it doesn't exists
+            if (!new File(Constants.ACTIVITY_SUMMARY_FILE_PATH).exists()) {
+                Log.i("DF", "Activity summary file created with header");
+                try {
+                    // Create file and add header to beginning
+                    OutputStreamWriter activityWriter = new OutputStreamWriter(
+                            new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
+                    activityWriter.append(Constants.ACTIVITY_SUMMARY_HEADER).append("\n");
+                    activityWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -588,6 +683,12 @@ public class MainActivity extends BaseActivity {
             mShowSupervisedRESpeckReadings = false;
             mShowSupervisedActivitySummary = false;
         }
+
+        // Load config related to storage
+        mIsStoreDataLocally = Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+        mIsStoreMergedFile = (Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && mIsAirspeckEnabled);
     }
 
     private void setupViewPager() {

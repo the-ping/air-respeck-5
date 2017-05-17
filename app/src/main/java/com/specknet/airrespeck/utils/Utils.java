@@ -1,6 +1,5 @@
 package com.specknet.airrespeck.utils;
 
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Point;
@@ -11,7 +10,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
-import com.specknet.airrespeck.datamodels.User;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -138,7 +136,9 @@ public final class Utils {
         try {
             InputStream inputStream = assetManager.open("config.properties");
             properties.load(inputStream);
-        } catch (IOException e) { }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return properties.getProperty(key);
     }
@@ -197,160 +197,6 @@ public final class Utils {
      */
     public String getAppVersionName() {
         return BuildConfig.VERSION_NAME;
-    }
-
-
-    /***********************************************************************************************
-     * USER CREATION UTIL METHODS
-     **********************************************************************************************/
-
-    /**
-     * Get the current age given the birth date.
-     *
-     * @param dateOfBirth Date The birth date.
-     * @return int The current age.
-     */
-    public int getAge(Date dateOfBirth) {
-
-        Calendar today = Calendar.getInstance();
-        Calendar birthDate = Calendar.getInstance();
-
-        int age = 0;
-
-        birthDate.setTime(dateOfBirth);
-        if (birthDate.after(today)) {
-            throw new IllegalArgumentException("Can't be born in the future");
-        }
-
-        age = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
-
-        // If birth date is greater than today's date (after 2 days adjustment of leap year) then decrement age one year
-        if ((birthDate.get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR) > 3) ||
-                (birthDate.get(Calendar.MONTH) > today.get(Calendar.MONTH))) {
-            age--;
-        }
-        // If birth date and today's date are of same month and birth day of month is greater than today's day of month then decrement age
-        else if ((birthDate.get(Calendar.MONTH) == today.get(Calendar.MONTH)) &&
-                (birthDate.get(Calendar.DAY_OF_MONTH) > today.get(Calendar.DAY_OF_MONTH))) {
-            age--;
-        }
-
-        return age;
-    }
-
-    /**
-     * Get the user group age.
-     *
-     * @param age int The user's age.
-     * @return int The group age the user belongs to.
-     */
-    public int getUserGroupAge(final int age) {
-        if (age >= Integer.parseInt(getConfigProperty("adolescent_min")) &&
-                age <= Integer.parseInt(getConfigProperty("adolescent_max"))) {
-            return Constants.UGA_ADOLESCENT;
-        } else if (age >= Integer.parseInt(getConfigProperty("young_adult_min")) &&
-                age <= Integer.parseInt(getConfigProperty("young_adult_max"))) {
-            return Constants.UGA_YOUNG_ADULT;
-        } else if (age >= Integer.parseInt(getConfigProperty("middleaged_adult_min")) &&
-                age <= Integer.parseInt(getConfigProperty("middleaged_adult_max"))) {
-            return Constants.UGA_MIDDLEAGED_ADULT;
-        } else if (age >= Integer.parseInt(getConfigProperty("elderly_adult_min")) &&
-                age <= Integer.parseInt(getConfigProperty("elderly_adult_max"))) {
-            return Constants.UGA_ELDERLY_ADULT;
-        }
-        return -1;
-    }
-
-    /**
-     * Method to configure the UI preferences based on the user details
-     * (i.e. user type (subject, researcher), age).
-     *
-     * @param user User the user instance.
-     */
-    public void setupUI(User user) {
-        PreferencesUtils.getInstance(mContext);
-        PreferencesUtils.getInstance().put(Constants.Preferences.USER_ID, user.getUniqueId());
-
-        PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
-        PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, true);
-        PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, true);
-
-        /*
-        if (user.getUserType() == Constants.USER_TYPE_RESEARCHER) {
-            // Users of type "Researcher" will have the tabbed main menu as default
-            PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
-            PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, true);
-            PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, true);
-        } else if (user.getUserType() == Constants.USER_TYPE_SUBJECT) {
-            // Users of type "Subject" will have different configurations based on age
-            switch (getUserGroupAge(getAge(user.getBirthDate()))) {
-                case Constants.UGA_ADOLESCENT:
-                    // Menu type: Buttons
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_BUTTONS);
-                    // Font size: Normal
-                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
-                    // Home screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
-                    // Air Quality screen, readings display type: Segmented bar
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
-                    // Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
-                    // External apps access: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
-                    break;
-                case Constants.UGA_YOUNG_ADULT:
-                    // Menu type: Tabs
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
-                    // Font size: Normal
-                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
-                    // Home screen, readings display type: List
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_LIST);
-                    // Air Quality screen, readings display type: List
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
-                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
-                    //Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
-                    // External apps access: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
-                    break;
-                case Constants.UGA_MIDDLEAGED_ADULT:
-                    // Menu type: Tabs
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_TABS);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_TAB_ICONS, true);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_NORMAL);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_LIST);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
-                            Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
-                    //Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
-                    // External apps access: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
-                    break;
-                case Constants.UGA_ELDERLY_ADULT:
-                    // Menu type: Buttons
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_MODE, Constants.MENU_MODE_BUTTONS);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.FONT_SIZE, Constants.FONT_SIZE_LARGE);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
-                            Constants.READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
-                            Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS);
-                    //Graphs screen: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.MENU_GRAPHS_SCREEN, false);
-                    // External apps access: disabled
-                    PreferencesUtils.getInstance().put(Constants.Preferences.AIRSPECK_APP_ACCESS, false);
-                    PreferencesUtils.getInstance().put(Constants.Preferences.RESPECK_APP_ACCESS, false);
-                    break;
-                default:
-                    throw new IllegalArgumentException("User must be at least 12 years old.");
-            }
-        }*/
     }
 
     public static int sum(int[] intArray) {

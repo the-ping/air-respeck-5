@@ -4,7 +4,7 @@
       tools:context="com.specknet.airrespeck.activities.MainActivity">
 
     <group
-        android:id="@+id/main_menu_group">
+        >
 
         <item
             android:id="@+id/action_subject_mode"

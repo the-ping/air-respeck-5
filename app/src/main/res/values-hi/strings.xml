@@ -4,54 +4,15 @@
 
 
     <!-- Strings related to Initial Setup -->
-    <string name="new_user_title">उपयोगकर्ता विवरण</string>
-    <string name="new_user_register">रजिस्टर</string>
-    <string name="new_user_empty_fields">क्षेत्र को पूरा करना चाहिए</string>
-
-    <string name="new_user_first_name">पहला नाम</string>
-    <string name="new_user_last_name">अंतिम नाम</string>
-    <string name="new_user_birth_date">जन्म दिन</string>
-    <string name="new_user_gender">लिंग</string>
-    <string-array name="new_user_gender_list">
-        <item>नर</item>
-        <item>महिला</item>
-    </string-array>
-    <string-array name="new_user_gender_list_values">
-        <item>M</item>
-        <item>F</item>
-    </string-array>
-    <string name="new_user_illiterate">निरक्षर</string>
-    <string name="new_user_usertype">इस्तेमाल करने वाले का प्रकार</string>
-    <string-array name="new_user_usertype_list">
-        <item>विषय</item>
-        <item>शोधकर्ता</item>
-    </string-array>
-    <string-array name="new_user_usertype_list_values">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
 
 
     <!-- Strings related to login issues -->
-    <string name="no_network">कोई इंटरनेट कनेक्शन नहीं</string>
-    <string name="network_required">इंटरनेट कनेक्शन सेटअप उपयोगकर्ता के लिए आवश्यक</string>
-    <string name="loading_data">लोड हो रहा है उपयोगकर्ता डेटा</string>
     <string name="connecting_to_devices">उपकरणों से कनेक्ट करना</string>
     <string name="device_found">जुड़े हुए</string>
     <string name="waiting_for_data">डेटा के लिए प्रतीक्षा कर रहा है</string>
 
 
     <!-- Strings related to User Profile -->
-    <string name="title_activity_user_profile">उपयोगकर्ता प्रोफ़ाइलe</string>
-    <string name="user_profile_name">नाम:</string>
-    <string name="user_profile_birth_date">जन्म दिन:</string>
-    <string name="user_profile_gender">लिंग:</string>
-    <string name="user_profile_user_type">इस्तेमाल करने वाले का प्रकार:</string>
-    <string name="user_profile_illiterate">निरक्षर:</string>
-    <string name="user_profile_yes">हाँ</string>
-    <string name="user_profile_no">नहीं</string>
-
 
 
     <!-- Strings related to SegmentedBar -->
@@ -64,7 +25,6 @@
     <string name="readings_title">सजीव आंकड़ा</string>
 
     <!-- Readings -->
-    <string name="reading_no_data">कोई डेटा उपलब्ध नहीं है</string>
 
     <string name="reading_respiratory_rate">श्वसन दर</string>
     <string name="reading_pm10">PM 10</string>
@@ -84,8 +44,6 @@
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
     <string name="graphs_bins_title">Bins: 0 – 15</string>
-    <string name="graphs_breathing_signal_title">श्वास वक्र</string>
-
 
 
     <!-- Strings related to Menus -->
@@ -94,21 +52,12 @@
     <string name="menu_home">घर</string>
     <string name="menu_air_quality">हवा की गुणवत्ता</string>
     <string name="menu_aq_graphs">रेखांकन</string>
-    <string name="menu_settings">सेटिंग्स</string>
 
     <!-- Action Bar menu -->
-    <string name="action_air_speck">AirSpeck</string>
-    <string name="action_re_speck">RESpeck</string>
-    <string name="action_settings">सेटिंग्स</string>
-    <string name="action_user_profile">प्रोफाइल</string>
-    <string name="action_connect">जुडिये</string>
     <string name="action_supervised_mode">निगरानी मोड</string>
 
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
-    <string name="airspeck_not_found">AirSpeck एप्लिकेशन नहीं मिला</string>
-    <string name="respeck_not_found">RESpeck एप्लिकेशन नहीं मिला</string>
-
 
 
     <!-- Strings related to Settings -->
@@ -193,9 +142,6 @@
         <item>19</item>
         <item>20</item>
     </string-array>
-
-    <string name="pref_title_icons_in_tabs">टैब माउसें</string>
-    <string name="pref_description_icons_in_tabs">टैब में प्रतीक दिखाएँ</string>
 
     <string name="pref_title_menu_graphs_screen">रेखांकन स्क्रीन</string>
     <string name="pref_description_menu_graphs_screen">रेखांकन स्क्रीन करने के लिए पहुँच सक्षम करें</string>

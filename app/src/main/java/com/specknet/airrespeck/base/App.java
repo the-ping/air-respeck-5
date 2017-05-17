@@ -1,8 +1,5 @@
 package com.specknet.airrespeck.base;
 
-
-import android.app.Application;
-
 import com.activeandroid.ActiveAndroid;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;

@@ -4,52 +4,15 @@
 
 
     <!-- Strings related to Initial Setup -->
-    <string name="new_user_title">User details</string>
-    <string name="new_user_register">Register</string>
-    <string name="new_user_empty_fields">Must complete all fields</string>
-
-    <string name="new_user_first_name">First name</string>
-    <string name="new_user_last_name">Last name</string>
-    <string name="new_user_birth_date">Birth date</string>
-    <string name="new_user_gender">Gender</string>
-    <string-array name="new_user_gender_list">
-        <item>Male</item>
-        <item>Female</item>
-    </string-array>
-    <string-array name="new_user_gender_list_values">
-        <item>M</item>
-        <item>F</item>
-    </string-array>
-    <string name="new_user_illiterate">Illiterate</string>
-    <string name="new_user_usertype">User type</string>
-    <string-array name="new_user_usertype_list">
-        <item>Subject</item>
-        <item>Researcher</item>
-    </string-array>
-    <string-array name="new_user_usertype_list_values">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
 
 
     <!-- Strings related to login issues -->
-    <string name="no_network">No Internet connection</string>
-    <string name="network_required">Internet connection required to setup the user</string>
-    <string name="loading_data">Loading user data</string>
     <string name="connecting_to_devices">Connecting to devices</string>
     <string name="device_found">found</string>
     <string name="waiting_for_data">Waiting for data</string>
 
 
     <!-- Strings related to User Profile -->
-    <string name="title_activity_user_profile">User Profile</string>
-    <string name="user_profile_name">Name:</string>
-    <string name="user_profile_birth_date">Birth date:</string>
-    <string name="user_profile_gender">Gender:</string>
-    <string name="user_profile_user_type">User type:</string>
-    <string name="user_profile_illiterate">Illiterate:</string>
-    <string name="user_profile_yes">Yes</string>
-    <string name="user_profile_no">No</string>
 
 
     <!-- Strings related to SegmentedBar -->
@@ -60,8 +23,6 @@
     <!-- Strings related to Readings -->
     <string name="readings_title">Live data</string>
     <string name="activity_summary_title">Activity summary of past …</string>
-
-    <string name="reading_no_data">No data available</string>
 
     <string name="reading_respiratory_rate">Respiratory rate</string>
     <string name="reading_pm10">PM 10</string>
@@ -82,7 +43,6 @@
     <string name="reading_unit_bpm">BrPM</string>
     <string name="reading_unit_ug_m3" translatable="false">µg/m³</string>
     <string name="reading_unit_c" translatable="false">°C</string>
-    <string name="reading_unit_f" translatable="false">°F</string>
     <string name="reading_unit_percent" translatable="false">%</string>
 
     <!-- Graphs -->
@@ -104,11 +64,6 @@
     <string name="menu_aq_map">AQ Map</string>
 
     <!-- Action Bar menu -->
-    <string name="action_air_speck">AirSpeck</string>
-    <string name="action_re_speck">RESpeck</string>
-    <string name="action_settings">Settings</string>
-    <string name="action_user_profile">Profile</string>
-    <string name="action_connect">Connect</string>
     <string name="action_supervised_mode">Supervised mode</string>
     <string name="action_subject_mode">Subject mode</string>
     <string name="action_volume_recording">Volume recording</string>
@@ -121,8 +76,6 @@
     <string name="button_text_cancel_recording">Cancel recording</string>
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
-    <string name="airspeck_not_found">AirSpeck app not found</string>
-    <string name="respeck_not_found">RESpeck app not found</string>
 
     <!-- Strings related to Settings -->
     <string name="title_activity_settings">Settings</string>
@@ -252,8 +205,6 @@
     <string name="connection_text_airspeck_only">Connecting to Airspeck</string>
 
     <!-- Strings related to foreground bluetooth service -->
-    <string name="service_notification_title">AirRespeck connection</string>
-    <string name="service_notification_message">Maintaining bluetooth connection AirRespeck devices</string>
 
     <!-- Password dialog -->
     <string name="supervised_mode_dialog_message">Enter password to access supervised mode</string>

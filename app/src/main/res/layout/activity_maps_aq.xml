@@ -23,7 +23,6 @@
         android:padding="10dp">
 
         <TextView
-            android:id="@+id/text_low"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/low_pollution_legend"/>
@@ -39,7 +38,6 @@
         </FrameLayout>
 
         <TextView
-            android:id="@+id/text_high"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/high_pollution_legend"/>

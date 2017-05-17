@@ -1,10 +1,8 @@
 package com.specknet.airrespeck.activities;
 
-
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.specknet.airrespeck.datamodels.User;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.PreferencesUtils;
 import com.specknet.airrespeck.utils.ThemeUtils;
@@ -17,7 +15,6 @@ import com.specknet.airrespeck.utils.ThemeUtils;
  */
 public class BaseActivity extends AppCompatActivity {
 
-    protected User mCurrentUser;
     protected String mMenuModePref;
     protected boolean mMenuTabIconsPref;
     protected boolean mGraphsScreen;
@@ -28,11 +25,6 @@ public class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         PreferencesUtils.getInstance(getApplicationContext());
-
-        if (!(this instanceof InitialSetupActivity) && !(this instanceof NewUserActivity)) {
-            mCurrentUser = User.getUserByUniqueId(PreferencesUtils.getInstance().
-                    getString(Constants.Preferences.USER_ID));
-        }
 
         // Get preference settings depending on user type defined in RESpeck.config.
         // Enclose everything in a try block so that the default view

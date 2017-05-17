@@ -96,13 +96,7 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
                     });
         }
 
-        if (view != null) {
-            mFeedback = (TextView) view.findViewById(R.id.feedback);
-            updateFeedback();
-        }
-
         mIsCreated = true;
-
         return view;
     }
 
@@ -257,21 +251,5 @@ public class SupervisedOverviewFragment extends BaseFragment implements View.OnC
             mListViewAdapter.notifyDataSetChanged();
             notifySegmentedBarDataSetChange();
         }
-    }
-
-
-
-    /***********************************************************************************************
-     * FEEDBACK
-     ***********************************************************************************************/
-
-    /**
-     * Updates the feedback mName
-     */
-    public void updateFeedback() {
-        // TODO Add dynamic feedback based on user respiratory model, current sensors' readings, and user profile (i.e. age, gender)
-        //mFeedback.setText("Feedback message");
-        //mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_running_man, 0, 0);
-        //mFeedback.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_stop, 0, 0);
     }
 }
