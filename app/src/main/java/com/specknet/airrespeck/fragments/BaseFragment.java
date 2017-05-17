@@ -40,9 +40,6 @@ public class BaseFragment extends Fragment {
 
         mReadingsModeHomeScreen = PreferencesUtils.getInstance().getString(
                 Constants.Preferences.READINGS_MODE_HOME_SCREEN, Constants.READINGS_MODE_HOME_SCREEN_LIST);
-        mReadingsModeAQReadingsScreen = PreferencesUtils.getInstance()
-                .getString(Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
-                        Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
 
         mGraphsScreen = PreferencesUtils.getInstance()
                 .getBoolean(Constants.Preferences.MENU_GRAPHS_SCREEN, false);

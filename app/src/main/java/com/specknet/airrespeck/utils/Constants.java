@@ -21,7 +21,7 @@ public class Constants {
         public static final String RESPECK_KEY = "RESpeckKey";
         public static final String RESPECK_UUID = "RESpeckUUID";
         public static final String QOE_UUID = "QoEUUID";
-        public static final String TABLET_SERIAL = "TabletSerial";
+        public static final String TABLET_SERIAL = "DeviceSerial";
         public static final String PATIENT_ID = "PatientID";
         public static final String PATIENT_AGE = "PatientAge";
         public static final String USER_TYPE = "UserType";
@@ -212,14 +212,11 @@ public class Constants {
      * Readings order in Air Quality Fragment
      */
     public static String[] READINGS_QOE = {
-            QOE_TEMPERATURE,
-            QOE_HUMIDITY,
-            QOE_NO2,
-            QOE_O3,
+            //QOE_TEMPERATURE,
+            //QOE_HUMIDITY,
             QOE_PM1,
             QOE_PM2_5,
             QOE_PM10,
-            QOE_BINS_TOTAL
     };
 
 
@@ -229,14 +226,6 @@ public class Constants {
     public static final int BREATHING_SIGNAL_CHART_NUMBER_OF_SAMPLES = (int) Math.round(15 * 12.5);
     public static final int PM_CHART_NUMBER_OF_SAMPLES = 30;
 
-
-    /**
-     * USERS' GROUP AGES
-     */
-    public static final int UGA_ADOLESCENT = 1;
-    public static final int UGA_YOUNG_ADULT = 2;
-    public static final int UGA_MIDDLEAGED_ADULT = 3;
-    public static final int UGA_ELDERLY_ADULT = 4;
 
     /**
      * Preferences option values

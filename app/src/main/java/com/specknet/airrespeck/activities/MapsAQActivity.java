@@ -209,9 +209,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private void drawCircleOnMap(AirspeckMapData airspeckDataItem) {
         int circleColor = getMobileCircleColor(airspeckDataItem);
-        /*
-        var p = Math.pow(2, (21 - iMap.map.getZoom()));
-        iMap.circle[i].setRadius(p * 1128.497220 * 0.0027);*/
         mMap.addCircle(new CircleOptions().center(airspeckDataItem.getLocation()).radius(10)
                 .fillColor(circleColor).strokeColor(circleColor).strokeWidth(1));
         // Log.i("AQ Map", "Circle painted at location: " + airspeckDataItem.getLocation());
@@ -220,8 +217,12 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     @Override
     protected void onDestroy() {
-        if (mapType == MAP_TYPE_LIVE) {
-            unregisterReceiver(mBroadcastReceiver);
+        try {
+            if (mapType == MAP_TYPE_LIVE) {
+                unregisterReceiver(mBroadcastReceiver);
+            }
+        } catch (Exception e) {
+            // Receiver might not be registered. Do nothing in this case
         }
         super.onDestroy();
     }

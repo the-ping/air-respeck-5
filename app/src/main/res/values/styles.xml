@@ -7,7 +7,7 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
-        <item name="cpbStyle">@style/CircularProgressBar</item>
+        <item name="cpbStyle">@style/CircularThemeProgressBar</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -22,8 +22,8 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="CircularThemeProgressBar" parent="android:Widget.Holo.ProgressBar">
-        <item name="cpb_sweep_speed">0.8</item>
-        <item name="cpb_rotation_speed">0.8</item>
+        <item name="cpb_sweep_speed">0.6</item>
+        <item name="cpb_rotation_speed">0.6</item>
     </style>
 
     <style name="FontSizeSmall">

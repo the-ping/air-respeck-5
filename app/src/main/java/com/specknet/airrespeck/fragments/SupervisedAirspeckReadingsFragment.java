@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +19,6 @@ import com.specknet.airrespeck.adapters.ReadingItemSegmentedBarAdapter;
 import com.specknet.airrespeck.lib.Segment;
 import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,19 +58,17 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        calculateColumnSize(mReadingsModeAQReadingsScreen);
+        mReadingsModeAQReadingsScreen = Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST;
 
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
-
-        mReadingItems = new ArrayList<ReadingItem>();
+        mReadingItems = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
+
+        Log.i("AirspeckReadings", "Segmentedbars drawn");
 
         Context context = view.getContext();
 
@@ -83,12 +81,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                 break;
             case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS: {
                 RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
-
-                if (mColumnCount <= 1) {
-                    recyclerView.setLayoutManager(new LinearLayoutManager(context));
-                } else {
-                    recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-                }
+                recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
                 mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
                 recyclerView.setAdapter(mSegmentedBarAdapter);
@@ -104,14 +97,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        // No listener needed for now
-        /*if (context instanceof OnAQFragmentInteractionListener) {
-            mListener = (OnAQFragmentInteractionListener) context;
-        }
-        else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnAQFragmentInteractionListener");
-        }*/
     }
 
     @Override
@@ -123,8 +108,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
     @Override
     public void onStart() {
         super.onStart();
-
-        calculateColumnSize(mReadingsModeAQReadingsScreen);
     }
 
     /**
@@ -136,24 +119,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
         void onAQReadingsFragmentInteraction(ReadingItem item);
     }
 
-    /**
-     * Set the number of columns {@link #mColumnCount}
-     *
-     * @param readingsDisplayMode int Display mode preference
-     */
-    private void calculateColumnSize(final String readingsDisplayMode) {
-        switch (readingsDisplayMode) {
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST:
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS:
-                mColumnCount = 1;
-                break;
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_ARCS:
-                Utils mUtils = Utils.getInstance(getContext());
-                mColumnCount = (int) Math.floor(mUtils.getScreenSize().x /
-                        getResources().getDimension(R.dimen.arc_progress_item_width));
-                break;
-        }
-    }
 
     /**
      * Returns the layout according to the current display mode preference
@@ -167,8 +132,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                 return R.layout.fragment_aqreadings_listview;
             case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS:
                 return R.layout.fragment_aqreadings_list_segmentedbar;
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_ARCS:
-                return R.layout.fragment_aqreadings_list_arcprogress;
             default:
                 return R.layout.fragment_aqreadings_listview;
         }
@@ -198,7 +161,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
             for (String key : Constants.READINGS_QOE) {
                 switch (key) {
                     case Constants.QOE_PM1:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 10f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
                         segments.add(
@@ -211,7 +174,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.QOE_PM2_5:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
                         segments.add(
@@ -224,7 +187,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.QOE_PM10:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
                         segments.add(
@@ -237,7 +200,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.QOE_TEMPERATURE:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(-10f, 0f, "", ContextCompat.getColor(getContext(), R.color.md_blue_800)));
                         segments.add(
@@ -256,7 +219,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.QOE_HUMIDITY:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(new Segment(0, 29f, "",
                                 ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
                         segments.add(
@@ -273,7 +236,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.QOE_O3:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
                         segments.add(new Segment(101f, 160f, "",
@@ -286,7 +249,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.QOE_NO2:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 200f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
                         segments.add(new Segment(201f, 400f, "",

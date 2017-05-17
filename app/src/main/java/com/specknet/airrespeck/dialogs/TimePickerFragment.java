@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
 
-import com.specknet.airrespeck.fragments.SupervisedAQMapLoaderFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 
 import java.util.Calendar;
 
@@ -31,14 +31,14 @@ public class TimePickerFragment extends DialogFragment
     }
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        SupervisedAQMapLoaderFragment parent = (SupervisedAQMapLoaderFragment) getArguments().get(
-                SupervisedAQMapLoaderFragment.KEY_PARENT);
-        String type = (String) getArguments().get(SupervisedAQMapLoaderFragment.KEY_TYPE);
+        SupervisedAirspeckMapLoaderFragment parent = (SupervisedAirspeckMapLoaderFragment) getArguments().get(
+                SupervisedAirspeckMapLoaderFragment.KEY_PARENT);
+        String type = (String) getArguments().get(SupervisedAirspeckMapLoaderFragment.KEY_TYPE);
 
         if (parent != null) {
-            if (type.equals(SupervisedAQMapLoaderFragment.TYPE_FROM)) {
+            if (type.equals(SupervisedAirspeckMapLoaderFragment.TYPE_FROM)) {
                 parent.changeFromTime(hourOfDay, minute);
-            } else if (type.equals(SupervisedAQMapLoaderFragment.TYPE_TO)) {
+            } else if (type.equals(SupervisedAirspeckMapLoaderFragment.TYPE_TO)) {
                 parent.changeToTime(hourOfDay, minute);
             }
 

@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.DatePicker;
 
-import com.specknet.airrespeck.fragments.SupervisedAQMapLoaderFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 
 import java.util.Calendar;
 
@@ -32,15 +32,15 @@ public class DatePickerFragment extends DialogFragment
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
         Log.i("Date picker", String.format("year %d, month %d, day %d", year, month, day));
-        SupervisedAQMapLoaderFragment parent = (SupervisedAQMapLoaderFragment) getArguments().get(
-                SupervisedAQMapLoaderFragment.KEY_PARENT);
-        String type = (String) getArguments().get(SupervisedAQMapLoaderFragment.KEY_TYPE);
+        SupervisedAirspeckMapLoaderFragment parent = (SupervisedAirspeckMapLoaderFragment) getArguments().get(
+                SupervisedAirspeckMapLoaderFragment.KEY_PARENT);
+        String type = (String) getArguments().get(SupervisedAirspeckMapLoaderFragment.KEY_TYPE);
 
         if (parent != null && type != null) {
-            if (type.equals(SupervisedAQMapLoaderFragment.TYPE_FROM)) {
+            if (type.equals(SupervisedAirspeckMapLoaderFragment.TYPE_FROM)) {
                 // Months start at zero in picker
                 parent.changeFromDate(year, month + 1, day);
-            } else if (type.equals(SupervisedAQMapLoaderFragment.TYPE_TO)) {
+            } else if (type.equals(SupervisedAirspeckMapLoaderFragment.TYPE_TO)) {
                 parent.changeToDate(year, month + 1, day);
             }
 

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class SupervisedAQGraphsFragment extends BaseFragment {
+public class SupervisedAirspeckGraphsFragment extends BaseFragment {
 
     public static class PMs implements Serializable {
         final static int PMS_NUM = 3;
@@ -81,7 +81,7 @@ public class SupervisedAQGraphsFragment extends BaseFragment {
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public SupervisedAQGraphsFragment() {
+    public SupervisedAirspeckGraphsFragment() {
 
     }
 

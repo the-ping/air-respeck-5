@@ -28,7 +28,7 @@ import java.util.Locale;
  * Fragment for loading Google Maps Activity with pollution information
  */
 
-public class SupervisedAQMapLoaderFragment extends BaseFragment implements Serializable {
+public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements Serializable {
 
     public static final String KEY_PARENT = "parent";
     public static final String KEY_TYPE = "type";
@@ -48,7 +48,7 @@ public class SupervisedAQMapLoaderFragment extends BaseFragment implements Seria
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public SupervisedAQMapLoaderFragment() {
+    public SupervisedAirspeckMapLoaderFragment() {
 
     }
 

@@ -641,7 +641,11 @@ public class SpeckBluetoothService extends Service {
             airspeckSubscription.unsubscribe();
         }
 
-        unregisterReceiver(mLocationReceiver);
+        try {
+            unregisterReceiver(mLocationReceiver);
+        } catch (Exception e) {
+            // Receiver might not be registered. Do nothing in this case
+        }
 
         // Close the OutputWritingStreams
         try {

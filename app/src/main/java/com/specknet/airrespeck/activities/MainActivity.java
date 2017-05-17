@@ -40,10 +40,10 @@ import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
-import com.specknet.airrespeck.fragments.SupervisedAQMapLoaderFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedAQGraphsFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.BreathingGraphData;
@@ -162,10 +162,10 @@ public class MainActivity extends BaseActivity {
     private SubjectWindmillFragment mSubjectWindmillFragment;
     private SupervisedOverviewFragment mSupervisedOverviewFragment;
     private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
-    private SupervisedAQGraphsFragment mSupervisedAQGraphsFragment;
+    private SupervisedAirspeckGraphsFragment mSupervisedAirspeckGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
-    private SupervisedAQMapLoaderFragment mSupervisedAQMapLoaderFragment;
+    private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
 
     // Config loaded from RESpeck.config
     private boolean mIsSupervisedModeEnabled;
@@ -708,7 +708,7 @@ public class MainActivity extends BaseActivity {
                 supervisedTitles.add(getString(R.string.menu_air_quality));
             }
             if (mShowSupervisedAQGraphs) {
-                supervisedFragments.add(mSupervisedAQGraphsFragment);
+                supervisedFragments.add(mSupervisedAirspeckGraphsFragment);
                 supervisedTitles.add(getString(R.string.menu_aq_graphs));
             }
             if (mShowSupervisedActivitySummary) {
@@ -716,7 +716,7 @@ public class MainActivity extends BaseActivity {
                 supervisedTitles.add(getString(R.string.menu_activity_summary));
             }
             if (mShowSupervisedAQMap) {
-                supervisedFragments.add(mSupervisedAQMapLoaderFragment);
+                supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
                 supervisedTitles.add(getString(R.string.menu_aq_map));
             }
         }
@@ -754,13 +754,13 @@ public class MainActivity extends BaseActivity {
                     (SupervisedOverviewFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
             mSupervisedAirspeckReadingsFragment =
                     (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
-            mSupervisedAQGraphsFragment =
-                    (SupervisedAQGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
+            mSupervisedAirspeckGraphsFragment =
+                    (SupervisedAirspeckGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
             mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(savedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
             mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
-            mSupervisedAQMapLoaderFragment = (SupervisedAQMapLoaderFragment) fm.getFragment(savedInstanceState,
+            mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(savedInstanceState,
                     TAG_AQ_MAP_FRAGMENT);
             mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
             mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
@@ -776,8 +776,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedAirspeckReadingsFragment == null) {
             mSupervisedAirspeckReadingsFragment = new SupervisedAirspeckReadingsFragment();
         }
-        if (mSupervisedAQGraphsFragment == null) {
-            mSupervisedAQGraphsFragment = new SupervisedAQGraphsFragment();
+        if (mSupervisedAirspeckGraphsFragment == null) {
+            mSupervisedAirspeckGraphsFragment = new SupervisedAirspeckGraphsFragment();
         }
         if (mSupervisedActivitySummaryFragment == null) {
             mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
@@ -785,8 +785,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedRESpeckReadingsFragment == null) {
             mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
         }
-        if (mSupervisedAQMapLoaderFragment == null) {
-            mSupervisedAQMapLoaderFragment = new SupervisedAQMapLoaderFragment();
+        if (mSupervisedAirspeckMapLoaderFragment == null) {
+            mSupervisedAirspeckMapLoaderFragment = new SupervisedAirspeckMapLoaderFragment();
         }
         if (mSubjectHomeFragment == null) {
             mSubjectHomeFragment = new SubjectHomeFragment();
@@ -951,8 +951,8 @@ public class MainActivity extends BaseActivity {
         if (mSupervisedAirspeckReadingsFragment != null && mSupervisedAirspeckReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mSupervisedAirspeckReadingsFragment);
         }
-        if (mSupervisedAQGraphsFragment != null && mSupervisedAQGraphsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAQGraphsFragment);
+        if (mSupervisedAirspeckGraphsFragment != null && mSupervisedAirspeckGraphsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAirspeckGraphsFragment);
         }
         if (mSupervisedActivitySummaryFragment != null && mSupervisedActivitySummaryFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mSupervisedActivitySummaryFragment);
@@ -1185,9 +1185,9 @@ public class MainActivity extends BaseActivity {
                 binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
                 binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
 
-                mSupervisedAQGraphsFragment.setBinsChartData(binValues);
+                mSupervisedAirspeckGraphsFragment.setBinsChartData(binValues);
 
-                mSupervisedAQGraphsFragment.addPMsChartData(new SupervisedAQGraphsFragment.PMs(
+                mSupervisedAirspeckGraphsFragment.addPMsChartData(new SupervisedAirspeckGraphsFragment.PMs(
                                 mQOESensorReadings.get(Constants.QOE_PM1),
                                 mQOESensorReadings.get(Constants.QOE_PM2_5),
                                 mQOESensorReadings.get(Constants.QOE_PM10)),
@@ -1209,7 +1209,7 @@ public class MainActivity extends BaseActivity {
             mSupervisedOverviewFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
-            mSupervisedAQGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
+            mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
         }
     }
 
