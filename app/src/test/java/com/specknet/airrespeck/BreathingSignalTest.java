@@ -84,7 +84,7 @@ public class BreathingSignalTest {
 
         // Open each file, generate the breathing signal for it, and write the result into another file
         for (File file : listOfFiles) {
-            service.initBreathing();
+            service.initBreathing(true);
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
             ArrayList<Float[]> allMeasures = new ArrayList<>();
 
@@ -119,7 +119,7 @@ public class BreathingSignalTest {
 
     private ArrayList<Float[]> calculateMeasuresBasedOnCurrentLibrary(ArrayList<Float[]> accelValues) {
         SpeckBluetoothService service = new SpeckBluetoothService();
-        service.initBreathing();
+        service.initBreathing(true);
 
         ArrayList<Float[]> allMeasures = new ArrayList<>();
 

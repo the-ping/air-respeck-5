@@ -24,16 +24,11 @@ android {
         applicationId "com.specknet.airrespeck"
         minSdkVersion 22
         targetSdkVersion 25
-        versionCode 14
-        versionName "1.4.14"
+        versionCode 15
+        versionName "1.4.15"
 
         // Enabling multidex support.
-        multiDexEnabled true
-
-        // Java 8 support. Should be integrated into Android soon, so this can be removed.
-        jackOptions {
-            enabled true
-        }
+        // multiDexEnabled true
     }
 
     buildTypes {
@@ -55,10 +50,6 @@ android {
     }
     lintOptions {
         abortOnError false
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 

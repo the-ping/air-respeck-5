@@ -62,6 +62,8 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     // Default is the live map
     private int mapType = MAP_TYPE_LIVE;
 
+    ArrayList<AirspeckMapData> mLoadedData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -207,6 +209,9 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private void drawCircleOnMap(AirspeckMapData airspeckDataItem) {
         int circleColor = getMobileCircleColor(airspeckDataItem);
+        /*
+        var p = Math.pow(2, (21 - iMap.map.getZoom()));
+        iMap.circle[i].setRadius(p * 1128.497220 * 0.0027);*/
         mMap.addCircle(new CircleOptions().center(airspeckDataItem.getLocation()).radius(10)
                 .fillColor(circleColor).strokeColor(circleColor).strokeWidth(1));
         // Log.i("AQ Map", "Circle painted at location: " + airspeckDataItem.getLocation());
@@ -228,10 +233,9 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private class LoadStoredDataTask extends AsyncTask<Long, Integer, Void> {
 
-        ArrayList<AirspeckMapData> loadedData = new ArrayList<>();
-
         protected Void doInBackground(Long... timestamps) {
             Log.i("Map", "Started loading stored data task");
+            mLoadedData = new ArrayList<>();
 
             long tsFrom = timestamps[0];
             long tsTo = timestamps[1];
@@ -269,7 +273,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                                             Float.parseFloat(row[2]), Float.parseFloat(row[3]),
                                             Float.parseFloat(row[4]));
 
-                                    loadedData.add(readSample);
+                                    mLoadedData.add(readSample);
                                 }
                             }
                             reader.close();
@@ -286,28 +290,32 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            // Check if there is something to draw
-            if (loadedData.size() > 0) {
-                // Bounds builder to calculate zoom location and factor so that all markers are in view
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            updateCircles();
+        }
+    }
 
-                // Iterate through data and draw on map
-                for (AirspeckMapData data : loadedData) {
-                    drawCircleOnMap(data);
-                    builder.include(data.getLocation());
-                }
+    private void updateCircles() {
+        // Check if there is something to draw
+        if (mLoadedData.size() > 0) {
+            // Bounds builder to calculate zoom location and factor so that all markers are in view
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-                LatLngBounds bounds = builder.build();
-                int padding = 30; // offset from edges of the map in pixels
-                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-                mMap.moveCamera(cu);
-                cu = CameraUpdateFactory.zoomTo(18);
-                mMap.moveCamera(cu);
-            } else {
-                Toast.makeText(getApplicationContext(), "No data in selected time period",
-                        Toast.LENGTH_LONG).show();
-                finish();
+            // Iterate through data and draw on map
+            for (AirspeckMapData data : mLoadedData) {
+                drawCircleOnMap(data);
+                builder.include(data.getLocation());
             }
+
+            LatLngBounds bounds = builder.build();
+            int padding = 30; // offset from edges of the map in pixels
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+            mMap.moveCamera(cu);
+            cu = CameraUpdateFactory.zoomTo(18);
+            mMap.moveCamera(cu);
+        } else {
+            Toast.makeText(getApplicationContext(), "No data in selected time period",
+                    Toast.LENGTH_LONG).show();
+            finish();
         }
     }
 }
