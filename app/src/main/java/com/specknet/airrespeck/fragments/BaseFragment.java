@@ -62,31 +62,6 @@ public class BaseFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        // Restart fragments if the type of display does not correspond to the preferences set by the user
-        if (this instanceof SupervisedOverviewFragment) {
-            String newVal = PreferencesUtils.getInstance().getString(Constants.Preferences.READINGS_MODE_HOME_SCREEN,
-                    Constants.READINGS_MODE_HOME_SCREEN_LIST);
-
-            if (!mReadingsModeHomeScreen.equals(newVal)) {
-                restartFragment();
-            }
-        } else if (this instanceof SupervisedAirspeckReadingsFragment) {
-            String newVal = PreferencesUtils.getInstance().getString(
-                    Constants.Preferences.READINGS_MODE_AQREADINGS_SCREEN,
-                    Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST);
-
-            if (!mReadingsModeAQReadingsScreen.equals(newVal)) {
-                restartFragment();
-            }
-        } else if (this instanceof MenuFragment) {
-            int newVal = Integer.parseInt(PreferencesUtils.getInstance()
-                    .getString(Constants.Preferences.MENU_BUTTONS_PADDING, Constants.MENU_BUTTONS_PADDING_NORMAL));
-
-            if (mButtonsPadding != newVal) {
-                restartFragment();
-            }
-        }
-
         // Update connection symbol. Calls MainActivity to update all Fragments
         ((MainActivity) getActivity()).updateConnectionLoadingLayout();
     }

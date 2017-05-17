@@ -58,7 +58,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mReadingsModeAQReadingsScreen = Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST;
+        mReadingsModeAQReadingsScreen = Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS;
 
         mReadingItems = new ArrayList<>();
     }
