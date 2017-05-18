@@ -126,7 +126,7 @@ public class Constants {
     public static final String ACTION_AIRSPECK_DISCONNECTED =
             "com.specknet.airspeck.AIRSPECK_DISCONNECTED";
     public static final String RESPECK_UUID = "respeck uuid";
-    public static final String QOE_UUID = "respeck uuid";
+    public static final String AIRSPECK_UUID = "airspeck uuid";
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
 
     /**
@@ -159,34 +159,34 @@ public class Constants {
     public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";
 
 
-    public static final String QOE_PM1 = "pm1";
-    public static final String QOE_PM2_5 = "pm2_5";
-    public static final String QOE_PM10 = "pm10";
-    public static final String QOE_TEMPERATURE = "temperature";
-    public static final String QOE_HUMIDITY = "humidity";
-    public static final String QOE_NO2 = "no2";
-    public static final String QOE_S1ae_NO2 = "s1_ae";
-    public static final String QOE_S1we_NO2 = "s1_we";
-    public static final String QOE_O3 = "o3";
-    public static final String QOE_S2ae_O3 = "s2_ae";
-    public static final String QOE_S2we_O3 = "s2_we";
-    public static final String QOE_BINS_0 = "bins0";
-    public static final String QOE_BINS_1 = "bins1";
-    public static final String QOE_BINS_2 = "bins2";
-    public static final String QOE_BINS_3 = "bins3";
-    public static final String QOE_BINS_4 = "bins4";
-    public static final String QOE_BINS_5 = "bins5";
-    public static final String QOE_BINS_6 = "bins6";
-    public static final String QOE_BINS_7 = "bins7";
-    public static final String QOE_BINS_8 = "bins8";
-    public static final String QOE_BINS_9 = "bins9";
-    public static final String QOE_BINS_10 = "bins10";
-    public static final String QOE_BINS_11 = "bins11";
-    public static final String QOE_BINS_12 = "bins12";
-    public static final String QOE_BINS_13 = "bins13";
-    public static final String QOE_BINS_14 = "bins14";
-    public static final String QOE_BINS_15 = "bins15";
-    public static final String QOE_BINS_TOTAL = "bins_total";
+    public static final String AIRSPECK_PM1 = "pm1";
+    public static final String AIRSPECK_PM2_5 = "pm2_5";
+    public static final String AIRSPECK_PM10 = "pm10";
+    public static final String AIRSPECK_TEMPERATURE = "temperature";
+    public static final String AIRSPECK_HUMIDITY = "humidity";
+    public static final String AIRSPECK_NO2 = "no2";
+    public static final String AIRSPECK_S1ae_NO2 = "s1_ae";
+    public static final String AIRSPECK_S1we_NO2 = "s1_we";
+    public static final String AIRSPECK_O3 = "o3";
+    public static final String AIRSPECK_S2ae_O3 = "s2_ae";
+    public static final String AIRSPECK_S2we_O3 = "s2_we";
+    public static final String AIRSPECK_BINS_0 = "bins0";
+    public static final String AIRSPECK_BINS_1 = "bins1";
+    public static final String AIRSPECK_BINS_2 = "bins2";
+    public static final String AIRSPECK_BINS_3 = "bins3";
+    public static final String AIRSPECK_BINS_4 = "bins4";
+    public static final String AIRSPECK_BINS_5 = "bins5";
+    public static final String AIRSPECK_BINS_6 = "bins6";
+    public static final String AIRSPECK_BINS_7 = "bins7";
+    public static final String AIRSPECK_BINS_8 = "bins8";
+    public static final String AIRSPECK_BINS_9 = "bins9";
+    public static final String AIRSPECK_BINS_10 = "bins10";
+    public static final String AIRSPECK_BINS_11 = "bins11";
+    public static final String AIRSPECK_BINS_12 = "bins12";
+    public static final String AIRSPECK_BINS_13 = "bins13";
+    public static final String AIRSPECK_BINS_14 = "bins14";
+    public static final String AIRSPECK_BINS_15 = "bins15";
+    public static final String AIRSPECK_BINS_TOTAL = "bins_total";
     public static final String AIRSPECK_ALL_MEASURES = "all_airspeck_measures";
 
     public static final String ACTIVITY_SUMMARY_HOUR = "hour";
@@ -212,11 +212,11 @@ public class Constants {
      * Readings order in Air Quality Fragment
      */
     public static String[] READINGS_QOE = {
-            //QOE_TEMPERATURE,
-            //QOE_HUMIDITY,
-            QOE_PM1,
-            QOE_PM2_5,
-            QOE_PM10,
+            //AIRSPECK_TEMPERATURE,
+            //AIRSPECK_HUMIDITY,
+            AIRSPECK_PM1,
+            AIRSPECK_PM2_5,
+            AIRSPECK_PM10,
     };
 
 

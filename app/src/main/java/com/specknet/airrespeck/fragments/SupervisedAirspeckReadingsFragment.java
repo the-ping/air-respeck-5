@@ -4,7 +4,6 @@ package com.specknet.airrespeck.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -160,7 +159,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
             for (String key : Constants.READINGS_QOE) {
                 switch (key) {
-                    case Constants.QOE_PM1:
+                    case Constants.AIRSPECK_PM1:
                         segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 10f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
@@ -173,7 +172,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_PM2_5:
+                    case Constants.AIRSPECK_PM2_5:
                         segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 35f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
@@ -186,7 +185,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_PM10:
+                    case Constants.AIRSPECK_PM10:
                         segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 50f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
@@ -199,7 +198,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_TEMPERATURE:
+                    case Constants.AIRSPECK_TEMPERATURE:
                         segments = new ArrayList<>();
                         segments.add(
                                 new Segment(-10f, 0f, "", ContextCompat.getColor(getContext(), R.color.md_blue_800)));
@@ -218,7 +217,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_HUMIDITY:
+                    case Constants.AIRSPECK_HUMIDITY:
                         segments = new ArrayList<>();
                         segments.add(new Segment(0, 29f, "",
                                 ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
@@ -235,7 +234,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_O3:
+                    case Constants.AIRSPECK_O3:
                         segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
@@ -248,7 +247,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_NO2:
+                    case Constants.AIRSPECK_NO2:
                         segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 200f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
@@ -261,7 +260,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.QOE_BINS_TOTAL:
+                    case Constants.AIRSPECK_BINS_TOTAL:
                         segments = new ArrayList<Segment>();
                         segments.add(
                                 new Segment(0, 40f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
@@ -443,11 +442,11 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                 i++;
             }
 
-            int index = Arrays.asList(Constants.READINGS_QOE).indexOf(Constants.QOE_HUMIDITY);
+            int index = Arrays.asList(Constants.READINGS_QOE).indexOf(Constants.AIRSPECK_HUMIDITY);
             // Index exists?
             if (index != -1) {
                 mReadingItems.get(index).segments = buildRelativeHumidityScale(
-                        Math.round(values.get(Constants.QOE_TEMPERATURE)));
+                        Math.round(values.get(Constants.AIRSPECK_TEMPERATURE)));
             }
 
             notifyDataSetChange(mReadingsModeAQReadingsScreen);

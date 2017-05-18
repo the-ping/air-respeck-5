@@ -22,9 +22,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10sp"
-        app:sb_side_text_style="twoSided" />
-        <!--app:sb_value_text_size="20sp"
+        app:sb_side_text_style="twoSided"/>
+        <!--
+        app:sb_value_text_size="20sp"
         app:sb_value_sign_width="90sp"
-        app:sb_value_sign_height="30sp" />-->
+        app:sb_value_sign_height="30sp"-->
 
 </LinearLayout>

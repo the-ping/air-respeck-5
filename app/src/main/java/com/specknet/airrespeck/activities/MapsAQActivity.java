@@ -139,8 +139,8 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                                     Constants.AIRSPECK_ALL_MEASURES);
                             Long timestamp = (Long) intent.getSerializableExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP);
                             AirspeckMapData newData = new AirspeckMapData(timestamp, mLastLatLng,
-                                    readings.get(Constants.QOE_PM1), readings.get(Constants.QOE_PM2_5),
-                                    readings.get(Constants.QOE_PM10));
+                                    readings.get(Constants.AIRSPECK_PM1), readings.get(Constants.AIRSPECK_PM2_5),
+                                    readings.get(Constants.AIRSPECK_PM10));
                             mQueueMapData.addLast(newData);
                             Toast.makeText(getApplicationContext(),
                                     String.format(Locale.UK, "PM 2.5: %f, PM 10: %f", newData.getPm2_5(),

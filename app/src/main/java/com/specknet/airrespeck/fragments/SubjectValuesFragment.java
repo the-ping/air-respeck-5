@@ -91,7 +91,7 @@ public class SubjectValuesFragment extends BaseFragment {
     }
 
     public void updateQOEReadings(HashMap<String, Float> mAQSensorReadings) {
-        pm10Text.setText(String.format(Locale.UK, "PM 10: %.2f μg/m³", mAQSensorReadings.get(Constants.QOE_PM10)));
-        pm2_5Text.setText(String.format(Locale.UK, "PM 2.5: %.2f μg/m³", mAQSensorReadings.get(Constants.QOE_PM2_5)));
+        pm10Text.setText(String.format(Locale.UK, "PM 10: %.2f μg/m³", mAQSensorReadings.get(Constants.AIRSPECK_PM10)));
+        pm2_5Text.setText(String.format(Locale.UK, "PM 2.5: %.2f μg/m³", mAQSensorReadings.get(Constants.AIRSPECK_PM2_5)));
     }
 }

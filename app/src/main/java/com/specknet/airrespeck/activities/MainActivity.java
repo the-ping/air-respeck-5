@@ -470,30 +470,30 @@ public class MainActivity extends BaseActivity {
                 public void run() {
                     // Generate random Airspeck readings
                     HashMap<String, Float> rndReadings = new HashMap<>();
-                    rndReadings.put(Constants.QOE_PM1, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_PM2_5, (float) Math.random() * 35);
-                    rndReadings.put(Constants.QOE_PM10, (float) Math.random() * 150);
-                    rndReadings.put(Constants.QOE_TEMPERATURE, (float) Math.random() * 30);
-                    rndReadings.put(Constants.QOE_HUMIDITY, (float) Math.random() * 100);
-                    rndReadings.put(Constants.QOE_NO2, (float) Math.random());
-                    rndReadings.put(Constants.QOE_O3, (float) Math.random());
-                    rndReadings.put(Constants.QOE_BINS_0, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_1, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_2, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_3, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_4, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_5, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_6, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_7, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_8, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_9, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_10, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_11, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_12, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_13, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_14, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_15, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.QOE_BINS_TOTAL, (float) Math.round(Math.random() * 100));
+                    rndReadings.put(Constants.AIRSPECK_PM1, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_PM2_5, (float) Math.random() * 35);
+                    rndReadings.put(Constants.AIRSPECK_PM10, (float) Math.random() * 150);
+                    rndReadings.put(Constants.AIRSPECK_TEMPERATURE, (float) Math.random() * 30);
+                    rndReadings.put(Constants.AIRSPECK_HUMIDITY, (float) Math.random() * 100);
+                    rndReadings.put(Constants.AIRSPECK_NO2, (float) Math.random());
+                    rndReadings.put(Constants.AIRSPECK_O3, (float) Math.random());
+                    rndReadings.put(Constants.AIRSPECK_BINS_0, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_1, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_2, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_3, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_4, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_5, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_6, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_7, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_8, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_9, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_10, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_11, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_12, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_13, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_14, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_15, (float) Math.round(Math.random() * 10));
+                    rndReadings.put(Constants.AIRSPECK_BINS_TOTAL, (float) Math.round(Math.random() * 100));
                     rndReadings.put(Constants.PHONE_TIMESTAMP_HOUR,
                             Utils.onlyKeepTimeInHour(Utils.getUnixTimestamp()));
 
@@ -577,7 +577,7 @@ public class MainActivity extends BaseActivity {
                         sendMessageToHandler(UPDATE_AIRSPECK_READINGS, readings);
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
-                        String qoeUUID = intent.getStringExtra(Constants.QOE_UUID);
+                        String qoeUUID = intent.getStringExtra(Constants.AIRSPECK_UUID);
                         sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, qoeUUID);
                         break;
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
@@ -1045,30 +1045,30 @@ public class MainActivity extends BaseActivity {
      * Initialize hashmaps for sensor reading values
      */
     private void initReadingMaps() {
-        mQOESensorReadings.put(Constants.QOE_PM1, 0f);
-        mQOESensorReadings.put(Constants.QOE_PM2_5, 0f);
-        mQOESensorReadings.put(Constants.QOE_PM10, 0f);
-        mQOESensorReadings.put(Constants.QOE_TEMPERATURE, 0f);
-        mQOESensorReadings.put(Constants.QOE_HUMIDITY, 0f);
-        mQOESensorReadings.put(Constants.QOE_NO2, 0f);
-        mQOESensorReadings.put(Constants.QOE_O3, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_0, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_1, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_2, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_3, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_4, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_5, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_6, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_7, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_8, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_9, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_10, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_11, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_12, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_13, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_14, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_15, 0f);
-        mQOESensorReadings.put(Constants.QOE_BINS_TOTAL, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_PM1, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_PM2_5, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_PM10, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_TEMPERATURE, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_HUMIDITY, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_NO2, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_O3, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_0, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_1, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_2, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_3, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_4, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_5, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_6, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_7, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_8, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_9, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_10, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_11, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_12, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_13, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_14, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_15, 0f);
+        mQOESensorReadings.put(Constants.AIRSPECK_BINS_TOTAL, 0f);
 
         mRespeckSensorReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0f);
         mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
@@ -1094,8 +1094,8 @@ public class MainActivity extends BaseActivity {
 
                     listValuesOverview.add(
                             mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
+                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM2_5)));
+                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM10)));
 
                     mSupervisedOverviewFragment.setReadings(listValuesOverview);
                 }
@@ -1150,46 +1150,46 @@ public class MainActivity extends BaseActivity {
             if (isSupervisedMode) {
                 HashMap<String, Float> values = new HashMap<>();
 
-                values.put(Constants.QOE_TEMPERATURE,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_TEMPERATURE)));
-                values.put(Constants.QOE_HUMIDITY,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_HUMIDITY)));
-                values.put(Constants.QOE_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_O3)));
-                values.put(Constants.QOE_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_NO2)));
-                values.put(Constants.QOE_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM1)));
-                values.put(Constants.QOE_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM2_5)));
-                values.put(Constants.QOE_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_PM10)));
-                values.put(Constants.QOE_BINS_TOTAL,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.QOE_BINS_TOTAL)));
+                values.put(Constants.AIRSPECK_TEMPERATURE,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_TEMPERATURE)));
+                values.put(Constants.AIRSPECK_HUMIDITY,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_HUMIDITY)));
+                values.put(Constants.AIRSPECK_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_O3)));
+                values.put(Constants.AIRSPECK_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_NO2)));
+                values.put(Constants.AIRSPECK_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM1)));
+                values.put(Constants.AIRSPECK_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM2_5)));
+                values.put(Constants.AIRSPECK_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM10)));
+                values.put(Constants.AIRSPECK_BINS_TOTAL,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_BINS_TOTAL)));
 
                 mSupervisedAirspeckReadingsFragment.setReadings(values);
 
                 // Graphs fragment UI
                 ArrayList<Float> binValues = new ArrayList<>();
 
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_0));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_1));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_2));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_3));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_4));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_5));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_6));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_7));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_8));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_9));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_10));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_11));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_12));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_13));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_14));
-                binValues.add(mQOESensorReadings.get(Constants.QOE_BINS_15));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_0));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_1));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_2));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_3));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_4));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_5));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_6));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_7));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_8));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_9));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_10));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_11));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_12));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_13));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_14));
+                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_15));
 
                 mSupervisedAirspeckGraphsFragment.setBinsChartData(binValues);
 
                 mSupervisedAirspeckGraphsFragment.addPMsChartData(new SupervisedAirspeckGraphsFragment.PMs(
-                                mQOESensorReadings.get(Constants.QOE_PM1),
-                                mQOESensorReadings.get(Constants.QOE_PM2_5),
-                                mQOESensorReadings.get(Constants.QOE_PM10)),
+                                mQOESensorReadings.get(Constants.AIRSPECK_PM1),
+                                mQOESensorReadings.get(Constants.AIRSPECK_PM2_5),
+                                mQOESensorReadings.get(Constants.AIRSPECK_PM10)),
                         mQOESensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR));
             } else {
                 // Daphne values fragment
@@ -1277,6 +1277,7 @@ public class MainActivity extends BaseActivity {
         if (!isSupervisedMode && mShowSubjectWindmill) {
             mSubjectWindmillFragment.updateRESpeckConnectionSymbol(isConnected);
         }
+        updateConnectionLoadingLayout();
     }
 
     private void updateAirspeckConnection(boolean isConnected) {
@@ -1284,6 +1285,7 @@ public class MainActivity extends BaseActivity {
         if (!isSupervisedMode && mShowSubjectHome) {
             mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
         }
+        updateConnectionLoadingLayout();
     }
 
     private void showSnackbarFromHandler(String message) {

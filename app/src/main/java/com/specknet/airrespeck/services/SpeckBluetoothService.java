@@ -338,6 +338,9 @@ public class SpeckBluetoothService extends Service {
                     public void call(Object notificationObservable) {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to AIRSPECK");
+                        Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
+                        airspeckFoundIntent.putExtra(Constants.AIRSPECK_UUID, AIRSPECK_UUID);
+                        sendBroadcast(airspeckFoundIntent);
                     }
                 })
                 .flatMap(
@@ -359,6 +362,8 @@ public class SpeckBluetoothService extends Service {
                             public void call(Throwable throwable) {
                                 // Handle an error here.
                                 Log.i("SpeckService", "AIRSPECK DISCONNECTED: " + throwable.toString());
+                                Intent airspeckDisconnectedIntent = new Intent(Constants.ACTION_AIRSPECK_DISCONNECTED);
+                                sendBroadcast(airspeckDisconnectedIntent);
                                 SpeckBluetoothService.this.reconnectAirspeck();
                             }
                         }
@@ -491,31 +496,31 @@ public class SpeckBluetoothService extends Service {
 
         // Send data in broadcast
         HashMap<String, Float> readings = new HashMap<>();
-        readings.put(Constants.QOE_PM1, pm1);
-        readings.put(Constants.QOE_PM2_5, pm2_5);
-        readings.put(Constants.QOE_PM10, pm10);
-        readings.put(Constants.QOE_TEMPERATURE, mLastTemperatureAirspeck);
-        readings.put(Constants.QOE_HUMIDITY, mLastHumidityAirspeck);
-        readings.put(Constants.QOE_NO2, mLastNO2);
-        readings.put(Constants.QOE_O3, mLastO3);
-        readings.put(Constants.QOE_BINS_0, (float) bins[0]);
-        readings.put(Constants.QOE_BINS_1, (float) bins[1]);
-        readings.put(Constants.QOE_BINS_2, (float) bins[2]);
-        readings.put(Constants.QOE_BINS_3, (float) bins[3]);
-        readings.put(Constants.QOE_BINS_4, (float) bins[4]);
-        readings.put(Constants.QOE_BINS_5, (float) bins[5]);
-        readings.put(Constants.QOE_BINS_6, (float) bins[6]);
-        readings.put(Constants.QOE_BINS_7, (float) bins[7]);
-        readings.put(Constants.QOE_BINS_8, (float) bins[8]);
-        readings.put(Constants.QOE_BINS_9, (float) bins[9]);
-        readings.put(Constants.QOE_BINS_10, (float) bins[10]);
-        readings.put(Constants.QOE_BINS_11, (float) bins[11]);
-        readings.put(Constants.QOE_BINS_12, (float) bins[12]);
-        readings.put(Constants.QOE_BINS_13, (float) bins[13]);
-        readings.put(Constants.QOE_BINS_14, (float) bins[14]);
-        readings.put(Constants.QOE_BINS_15, (float) bins[15]);
+        readings.put(Constants.AIRSPECK_PM1, pm1);
+        readings.put(Constants.AIRSPECK_PM2_5, pm2_5);
+        readings.put(Constants.AIRSPECK_PM10, pm10);
+        readings.put(Constants.AIRSPECK_TEMPERATURE, mLastTemperatureAirspeck);
+        readings.put(Constants.AIRSPECK_HUMIDITY, mLastHumidityAirspeck);
+        readings.put(Constants.AIRSPECK_NO2, mLastNO2);
+        readings.put(Constants.AIRSPECK_O3, mLastO3);
+        readings.put(Constants.AIRSPECK_BINS_0, (float) bins[0]);
+        readings.put(Constants.AIRSPECK_BINS_1, (float) bins[1]);
+        readings.put(Constants.AIRSPECK_BINS_2, (float) bins[2]);
+        readings.put(Constants.AIRSPECK_BINS_3, (float) bins[3]);
+        readings.put(Constants.AIRSPECK_BINS_4, (float) bins[4]);
+        readings.put(Constants.AIRSPECK_BINS_5, (float) bins[5]);
+        readings.put(Constants.AIRSPECK_BINS_6, (float) bins[6]);
+        readings.put(Constants.AIRSPECK_BINS_7, (float) bins[7]);
+        readings.put(Constants.AIRSPECK_BINS_8, (float) bins[8]);
+        readings.put(Constants.AIRSPECK_BINS_9, (float) bins[9]);
+        readings.put(Constants.AIRSPECK_BINS_10, (float) bins[10]);
+        readings.put(Constants.AIRSPECK_BINS_11, (float) bins[11]);
+        readings.put(Constants.AIRSPECK_BINS_12, (float) bins[12]);
+        readings.put(Constants.AIRSPECK_BINS_13, (float) bins[13]);
+        readings.put(Constants.AIRSPECK_BINS_14, (float) bins[14]);
+        readings.put(Constants.AIRSPECK_BINS_15, (float) bins[15]);
 
-        readings.put(Constants.QOE_BINS_TOTAL, (float) binsTotal);
+        readings.put(Constants.AIRSPECK_BINS_TOTAL, (float) binsTotal);
 
 
         Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
@@ -589,6 +594,9 @@ public class SpeckBluetoothService extends Service {
                     public void call(Object notificationObservable) {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to RESPECK");
+                        Intent respeckFoundIntent = new Intent(Constants.ACTION_RESPECK_CONNECTED);
+                        respeckFoundIntent.putExtra(Constants.RESPECK_UUID, RESPECK_UUID);
+                        sendBroadcast(respeckFoundIntent);
                     }
                 })
                 .flatMap(
@@ -613,6 +621,9 @@ public class SpeckBluetoothService extends Service {
                                 // Handle an error here.
                                 if (throwable instanceof BleDisconnectedException) {
                                     Log.i("SpeckService", "RESPECK DISCONNECTED: " + throwable.toString());
+                                    Intent respeckDisconnectedIntent = new Intent(
+                                            Constants.ACTION_RESPECK_DISCONNECTED);
+                                    sendBroadcast(respeckDisconnectedIntent);
                                     SpeckBluetoothService.this.reconnectRespeck();
                                 } else {
                                     Log.e("SpeckService", "Notification handling error: " + throwable.toString());
