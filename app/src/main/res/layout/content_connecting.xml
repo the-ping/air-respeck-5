@@ -11,22 +11,19 @@
     android:visibility="visible"
     android:background="@drawable/background_rounded_white_transparent">
 
-    <fr.castorflex.android.circularprogressbar.CircularProgressBar
+    <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        app:cpb_colors="@array/pocket_background_colors"/>
-
-    <android.support.v4.widget.Space
-        android:layout_width="match_parent"
-        android:layout_height="25dp" />
+        android:indeterminateDrawable="@drawable/progressbar_slower"/>
 
     <TextView
         android:id="@+id/connection_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/connecting_to_devices" />
+        android:layout_marginTop="15dp"
+        android:text="@string/connecting_to_devices"
+        android:textAppearance="?android:attr/textAppearanceLarge"/>
 
 </LinearLayout>

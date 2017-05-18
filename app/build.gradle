@@ -77,7 +77,6 @@ dependencies {
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
     compile 'com.nineoldandroids:library:2.4.0'
-    compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
     compile 'org.apache.commons:commons-lang3:3.0'
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.github.mkobos:pca_transform:1.0.1'

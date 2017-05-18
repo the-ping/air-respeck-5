@@ -4,10 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingBottom="15sp"
+    android:paddingBottom="10sp"
     android:paddingLeft="5sp"
-    android:paddingRight="5sp"
-    android:paddingTop="5sp">
+    android:paddingRight="5sp">
 
     <TextView
         android:id="@+id/name"
