@@ -5,11 +5,12 @@ import android.graphics.Color;
 
 import com.specknet.airrespeck.lib.Segment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class ReadingItem {
+public class ReadingItem implements Serializable {
     public String name;
     public String unit;
     public float minVal;

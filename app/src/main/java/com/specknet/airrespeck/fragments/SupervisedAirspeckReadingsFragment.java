@@ -26,15 +26,13 @@ import java.util.HashMap;
 
 public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
-    private static final String ARG_COLUMN_COUNT = "COLUMN_COUNT";
-    private int mColumnCount = 2;
-
     private ArrayList<ReadingItem> mReadingItems;
 
     private ReadingItemArrayAdapter mListViewAdapter;
     private ReadingItemSegmentedBarAdapter mSegmentedBarAdapter;
 
-    private OnAQFragmentInteractionListener mListener;
+    private HashMap<String, Float> mLastValuesDisplayed;
+    private final String LAST_VALUES = "lastValues";
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -44,30 +42,16 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
     }
 
-    @SuppressWarnings("unused")
-    public static SupervisedAirspeckReadingsFragment newInstance(int columnCount) {
-        SupervisedAirspeckReadingsFragment fragment = new SupervisedAirspeckReadingsFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mReadingsModeAQReadingsScreen = Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS;
-
-        mReadingItems = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
-
-        Log.i("AirspeckReadings", "Segmentedbars drawn");
 
         Context context = view.getContext();
 
@@ -82,9 +66,17 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                 RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-                mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems(), mListener);
+                mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems());
                 recyclerView.setAdapter(mSegmentedBarAdapter);
                 break;
+            }
+        }
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(LAST_VALUES)) {
+                HashMap<String, Float> loadedItems = (HashMap<String, Float>) savedInstanceState.getSerializable(
+                        LAST_VALUES);
+                setReadings(loadedItems);
             }
         }
 
@@ -94,30 +86,12 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onSaveInstanceState(Bundle outState) {
+        if (mLastValuesDisplayed != null) {
+            outState.putSerializable(LAST_VALUES, mLastValuesDisplayed);
+        }
+        super.onSaveInstanceState(outState);
     }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this fragment
-     * to allow an interaction in this fragment to be communicated to the activity
-     * and potentially other fragments contained in that activity.
-     */
-    public interface OnAQFragmentInteractionListener {
-        void onAQReadingsFragmentInteraction(ReadingItem item);
-    }
-
 
     /**
      * Returns the layout according to the current display mode preference
@@ -153,7 +127,8 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
      * @return List<ReadingItem> List with all reading mReadingItems.
      */
     private ArrayList<ReadingItem> getReadingItems() {
-        if (mReadingItems != null && mReadingItems.size() == 0) {
+        if (mReadingItems == null) {
+            mReadingItems = new ArrayList<>();
             ReadingItem item;
             ArrayList<Segment> segments;
 
@@ -261,7 +236,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
                         break;
 
                     case Constants.AIRSPECK_BINS_TOTAL:
-                        segments = new ArrayList<Segment>();
+                        segments = new ArrayList<>();
                         segments.add(
                                 new Segment(0, 40f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
                         item = new ReadingItem(getString(R.string.reading_bins), "", 0, segments);
@@ -280,7 +255,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
      * @return ArrayList<Segment> The segments list.
      */
     private ArrayList<Segment> buildRelativeHumidityScale(final int temperature) {
-        ArrayList<Segment> segments = new ArrayList<Segment>();
+        ArrayList<Segment> segments = new ArrayList<>();
 
         if (temperature <= 21f) {
             segments.add(new Segment(0f, 100f, "", ContextCompat.getColor(getContext(), R.color.md_light_blue_400)));
@@ -435,7 +410,10 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
      * Helper setter
      */
     public void setReadings(final HashMap<String, Float> values) {
+        mLastValuesDisplayed = values;
+
         if (mIsCreated) {
+
             int i = 0;
             for (String key : Constants.READINGS_QOE) {
                 mReadingItems.get(i).value = values.get(key);

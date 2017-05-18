@@ -1,6 +1,8 @@
 package com.specknet.airrespeck.lib;
 
-public class Segment {
+import java.io.Serializable;
+
+public class Segment implements Serializable {
     private String customText;
     private String descriptionText;
     private int color;

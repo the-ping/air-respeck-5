@@ -131,6 +131,7 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        Log.i("AirspeckGraphs", "onSavedInstanceState");
         outState.putSerializable("binsData", mBinsData.toArray(new Float[mBinsData.size()]));
         outState.putSerializable("pmData", mPMsData.toArray(new PMs[mPMsData.size()]));
         outState.putSerializable("pmTimestamps", mPMTimestamps.toArray(new Float[mPMTimestamps.size()]));

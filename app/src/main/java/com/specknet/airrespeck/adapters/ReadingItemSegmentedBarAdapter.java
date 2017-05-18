@@ -17,20 +17,16 @@ import java.util.List;
 
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link ReadingItem} and makes a call
- * to the specified {@link SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener}.
+ * {@link RecyclerView.Adapter} that can display a {@link ReadingItem}
  */
 public class ReadingItemSegmentedBarAdapter extends
         RecyclerView.Adapter<ReadingItemSegmentedBarAdapter.ViewHolder> {
 
     private final List<ReadingItem> mValues;
-    private final SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener mListener;
 
     public ReadingItemSegmentedBarAdapter(Context context,
-                                          List<ReadingItem> items,
-                                          SupervisedAirspeckReadingsFragment.OnAQFragmentInteractionListener listener) {
+                                          List<ReadingItem> items) {
         mValues = items;
-        mListener = listener;
     }
 
     @Override
@@ -46,17 +42,6 @@ public class ReadingItemSegmentedBarAdapter extends
         holder.mName.setText(holder.mItem.name);
         holder.mSegmentedBar.setValueWithUnit(holder.mItem.value, holder.mItem.unit);
         holder.mSegmentedBar.setSegments(holder.mItem.segments);
-
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.onAQReadingsFragmentInteraction(holder.mItem);
-                }
-            }
-        });
     }
 
     @Override

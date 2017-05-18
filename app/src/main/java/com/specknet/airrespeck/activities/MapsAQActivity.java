@@ -317,4 +317,11 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             finish();
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+    }
 }
