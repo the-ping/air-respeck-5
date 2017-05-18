@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
@@ -39,6 +40,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -49,7 +51,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private GoogleMap mMap;
     private Deque<AirspeckMapData> mQueueMapData;
-    private final int MAX_DISPLAYED_DATA = 400;
+    private final int MAX_DISPLAYED_DATA = 10000;
     private BroadcastReceiver mBroadcastReceiver;
 
     private LatLng mLastLatLng;
@@ -196,18 +198,15 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             double perc10 = Math.min(pm10 / Constants.PM10_EUROPEAN_YEARLY_AVERAGE_MAX, 1.0);
             double maxPerc = Math.max(perc2_5, perc10);
 
-            int lowColor = ContextCompat.getColor(this, R.color.pollution_low);
-            int highColor = ContextCompat.getColor(this, R.color.pollution_high);
-
+            int colorIdx = (int) (maxPerc * 100.);
             // Return weighted mix between low and high pollution color depending on maxPerc
-            return Color.rgb((int) (Color.red(lowColor) * (1 - maxPerc) + Color.red(highColor) * maxPerc),
-                    (int) (Color.green(lowColor) * (1 - maxPerc) + Color.green(highColor) * maxPerc),
-                    (int) (Color.blue(lowColor) * (1 - maxPerc) + Color.blue(highColor) * maxPerc));
+            String[] cmap = getResources().getStringArray(R.array.viridis);
+            int color = Color.parseColor(cmap[colorIdx]);
+            return color;
         }
     }
 
     public void updateMarkers() {
-        Log.i("AQ Map", "Updating map");
         mMap.clear();
         for (AirspeckMapData airspeckDataItem : mQueueMapData) {
             drawCircleOnMap(airspeckDataItem);
@@ -218,7 +217,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         int circleColor = getMobileCircleColor(airspeckDataItem);
         mMap.addCircle(new CircleOptions().center(airspeckDataItem.getLocation()).radius(10)
                 .fillColor(circleColor).strokeColor(circleColor).strokeWidth(1));
-        // Log.i("AQ Map", "Circle painted at location: " + airspeckDataItem.getLocation());
+        // Log.i("AirspeckMap", "Circle painted at location: " + airspeckDataItem.getLocation());
     }
 
 
@@ -242,7 +241,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     private class LoadStoredDataTask extends AsyncTask<Long, Integer, Void> {
 
         protected Void doInBackground(Long... timestamps) {
-            Log.i("Map", "Started loading stored data task");
+            Log.i("AirspeckMap", "Started loading stored data task");
 
             long tsFrom = timestamps[0];
             long tsTo = timestamps[1];
@@ -250,8 +249,8 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             long dayFrom = Utils.roundToDay(tsFrom);
             long dayTo = Utils.roundToDay(tsTo);
 
-            Log.i("Map", "Day from: " + dayFrom);
-            Log.i("Map", "Day to: " + dayTo);
+            Log.i("AirspeckMap", "Day from: " + dayFrom);
+            Log.i("AirspeckMap", "Day to: " + dayTo);
 
             // Go through filenames in Airspeck directory
             File dir = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
@@ -288,10 +287,11 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                     } catch (IOException | ParseException e) {
                         e.printStackTrace();
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        Log.i("Map", "Incomplete Airspeck data row (might be because location is missing");
+                        Log.i("AirspeckMap", "Incomplete Airspeck data row (might be because location is missing");
                     }
                 }
             }
+            Log.i("AirspeckMap", "Updating map with " + mQueueMapData.size() + " number of elements");
             return null;
         }
 
