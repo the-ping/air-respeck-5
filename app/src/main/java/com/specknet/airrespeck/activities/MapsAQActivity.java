@@ -201,8 +201,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             int colorIdx = (int) (maxPerc * 100.);
             // Return weighted mix between low and high pollution color depending on maxPerc
             String[] cmap = getResources().getStringArray(R.array.viridis);
-            int color = Color.parseColor(cmap[colorIdx]);
-            return color;
+            return Color.parseColor(cmap[colorIdx]);
         }
     }
 
