@@ -47,7 +47,7 @@
 
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
-    <string name="graphs_bins_title">Bins: 0 – 15</string>
+    <string name="graphs_bins_title">Current reading: bin count</string>
     <string name="graphs_breathing_flow_title">Breathing signal (flow rate)</string>
     <string name="graphs_breathing_pca_title">Breathing signal (volume, PCA)</string>
 
@@ -228,9 +228,9 @@
 
     <!-- Map -->
     <string name="title_activity_maps_aq">Map</string>
-    <string name="maps_loader_live_button">Show live map</string>
-    <string name="maps_loader_historical_button">Show historical map</string>
-    <string name="maps_loader_historical_data_title">Chose timeframe for historical data</string>
+    <string name="maps_loader_live_button">Show live data and recent historical data</string>
+    <string name="maps_loader_historical_button">Show historical data</string>
+    <string name="maps_loader_historical_data_title">Choose timeframe for historical data</string>
     <string name="maps_loader_invalid_timestamps_to_before_from">Selected end of time period must lie after selected beginning.</string>
     <string name="maps_loader_invalid_timestamps">Please specify the time and date of beginning and end of time period</string>
     <string name="maps_loader_invalid_timestamp_in_future">Time period cannot lie in future</string>

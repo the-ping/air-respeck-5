@@ -1136,11 +1136,13 @@ public class SpeckBluetoothService extends Service {
         try {
             // Write new line to file
             mRespeckWriter.append(line).append("\n");
+            mRespeckWriter.flush();
 
             // If we want to store a merged file of Airspeck and RESpeck data, append the most
             // recent Airspeck data to the current RESpeck data
             if (mIsStoreMergedFile) {
                 mMergedWriter.append(line).append(",").append(mMostRecentAirspeckData).append("\n");
+                mMergedWriter.flush();
             }
 
         } catch (IOException e) {
@@ -1196,6 +1198,7 @@ public class SpeckBluetoothService extends Service {
         // Write new line to file
         try {
             mAirspeckWriter.append(line).append("\n");
+            mAirspeckWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

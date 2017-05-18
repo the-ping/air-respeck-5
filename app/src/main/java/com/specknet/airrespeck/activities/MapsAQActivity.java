@@ -39,6 +39,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -58,6 +59,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     public static final String MAP_TYPE = "map type";
     public static final String TIMESTAMP_FROM = "ts from";
     public static final String TIMESTAMP_TO = "ts to";
+
 
     // Default is the live map
     private int mapType = MAP_TYPE_LIVE;
@@ -82,6 +84,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mQueueMapData = new LinkedList<>();
 
         if (mapType == MAP_TYPE_LIVE) {
             if (ActivityCompat.checkSelfPermission(this,
@@ -100,7 +103,11 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             }
             mMap.setMyLocationEnabled(true);
             zoomToLastKnownLocation();
-            mQueueMapData = new LinkedList<>();
+
+            // Load last 6 hours of data
+            long tsTo = new Date().getTime();
+            long tsFrom = (long) (tsTo - 1000. * 60 * 60 * 6);
+            loadStoredData(tsFrom, tsTo);
             startLiveAQUpdate();
         } else if (mapType == MAP_TYPE_HISTORICAL) {
             long tsFrom = (long) getIntent().getExtras().get(TIMESTAMP_FROM);
@@ -124,7 +131,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                             location.getLongitude()))      // Sets the center of the map to location user
                     .zoom(18)                   // Sets the zoom
                     .build();                   // Creates a CameraPosition from the builder
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
 
@@ -236,7 +243,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
         protected Void doInBackground(Long... timestamps) {
             Log.i("Map", "Started loading stored data task");
-            mLoadedData = new ArrayList<>();
 
             long tsFrom = timestamps[0];
             long tsTo = timestamps[1];
@@ -274,7 +280,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                                             Float.parseFloat(row[2]), Float.parseFloat(row[3]),
                                             Float.parseFloat(row[4]));
 
-                                    mLoadedData.add(readSample);
+                                    mQueueMapData.add(readSample);
                                 }
                             }
                             reader.close();
@@ -297,24 +303,30 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private void updateCircles() {
         // Check if there is something to draw
-        if (mLoadedData.size() > 0) {
+        if (mQueueMapData.size() > 0) {
             // Bounds builder to calculate zoom location and factor so that all markers are in view
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
             // Iterate through data and draw on map
-            for (AirspeckMapData data : mLoadedData) {
+            for (AirspeckMapData data : mQueueMapData) {
                 drawCircleOnMap(data);
                 builder.include(data.getLocation());
             }
 
-            LatLngBounds bounds = builder.build();
-            int padding = 30; // offset from edges of the map in pixels
-            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-            mMap.moveCamera(cu);
+            // Only move camera to historical data if we're in historical mode
+            if (mapType == MAP_TYPE_HISTORICAL) {
+                LatLngBounds bounds = builder.build();
+                int padding = 30; // offset from edges of the map in pixels
+                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                mMap.moveCamera(cu);
+            }
         } else {
-            Toast.makeText(getApplicationContext(), "No data in selected time period",
-                    Toast.LENGTH_LONG).show();
-            finish();
+            // Close activity if we wanted to display historical data and there is none
+            if (mapType == MAP_TYPE_HISTORICAL) {
+                Toast.makeText(getApplicationContext(), "No data in selected time period",
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
         }
     }
 
