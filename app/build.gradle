@@ -88,7 +88,6 @@ dependencies {
     testCompile 'org.hamcrest:hamcrest-integration:1.1'
     testCompile 'org.hamcrest:hamcrest-library:1.1'
     compile 'com.polidea.rxandroidble:rxandroidble:1.2.2'
-    compile 'mobi.gspd:segmentedbarview:1.1.6@aar'
 }
 
 crashlytics {

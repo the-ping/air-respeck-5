@@ -444,8 +444,11 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
             }
 
             int index = Arrays.asList(Constants.READINGS_QOE).indexOf(Constants.QOE_HUMIDITY);
-            mReadingItems.get(index).segments = buildRelativeHumidityScale(
-                    Math.round(values.get(Constants.QOE_TEMPERATURE)));
+            // Index exists?
+            if (index != -1) {
+                mReadingItems.get(index).segments = buildRelativeHumidityScale(
+                        Math.round(values.get(Constants.QOE_TEMPERATURE)));
+            }
 
             notifyDataSetChange(mReadingsModeAQReadingsScreen);
         }
