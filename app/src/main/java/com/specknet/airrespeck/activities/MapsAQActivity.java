@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -125,9 +126,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
         Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
         if (location != null) {
-            mMap.animateCamera(
-                    CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
-
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(location.getLatitude(),
                             location.getLongitude()))      // Sets the center of the map to location user
@@ -163,6 +161,8 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                     case Constants.ACTION_PHONE_LOCATION_BROADCAST:
                         LocationData loc = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
                         LatLng newLatLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(newLatLng));
 
                         if (mLastLatLng == null) {
                             mLastLatLng = newLatLng;
