@@ -342,6 +342,12 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        // Just destroy this activity, but keep the services running.
+        finish();
+    }
+
     private void createExternalDirectories() {
         if (mIsStoreDataLocally) {
             // Create directories on external storage if they don't exist
@@ -917,8 +923,6 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onDestroy() {
-        stopServices();
-
         // Unregister receivers
         unregisterReceiver(mSpeckServiceReceiver);
 
@@ -1028,11 +1032,11 @@ public class MainActivity extends BaseActivity {
         } else if (id == R.id.action_subject_mode) {
             displaySubjectMode();
         } else if (id == R.id.action_close_app) {
+            stopServices();
             finish();
         } else if (id == R.id.action_volume_recording) {
             startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
         }
-
         return super.onOptionsItemSelected(item);
     }
 
