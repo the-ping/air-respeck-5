@@ -1,13 +1,16 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -15,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -229,6 +233,16 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // First, we have to make sure that we have permission to access storage. We need this for loading the config.
+        boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
+        if (!isStoragePermissionGranted) {
+            return;
+        }
+
+        initMainActivity(savedInstanceState);
+    }
+
+    private void initMainActivity(Bundle savedInstanceState) {
         AutoUpdateApk.enableMobileUpdates();
 
         // Initialise Fabrics, a tool to get the stacktrace remotely when problems occur.
@@ -255,16 +269,21 @@ public class MainActivity extends BaseActivity {
         // Load configuration
         loadConfig();
 
-        // Create the external directories for storing the data
-        createExternalDirectories();
+        // Create the external directories for storing the data if storage is enabled
+        if (mIsStoreDataLocally) {
+            createExternalDirectories();
+        }
 
         // Start GPS tasks
         if (mIsStorePhoneGPS) {
             // Start task to regularly check if GPS is still turned on.
             startGPSCheckTask();
-            // Start the service which will regularly check GPS and store the data
-            Intent startGPSServiecIntent = new Intent(this, PhoneGPSService.class);
-            startService(startGPSServiecIntent);
+
+            // Check whether we have location permission. Only then start GPS service intent.
+            boolean isLocationPermissionGranted = Utils.checkAndRequestLocationPermission(MainActivity.this);
+            if (isLocationPermissionGranted) {
+                startPhoneService();
+            }
         }
 
         // Set activity title
@@ -336,6 +355,37 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void startPhoneService() {
+        // Start the service which will regularly check GPS and store the data
+        Intent startGPSServiceIntent = new Intent(this, PhoneGPSService.class);
+        startService(startGPSServiceIntent);
+    }
+
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
+        if (requestCode == Constants.REQUEST_CODE_LOCATION_PERMISSION) {
+            Log.i("AirspeckMap", "onRequestPermissionResult: " + grantResults[0]);
+            // If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted. Start the phone service.
+                startPhoneService();
+            } else {
+                // Permission was not granted. Explain to the user why we need permission and ask again
+                Utils.showLocationRequestDialog(MainActivity.this);
+            }
+        } else if (requestCode == Constants.REQUEST_CODE_STORAGE_PERMISSION) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted. Initialise this activity.
+                initMainActivity(null);
+            } else {
+                // Permission was not granted. Explain to the user why we need permission and ask again
+                Utils.showStorageRequestDialog(MainActivity.this);
+            }
+        }
+    }
+
     @Override
     public void onBackPressed() {
         // Just destroy this activity, but keep the services running.
@@ -343,82 +393,80 @@ public class MainActivity extends BaseActivity {
     }
 
     private void createExternalDirectories() {
-        if (mIsStoreDataLocally) {
-            // Create directories on external storage if they don't exist
-            File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+        // Create directories on external storage if they don't exist
+        File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
+            // scanFile should force the indexation of the new directory.
+            MediaScannerConnection.scanFile(this, new String[]{directory.toString()}, null,
+                    new MediaScannerConnection.OnScanCompletedListener() {
+                        public void onScanCompleted(String path, Uri uri) {
+                            Log.i("ExternalStorage", "Scanned " + path + ":");
+                            Log.i("ExternalStorage", "-> uri=" + uri);
+                        }
+                    });
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create app root folder on external storage");
+            }
+        }
+        directory = new File(Constants.RESPECK_DATA_DIRECTORY_PATH);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create Respeck folder on external storage");
+            }
+        }
+        if (mIsAirspeckEnabled) {
+            directory = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
-                // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
-                // scanFile should force the indexation of the new directory.
-                MediaScannerConnection.scanFile(this, new String[]{directory.toString()}, null,
-                        new MediaScannerConnection.OnScanCompletedListener() {
-                            public void onScanCompleted(String path, Uri uri) {
-                                Log.i("ExternalStorage", "Scanned " + path + ":");
-                                Log.i("ExternalStorage", "-> uri=" + uri);
-                            }
-                        });
                 if (created) {
                     Log.i("DF", "Directory created: " + directory);
                 } else {
-                    throw new RuntimeException("Couldn't create app root folder on external storage");
+                    throw new RuntimeException("Couldn't create Airspeck folder on external storage");
                 }
             }
-            directory = new File(Constants.RESPECK_DATA_DIRECTORY_PATH);
+        }
+        if (mIsStoreMergedFile) {
+            directory = new File(Constants.MERGED_DATA_DIRECTORY_PATH);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
                 if (created) {
                     Log.i("DF", "Directory created: " + directory);
                 } else {
-                    throw new RuntimeException("Couldn't create Respeck folder on external storage");
+                    throw new RuntimeException("Couldn't create Merged folder on external storage");
                 }
             }
-            if (mIsAirspeckEnabled) {
-                directory = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
-                if (!directory.exists()) {
-                    boolean created = directory.mkdirs();
-                    if (created) {
-                        Log.i("DF", "Directory created: " + directory);
-                    } else {
-                        throw new RuntimeException("Couldn't create Airspeck folder on external storage");
-                    }
-                }
-            }
-            if (mIsStoreMergedFile) {
-                directory = new File(Constants.MERGED_DATA_DIRECTORY_PATH);
-                if (!directory.exists()) {
-                    boolean created = directory.mkdirs();
-                    if (created) {
-                        Log.i("DF", "Directory created: " + directory);
-                    } else {
-                        throw new RuntimeException("Couldn't create Merged folder on external storage");
-                    }
-                }
-            }
+        }
 
-            if (mIsStorePhoneGPS) {
-                directory = new File(Constants.PHONE_LOCATION_DIRECTORY_PATH);
-                if (!directory.exists()) {
-                    boolean created = directory.mkdirs();
-                    if (created) {
-                        Log.i("DF", "Directory created: " + directory);
-                    } else {
-                        throw new RuntimeException("Couldn't create phone directory on external storage");
-                    }
+        if (mIsStorePhoneGPS) {
+            directory = new File(Constants.PHONE_LOCATION_DIRECTORY_PATH);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create phone directory on external storage");
                 }
             }
+        }
 
-            // Create activity summary file if it doesn't exists
-            if (!new File(Constants.ACTIVITY_SUMMARY_FILE_PATH).exists()) {
-                Log.i("DF", "Activity summary file created with header");
-                try {
-                    // Create file and add header to beginning
-                    OutputStreamWriter activityWriter = new OutputStreamWriter(
-                            new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
-                    activityWriter.append(Constants.ACTIVITY_SUMMARY_HEADER).append("\n");
-                    activityWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // Create activity summary file if it doesn't exists
+        if (!new File(Constants.ACTIVITY_SUMMARY_FILE_PATH).exists()) {
+            Log.i("DF", "Activity summary file created with header");
+            try {
+                // Create file and add header to beginning
+                OutputStreamWriter activityWriter = new OutputStreamWriter(
+                        new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
+                activityWriter.append(Constants.ACTIVITY_SUMMARY_HEADER).append("\n");
+                activityWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -437,7 +485,7 @@ public class MainActivity extends BaseActivity {
 
     private void startGPSCheckTask() {
         final Handler h = new Handler();
-        final int delay = 5000; //milliseconds
+        final int delay = 5000; // milliseconds
 
         h.postDelayed(new Runnable() {
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -457,7 +505,7 @@ public class MainActivity extends BaseActivity {
 
     private void startBluetoothCheckTask() {
         final Handler h = new Handler();
-        final int delay = 5000; //milliseconds
+        final int delay = 5000; // milliseconds
 
         h.postDelayed(new Runnable() {
             public void run() {
@@ -784,7 +832,8 @@ public class MainActivity extends BaseActivity {
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
             mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
-            mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(savedInstanceState,
+            mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(
+                    savedInstanceState,
                     TAG_AQ_MAP_FRAGMENT);
             mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
             mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
@@ -1166,11 +1215,16 @@ public class MainActivity extends BaseActivity {
                         mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_TEMPERATURE)));
                 values.put(Constants.AIRSPECK_HUMIDITY,
                         mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_HUMIDITY)));
-                values.put(Constants.AIRSPECK_O3, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_O3)));
-                values.put(Constants.AIRSPECK_NO2, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_NO2)));
-                values.put(Constants.AIRSPECK_PM1, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM1)));
-                values.put(Constants.AIRSPECK_PM2_5, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM2_5)));
-                values.put(Constants.AIRSPECK_PM10, mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM10)));
+                values.put(Constants.AIRSPECK_O3,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_O3)));
+                values.put(Constants.AIRSPECK_NO2,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_NO2)));
+                values.put(Constants.AIRSPECK_PM1,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM1)));
+                values.put(Constants.AIRSPECK_PM2_5,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM2_5)));
+                values.put(Constants.AIRSPECK_PM10,
+                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM10)));
                 values.put(Constants.AIRSPECK_BINS_TOTAL,
                         mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_BINS_TOTAL)));
 

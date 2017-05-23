@@ -54,6 +54,8 @@ public class PhoneGPSService extends Service implements
 
     private Date mDateofLastWrite = new Date(0);
 
+    private boolean mIsStoreDataLocally;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -65,7 +67,12 @@ public class PhoneGPSService extends Service implements
         new Thread() {
             @Override
             public void run() {
-                Log.i("GPS Service", "Starting GPS service...");
+                Log.i("GPSService", "Starting GPS service...");
+                // Store whether we want to store data locally
+                mIsStoreDataLocally = Boolean.parseBoolean(
+                        Utils.getInstance(PhoneGPSService.this).getProperties().
+                                getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+
                 Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
                 PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
 
@@ -91,7 +98,7 @@ public class PhoneGPSService extends Service implements
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        Log.i("GPS Service", "Location Utils connected!");
+        Log.i("GPSService", "Location Utils connected!");
         createLocationRequest();
         startLocationUpdates();
     }
@@ -108,13 +115,10 @@ public class PhoneGPSService extends Service implements
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            // As this is not an Activity, we cannot request the permission from here. Instead,
+            // the permission should be checked prior to starting this service
+            Log.e("GPSService", "App does not have location permission. This should be checked prior to starting the" +
+                    "PhoneGPSServce");
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(
@@ -126,9 +130,12 @@ public class PhoneGPSService extends Service implements
         long currentTimestamp = Utils.getUnixTimestamp();
         String locationString = currentTimestamp + "," + location.getLongitude() + "," + location.getLatitude() +
                 "," + location.getAltitude();
-        Log.i("GPS Service", "Location updated: " + locationString);
+        Log.i("GPSService", "Location updated: " + locationString);
 
-        writeToFile(locationString);
+        // If we have local storage enabled, write the location to a file
+        if (mIsStoreDataLocally) {
+            writeToFile(locationString);
+        }
 
         // Broadcast location
         Intent intentData = new Intent(Constants.ACTION_PHONE_LOCATION_BROADCAST);
@@ -190,12 +197,12 @@ public class PhoneGPSService extends Service implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e("GPS Service", "Connection failed. Error: " + connectionResult.getErrorCode());
+        Log.e("GPSService", "Connection failed. Error: " + connectionResult.getErrorCode());
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.i("GPS Service", "Connection Suspended");
+        Log.i("GPSService", "Connection Suspended");
     }
 
     @Override
@@ -212,7 +219,7 @@ public class PhoneGPSService extends Service implements
                 e.printStackTrace();
             }
         }
-        Log.i("GPS Service", "GPS service stopped");
+        Log.i("GPSService", "GPS service stopped");
         super.onDestroy();
     }
 }

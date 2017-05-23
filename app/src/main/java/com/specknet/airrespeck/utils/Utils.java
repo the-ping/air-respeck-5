@@ -2,7 +2,9 @@ package com.specknet.airrespeck.utils;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Point;
@@ -14,6 +16,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
+import com.specknet.airrespeck.R;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -164,7 +167,11 @@ public final class Utils {
             mProperties.load(inputStream);
             Log.i("DF", "Loaded properties file");
         } catch (FileNotFoundException e) {
-            Toast.makeText(mContext, "Properties file not found", Toast.LENGTH_LONG).show();
+            try {
+                Toast.makeText(mContext, "Properties file not found", Toast.LENGTH_LONG).show();
+            } catch(RuntimeException re) {
+                // Do nothing. This means we tried to make a toast message within a non-activity thread
+            }
             Log.e("DF", "Properties file not found.");
             e.printStackTrace();
         } catch (IOException e) {
@@ -290,7 +297,7 @@ public final class Utils {
         }
     }
 
-    public static boolean checkAndRequestLocationPermission(Activity activity) {
+    public static boolean checkAndRequestLocationPermission(final Activity activity) {
         if (ActivityCompat.checkSelfPermission(activity,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) !=
@@ -302,5 +309,49 @@ public final class Utils {
         } else {
             return true;
         }
+    }
+
+    public static void showLocationRequestDialog(final Activity activity) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setMessage(R.string.location_request_dialog_message)
+                .setTitle(R.string.location_request_dialog_title);
+        builder.setNeutralButton(R.string.dialog_button_ok,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Utils.checkAndRequestLocationPermission(activity);
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public static boolean checkAndRequestStoragePermission(final Activity activity) {
+        if (ActivityCompat.checkSelfPermission(activity,
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                        PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    Constants.REQUEST_CODE_STORAGE_PERMISSION);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public static void showStorageRequestDialog(final Activity activity) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setMessage(R.string.storage_request_dialog_message)
+                .setTitle(R.string.storage_request_dialog_title);
+        builder.setNeutralButton(R.string.dialog_button_ok,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Utils.checkAndRequestStoragePermission(activity);
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

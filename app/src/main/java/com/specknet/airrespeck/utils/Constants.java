@@ -332,4 +332,5 @@ public class Constants {
 
     // Request permissions
     public static final int REQUEST_CODE_LOCATION_PERMISSION = 0;
+    public static final int REQUEST_CODE_STORAGE_PERMISSION = 1;
 }
