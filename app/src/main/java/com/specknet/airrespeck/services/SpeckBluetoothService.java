@@ -1050,7 +1050,10 @@ public class SpeckBluetoothService extends Service {
                         mActivitySummaryWriter.append(lineToWrite);
                         mActivitySummaryWriter.flush();
                     } catch (IOException e) {
-                        Log.e("DF", "Activity summary file write failed: " + e.toString());
+                        Log.e("SpeckService", "Error while writing to activity summary file: " + e.getMessage());
+                        // This very likely happened because this service wasn't stopped properly when the app was
+                        // closed
+                        stopSpeckService();
                     }
 
                     // Reset counts to zero
@@ -1146,7 +1149,10 @@ public class SpeckBluetoothService extends Service {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("SpeckService", "Error while writing to respeck or merged file: " + e.getMessage());
+            // This very likely happened because this service wasn't stopped properly when the app was
+            // closed
+            stopSpeckService();
         }
     }
 
@@ -1200,7 +1206,10 @@ public class SpeckBluetoothService extends Service {
             mAirspeckWriter.append(line).append("\n");
             mAirspeckWriter.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("SpeckService", "Error while writing to airspeck file: " + e.getMessage());
+            // This very likely happened because this service wasn't stopped properly when the app was
+            // closed
+            stopSpeckService();
         }
     }
 

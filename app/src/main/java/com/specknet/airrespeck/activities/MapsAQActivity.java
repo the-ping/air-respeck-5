@@ -1,12 +1,13 @@
 package com.specknet.airrespeck.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
@@ -22,7 +23,6 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -40,8 +40,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -67,8 +65,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
     // Default is the live map
     private int mapType = MAP_TYPE_LIVE;
 
-    ArrayList<AirspeckMapData> mLoadedData;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,32 +86,54 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         mQueueMapData = new LinkedList<>();
 
         if (mapType == MAP_TYPE_LIVE) {
-            if (ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getApplicationContext(), "Permission for location not granted",
-                        Toast.LENGTH_LONG).show();
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
-            mMap.setMyLocationEnabled(true);
-            zoomToLastKnownLocation();
+            boolean permissionGranted = Utils.checkAndRequestLocationPermission(MapsAQActivity.this);
+            if (permissionGranted) {
+                mMap.setMyLocationEnabled(true);
+                zoomToLastKnownLocation();
 
-            // Load last 6 hours of data
-            long tsTo = new Date().getTime();
-            long tsFrom = (long) (tsTo - 1000. * 60 * 60 * 6);
-            loadStoredData(tsFrom, tsTo);
-            startLiveAQUpdate();
+                // Load last 6 hours of data
+                long tsTo = new Date().getTime();
+                long tsFrom = (long) (tsTo - 1000. * 60 * 60 * 6);
+                loadStoredData(tsFrom, tsTo);
+                startLiveAQUpdate();
+            }
         } else if (mapType == MAP_TYPE_HISTORICAL) {
             long tsFrom = (long) getIntent().getExtras().get(TIMESTAMP_FROM);
             long tsTo = (long) getIntent().getExtras().get(TIMESTAMP_TO);
             loadStoredData(tsFrom, tsTo);
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        if (requestCode == Constants.REQUEST_CODE_LOCATION_PERMISSION) {
+            Log.i("AirspeckMap", "onRequestPermissionResult: " + grantResults[0]);
+            // If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted. Initialise map position
+                onMapReady(mMap);
+            } else {
+                // Permission was not granted. Explain to the user why we need permission and ask again
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(R.string.location_request_dialog_message)
+                        .setTitle(R.string.location_request_dialog_title);
+                builder.setNeutralButton(R.string.location_request_dialog_button,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Utils.checkAndRequestLocationPermission(MapsAQActivity.this);
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        Utils.checkAndRequestLocationPermission(MapsAQActivity.this);
+                    }
+                });
+                dialog.show();
+            }
         }
     }
 
@@ -124,14 +142,17 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
 
-        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-        if (location != null) {
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(),
-                            location.getLongitude()))      // Sets the center of the map to location user
-                    .zoom(18)                   // Sets the zoom
-                    .build();                   // Creates a CameraPosition from the builder
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        boolean permissionGranted = Utils.checkAndRequestLocationPermission(MapsAQActivity.this);
+        if (permissionGranted) {
+            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+            if (location != null) {
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(location.getLatitude(),
+                                location.getLongitude()))      // Sets the center of the map to location user
+                        .zoom(18)                   // Sets the zoom
+                        .build();                   // Creates a CameraPosition from the builder
+                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
         }
     }
 

@@ -329,4 +329,7 @@ public class Constants {
     // Air quality display on map
     public static final int PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX = 25;
     public static final int PM10_EUROPEAN_YEARLY_AVERAGE_MAX = 40;
+
+    // Request permissions
+    public static final int REQUEST_CODE_LOCATION_PERMISSION = 0;
 }

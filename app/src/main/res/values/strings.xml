@@ -237,5 +237,10 @@
     <string name="low_pollution_legend">Low pollution</string>
     <string name="high_pollution_legend">High pollution</string>
 
+    <!-- Request permission dialogs -->
+    <string name="location_request_dialog_title">Please allow location permission</string>
+    <string name="location_request_dialog_message">App requires location permission to link recorded pollution levels
+        with your location</string>
+    <string name="location_request_dialog_button">OK</string>
 
 </resources>

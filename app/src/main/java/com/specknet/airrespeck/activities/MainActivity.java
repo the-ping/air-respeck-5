@@ -81,6 +81,7 @@ public class MainActivity extends BaseActivity {
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
     private final static int UPDATE_BREATHING_GRAPH = 8;
 
+
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
      */
@@ -199,7 +200,7 @@ public class MainActivity extends BaseActivity {
     private int updateDelayBreathingGraph;
 
     // Speck service
-    final int REQUEST_ENABLE_BT = 1;
+    final int REQUEST_ENABLE_BLUETOOTH = 0;
     private BluetoothAdapter mBluetoothAdapter;
     private BroadcastReceiver mSpeckServiceReceiver;
     private boolean mIsRESpeckConnected;
@@ -219,6 +220,7 @@ public class MainActivity extends BaseActivity {
     private DialogFragment mWrongOrientationDialog;
     private boolean mIsWrongOrientationDialogDisplayed = false;
     private boolean mIsGPSDialogDisplayed = false;
+    private boolean mIsBluetoothRequestDialogDisplayed = false;
 
     private boolean mIsActivityRunning = false;
 
@@ -304,16 +306,8 @@ public class MainActivity extends BaseActivity {
         // Initialize Readings hash maps
         initReadingMaps();
 
-        // Open request for bluetooth if turned off
-        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
-                Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else {
-            startSpeckService();
-        }
+        startBluetoothCheckTask();
+        startSpeckService();
 
         // Initialise upload services if desired
         if (mIsUploadDataToServer) {
@@ -443,14 +437,13 @@ public class MainActivity extends BaseActivity {
 
     private void startGPSCheckTask() {
         final Handler h = new Handler();
-        final int delay = 20000; //milliseconds
+        final int delay = 5000; //milliseconds
 
         h.postDelayed(new Runnable() {
             LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
             public void run() {
                 // Check if GPS is turned on
-                //Log.i("DF", "Checking if GPS is turned on");
                 if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(
                         LocationManager.GPS_PROVIDER) && mIsActivityRunning) {
                     mIsGPSDialogDisplayed = true;
@@ -460,6 +453,30 @@ public class MainActivity extends BaseActivity {
                 h.postDelayed(this, delay);
             }
         }, 0);
+    }
+
+    private void startBluetoothCheckTask() {
+        final Handler h = new Handler();
+        final int delay = 5000; //milliseconds
+
+        h.postDelayed(new Runnable() {
+            public void run() {
+                // Open request for bluetooth if turned off
+                showBluetoothRequest();
+                h.postDelayed(this, delay);
+            }
+        }, 0);
+    }
+
+    private void showBluetoothRequest() {
+        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
+                Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+        if (!mBluetoothAdapter.isEnabled() && !mIsBluetoothRequestDialogDisplayed) {
+            mIsBluetoothRequestDialogDisplayed = true;
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
+        }
     }
 
     public void setIsGPSDialogDisplayed(boolean isDisplayed) {
@@ -521,12 +538,13 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            startSpeckService();
-        } else {
-            // Show dialog again
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
+            mIsBluetoothRequestDialogDisplayed = false;
+            if (resultCode == RESULT_OK) {
+                startSpeckService();
+            } else {
+                showBluetoothRequest();
+            }
         }
     }
 
@@ -1016,16 +1034,6 @@ public class MainActivity extends BaseActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        /*
-        if (id == R.id.action_user_profile) {
-            startActivity(new Intent(this, UserProfileActivity.class));
-        } else if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.SettingsFragment.class.getName());
-            intent.putExtra(PreferenceActivity.EXTRA_NO_HEADERS, true);
-            startActivity(intent);
-        }*/
         if (id == R.id.action_supervised_mode) {
             DialogFragment supervisedPasswordDialog = new SupervisedPasswordDialog();
             supervisedPasswordDialog.show(getFragmentManager(), "password_dialog");
