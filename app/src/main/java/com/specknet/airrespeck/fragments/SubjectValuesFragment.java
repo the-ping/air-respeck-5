@@ -10,6 +10,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.AirspeckDataObserver;
+import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.activities.RESpeckDataObserver;
+import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 
 import java.util.HashMap;
@@ -19,7 +24,7 @@ import java.util.Locale;
  * Created by Darius on 10.02.2017.
  */
 
-public class SubjectValuesFragment extends BaseFragment {
+public class SubjectValuesFragment extends BaseFragment implements RESpeckDataObserver, AirspeckDataObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
@@ -32,6 +37,8 @@ public class SubjectValuesFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
+        ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
     }
 
     @Nullable
@@ -60,20 +67,16 @@ public class SubjectValuesFragment extends BaseFragment {
         return Constants.MENU_ICON_INFO;
     }
 
-    public void updateBreathing(HashMap<String, Float> mRespeckSensorReadings) {
+    @Override
+    public void updateRESpeckData(RESpeckLiveData data) {
         // Only update view if fragment has been created!
         if (mIsCreated) {
             // Set breathing rate text to currently calculated rates
-            breathingRateText.setText(
-                    String.format(Locale.UK, "%.2f BrPM",
-                            mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-            averageBreathingRateText.setText(
-                    String.format(Locale.UK, "%.2f BrPM",
-                            mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
+            breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+            averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
 
             // Set activity icon to reflect currently predicted activity
-            int activityType = Math.round(mRespeckSensorReadings.get(Constants.RESPECK_ACTIVITY_TYPE));
-            switch (activityType) {
+            switch (data.getActivityType()) {
                 case Constants.ACTIVITY_LYING:
                     activityIcon.setImageResource(R.drawable.vec_lying);
                     break;
@@ -90,8 +93,9 @@ public class SubjectValuesFragment extends BaseFragment {
         }
     }
 
-    public void updateQOEReadings(HashMap<String, Float> mAQSensorReadings) {
-        pm10Text.setText(String.format(Locale.UK, "PM 10: %.2f μg/m³", mAQSensorReadings.get(Constants.AIRSPECK_PM10)));
-        pm2_5Text.setText(String.format(Locale.UK, "PM 2.5: %.2f μg/m³", mAQSensorReadings.get(Constants.AIRSPECK_PM2_5)));
+    @Override
+    public void updateAirspeckData(AirspeckData data) {
+        pm2_5Text.setText(String.format(Locale.UK, "PM 2.5: %.2f μg/m³", data.getPm2_5()));
+        pm10Text.setText(String.format(Locale.UK, "PM 10: %.2f μg/m³", data.getPm10()));
     }
 }

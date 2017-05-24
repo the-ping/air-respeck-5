@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -29,7 +30,7 @@ import java.util.Locale;
  * Activity for recording volume data with zipper bags and sealing rings.
  */
 
-public class VolumeCalibrationRecordingActivity extends BaseActivity {
+public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
 
     private OutputStreamWriter mWriter;
     private BroadcastReceiver mSpeckServiceReceiver;

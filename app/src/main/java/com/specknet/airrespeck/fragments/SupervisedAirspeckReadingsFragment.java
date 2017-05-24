@@ -13,9 +13,12 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.AirspeckDataObserver;
+import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.adapters.ReadingItemSegmentedBarAdapter;
 import com.specknet.airrespeck.lib.Segment;
+import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.utils.Constants;
 
@@ -24,14 +27,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 
-public class SupervisedAirspeckReadingsFragment extends BaseFragment {
+public class SupervisedAirspeckReadingsFragment extends BaseFragment implements AirspeckDataObserver {
 
     private ArrayList<ReadingItem> mReadingItems;
 
     private ReadingItemArrayAdapter mListViewAdapter;
     private ReadingItemSegmentedBarAdapter mSegmentedBarAdapter;
 
-    private HashMap<String, Float> mLastValuesDisplayed;
+    private AirspeckData mLastValuesDisplayed;
     private final String LAST_VALUES = "lastValues";
 
     /**
@@ -45,6 +48,8 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
         mReadingsModeAQReadingsScreen = Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS;
     }
 
@@ -74,9 +79,8 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(LAST_VALUES)) {
-                HashMap<String, Float> loadedItems = (HashMap<String, Float>) savedInstanceState.getSerializable(
-                        LAST_VALUES);
-                setReadings(loadedItems);
+                AirspeckData loadedItems = (AirspeckData) savedInstanceState.getSerializable(LAST_VALUES);
+                updateAirspeckData(loadedItems);
             }
         }
 
@@ -132,7 +136,10 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
             ReadingItem item;
             ArrayList<Segment> segments;
 
-            for (String key : Constants.READINGS_QOE) {
+            String[] readingsDisplayed = new String[]{Constants.AIRSPECK_PM1, Constants.AIRSPECK_PM2_5,
+                    Constants.AIRSPECK_PM10};
+
+            for (String key : readingsDisplayed) {
                 switch (key) {
                     case Constants.AIRSPECK_PM1:
                         segments = new ArrayList<>();
@@ -406,26 +413,18 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment {
         return segments;
     }
 
-    /**
-     * Helper setter
-     */
-    public void setReadings(final HashMap<String, Float> values) {
-        mLastValuesDisplayed = values;
+    @Override
+    public void updateAirspeckData(AirspeckData data) {
+        mLastValuesDisplayed = data;
 
         if (mIsCreated) {
 
-            int i = 0;
-            for (String key : Constants.READINGS_QOE) {
-                mReadingItems.get(i).value = values.get(key);
-                i++;
-            }
+            mReadingItems.get(0).value = data.getPm1();
+            mReadingItems.get(1).value = data.getPm2_5();
+            mReadingItems.get(2).value = data.getPm10();
 
-            int index = Arrays.asList(Constants.READINGS_QOE).indexOf(Constants.AIRSPECK_HUMIDITY);
-            // Index exists?
-            if (index != -1) {
-                mReadingItems.get(index).segments = buildRelativeHumidityScale(
-                        Math.round(values.get(Constants.AIRSPECK_TEMPERATURE)));
-            }
+            // For humidity:
+            // buildRelativeHumidityScale(Math.round(data.getTemperature()));
 
             notifyDataSetChange(mReadingsModeAQReadingsScreen);
         }

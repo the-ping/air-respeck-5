@@ -1,11 +1,13 @@
 package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -16,10 +18,12 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.mkobos.pca_transform.PCA;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.models.BreathingGraphData;
+import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
@@ -27,36 +31,24 @@ import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
-import Jama.Matrix;
+import java.util.Locale;
 
 /**
- * Created by Darius on 21.02.2017.
  * Fragment to display the respiratory signal
  */
 
-public class SupervisedRESpeckReadingsFragment extends BaseFragment {
+public class SupervisedRESpeckReadingsFragment extends BaseFragment implements RESpeckDataObserver {
 
     // Breathing text values
     private ArrayList<ReadingItem> mReadingItems;
     private ReadingItemArrayAdapter mListViewAdapter;
 
+    private int updateDelayBreathingGraph;
+
+    private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
+
     // Graphs
     private LineChart mBreathingFlowChart;
-    private LineChart mBreathingPCAChart;
-
-    private LinkedList<BreathingGraphData> mPreFilteringQueue = new LinkedList<>();
-    private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
-    private LinkedList<Float> mPcaValueQueue = new LinkedList<>();
-    private LinkedList<Float> mMeanPcaValueQueue = new LinkedList<>();
-
-    private final int FLOW_CHART = 0;
-    private final int PCA_CHART = 1;
-
-    // Config variable storing visibility of PCA graph
-    private boolean mShowPCAGraph;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -72,6 +64,10 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         // initialize the utilities
         com.github.mikephil.charting.utils.Utils.init(getContext());
 
+        ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
+
+        startBreathingGraphUpdaterTask();
+
         mReadingItems = new ArrayList<>();
         mReadingItems.add(new ReadingItem(getString(R.string.reading_breathing_rate),
                 getString(R.string.reading_unit_bpm), Float.NaN));
@@ -86,8 +82,6 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_respeck_readings, container, false);
 
-        Utils utils = Utils.getInstance(getContext());
-
         // Attach the adapter to a ListView for displaying the RESpeck readings
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);
@@ -96,19 +90,6 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         mBreathingFlowChart = (LineChart) view.findViewById(R.id.breathing_flow_line_chart);
         setupBreathingSignalChart(mBreathingFlowChart);
         setupLineDataSetForChart(mBreathingFlowChart);
-
-        // Only display PCA chart if the config value is set to true
-        mShowPCAGraph = Boolean.parseBoolean(utils.getProperties().getProperty(Constants.Config.SHOW_PCA_GRAPH));
-
-        if (mShowPCAGraph) {
-            mBreathingPCAChart = (LineChart) view.findViewById(R.id.breathing_pca_line_chart);
-            setupBreathingSignalChart(mBreathingPCAChart);
-            setupLineDataSetForChart(mBreathingPCAChart);
-        } else {
-            // Hide view
-            LinearLayout pcaGraphContainer = (LinearLayout) view.findViewById(R.id.pca_chart_container);
-            pcaGraphContainer.setVisibility(View.GONE);
-        }
 
         mIsCreated = true;
 
@@ -162,127 +143,20 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         chart.setDoubleTapToZoomEnabled(false);
     }
 
-    // This method is called from the UI handler to update the graph
-    public void updateBreathingGraphs(BreathingGraphData data) {
-        // Update the graphs if present
-        if (mBreathingFlowChart != null) {
-            updateFlowGraph(data);
-        }
-        if (mBreathingPCAChart != null) {
-            updatePCAGraph(data);
-        }
-    }
-
-    private void updateFlowGraph(BreathingGraphData data) {
+    private void updateBreathingGraph(BreathingGraphData data) {
         Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
-        updateGraph(newEntry, mBreathingFlowChart, FLOW_CHART);
+        updateGraph(newEntry, mBreathingFlowChart);
     }
 
-    private void updatePCAGraph(BreathingGraphData newData) {
-        if (mBreathingDataQueue.size() > Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
-            throw new RuntimeException("Breathing data queue exceeds limit!");
-
-        } else if (mBreathingDataQueue.size() == Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA) {
-            // PCA transform on queued data
-            // Generate matrix from queue
-            double[][] matrixArray = new double[Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA][3];
-            for (int r = 0; r < matrixArray.length; r++) {
-                matrixArray[r][0] = mBreathingDataQueue.get(r).getAccelX();
-                matrixArray[r][1] = mBreathingDataQueue.get(r).getAccelY();
-                matrixArray[r][2] = mBreathingDataQueue.get(r).getAccelZ();
-            }
-            Matrix trainingMatrix = new Matrix(matrixArray);
-
-            // We want to transform the new data
-            Matrix testMatrix = new Matrix(
-                    new double[][]{{newData.getAccelX(), newData.getAccelY(), newData.getAccelZ()}});
-            PCA pca = new PCA(trainingMatrix);
-            Matrix transformedData = pca.transform(testMatrix, PCA.TransformationType.ROTATION);
-
-            // The first value is the one of the dimension with the most information. We want that one!
-            float pcaValue = (float) transformedData.get(0, 0);
-
-            // Add the pca value to the queue
-            mPcaValueQueue.add(pcaValue);
-            limitQueueToSize(mPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION);
-
-            // If the mPcaValueQueue is long enough, we subtract the mean from the
-            // value in the middle of the array
-            if (mPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION) {
-                // Calculate mean PCA of all PCA values in queue
-                float meanPca = Utils.mean(
-                        mPcaValueQueue.toArray(new Float[mPcaValueQueue.size()]));
-
-                // Subtract the mean from the center value in the queue
-                float correctedPca = mPcaValueQueue.get(Constants.NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION / 2) - meanPca;
-
-                boolean isPostFiltered = true;
-                if (isPostFiltered) {
-                    mMeanPcaValueQueue.add(correctedPca);
-                    limitQueueToSize(mMeanPcaValueQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER);
-
-                    if (mMeanPcaValueQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER) {
-                        Entry newEntry = new Entry(newData.getTimestamp(), Utils.mean(
-                                mMeanPcaValueQueue.toArray(new Float[mMeanPcaValueQueue.size()])));
-                        updateGraph(newEntry, mBreathingPCAChart, PCA_CHART);
-                    }
-                } else {
-                    Entry newEntry = new Entry(newData.getTimestamp(), correctedPca);
-                    updateGraph(newEntry, mBreathingPCAChart, PCA_CHART);
-                }
-            }
-        }
-
-        // Pre-filtering of acceleration values
-        mPreFilteringQueue.add(newData);
-        limitQueueToSize(mPreFilteringQueue, Constants.NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER);
-
-        if (mPreFilteringQueue.size() == Constants.NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER) {
-            // Add the filtered sample to the mBreathingDataQueue and remove the oldest sample
-            float[] xs = new float[mPreFilteringQueue.size()];
-            float[] ys = new float[mPreFilteringQueue.size()];
-            float[] zs = new float[mPreFilteringQueue.size()];
-
-            for (int i = 0; i < mPreFilteringQueue.size(); i++) {
-                xs[i] = mPreFilteringQueue.get(i).getAccelX();
-                ys[i] = mPreFilteringQueue.get(i).getAccelY();
-                zs[i] = mPreFilteringQueue.get(i).getAccelZ();
-            }
-
-            BreathingGraphData meanData = new BreathingGraphData(newData.getTimestamp(),
-                    Utils.mean(xs), Utils.mean(ys), Utils.mean(zs), 0.0f);
-            mBreathingDataQueue.add(meanData);
-            limitQueueToSize(mBreathingDataQueue, Constants.NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA);
-        }
-
-    }
-
-    private void limitQueueToSize(Queue queue, int size) {
-        while (queue.size() > size) {
-            queue.remove();
-        }
-    }
-
-    private void updateGraph(Entry newEntry, LineChart chart, int charttype) {
+    private void updateGraph(Entry newEntry, LineChart chart) {
         // Set the limits based on the graph type
-        float negativeLowerLimit;
-        float negativeUpperLimit;
-        float positiveLowerLimit;
-        float positiveUpperLimit;
-
-        if (charttype == FLOW_CHART) {
-            negativeLowerLimit = -2.0f;
-            negativeUpperLimit = -0.3f;
-            positiveLowerLimit = 0.3f;
-            positiveUpperLimit = 2.0f;
-        } else if (charttype == PCA_CHART) {
-            negativeLowerLimit = -0.2f;
-            negativeUpperLimit = -0.03f;
-            positiveLowerLimit = 0.03f;
-            positiveUpperLimit = 0.2f;
-        } else {
-            throw new RuntimeException("Chart type unknown");
-        }
+        float negativeLowerLimit = -2.0f;
+        float negativeUpperLimit = -0.3f;
+        ;
+        float positiveLowerLimit = 0.3f;
+        ;
+        float positiveUpperLimit = 2.0f;
+        ;
 
         LineDataSet dataSet = (LineDataSet) chart.getData().getDataSetByIndex(0);
         dataSet.addEntry(newEntry);
@@ -330,12 +204,77 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment {
         chart.invalidate();
     }
 
-    public void setReadings(final List<Float> values) {
+    @Override
+    public void updateRESpeckData(RESpeckLiveData data) {
         if (mIsCreated) {
-            for (int i = 0; i < mReadingItems.size() && i < values.size(); ++i) {
-                mReadingItems.get(i).value = values.get(i);
-            }
+            mReadingItems.get(0).value = data.getBreathingRate();
+            mReadingItems.get(1).value = data.getAvgBreathingRate();
             mListViewAdapter.notifyDataSetChanged();
+
+            // Update the graphs if present
+            BreathingGraphData breathingGraphData = new BreathingGraphData(
+                    Utils.onlyKeepTimeInHour(data.getPhoneTimestamp()), data.getAccelX(), data.getAccelY(),
+                    data.getAccelZ(), data.getBreathingSignal());
+            mBreathingDataQueue.add(breathingGraphData);
         }
     }
+
+    private void startBreathingGraphUpdaterTask() {
+        final Handler handler = new Handler();
+        final int defaultDelay = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS /
+                Constants.NUMBER_OF_SAMPLES_PER_BATCH;
+        updateDelayBreathingGraph = defaultDelay;
+
+        // This class is used to determine the update frequency of the breathing data graph. The data from the
+        // RESpeck is coming in in batches, which would make the graph hard to read. Therefore, we store the
+        // incoming data in a queue and update the graph smoothly.
+        class breathingUpdaterRunner implements Runnable {
+            private boolean queueHadBeenFilled = false;
+
+            @Override
+            public void run() {
+                Log.v("DF", String.format(Locale.UK, "Breathing data queue length: %d",
+                        mBreathingDataQueue.size()));
+
+                if (mBreathingDataQueue.isEmpty()) {
+                    // If the queue is empty and there has been data in the queue previously,
+                    // this means we were too fast. Wait for another delay and decrease the processing speed.
+                    // Only do this if we're below a certain threshold (set with intuition here)
+                    if (queueHadBeenFilled && updateDelayBreathingGraph <= 1.1 * defaultDelay) {
+                        updateDelayBreathingGraph += 1;
+                        Log.v("DF", String.format(Locale.UK,
+                                "Breathing graph data queue empty: decrease processing speed to: %d ms",
+                                updateDelayBreathingGraph));
+                    }
+
+                    handler.postDelayed(this, updateDelayBreathingGraph);
+                } else {
+                    // Remember the fact that we have already received data
+                    queueHadBeenFilled = true;
+
+                    if (isAdded()) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateBreathingGraph(mBreathingDataQueue.removeFirst());
+                            }
+                        });
+                    }
+
+                    // If our queue is too long, increase processing speed. The size threshold was set intuitively and
+                    // might have to be adjusted
+                    if (mBreathingDataQueue.size() > Constants.NUMBER_OF_SAMPLES_PER_BATCH) {
+                        updateDelayBreathingGraph -= 1;
+                        Log.v("DF", String.format(Locale.UK,
+                                "Breathing graph data queue too full: increase processing speed to: %d ms",
+                                updateDelayBreathingGraph));
+                    }
+
+                    handler.postDelayed(this, updateDelayBreathingGraph);
+                }
+            }
+        }
+        handler.postDelayed(new breathingUpdaterRunner(), updateDelayBreathingGraph);
+    }
+
 }

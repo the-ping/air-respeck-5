@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.util.Log
 
 import com.google.gson.*
+import com.specknet.airrespeck.models.AirspeckData
 import com.specknet.airrespeck.utils.Constants
 import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
@@ -77,7 +78,7 @@ class QOERemoteUploadService : Service() {
             json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
             json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            var qoeuuid = utils.properties.getProperty(Constants.Config.QOE_UUID)
+            var qoeuuid = utils.properties.getProperty(Constants.Config.AIRSPECK_UUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
@@ -131,38 +132,37 @@ class QOERemoteUploadService : Service() {
                         json.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
                                 intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
 
-                        val readings = intent.getSerializableExtra(Constants.AIRSPECK_ALL_MEASURES)
-                                as HashMap<String, Float>
+                        val data = intent.getSerializableExtra(Constants.AIRSPECK_DATA) as AirspeckData
 
-                        json.put(Constants.AIRSPECK_PM1, nanToNull(readings[Constants.AIRSPECK_PM1]))
-                        json.put(Constants.AIRSPECK_PM2_5, nanToNull(readings[Constants.AIRSPECK_PM2_5]))
-                        json.put(Constants.AIRSPECK_PM10, nanToNull(readings[Constants.AIRSPECK_PM10]))
-                        json.put(Constants.AIRSPECK_TEMPERATURE, nanToNull(readings[Constants.AIRSPECK_TEMPERATURE]))
-                        json.put(Constants.AIRSPECK_HUMIDITY, nanToNull(readings[Constants.AIRSPECK_HUMIDITY]))
-                        json.put(Constants.AIRSPECK_S1ae_NO2, nanToNull(readings[Constants.AIRSPECK_S1ae_NO2]))
-                        json.put(Constants.AIRSPECK_S1we_NO2, nanToNull(readings[Constants.AIRSPECK_S1we_NO2]))
-                        json.put(Constants.AIRSPECK_S2ae_O3, nanToNull(readings[Constants.AIRSPECK_S2ae_O3]))
-                        json.put(Constants.AIRSPECK_S2we_O3, nanToNull(readings[Constants.AIRSPECK_S2we_O3]))
-                        json.put(Constants.AIRSPECK_BINS_0, nanToNull(readings[Constants.AIRSPECK_BINS_0]))
-                        json.put(Constants.AIRSPECK_BINS_1, nanToNull(readings[Constants.AIRSPECK_BINS_1]))
-                        json.put(Constants.AIRSPECK_BINS_2, nanToNull(readings[Constants.AIRSPECK_BINS_2]))
-                        json.put(Constants.AIRSPECK_BINS_3, nanToNull(readings[Constants.AIRSPECK_BINS_3]))
-                        json.put(Constants.AIRSPECK_BINS_4, nanToNull(readings[Constants.AIRSPECK_BINS_4]))
-                        json.put(Constants.AIRSPECK_BINS_5, nanToNull(readings[Constants.AIRSPECK_BINS_5]))
-                        json.put(Constants.AIRSPECK_BINS_6, nanToNull(readings[Constants.AIRSPECK_BINS_6]))
-                        json.put(Constants.AIRSPECK_BINS_7, nanToNull(readings[Constants.AIRSPECK_BINS_7]))
-                        json.put(Constants.AIRSPECK_BINS_8, nanToNull(readings[Constants.AIRSPECK_BINS_8]))
-                        json.put(Constants.AIRSPECK_BINS_9, nanToNull(readings[Constants.AIRSPECK_BINS_9]))
-                        json.put(Constants.AIRSPECK_BINS_10, nanToNull(readings[Constants.AIRSPECK_BINS_10]))
-                        json.put(Constants.AIRSPECK_BINS_11, nanToNull(readings[Constants.AIRSPECK_BINS_11]))
-                        json.put(Constants.AIRSPECK_BINS_12, nanToNull(readings[Constants.AIRSPECK_BINS_12]))
-                        json.put(Constants.AIRSPECK_BINS_13, nanToNull(readings[Constants.AIRSPECK_BINS_13]))
-                        json.put(Constants.AIRSPECK_BINS_14, nanToNull(readings[Constants.AIRSPECK_BINS_14]))
-                        json.put(Constants.AIRSPECK_BINS_15, nanToNull(readings[Constants.AIRSPECK_BINS_15]))
-                        json.put(Constants.AIRSPECK_BINS_TOTAL, nanToNull(readings[Constants.AIRSPECK_BINS_TOTAL]))
-                        json.put(Constants.LOC_LATITUDE, nanToNull(readings[Constants.LOC_LATITUDE]))
-                        json.put(Constants.LOC_LONGITUDE, nanToNull(readings[Constants.LOC_LONGITUDE]))
-                        json.put(Constants.LOC_ALTITUDE, nanToNull(readings[Constants.LOC_ALTITUDE]))
+                        json.put(Constants.AIRSPECK_PM1, nanToNull(data.pm1))
+                        json.put(Constants.AIRSPECK_PM2_5, nanToNull(data.pm2_5))
+                        json.put(Constants.AIRSPECK_PM10, nanToNull(data.pm10))
+                        json.put(Constants.AIRSPECK_TEMPERATURE, nanToNull(data.temperature))
+                        json.put(Constants.AIRSPECK_HUMIDITY, nanToNull(data.humidity))
+                        json.put(Constants.AIRSPECK_S1ae_NO2, nanToNull(data.no2ae))
+                        json.put(Constants.AIRSPECK_S1we_NO2, nanToNull(data.no2we))
+                        json.put(Constants.AIRSPECK_S2ae_O3, nanToNull(data.o3ae))
+                        json.put(Constants.AIRSPECK_S2we_O3, nanToNull(data.o3we))
+                        json.put(Constants.AIRSPECK_BINS_0, data.bins[0])
+                        json.put(Constants.AIRSPECK_BINS_1, data.bins[1])
+                        json.put(Constants.AIRSPECK_BINS_2, data.bins[2])
+                        json.put(Constants.AIRSPECK_BINS_3, data.bins[3])
+                        json.put(Constants.AIRSPECK_BINS_4, data.bins[4])
+                        json.put(Constants.AIRSPECK_BINS_5, data.bins[5])
+                        json.put(Constants.AIRSPECK_BINS_6, data.bins[6])
+                        json.put(Constants.AIRSPECK_BINS_7, data.bins[7])
+                        json.put(Constants.AIRSPECK_BINS_8, data.bins[8])
+                        json.put(Constants.AIRSPECK_BINS_9, data.bins[9])
+                        json.put(Constants.AIRSPECK_BINS_10, data.bins[10])
+                        json.put(Constants.AIRSPECK_BINS_11, data.bins[11])
+                        json.put(Constants.AIRSPECK_BINS_12, data.bins[12])
+                        json.put(Constants.AIRSPECK_BINS_13, data.bins[13])
+                        json.put(Constants.AIRSPECK_BINS_14, data.bins[14])
+                        json.put(Constants.AIRSPECK_BINS_15, data.bins[15])
+                        json.put(Constants.AIRSPECK_BINS_TOTAL, data.binsTotalCount)
+                        json.put(Constants.LOC_LATITUDE, data.location.latitude)
+                        json.put(Constants.LOC_LONGITUDE, data.location.longitude)
+                        json.put(Constants.LOC_ALTITUDE, data.location.altitude)
 
                     } catch (e: JSONException) {
                         e.printStackTrace()
@@ -187,5 +187,6 @@ class QOERemoteUploadService : Service() {
                 return value.toDouble()
             }
         }
+
     }
 }

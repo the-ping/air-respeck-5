@@ -45,27 +45,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="250dp"/>
 
-                <LinearLayout
-                    android:id="@+id/pca_chart_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="15dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:text="@string/graphs_breathing_pca_title"
-                        android:layout_marginBottom="7dp"/>
-
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/breathing_pca_line_chart"
-                        android:layout_width="match_parent"
-                        android:layout_height="250dp"
-                        />
-                </LinearLayout>
-
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

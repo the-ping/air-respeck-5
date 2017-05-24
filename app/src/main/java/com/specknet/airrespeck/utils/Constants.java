@@ -20,31 +20,25 @@ public class Constants {
         public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
         public static final String RESPECK_KEY = "RESpeckKey";
         public static final String RESPECK_UUID = "RESpeckUUID";
-        public static final String QOE_UUID = "QoEUUID";
+        public static final String AIRSPECK_UUID = "QoEUUID";
         public static final String TABLET_SERIAL = "DeviceSerial";
         public static final String PATIENT_ID = "PatientID";
-        public static final String PATIENT_AGE = "PatientAge";
-        public static final String USER_TYPE = "UserType";
         public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
         public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
         public static final String IS_AIRSPECK_ENABLED = "EnableAirspeck";
         public static final String IS_RESPECK_DISABLED = "DisableRESpeck";
-        public static final String IS_STORE_ALL_AIRSPECK_FIELDS = "StoreAllAirspeckFields";
         public static final String SHOW_SUPERVISED_AQ_GRAPHS = "EnableSupervisedAQGraphs";
         public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
         public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
         public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
         public static final String SHOW_SUPERVISED_AQ_MAP = "EnableSupervisedAQMap";
-        public static final String SHOW_SUPERVISED_OVERVIEW = "EnableSupervisedOverview";
         public static final String SHOW_SUBJECT_HOME = "EnableSubjectHome";
         public static final String SHOW_SUBJECT_VALUES = "EnableSubjectValues";
         public static final String SHOW_SUBJECT_WINDMILL = "EnableSubjectWindmill";
-        public static final String SHOW_PCA_GRAPH = "ShowPCAGraph";
         public static final String IS_UPLOAD_DATA_TO_SERVER = "UploadToServer";
         public static final String IS_STORE_DATA_LOCALLY = "StoreDataLocally";
         public static final String IS_STORE_MERGED_FILE = "StoreMergedFile";
-        public static final String IS_SHOW_DUMMY_AIRSPECK_DATA = "ShowDummyAirspeckData";
         public static final String IS_STORE_PHONE_GPS = "EnablePhoneLocationStorage";
         public static final String IS_SHOW_VOLUME_CALIBRATION_SCREEN = "EnableVolumeCalibration";
         public static final String IS_POST_FILTER_BREATHING_SIGNAL_DISABLED = "DisablePostFilterBreathing";
@@ -56,8 +50,6 @@ public class Constants {
     public static class Preferences {
         public static final String IS_APP_INITIAL_STARTUP = "is_app_initial_startup";
 
-        public static final String USER_ID = "user_id";
-
         public static final String FONT_SIZE = "font_size";
 
         public static final String MENU_MODE = "menu_mode";
@@ -65,11 +57,7 @@ public class Constants {
         public static final String MENU_TAB_ICONS = "menu_tab_icons";
         public static final String MENU_GRAPHS_SCREEN = "menu_graphs_screen";
 
-        public static final String AIRSPECK_APP_ACCESS = "airspeck_app_access";
-        public static final String RESPECK_APP_ACCESS = "respeck_app_access";
-
         public static final String READINGS_MODE_HOME_SCREEN = "readings_mode_home_screen";
-        public static final String READINGS_MODE_AQREADINGS_SCREEN = "readings_mode_aqreadings_screen";
     }
 
     /**
@@ -132,6 +120,8 @@ public class Constants {
     /**
      * Readings
      */
+    public static final String RESPECK_LIVE_DATA = "respeck_live_data";
+    public static final String RESPECK_AVG_DATA = "respeck_avg_data";
     public static final String RESPECK_X = "x";
     public static final String RESPECK_Y = "y";
     public static final String RESPECK_Z = "z";
@@ -159,6 +149,7 @@ public class Constants {
     public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";
 
 
+    public static final String AIRSPECK_DATA = "airspeck_data";
     public static final String AIRSPECK_PM1 = "pm1";
     public static final String AIRSPECK_PM2_5 = "pm2_5";
     public static final String AIRSPECK_PM10 = "pm10";
@@ -187,18 +178,12 @@ public class Constants {
     public static final String AIRSPECK_BINS_14 = "bins14";
     public static final String AIRSPECK_BINS_15 = "bins15";
     public static final String AIRSPECK_BINS_TOTAL = "bins_total";
-    public static final String AIRSPECK_ALL_MEASURES = "all_airspeck_measures";
 
     public static final String ACTIVITY_SUMMARY_HOUR = "hour";
     public static final String ACTIVITY_SUMMARY_DAY = "day";
     public static final String ACTIVITY_SUMMARY_WEEK = "week";
 
-    /*public static final String PHONE_LOCATION_LATITUDE = "phone_location_latitude";
-    public static final String PHONE_LOCATION_LONGITUDE = "phone_location_longitude";
-    public static final String PHONE_LOCATION_ALTITUDE = "phone_location_altitude";*/
     public static final String PHONE_LOCATION = "phone_location";
-
-
 
     /**
      * Additional data for uploading to the server
@@ -209,42 +194,18 @@ public class Constants {
 
 
     /**
-     * Readings order in Air Quality Fragment
-     */
-    public static String[] READINGS_QOE = {
-            //AIRSPECK_TEMPERATURE,
-            //AIRSPECK_HUMIDITY,
-            AIRSPECK_PM1,
-            AIRSPECK_PM2_5,
-            AIRSPECK_PM10,
-    };
-
-
-    /**
      * GRAPHS FRAGMENT UI
      */
     public static final int BREATHING_SIGNAL_CHART_NUMBER_OF_SAMPLES = (int) Math.round(15 * 12.5);
     public static final int PM_CHART_NUMBER_OF_SAMPLES = 30;
 
 
-    /**
-     * Preferences option values
-     */
-    public static final String MENU_MODE_BUTTONS = "0";
-    public static final String MENU_MODE_TABS = "1";
-
     public static final String READINGS_MODE_HOME_SCREEN_LIST = "0";
-    public static final String READINGS_MODE_HOME_SCREEN_SEGMENTED_BARS = "1";
 
     public static final String READINGS_MODE_AQREADINGS_SCREEN_LIST = "0";
     public static final String READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS = "1";
-    public static final String READINGS_MODE_AQREADINGS_SCREEN_ARCS = "2";
 
     public static final String FONT_SIZE_NORMAL = "1";
-    public static final String FONT_SIZE_LARGE = "2";
-
-    public static final int USER_TYPE_SUBJECT = 0;
-    public static final int USER_TYPE_RESEARCHER = 1;
 
     public static final String MENU_BUTTONS_PADDING_NORMAL = "5";
 
@@ -294,37 +255,20 @@ public class Constants {
     public static final String VOLUME_DATA_HEADER = "interpolatedPhoneTimestamp,x,y,z," +
             "breathingSignal,activityTypeSelection,bagSizeSelection";
 
-    public static final String AIRSPECK_DATA_HEADER_SUBSET = "airspeckUUID,phoneTimestamp,temperature,humidity,no2,o3,bin0," +
-            "gpsLongitude,gpsLatitude,gpsAltitude";
-
-    public static final String AIRSPECK_DATA_HEADER_ALL = "airspeckUUID,phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity,no2,o3," +
+    public static final String AIRSPECK_DATA_HEADER = "airspeckUUID,phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity," +
+            "no2we,no2ae,o3we,o3ae," +
             "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
 
-    public static final String MERGED_DATA_HEADER_SUBSET = "respeckUUID,interpolatedPhoneTimestamp," +
-            "respeckTimestamp.sequenceNumber,x,y,z," +
-            "breathingSignal,breathingRate,activityLevel,activityType,airspeckUUID,airspeckTimestamp,temperature,humidity,no2," +
-            "o3,bin0,gpsLongitude,gpsLatitude,gpsAltitude";
-
-    public static final String MERGED_DATA_HEADER_ALL = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber," +
+    public static final String MERGED_DATA_HEADER = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber," +
             "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckUUID,airspeckTimestamp,pm1,pm2_5,pm10," +
-            "temperature,humidity,no2,o3,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13," +
+            "temperature,humidity,no2we,no2ae,o3we,o3ae,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13," +
             "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";
 
     public static final String ACTIVITY_SUMMARY_HEADER = "timestamp_end_of_10_minutes,percentage_standing_sitting," +
             "percentage_walking,percentage_lying";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude";
-
-    /*
-     * PCA zero mean signal calculation
-     */
-    public static final int NUMBER_OF_SAMPLES_REQUIRED_FOR_PCA = (int) Math.round(20 * 12.5);
-    public static final int NUMBER_OF_SAMPLES_FOR_MEAN_SUBTRACTION = 69;
-    public static final int NUMBER_OF_SAMPLES_FOR_MEAN_POST_FILTER = 7;
-    public static final int NUMBER_OF_SAMPLES_FOR_MEAN_PRE_FILTER = 5;
-
-    public static final int NUMBER_OF_TIMSTAMPS_FOR_SYNCHRONISATION = 100;
 
     // Air quality display on map
     public static final int PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX = 25;
@@ -333,4 +277,15 @@ public class Constants {
     // Request permissions
     public static final int REQUEST_CODE_LOCATION_PERMISSION = 0;
     public static final int REQUEST_CODE_STORAGE_PERMISSION = 1;
+
+    // Characteristics Airspeck
+    public static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
+    public static final String AIRSPECK_LIVE_CHARACTERISTIC = "00001524-1212-efde-1523-784feabcd123";
+    public final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
+
+    // Characteristics RESpeck
+    public final static String RESPECK_LIVE_CHARACTERISTIC = "00002010-0000-1000-8000-00805f9b34fb";
+    public final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
+    public final static String RESPECK_STORED_DATA_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
+    public final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
 }

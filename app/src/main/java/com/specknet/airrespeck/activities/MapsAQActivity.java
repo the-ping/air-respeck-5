@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.AirspeckMapData;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
@@ -39,7 +40,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Locale;
 
@@ -143,12 +143,11 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                 switch (intent.getAction()) {
                     case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
                         if (mLastLatLng != null) {
-                            HashMap<String, Float> readings = (HashMap<String, Float>) intent.getSerializableExtra(
-                                    Constants.AIRSPECK_ALL_MEASURES);
-                            Long timestamp = (Long) intent.getSerializableExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP);
-                            AirspeckMapData newData = new AirspeckMapData(timestamp, mLastLatLng,
-                                    readings.get(Constants.AIRSPECK_PM1), readings.get(Constants.AIRSPECK_PM2_5),
-                                    readings.get(Constants.AIRSPECK_PM10));
+                            AirspeckData allData = (AirspeckData) intent.getSerializableExtra(Constants.AIRSPECK_DATA);
+                            LatLng dataLatLng = new LatLng(allData.getLocation().getLatitude(),
+                                    allData.getLocation().getLongitude());
+                            AirspeckMapData newData = new AirspeckMapData(dataLatLng, allData.getPm1(),
+                                    allData.getPm2_5(), allData.getPm10());
                             mQueueMapData.addLast(newData);
                             Toast.makeText(getApplicationContext(),
                                     String.format(Locale.UK, "PM 2.5: %f, PM 10: %f", newData.getPm2_5(),
@@ -273,9 +272,9 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= tsFrom && tsRow <= tsTo) {
-                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[27]),
-                                            Double.parseDouble(row[26]));
-                                    AirspeckMapData readSample = new AirspeckMapData(tsRow, circleLocation,
+                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[29]),
+                                            Double.parseDouble(row[28]));
+                                    AirspeckMapData readSample = new AirspeckMapData(circleLocation,
                                             Float.parseFloat(row[2]), Float.parseFloat(row[3]),
                                             Float.parseFloat(row[4]));
 

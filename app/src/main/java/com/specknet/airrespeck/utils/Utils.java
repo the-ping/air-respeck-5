@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.models.AirspeckData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -169,7 +170,7 @@ public final class Utils {
         } catch (FileNotFoundException e) {
             try {
                 Toast.makeText(mContext, "Properties file not found", Toast.LENGTH_LONG).show();
-            } catch(RuntimeException re) {
+            } catch (RuntimeException re) {
                 // Do nothing. This means we tried to make a toast message within a non-activity thread
             }
             Log.e("DF", "Properties file not found.");
@@ -212,7 +213,7 @@ public final class Utils {
 
     public static int sum(int[] intArray) {
         int sum = 0;
-        for (int val: intArray) {
+        for (int val : intArray) {
             sum += val;
         }
         return sum;

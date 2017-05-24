@@ -21,9 +21,11 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.models.BreathingGraphData;
+import com.specknet.airrespeck.activities.RESpeckDataObserver;
+import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +35,7 @@ import java.util.Locale;
  * Created by Darius on 08.02.2017.
  */
 
-public class SubjectWindmillFragment extends BaseFragment {
+public class SubjectWindmillFragment extends BaseFragment implements RESpeckDataObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
@@ -55,6 +57,7 @@ public class SubjectWindmillFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
     }
 
     @Override
@@ -210,10 +213,10 @@ public class SubjectWindmillFragment extends BaseFragment {
         chart.setData(new LineData(dataSets));
     }
 
-    public void updateBreathingGraph(BreathingGraphData data) {
-
-        if (mBreathingFlowChart != null) {
-            Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
+    @Override
+    public void updateRESpeckData(RESpeckLiveData data) {
+        if (mIsCreated && mBreathingFlowChart != null) {
+            Entry newEntry = new Entry(Utils.onlyKeepTimeInHour(data.getPhoneTimestamp()), data.getBreathingSignal());
             // Set the limits based on the graph type
             float negativeLowerLimit = -2.0f;
             float negativeUpperLimit = -0.3f;
@@ -266,6 +269,7 @@ public class SubjectWindmillFragment extends BaseFragment {
             mBreathingFlowChart.invalidate();
         }
     }
+
 }
 
 

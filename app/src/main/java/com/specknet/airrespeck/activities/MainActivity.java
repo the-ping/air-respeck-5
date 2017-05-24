@@ -1,13 +1,11 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -25,6 +23,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -44,18 +43,20 @@ import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
-import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
-import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
-import com.specknet.airrespeck.fragments.SupervisedOverviewFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
+import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
+import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.BreathingGraphData;
+import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.File;
@@ -64,15 +65,15 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import io.fabric.sdk.android.Fabric;
 
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity {
 
     // UI handler. Has to be int because Message.what object is int
     public final static int UPDATE_RESPECK_READINGS = 0;
@@ -83,8 +84,6 @@ public class MainActivity extends BaseActivity {
     public final static int SHOW_AIRSPECK_CONNECTED = 5;
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
-    private final static int UPDATE_BREATHING_GRAPH = 8;
-
 
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
@@ -106,11 +105,13 @@ public class MainActivity extends BaseActivity {
             if (service != null) {
                 switch (what) {
                     case UPDATE_RESPECK_READINGS:
-                        service.updateRespeckReadings((HashMap<String, Float>) msg.obj);
-                        service.updateRESpeckConnection(true);
+                        if (msg.obj instanceof RESpeckLiveData) {
+                            service.updateRespeckReadings((RESpeckLiveData) msg.obj);
+                            service.updateRESpeckConnection(true);
+                        }
                         break;
                     case UPDATE_AIRSPECK_READINGS:
-                        service.updateQOEReadings((HashMap<String, Float>) msg.obj);
+                        service.updateAirspeckReadings((AirspeckData) msg.obj);
                         service.updateAirspeckConnection(true);
                         break;
                     case ACTIVITY_SUMMARY_UPDATE:
@@ -141,9 +142,6 @@ public class MainActivity extends BaseActivity {
                     case SHOW_RESPECK_DISCONNECTED:
                         service.updateRESpeckConnection(false);
                         break;
-                    case UPDATE_BREATHING_GRAPH:
-                        service.updateBreathingGraphs((BreathingGraphData) msg.obj);
-                        break;
                 }
             }
         }
@@ -165,7 +163,6 @@ public class MainActivity extends BaseActivity {
     private SubjectHomeFragment mSubjectHomeFragment;
     private SubjectValuesFragment mSubjectValuesFragment;
     private SubjectWindmillFragment mSubjectWindmillFragment;
-    private SupervisedOverviewFragment mSupervisedOverviewFragment;
     private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
     private SupervisedAirspeckGraphsFragment mSupervisedAirspeckGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
@@ -175,7 +172,6 @@ public class MainActivity extends BaseActivity {
     // Config loaded from RESpeck.config
     private boolean mIsSupervisedModeEnabled;
     private boolean mIsSubjectModeEnabled;
-    private boolean mShowSupervisedOverview;
     private boolean mShowSupervisedAQGraphs;
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
@@ -198,14 +194,11 @@ public class MainActivity extends BaseActivity {
     private CoordinatorLayout mCoordinatorLayout;
 
     // READING VALUES
-    private HashMap<String, Float> mRespeckSensorReadings = new HashMap<>();
-    private HashMap<String, Float> mQOESensorReadings = new HashMap<>();
     private LinkedList<BreathingGraphData> breathingSignalchartDataQueue = new LinkedList<>();
     private int updateDelayBreathingGraph;
 
     // Speck service
     final int REQUEST_ENABLE_BLUETOOTH = 0;
-    private BluetoothAdapter mBluetoothAdapter;
     private BroadcastReceiver mSpeckServiceReceiver;
     private boolean mIsRESpeckConnected;
     private boolean mIsAirspeckConnected;
@@ -228,10 +221,16 @@ public class MainActivity extends BaseActivity {
 
     private boolean mIsActivityRunning = false;
 
+    private List<RESpeckDataObserver> respeckDataObservers = new ArrayList<>();
+    private List<AirspeckDataObserver> airspeckDataObservers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ThemeUtils themeUtils = ThemeUtils.getInstance();
+        themeUtils.setTheme(ThemeUtils.NORMAL_FONT_SIZE);
+        themeUtils.onActivityCreateSetTheme(this);
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
@@ -322,9 +321,6 @@ public class MainActivity extends BaseActivity {
         // For use with snack bar (notification bar at the bottom of the screen)
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        // Initialize Readings hash maps
-        initReadingMaps();
-
         startBluetoothCheckTask();
         startSpeckService();
 
@@ -345,14 +341,6 @@ public class MainActivity extends BaseActivity {
         initSpeckServiceReceiver();
 
         startActivitySummaryUpdaterTask();
-        startBreathingGraphUpdaterTask();
-
-        // Do we show Airspeck dummy data?
-        boolean showDummyAirspeck = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_DUMMY_AIRSPECK_DATA));
-        if (!mIsAirspeckEnabled && showDummyAirspeck) {
-            startDummyAirspeckDataTask();
-        }
     }
 
     private void startPhoneService() {
@@ -519,7 +507,7 @@ public class MainActivity extends BaseActivity {
     private void showBluetoothRequest() {
         BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
                 Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
+        BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
         if (!mBluetoothAdapter.isEnabled() && !mIsBluetoothRequestDialogDisplayed) {
             mIsBluetoothRequestDialogDisplayed = true;
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -529,53 +517,6 @@ public class MainActivity extends BaseActivity {
 
     public void setIsGPSDialogDisplayed(boolean isDisplayed) {
         mIsGPSDialogDisplayed = isDisplayed;
-    }
-
-    private void startDummyAirspeckDataTask() {
-        if (!mIsAirspeckEnabled) {
-            // Only allow if no real Airspeck data is coming in!
-            final int delay = 2000;
-            Timer timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    // Generate random Airspeck readings
-                    HashMap<String, Float> rndReadings = new HashMap<>();
-                    rndReadings.put(Constants.AIRSPECK_PM1, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_PM2_5, (float) Math.random() * 35);
-                    rndReadings.put(Constants.AIRSPECK_PM10, (float) Math.random() * 150);
-                    rndReadings.put(Constants.AIRSPECK_TEMPERATURE, (float) Math.random() * 30);
-                    rndReadings.put(Constants.AIRSPECK_HUMIDITY, (float) Math.random() * 100);
-                    rndReadings.put(Constants.AIRSPECK_NO2, (float) Math.random());
-                    rndReadings.put(Constants.AIRSPECK_O3, (float) Math.random());
-                    rndReadings.put(Constants.AIRSPECK_BINS_0, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_1, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_2, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_3, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_4, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_5, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_6, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_7, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_8, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_9, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_10, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_11, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_12, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_13, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_14, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_15, (float) Math.round(Math.random() * 10));
-                    rndReadings.put(Constants.AIRSPECK_BINS_TOTAL, (float) Math.round(Math.random() * 100));
-                    rndReadings.put(Constants.PHONE_TIMESTAMP_HOUR,
-                            Utils.onlyKeepTimeInHour(Utils.getUnixTimestamp()));
-
-                    Message msg = new Message();
-                    msg.what = UPDATE_AIRSPECK_READINGS;
-                    msg.obj = rndReadings;
-                    msg.setTarget(mUIHandler);
-                    msg.sendToTarget();
-                }
-            }, 0, delay);
-        }
     }
 
     private void startSpeckService() {
@@ -600,36 +541,11 @@ public class MainActivity extends BaseActivity {
         mSpeckServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                //Log.i("SpeckService", "Intent received in MainActivity: " + intent.getAction());
                 switch (intent.getAction()) {
                     case Constants.ACTION_RESPECK_LIVE_BROADCAST:
-                        // Load data into value arraylist
-                        HashMap<String, Float> liveReadings = new HashMap<>();
-                        liveReadings.put(Constants.RESPECK_X, intent.getFloatExtra(Constants.RESPECK_X, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_Y, intent.getFloatExtra(Constants.RESPECK_Y, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_Z, intent.getFloatExtra(Constants.RESPECK_Z, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_BREATHING_SIGNAL,
-                                intent.getFloatExtra(Constants.RESPECK_BREATHING_SIGNAL, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_BREATHING_RATE,
-                                intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE,
-                                intent.getFloatExtra(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_ACTIVITY_LEVEL,
-                                intent.getFloatExtra(Constants.RESPECK_ACTIVITY_LEVEL, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_ACTIVITY_TYPE, (float)
-                                intent.getIntExtra(Constants.RESPECK_ACTIVITY_TYPE, Constants.WRONG_ORIENTATION));
-
-                        // As the phone timestamp is a long instead of float, we will have to convert it
-                        float cutoffInterpolatedTimestamp = Utils.onlyKeepTimeInHour(
-                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0));
-                        liveReadings.put(Constants.PHONE_TIMESTAMP_HOUR, cutoffInterpolatedTimestamp);
-
-                        liveReadings.put(Constants.RESPECK_BATTERY_PERCENT,
-                                intent.getFloatExtra(Constants.RESPECK_BATTERY_PERCENT, Float.NaN));
-                        liveReadings.put(Constants.RESPECK_REQUEST_CHARGE,
-                                intent.getBooleanExtra(Constants.RESPECK_REQUEST_CHARGE, false) ? 1.f : 0.f);
-
-                        sendMessageToHandler(UPDATE_RESPECK_READINGS, liveReadings);
+                        RESpeckLiveData liveRESpeckData = (RESpeckLiveData) intent.getSerializableExtra(
+                                Constants.RESPECK_LIVE_DATA);
+                        sendMessageToHandler(UPDATE_RESPECK_READINGS, liveRESpeckData);
                         break;
                     case Constants.ACTION_RESPECK_CONNECTED:
                         String respeckUUID = intent.getStringExtra(Constants.RESPECK_UUID);
@@ -639,18 +555,13 @@ public class MainActivity extends BaseActivity {
                         sendMessageToHandler(SHOW_RESPECK_DISCONNECTED, null);
                         break;
                     case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
-                        HashMap<String, Float> readings = (HashMap<String, Float>) intent.getSerializableExtra(
-                                Constants.AIRSPECK_ALL_MEASURES);
-                        // Even though the timestamp was recorded as a long, we are only interested in the float
-                        // value here!
-                        readings.put(Constants.PHONE_TIMESTAMP_HOUR,
-                                Utils.onlyKeepTimeInHour(
-                                        intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0L)));
-                        sendMessageToHandler(UPDATE_AIRSPECK_READINGS, readings);
+                        AirspeckData liveAirspeckData = (AirspeckData) intent.getSerializableExtra(
+                                Constants.AIRSPECK_DATA);
+                        sendMessageToHandler(UPDATE_AIRSPECK_READINGS, liveAirspeckData);
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
-                        String qoeUUID = intent.getStringExtra(Constants.AIRSPECK_UUID);
-                        sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, qoeUUID);
+                        String airspeckUUID = intent.getStringExtra(Constants.AIRSPECK_UUID);
+                        sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, airspeckUUID);
                         break;
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
                         sendMessageToHandler(SHOW_AIRSPECK_DISCONNECTED, null);
@@ -658,6 +569,8 @@ public class MainActivity extends BaseActivity {
                 }
             }
         };
+
+        // Register receivers
         if (mIsRESpeckEnabled) {
             registerReceiver(mSpeckServiceReceiver, new IntentFilter(
                     Constants.ACTION_RESPECK_LIVE_BROADCAST));
@@ -700,8 +613,6 @@ public class MainActivity extends BaseActivity {
 
         // Load supervised mode config if enabled
         if (mIsSupervisedModeEnabled) {
-            mShowSupervisedOverview = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_OVERVIEW));
             mShowSupervisedAQGraphs = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_GRAPHS));
             mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
@@ -767,10 +678,6 @@ public class MainActivity extends BaseActivity {
             supervisedFragments.clear();
             supervisedTitles.clear();
             // Only show each fragment if we set the config to true
-            if (mShowSupervisedOverview) {
-                supervisedFragments.add(mSupervisedOverviewFragment);
-                supervisedTitles.add(getString(R.string.menu_home));
-            }
             if (mShowSupervisedRESpeckReadings) {
                 supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
                 supervisedTitles.add(getString(R.string.menu_breathing_graph));
@@ -822,8 +729,6 @@ public class MainActivity extends BaseActivity {
         FragmentManager fm = getSupportFragmentManager();
         if (savedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mSupervisedOverviewFragment =
-                    (SupervisedOverviewFragment) fm.getFragment(savedInstanceState, TAG_HOME_FRAGMENT);
             mSupervisedAirspeckReadingsFragment =
                     (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mSupervisedAirspeckGraphsFragment =
@@ -843,9 +748,6 @@ public class MainActivity extends BaseActivity {
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity
         // startup, create them now
-        if (mSupervisedOverviewFragment == null) {
-            mSupervisedOverviewFragment = new SupervisedOverviewFragment();
-        }
         if (mSupervisedAirspeckReadingsFragment == null) {
             mSupervisedAirspeckReadingsFragment = new SupervisedAirspeckReadingsFragment();
         }
@@ -884,65 +786,6 @@ public class MainActivity extends BaseActivity {
                 msg.sendToTarget();
             }
         }, 0, delay);
-    }
-
-    private void startBreathingGraphUpdaterTask() {
-        final Handler handler = new Handler();
-        final int defaultDelay = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS /
-                Constants.NUMBER_OF_SAMPLES_PER_BATCH;
-        updateDelayBreathingGraph = defaultDelay;
-
-        // This class is used to determine the update frequency of the breathing data graph. The data from the
-        // RESpeck is coming in in batches, which would make the graph hard to read. Therefore, we store the
-        // incoming data in a queue and update the graph smoothly.
-        class breathingUpdaterRunner implements Runnable {
-            private boolean queueHadBeenFilled = false;
-
-            @Override
-            public void run() {
-                //Log.i("DF", String.format(Locale.UK, "Breathing data queue length: %d",
-                //        breathingSignalchartDataQueue.size()));
-
-                if (breathingSignalchartDataQueue.isEmpty()) {
-                    // If the queue is empty and there has been data in the queue previously,
-                    // this means we were too fast. Wait for another delay and decrease the processing speed.
-                    // Only do this if we're below a certain threshold (set with intuition here)
-                    if (queueHadBeenFilled && updateDelayBreathingGraph <= 1.1 * defaultDelay) {
-                        updateDelayBreathingGraph += 1;
-                        /*
-                        Log.v("DF", String.format(Locale.UK,
-                                "Breathing graph data queue empty: decrease processing speed to: %d ms",
-                                updateDelayBreathingGraph));
-                        */
-                    }
-
-                    handler.postDelayed(this, updateDelayBreathingGraph);
-                } else {
-                    // Remember the fact that we have already received data
-                    queueHadBeenFilled = true;
-
-                    Message msg = new Message();
-                    msg.obj = breathingSignalchartDataQueue.removeFirst();
-                    msg.what = UPDATE_BREATHING_GRAPH;
-                    msg.setTarget(mUIHandler);
-                    msg.sendToTarget();
-
-                    // If our queue is too long, increase processing speed. The size threshold was set intuitively and
-                    // might have to be adjusted
-                    if (breathingSignalchartDataQueue.size() > Constants.NUMBER_OF_SAMPLES_PER_BATCH) {
-                        updateDelayBreathingGraph -= 1;
-                        /*
-                        Log.v("DF", String.format(Locale.UK,
-                                "Breathing graph data queue too full: increase processing speed to: %d ms",
-                                updateDelayBreathingGraph));
-                        */
-                    }
-
-                    handler.postDelayed(this, updateDelayBreathingGraph);
-                }
-            }
-        }
-        handler.postDelayed(new breathingUpdaterRunner(), updateDelayBreathingGraph);
     }
 
     public void displaySupervisedMode() {
@@ -1015,10 +858,6 @@ public class MainActivity extends BaseActivity {
         super.onSaveInstanceState(outState);
 
         FragmentManager fm = getSupportFragmentManager();
-
-        if (mSupervisedOverviewFragment != null && mSupervisedOverviewFragment.isAdded()) {
-            fm.putFragment(outState, TAG_HOME_FRAGMENT, mSupervisedOverviewFragment);
-        }
         if (mSupervisedAirspeckReadingsFragment != null && mSupervisedAirspeckReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mSupervisedAirspeckReadingsFragment);
         }
@@ -1097,197 +936,21 @@ public class MainActivity extends BaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    //----------------------------------------------------------------------------------------------
-    // UI ------------------------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * Initialize hashmaps for sensor reading values
-     */
-    private void initReadingMaps() {
-        mQOESensorReadings.put(Constants.AIRSPECK_PM1, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_PM2_5, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_PM10, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_TEMPERATURE, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_HUMIDITY, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_NO2, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_O3, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_0, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_1, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_2, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_3, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_4, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_5, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_6, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_7, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_8, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_9, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_10, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_11, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_12, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_13, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_14, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_15, 0f);
-        mQOESensorReadings.put(Constants.AIRSPECK_BINS_TOTAL, 0f);
-
-        mRespeckSensorReadings.put(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_X, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_Y, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_Z, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_RATE, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_BREATHING_SIGNAL, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_BATTERY_PERCENT, 0f);
-        mRespeckSensorReadings.put(Constants.RESPECK_REQUEST_CHARGE, 0f);
-    }
-
-    /**
-     * Update Respeck reading values
-     * We need to separate Respeck and QOE values as both update at different rates
-     */
-    private void updateRespeckUI() {
-        updateConnectionLoadingLayout();
-        try {
-            if (isSupervisedMode) {
-                if (mShowSupervisedOverview) {
-                    // Update overview fragment
-                    ArrayList<Float> listValuesOverview = new ArrayList<>();
-
-                    listValuesOverview.add(
-                            mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM2_5)));
-                    listValuesOverview.add(mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM10)));
-
-                    mSupervisedOverviewFragment.setReadings(listValuesOverview);
-                }
-
-                if (mShowSupervisedRESpeckReadings) {
-                    // Update RESpeckReadings Fragment
-                    ArrayList<Float> listValuesRESpeckReadings = new ArrayList<>();
-
-                    listValuesRESpeckReadings.add(
-                            mUtils.roundToTwoDigits(mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_RATE)));
-                    listValuesRESpeckReadings.add(
-                            mUtils.roundToTwoDigits(
-                                    mRespeckSensorReadings.get(Constants.RESPECK_MINUTE_AVG_BREATHING_RATE)));
-
-                    mSupervisedRESpeckReadingsFragment.setReadings(listValuesRESpeckReadings);
-                }
-            } else {
-                if (mShowSubjectValues) {
-                    mSubjectValuesFragment.updateBreathing(mRespeckSensorReadings);
-                }
-                if (mShowSubjectWindmill) {
-                    mSubjectWindmillFragment.updateBreathing(mRespeckSensorReadings);
-                }
-            }
-
-            // Both fragments below display a breathing signal graph
-            if (mShowSupervisedRESpeckReadings || mShowSubjectWindmill) {
-                // Add breathing data to queue. This is stored so it can be updated continuously instead of batches.
-                BreathingGraphData breathingGraphData = new BreathingGraphData(
-                        mRespeckSensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR),
-                        mRespeckSensorReadings.get(Constants.RESPECK_X),
-                        mRespeckSensorReadings.get(Constants.RESPECK_Y),
-                        mRespeckSensorReadings.get(Constants.RESPECK_Z),
-                        mRespeckSensorReadings.get(Constants.RESPECK_BREATHING_SIGNAL));
-
-                breathingSignalchartDataQueue.add(breathingGraphData);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Update QOE reading values
-     * We need to separate Respeck and QOE values as both update at different rates
-     */
-    private void updateQOEUI() {
-        updateConnectionLoadingLayout();
-
-        // Air Quality fragment UI
-        try {
-            if (isSupervisedMode) {
-                HashMap<String, Float> values = new HashMap<>();
-
-                values.put(Constants.AIRSPECK_TEMPERATURE,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_TEMPERATURE)));
-                values.put(Constants.AIRSPECK_HUMIDITY,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_HUMIDITY)));
-                values.put(Constants.AIRSPECK_O3,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_O3)));
-                values.put(Constants.AIRSPECK_NO2,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_NO2)));
-                values.put(Constants.AIRSPECK_PM1,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM1)));
-                values.put(Constants.AIRSPECK_PM2_5,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM2_5)));
-                values.put(Constants.AIRSPECK_PM10,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_PM10)));
-                values.put(Constants.AIRSPECK_BINS_TOTAL,
-                        mUtils.roundToTwoDigits(mQOESensorReadings.get(Constants.AIRSPECK_BINS_TOTAL)));
-
-                mSupervisedAirspeckReadingsFragment.setReadings(values);
-
-                // Graphs fragment UI
-                ArrayList<Float> binValues = new ArrayList<>();
-
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_0));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_1));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_2));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_3));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_4));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_5));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_6));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_7));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_8));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_9));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_10));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_11));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_12));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_13));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_14));
-                binValues.add(mQOESensorReadings.get(Constants.AIRSPECK_BINS_15));
-
-                mSupervisedAirspeckGraphsFragment.setBinsChartData(binValues);
-
-                mSupervisedAirspeckGraphsFragment.addPMsChartData(new SupervisedAirspeckGraphsFragment.PMs(
-                                mQOESensorReadings.get(Constants.AIRSPECK_PM1),
-                                mQOESensorReadings.get(Constants.AIRSPECK_PM2_5),
-                                mQOESensorReadings.get(Constants.AIRSPECK_PM10)),
-                        mQOESensorReadings.get(Constants.PHONE_TIMESTAMP_HOUR));
-            } else {
-                // Daphne values fragment
-                mSubjectValuesFragment.updateQOEReadings(mQOESensorReadings);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void updateConnectionLoadingLayout() {
         boolean showAirspeckConnecting = mIsAirspeckEnabled && !mIsAirspeckConnected;
         boolean showRESpeckConnecting = mIsRESpeckEnabled && !mIsRESpeckConnected;
 
         if (isSupervisedMode) {
-            mSupervisedOverviewFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
         }
     }
 
-    /**
-     * Update {@link #mRespeckSensorReadings} with the latest values sent from the Respeck sensor.
-     *
-     * @param newValues HashMap<String, Float> The Respeck sensor readings.
-     */
-    private void updateRespeckReadings(HashMap<String, Float> newValues) {
+    private void updateRespeckReadings(RESpeckLiveData newData) {
         // If the sensor is in the wrong orientation, show a dialog
-        int activityType = Math.round(newValues.get(Constants.RESPECK_ACTIVITY_TYPE));
         if (!mIsWrongOrientationDialogDisplayed) {
-            if (activityType == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
+            if (newData.getActivityType() == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
                 mIsWrongOrientationDialogDisplayed = true;
                 mWrongOrientationDialog = new WrongOrientationDialog();
                 mWrongOrientationDialog.show(getFragmentManager(), "wrong_orientation_dialog");
@@ -1295,17 +958,39 @@ public class MainActivity extends BaseActivity {
         } else {
             // If the current activity is sitting or standing the sensor was put into the correct orientation,
             // so we can dismiss the dialog
-            if (activityType == Constants.ACTIVITY_STAND_SIT) {
+            if (newData.getActivityType() == Constants.ACTIVITY_STAND_SIT) {
                 mWrongOrientationDialog.dismiss();
             }
         }
 
-        // Update local values
-        mRespeckSensorReadings = newValues;
-
-        // Update the UI
-        updateRespeckUI();
+        notifyNewRESpeckReading(newData);
     }
+
+    private void notifyNewRESpeckReading(RESpeckLiveData newData) {
+        for (RESpeckDataObserver observer : respeckDataObservers) {
+            observer.updateRESpeckData(newData);
+        }
+    }
+
+    public void registerRESpeckDataObserver(RESpeckDataObserver observer) {
+        respeckDataObservers.add(observer);
+    }
+
+
+    private void updateAirspeckReadings(AirspeckData newValues) {
+        notifyNewAirspeckReading(newValues);
+    }
+
+    private void notifyNewAirspeckReading(AirspeckData newData) {
+        for (AirspeckDataObserver observer: airspeckDataObservers) {
+            observer.updateAirspeckData(newData);
+        }
+    }
+
+    public void registerAirspeckDataObserver(AirspeckDataObserver observer) {
+        airspeckDataObservers.add(observer);
+    }
+
 
     public void setWrongOrientationDialogDisplayed(boolean isDisplayed) {
         if (!isDisplayed) {
@@ -1320,19 +1005,6 @@ public class MainActivity extends BaseActivity {
         } else {
             mIsWrongOrientationDialogDisplayed = true;
         }
-    }
-
-    /**
-     * Update {@link #mQOESensorReadings} with the latest values sent from the QOE sensor.
-     *
-     * @param newValues HashMap<String, Float> The QOE sensor readings.
-     */
-    private void updateQOEReadings(HashMap<String, Float> newValues) {
-        // Update local values
-        mQOESensorReadings = newValues;
-
-        // Update the UI
-        updateQOEUI();
     }
 
     private void updateRESpeckConnection(boolean isConnected) {
@@ -1367,20 +1039,10 @@ public class MainActivity extends BaseActivity {
         msg.sendToTarget();
     }
 
-
     private void updateActivitySummary() {
         // The activity summary is only displayed in supervised mode
         if (mIsSupervisedModeEnabled && mShowSupervisedActivitySummary) {
             mSupervisedActivitySummaryFragment.updateActivitySummary();
-        }
-    }
-
-    private void updateBreathingGraphs(BreathingGraphData data) {
-        if (isSupervisedMode && mShowSupervisedRESpeckReadings) {
-            mSupervisedRESpeckReadingsFragment.updateBreathingGraphs(data);
-        }
-        if (!isSupervisedMode && mShowSubjectWindmill) {
-            mSubjectWindmillFragment.updateBreathingGraph(data);
         }
     }
 

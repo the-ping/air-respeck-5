@@ -24,58 +24,27 @@ import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.Utils;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.AirspeckDataObserver;
+import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.XAxisValueFormatter;
 import com.specknet.airrespeck.utils.Constants;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.LinkedList;
+
+import static com.specknet.airrespeck.utils.Utils.onlyKeepTimeInHour;
 
 
-public class SupervisedAirspeckGraphsFragment extends BaseFragment {
-
-    public static class PMs implements Serializable {
-        final static int PMS_NUM = 3;
-
-        private float mPM1;
-        private float mPM2_5;
-        private float mPM10;
-
-        final static long serialVersionUID = 1023902941124L;
-
-        public PMs(final float pm1, final float pm2_5, final float pm10) {
-            mPM1 = pm1;
-            mPM2_5 = pm2_5;
-            mPM10 = pm10;
-        }
-
-        float getPM1() {
-            return mPM1;
-        }
-
-        float getPM2_5() {
-            return mPM2_5;
-        }
-
-        float getPM10() {
-            return mPM10;
-        }
-
-        @Override
-        public String toString() {
-            return String.format(Locale.UK, "PM1: %s, PM 2.5: %s, PM 10: %s", getPM1(), getPM2_5(), getPM10());
-        }
-    }
+public class SupervisedAirspeckGraphsFragment extends BaseFragment implements AirspeckDataObserver {
 
     private int BINS_NUMBER = 16;
-    private List<Float> mBinsData;
-    private List<PMs> mPMsData;
-    private List<Float> mPMTimestamps;
+    private LinkedList<AirspeckData> dataBuffer = new LinkedList<>();
 
     private BarChart mBinsLineChart;
     private LineChart mPMsLineChart;
+
+    private final String LAST_VALUES = "last_values";
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -88,41 +57,22 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // initialize the utilities
+        // Initialize the utilities
         Utils.init(getContext());
 
-        mPMsData = new ArrayList<>();
-        mPMTimestamps = new ArrayList<>();
-
-        mBinsData = new ArrayList<>();
+        ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
 
         // Load previously used data if there is any (this is used when the fragment is stopped which happens
         // when the user swipes two Fragments away)
         if (savedInstanceState != null) {
             Log.i("AQ graphs", "bundle: " + savedInstanceState);
-            if (savedInstanceState.containsKey("binsData")) {
-                mBinsData = new ArrayList<>(Arrays.asList((Float[]) savedInstanceState.getSerializable("binsData")));
-            }
-
-            if (savedInstanceState.containsKey("pmTimestamps")) {
-                mPMTimestamps = new ArrayList<>(
-                        Arrays.asList((Float[]) savedInstanceState.getSerializable("pmTimestamps")));
-
-                // If the last timestamp is too far in the past (more than one minute ago), delete saved data
-                if (mPMTimestamps.size() > 0) {
-                    Float lastTimestamp = mPMTimestamps.get(mPMTimestamps.size() - 1);
-                    float currentTimestamp = com.specknet.airrespeck.utils.Utils.onlyKeepTimeInHour(
-                            com.specknet.airrespeck.utils.Utils.getUnixTimestamp());
-
-                    if (lastTimestamp != null && lastTimestamp > currentTimestamp - 60000) {
-                        if (savedInstanceState.containsKey("pmData")) {
-                            mPMsData = new ArrayList<>(Arrays.asList((PMs[]) savedInstanceState.getSerializable("pmData")));
-                        } else {
-                            mPMTimestamps = new ArrayList<>();
-                        }
-                    } else {
+            if (savedInstanceState.containsKey(LAST_VALUES)) {
+                dataBuffer = (LinkedList<AirspeckData>) savedInstanceState.getSerializable(LAST_VALUES);
+                if (dataBuffer.size() > 0) {
+                    long currentTimestamp = com.specknet.airrespeck.utils.Utils.getUnixTimestamp();
+                    if (dataBuffer.getLast().getPhoneTimestamp() < currentTimestamp - 60000) {
                         Log.i("AQ graphs", "Saved instance was too far in the past, start new graphs!");
-                        mPMTimestamps = new ArrayList<>();
+                        dataBuffer = new LinkedList<>();
                     }
                 }
             }
@@ -132,10 +82,7 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.i("AirspeckGraphs", "onSavedInstanceState");
-        outState.putSerializable("binsData", mBinsData.toArray(new Float[mBinsData.size()]));
-        outState.putSerializable("pmData", mPMsData.toArray(new PMs[mPMsData.size()]));
-        outState.putSerializable("pmTimestamps", mPMTimestamps.toArray(new Float[mPMTimestamps.size()]));
-
+        outState.putSerializable(LAST_VALUES, dataBuffer);
         super.onSaveInstanceState(outState);
     }
 
@@ -186,10 +133,11 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         ArrayList<Entry> v2 = new ArrayList<>();
         ArrayList<Entry> v3 = new ArrayList<>();
 
-        for (int i = 0; i < mPMsData.size(); ++i) {
-            v1.add(new Entry(mPMTimestamps.get(i), mPMsData.get(i).getPM1()));
-            v2.add(new Entry(mPMTimestamps.get(i), mPMsData.get(i).getPM2_5()));
-            v3.add(new Entry(mPMTimestamps.get(i), mPMsData.get(i).getPM10()));
+        for (int i = 0; i < dataBuffer.size(); ++i) {
+            float timestamp = onlyKeepTimeInHour(dataBuffer.get(i).getPhoneTimestamp());
+            v1.add(new Entry(timestamp, dataBuffer.get(i).getPm1()));
+            v2.add(new Entry(timestamp, dataBuffer.get(i).getPm2_5()));
+            v3.add(new Entry(timestamp, dataBuffer.get(i).getPm10()));
         }
 
         LineDataSet setPM1 = new LineDataSet(v1, "PM 1");
@@ -198,7 +146,6 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         setPM1.setColor(Color.rgb(0, 0, 0));
         setPM1.setCircleColor(Color.rgb(0, 0, 0));
         setPM1.setDrawValues(false);
-//        setPM1.setFillColor(Color.rgb(0, 0, 0));
 
         LineDataSet setPM2_5 = new LineDataSet(v2, "PM 2.5");
         setPM2_5.setLineWidth(2.5f);
@@ -206,7 +153,6 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         setPM2_5.setColor(Color.rgb(255, 0, 0));
         setPM2_5.setCircleColor(Color.rgb(255, 0, 0));
         setPM2_5.setDrawValues(false);
-//        setPM2_5.setFillColor(Color.rgb(255, 0, 0));
 
         LineDataSet setPM10 = new LineDataSet(v3, "PM 10");
         setPM10.setLineWidth(2.5f);
@@ -214,7 +160,6 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         setPM10.setColor(Color.rgb(0, 0, 255));
         setPM10.setCircleColor(Color.rgb(0, 0, 255));
         setPM10.setDrawValues(false);
-//        setPM10.setFillColor(Color.rgb(0, 0, 255));
 
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
         dataSets.add(setPM1);
@@ -229,64 +174,6 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
 
         // Disable zoom on double tap
         mPMsLineChart.setDoubleTapToZoomEnabled(false);
-    }
-
-    /**
-     * Add new entries to each of the line graphs (PM1, PM2.5, and PM10) in PMs chart
-     *
-     * @param pMs       PMs The new values.
-     * @param timestamp The timestamp at which the PM values were recorded
-     */
-    private void addPMEntries(final PMs pMs, float timestamp) {
-        LineData lineData = mPMsLineChart.getLineData();
-
-        for (int i = 0; i < PMs.PMS_NUM; ++i) {
-            // choose value
-            float yValue = 0f;
-            switch (i) {
-                case 0:
-                    yValue = pMs.getPM1();
-                    break;
-                case 1:
-                    yValue = pMs.getPM2_5();
-                    break;
-                case 2:
-                    yValue = pMs.getPM10();
-                    break;
-            }
-
-            LineDataSet dataSet = (LineDataSet) lineData.getDataSetByIndex(i);
-            dataSet.addEntry(new Entry(timestamp, yValue));
-
-            while (dataSet.getEntryCount() > Constants.PM_CHART_NUMBER_OF_SAMPLES) {
-                dataSet.removeFirst();
-            }
-            dataSet.notifyDataSetChanged();
-        }
-        lineData.notifyDataChanged();
-        mPMsLineChart.notifyDataSetChanged();
-        mPMsLineChart.invalidate();
-    }
-
-    /**
-     * Helper to add new values to PMs chart.
-     *
-     * @param pMs PMs The new values.
-     */
-    public void addPMsChartData(final PMs pMs, final float timestamp) {
-        if (mIsCreated) {
-            mPMsData.add(pMs);
-            while (mPMsData.size() > Constants.PM_CHART_NUMBER_OF_SAMPLES) {
-                mPMsData.remove(0);
-            }
-
-            mPMTimestamps.add(timestamp);
-            while (mPMTimestamps.size() > Constants.PM_CHART_NUMBER_OF_SAMPLES) {
-                mPMTimestamps.remove(0);
-            }
-
-            addPMEntries(pMs, timestamp);
-        }
     }
 
     /**
@@ -331,7 +218,7 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         mBinsLineChart.setData(new BarData(dataSets));
 
         // Update chart
-        updateBinsChartData();
+        updateBinsChart();
 
         // Disable helper lines showing an element the user touched
         mBinsLineChart.getData().setHighlightEnabled(false);
@@ -340,14 +227,22 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         mBinsLineChart.setDoubleTapToZoomEnabled(false);
     }
 
-    /**
-     * Update the dataset for the Bins chart.
-     */
-    private void updateBinsChartData() {
+
+    @Override
+    public void updateAirspeckData(AirspeckData data) {
+        dataBuffer.add(data);
+        while (dataBuffer.size() > Constants.PM_CHART_NUMBER_OF_SAMPLES) {
+            dataBuffer.remove();
+        }
+        updateBinsChart();
+        updatePMChart();
+    }
+
+    private void updateBinsChart() {
         ArrayList<BarEntry> values = new ArrayList<>();
 
-        for (int i = 0; i < mBinsData.size(); ++i) {
-            values.add(new BarEntry(i, mBinsData.get(i)));
+        for (int i = 0; i < dataBuffer.size(); ++i) {
+            values.add(new BarEntry(i, dataBuffer.peekLast().getBins()[i]));
         }
 
         // There is an existing data set. Update that.
@@ -361,15 +256,36 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment {
         mBinsLineChart.invalidate();
     }
 
-    /**
-     * Helper to set the values for the Bins chart.
-     *
-     * @param binsData List<Float> The new values.
-     */
-    public void setBinsChartData(List<Float> binsData) {
-        if (mIsCreated) {
-            mBinsData = binsData;
-            updateBinsChartData();
+    private void updatePMChart() {
+        LineData lineData = mPMsLineChart.getLineData();
+
+        AirspeckData newData = dataBuffer.getLast();
+
+        for (int i = 0; i < 3; ++i) {
+            float yValue = 0f;
+            switch (i) {
+                case 0:
+                    yValue = newData.getPm1();
+                    break;
+                case 1:
+                    yValue = newData.getPm2_5();
+                    break;
+                case 2:
+                    yValue = newData.getPm10();
+                    break;
+            }
+
+            LineDataSet dataSet = (LineDataSet) lineData.getDataSetByIndex(i);
+            dataSet.addEntry(new Entry(onlyKeepTimeInHour(newData.getPhoneTimestamp()), yValue));
+
+            while (dataSet.getEntryCount() > Constants.PM_CHART_NUMBER_OF_SAMPLES) {
+                dataSet.removeFirst();
+            }
+            dataSet.notifyDataSetChanged();
         }
+
+        lineData.notifyDataChanged();
+        mPMsLineChart.notifyDataSetChanged();
+        mPMsLineChart.invalidate();
     }
 }
