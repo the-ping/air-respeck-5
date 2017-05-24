@@ -134,7 +134,6 @@ class RespeckRemoteUploadService : Service() {
     class RespeckReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                /*
                 Constants.ACTION_RESPECK_LIVE_BROADCAST -> {
                     val jsonLiveData = JSONObject()
                     try {
@@ -155,7 +154,6 @@ class RespeckRemoteUploadService : Service() {
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_Y, Float.NaN)))
                         jsonLiveData.put(Constants.RESPECK_Z,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_Z, Float.NaN)))
-                        /*
                         jsonLiveData.put(Constants.RESPECK_BREATHING_RATE,
                                 nanToNull(intent.getFloatExtra(Constants.RESPECK_BREATHING_RATE, Float.NaN)))
                         jsonLiveData.put(Constants.RESPECK_BREATHING_SIGNAL,
@@ -165,15 +163,14 @@ class RespeckRemoteUploadService : Service() {
                         jsonLiveData.put(Constants.RESPECK_ACTIVITY_TYPE,
                                 nanToNull(intent.getIntExtra(Constants.RESPECK_ACTIVITY_TYPE,
                                         Constants.WRONG_ORIENTATION).toFloat()))
-                        */
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
 
                     // Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
-                    //Log.i("Upload", "Respeck upload live broadcast data")
+                    Log.i("Upload", "Respeck upload live broadcast data")
                     mySubject.onNext(Gson().fromJson(jsonLiveData.toString(), JsonElement::class.java).asJsonObject)
-                }*/
+                }
                 Constants.ACTION_RESPECK_AVG_BROADCAST -> {
                     val jsonAverageData = JSONObject()
                     try {
