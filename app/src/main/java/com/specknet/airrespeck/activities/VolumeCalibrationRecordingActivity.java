@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
@@ -79,27 +80,41 @@ public class VolumeCalibrationRecordingActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 if (mIsRecording) {
-                    // End recording
-                    try {
-                        if (outputData.length() != 0) {
-                            mWriter.write(outputData.toString());
-                            mWriter.flush();
-                            Toast.makeText(getApplicationContext(),
-                                    "Recording saved",
-                                    Toast.LENGTH_LONG).show();
-                        }
-                        outputData = new StringBuilder();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    mIsRecording = false;
-
-                    // Change button label to tell the user that the recording has stopped
-                    mStartStopButton.setText(R.string.button_text_start_recording);
-                    mStartStopButton.setBackgroundColor(
-                            ContextCompat.getColor(getApplicationContext(), R.color.md_grey_300));
-
+                    // Wait 1 second before actually ending the run, to factor in bluetooth lag
+                    // Disable start button until then
+                    mStartStopButton.setEnabled(false);
                     mCancelButton.setEnabled(false);
+
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (outputData.length() != 0) {
+                                    mWriter.write(outputData.toString());
+                                    mWriter.flush();
+                                    Toast.makeText(getApplicationContext(),
+                                            "Recording saved",
+                                            Toast.LENGTH_LONG).show();
+
+                                    // Add a line which indicates end of recording
+                                    mWriter.append("end of record,,,,,,").flush();
+                                }
+                                outputData = new StringBuilder();
+
+                                // End recording
+                                mIsRecording = false;
+
+                                // Change button label to tell the user that the recording has stopped
+                                mStartStopButton.setText(R.string.button_text_start_recording);
+                                mStartStopButton.setEnabled(true);
+                                mStartStopButton.setBackgroundColor(
+                                        ContextCompat.getColor(getApplicationContext(), R.color.md_grey_300));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, 1000);
                 } else {
                     // Start recording
                     mBagSize = bagSizeSpinner.getSelectedItem().toString();
@@ -208,5 +223,12 @@ public class VolumeCalibrationRecordingActivity extends BaseActivity {
         }
         unregisterReceiver(mSpeckServiceReceiver);
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 }
