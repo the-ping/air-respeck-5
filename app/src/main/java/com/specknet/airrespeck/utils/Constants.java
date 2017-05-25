@@ -73,6 +73,10 @@ public class Constants {
     public static final String BASE_URL = "http://www.mocky.io";
 
 
+    // Bluetooth connection timeout: how long to wait after loosing connection before trying reconnect
+    public static final int RECONNECTION_TIMEOUT_MILLIS = 10000;
+
+
     /**
      * GPS Phone update. The active update interval specifies the time in between active updates of the GPS location,
      * i.e. how often the app explicitly asks for the location. The passive time specifies how often the app checks for

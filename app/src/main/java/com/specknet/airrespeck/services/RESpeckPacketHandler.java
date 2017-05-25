@@ -67,17 +67,9 @@ public class RESpeckPacketHandler {
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
 
-    // Singleton pattern to allow only one instance of this class
-    private static RESpeckPacketHandler mSingletonInstance;
+    private Timer mActivityClassificationTimer;
 
-    public static RESpeckPacketHandler getInstance(SpeckBluetoothService speckService) {
-        if (mSingletonInstance == null) {
-            mSingletonInstance = new RESpeckPacketHandler(speckService);
-        }
-        return mSingletonInstance;
-    }
-
-    private RESpeckPacketHandler(SpeckBluetoothService speckService) {
+    public RESpeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
         // Initialise stored queue
@@ -139,14 +131,14 @@ public class RESpeckPacketHandler {
                 // Convert the timestamp of the RESpeck to correspond to milliseconds
                 long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
                 if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
-                    Log.e("SpeckService", "RESpeck: duplicate live timestamp received");
+                    Log.e("RESpeckPacketHandler", "RESpeck: duplicate live timestamp received");
                     return;
                 }
                 long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
                 mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
-                // Log.i("SpeckService", "respeck ts: " + newRESpeckTimestamp);
-                // Log.i("SpeckService", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
+                // Log.i("RESpeckPacketHandler", "respeck ts: " + newRESpeckTimestamp);
+                // Log.i("RESpeckPacketHandler", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
 
                 // Independent of the RESpeck timestamp, we use the phone timestamp
                 long actualPhoneTimestamp = Utils.getUnixTimestamp();
@@ -163,7 +155,7 @@ public class RESpeckPacketHandler {
                 long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
                         Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
 
-                //Log.i("SpeckService",
+                //Log.i("RESpeckPacketHandler",
                 //        "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
 
                 // If the last timestamp plus the average time difference is more than
@@ -171,10 +163,10 @@ public class RESpeckPacketHandler {
                 // last plus the average time difference.
                 if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
                         Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
-                    // Log.i("SpeckService", "correction!");
+                    // Log.i("RESpeckPacketHandler", "correction!");
                     mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
                 } else {
-                    // Log.i("SpeckService", "no correction!");
+                    // Log.i("RESpeckPacketHandler", "no correction!");
                     mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
                 }
 
@@ -191,13 +183,13 @@ public class RESpeckPacketHandler {
                     long currentTimeOffset = mPhoneTimestampCurrentPacketReceived / 1000 -
                             mRESpeckTimestampCurrentPacketReceived;
 
-                    Log.i("SpeckService", "Stored packet received:");
-                    Log.i("SpeckService", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
-                    Log.i("SpeckService", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
-                    Log.i("SpeckService", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
-                    Log.i("SpeckService", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
-                    Log.i("SpeckService", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
-                    Log.i("SpeckService", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
+                    Log.i("RESpeckPacketHandler", "Stored packet received:");
+                    Log.i("RESpeckPacketHandler", "EXTRA_RESPECK_TIMESTAMP_OFFSET_SECS: " + currentTimeOffset);
+                    Log.i("RESpeckPacketHandler", "EXTRA_RESPECK_RS_TIMESTAMP: " + s.getRESpeckTimestamp());
+                    Log.i("RESpeckPacketHandler", "EXTRA_RESPECK_SEQ: " + s.getSequenceNumber());
+                    Log.i("RESpeckPacketHandler", "EXTRA_RESPECK_LIVE_AVE_BR: " + s.getAverageBreathingRate());
+                    Log.i("RESpeckPacketHandler", "EXTRA_RESPECK_LIVE_N_BR: " + s.getNumberOfBreaths());
+                    Log.i("RESpeckPacketHandler", "EXTRA_RESPECK_LIVE_SD_BR: " + s.getStdBreathingRate());
 
                     // Send stored data broadcast
                     Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST);
@@ -216,7 +208,7 @@ public class RESpeckPacketHandler {
                 // If the currentSequenceNumberInBatch is -1, this means we have received acceleration
                 // packets before the first timestamp
                 if (currentSequenceNumberInBatch == -1) {
-                    Log.e("SpeckService", "RESpeck acceleration packet received before timestamp packet");
+                    Log.e("RESpeckPacketHandler", "RESpeck acceleration packet received before timestamp packet");
                     return;
                 }
 
@@ -433,13 +425,14 @@ public class RESpeckPacketHandler {
 
                 // The file could already exist if we just started the app. If not, add the header
                 if (!new File(filenameRESpeck).exists()) {
-                    Log.i("DF", "RESpeck data file created with header");
+                    Log.i("RESpeckPacketHandler", "RESpeck data file created with header");
                     // Open new connection to file (which creates file)
                     mRespeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameRESpeck, true));
 
                     mRespeckWriter.append(Constants.RESPECK_DATA_HEADER).append("\n");
                 } else {
+                    Log.i("RESpeckPacketHandler", "Open existing RESpeck file");
                     mRespeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameRESpeck, true));
                 }
@@ -455,19 +448,20 @@ public class RESpeckPacketHandler {
 
                     // The file could already exist if we just started the app. If not, add the header
                     if (!new File(filenameMerged).exists()) {
-                        Log.i("DF", "Merged data file created with header");
+                        Log.i("RESpeckPacketHandler", "Merged data file created with header");
                         // Open new connection to new file
                         mMergedWriter = new OutputStreamWriter(
                                 new FileOutputStream(filenameMerged, true));
                         mMergedWriter.append(Constants.MERGED_DATA_HEADER).append("\n");
                     } else {
+                        Log.i("RESpeckPacketHandler", "Open existing merged file");
                         // Open new connection to new file
                         mMergedWriter = new OutputStreamWriter(
                                 new FileOutputStream(filenameMerged, true));
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("RESpeckPacketHandler", "Error while creating respeck or merged file: " + e.getMessage());
             }
         }
         mDateOfLastRESpeckWrite = now;
@@ -477,6 +471,10 @@ public class RESpeckPacketHandler {
             mRespeckWriter.append(data.toStringForFile()).append("\n");
             mRespeckWriter.flush();
 
+        } catch (IOException e) {
+            Log.e("RESpeckPacketHandler", "Error while writing to respeck file: " + e.getMessage());
+        }
+        try {
             // If we want to store a merged file of Airspeck and RESpeck data, append the most
             // recent Airspeck data to the current RESpeck data
             if (mIsStoreMergedFile) {
@@ -490,12 +488,8 @@ public class RESpeckPacketHandler {
                 mMergedWriter.append(data.toStringForFile()).append(",").append(airspeckString).append("\n");
                 mMergedWriter.flush();
             }
-
         } catch (IOException e) {
-            Log.e("SpeckService", "Error while writing to respeck or merged file: " + e.getMessage());
-            // This very likely happened because this service wasn't stopped properly when the app was
-            // closed
-            mSpeckService.stopSpeckService();
+            Log.e("RESpeckPacketHandler", "Error while writing to merged file: " + e.getMessage());
         }
     }
 
@@ -504,8 +498,8 @@ public class RESpeckPacketHandler {
         // half the window size for the activity predictions, in milliseconds
         final int delay = 2000;
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        mActivityClassificationTimer = new Timer();
+        mActivityClassificationTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 updateActivityClassification();
@@ -514,12 +508,19 @@ public class RESpeckPacketHandler {
     }
 
     public void closeHandler() throws IOException {
+        Log.i("RESpeckPacketHandler", "Close handler (i.e. OutputstreamWriters)");
         if (mRespeckWriter != null) {
-            Log.i("SpeckService", "Respeck writer was closed");
+            mRespeckWriter.flush();
             mRespeckWriter.close();
         }
+
         if (mMergedWriter != null) {
+            mMergedWriter.flush();
             mMergedWriter.close();
+        }
+
+        if (mActivityClassificationTimer != null) {
+            mActivityClassificationTimer.cancel();
         }
     }
 

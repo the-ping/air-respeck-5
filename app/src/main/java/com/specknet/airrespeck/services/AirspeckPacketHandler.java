@@ -43,7 +43,7 @@ public class AirspeckPacketHandler {
     private float mLastO3we = Float.NaN;
 
     // GPS
-    private LocationData mLastPhoneLocation;
+    private LocationData mLastPhoneLocation = new LocationData(Double.NaN, Double.NaN, Double.NaN);
     private BroadcastReceiver mLocationReceiver;
 
     // Initial values for last write timestamps
@@ -59,21 +59,11 @@ public class AirspeckPacketHandler {
 
     private AirspeckData mMostRecentAirspeckData;
 
-    // Singleton pattern to allow only one instance of this class
-    private static AirspeckPacketHandler mSingletonInstance;
-
-    public static AirspeckPacketHandler getInstance(SpeckBluetoothService speckService) {
-        if (mSingletonInstance == null) {
-            mSingletonInstance = new AirspeckPacketHandler(speckService);
-        }
-        return mSingletonInstance;
-    }
-
     public AirspeckData getMostRecentAirspeckData() {
         return mMostRecentAirspeckData;
     }
 
-    private AirspeckPacketHandler(SpeckBluetoothService speckService) {
+    public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
         // Initialise opc data arrays
@@ -109,15 +99,15 @@ public class AirspeckPacketHandler {
         int headerLength = 4;
         int payloadLength = bytes[0];
         int packetLength = bytes.length;
-        Log.i("AirspeckPaketHandler", "Payload length: " + payloadLength);
+        Log.i("AirspeckPacketHandler", "Payload length: " + payloadLength);
 
         if (packetLength != payloadLength + headerLength) {
-            Log.e("AirspeckPaketHandler", "Unexpected packet length: " + packetLength);
+            Log.e("AirspeckPacketHandler", "Unexpected packet length: " + packetLength);
             return;
         }
 
         byte packetType = bytes[1];
-        Log.i("AirspeckPaketHandler", "Packet type: " + String.format("0x%02X ", packetType));
+        Log.i("AirspeckPacketHandler", "Packet type: " + String.format("0x%02X ", packetType));
 
         byte[] miniTimestamp = Arrays.copyOfRange(bytes, 2, 3);
 
@@ -138,37 +128,37 @@ public class AirspeckPacketHandler {
         for (byte b : payload) {
             sb.append(String.format("%02X ", b));
         }
-//        Log.i("AirspeckPaketHandler", "Payload: " + sb.toString());
+//        Log.i("AirspeckPacketHandler", "Payload: " + sb.toString());
 
         switch (packetType) {
             case SENSOR_TYPE_OPC1:
-//                Log.i("AirspeckPaketHandler", "OPC1 packet received");
+//                Log.i("AirspeckPacketHandler", "OPC1 packet received");
                 opcData.clear();
                 opcData.put(payload);
                 break;
             case SENSOR_TYPE_OPC2:
-//                Log.i("AirspeckPaketHandler", "OPC2 packet received");
+//                Log.i("AirspeckPacketHandler", "OPC2 packet received");
                 opcData.put(payload);
                 break;
             case SENSOR_TYPE_OPC3:
-//                Log.i("AirspeckPaketHandler", "OPC3 packet received");
+//                Log.i("AirspeckPacketHandler", "OPC3 packet received");
                 opcData.put(payload);
                 break;
             case SENSOR_TYPE_OPC4:
-//                Log.i("AirspeckPaketHandler", "OPC4 packet received");
+//                Log.i("AirspeckPacketHandler", "OPC4 packet received");
                 opcData.put(payload);
                 processOPC(opcData);
                 opcData.clear();
                 break;
             case SENSOR_TYPE_TEMPERATURE_HUMIDITY:
-//                Log.i("AirspeckPaketHandler", "Temperature/humidity packet received");
+//                Log.i("AirspeckPacketHandler", "Temperature/humidity packet received");
                 processTempHumidity(payload);
                 break;
             case SENSOR_TYPE_GAS:
                 processGasData(payload);
                 break;
             default:
-//                Log.e("AirspeckPaketHandler", "Unknown packet type received: " + String.format("0x%02X ", packetType));
+//                Log.e("AirspeckPacketHandler", "Unknown packet type received: " + String.format("0x%02X ", packetType));
                 break;
         }
     }
@@ -182,14 +172,14 @@ public class AirspeckPacketHandler {
     }
 
     private void processOPC(ByteBuffer buffer) {
-//        Log.i("AirspeckPaketHandler", "Processing OPC data: " + buffer.toString());
+//        Log.i("AirspeckPacketHandler", "Processing OPC data: " + buffer.toString());
 
         buffer.position(0);
 
         int[] bins = new int[16];
         for (int i = 0; i < bins.length; i++) {
             bins[i] = buffer.getShort();
-//            Log.i("AirspeckPaketHandler", "Bin " + i + ": " + bins[i]);
+//            Log.i("AirspeckPacketHandler", "Bin " + i + ": " + bins[i]);
         }
 
         // 4 8-bit values denoting average of how long particles were observed in laser beam for bin 1,3,5,7
@@ -233,15 +223,15 @@ public class AirspeckPacketHandler {
 
     void processTempHumidity(byte[] bytes) {
         if (bytes.length != 4) {
-//            Log.i("AirspeckPaketHandler", "Temp/humidity packet length incorrect: " + bytes.length);
+//            Log.i("AirspeckPacketHandler", "Temp/humidity packet length incorrect: " + bytes.length);
             return;
         }
 
         ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
         mLastTemperatureAirspeck = ((float) buf.getShort()) * 0.1f;
-//        Log.i("AirspeckPaketHandler", "Temp: " + mLastTemperatureAirspeck);
+//        Log.i("AirspeckPacketHandler", "Temp: " + mLastTemperatureAirspeck);
         mLastHumidityAirspeck = ((float) buf.getShort()) * 0.1f;
-//        Log.i("AirspeckPaketHandler", "Humidity: " + mLastHumidityAirspeck);
+//        Log.i("AirspeckPacketHandler", "Humidity: " + mLastHumidityAirspeck);
     }
 
     private void writeToAirspeckFile(AirspeckData airspeckData) {
@@ -266,7 +256,7 @@ public class AirspeckPacketHandler {
 
                 // The file could already exist if we just started the app. If not, add the header
                 if (!new File(filenameAirspeck).exists()) {
-                    Log.i("AirspeckPaketHandler", "Airspeck data file created with header");
+                    Log.i("AirspeckPacketHandler", "Airspeck data file created with header");
                     // Open new connection to new file
                     mAirspeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameAirspeck, true));
@@ -290,21 +280,16 @@ public class AirspeckPacketHandler {
             mAirspeckWriter.append(airspeckData.toStringForFile()).append("\n");
             mAirspeckWriter.flush();
         } catch (IOException e) {
-            Log.e("AirspeckPaketHandler", "Error while writing to airspeck file: " + e.getMessage());
-            // This very likely happened because this service wasn't stopped properly when the app was
-            // closed
-            mSpeckService.stopSpeckService();
+            Log.e("AirspeckPacketHandler", "Error while writing to airspeck file: " + e.getMessage());
         }
     }
 
 
     public void closeHandler() throws Exception {
         if (mAirspeckWriter != null) {
-            Log.i("AirspeckPaketHandler", "Respeck writer was closed");
+            Log.i("AirspeckPacketHandler", "Respeck writer was closed");
             mAirspeckWriter.close();
         }
-        if (mLocationReceiver != null) {
-            mSpeckService.unregisterReceiver(mLocationReceiver);
-        }
+        mSpeckService.unregisterReceiver(mLocationReceiver);
     }
 }
