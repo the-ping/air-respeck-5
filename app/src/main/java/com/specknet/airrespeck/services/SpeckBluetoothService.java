@@ -15,7 +15,6 @@ import android.widget.Toast;
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.RxBleConnection;
 import com.polidea.rxandroidble.RxBleDevice;
-import com.polidea.rxandroidble.RxBleScanResult;
 import com.polidea.rxandroidble.exceptions.BleDisconnectedException;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
@@ -23,6 +22,8 @@ import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import rx.Observable;
@@ -40,9 +41,6 @@ public class SpeckBluetoothService extends Service {
     // Bluetooth connection
     private BluetoothAdapter mBluetoothAdapter;
     public static RxBleClient rxBleClient;
-    private boolean mIsAirspeckFound;
-    private boolean mIsRESpeckFound;
-    private Subscription scanSubscription;
     private Subscription airspeckSubscription;
     private Subscription respeckLiveSubscription;
 
@@ -57,6 +55,11 @@ public class SpeckBluetoothService extends Service {
     // Classes to handle received packets
     private RESpeckPacketHandler respeckHandler;
     private AirspeckPacketHandler airspeckHandler;
+
+    private RxBleDevice mAirspeckDevice;
+    private RxBleDevice mRESpeckDevice;
+
+    private RxBleConnection.RxBleConnectionState mLastConnectionState;
 
     public SpeckBluetoothService() {
 
@@ -136,10 +139,6 @@ public class SpeckBluetoothService extends Service {
         mIsRESpeckEnabled = !Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_RESPECK_DISABLED));
 
-        // Look whether Airspeck is enabled in config
-        mIsAirspeckEnabled = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
-
         // Get Bluetooth address
         AIRSPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.AIRSPECK_UUID);
         RESPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.RESPECK_UUID);
@@ -156,53 +155,21 @@ public class SpeckBluetoothService extends Service {
             return;
         }
 
-        mIsAirspeckFound = false;
-        mIsRESpeckFound = false;
-
         rxBleClient = RxBleClient.create(this);
         Log.i("SpeckService", "Scanning..");
 
-        scanSubscription = rxBleClient.scanBleDevices()
-                .subscribe(
-                        new Action1<RxBleScanResult>() {
-                            @Override
-                            public void call(RxBleScanResult rxBleScanResult) {
-                                Log.i("SpeckService",
-                                        "FOUND :" + rxBleScanResult.getBleDevice().getName() + ", " +
-                                                rxBleScanResult.getBleDevice().getMacAddress());
-                                if (mIsAirspeckEnabled && !mIsAirspeckFound) {
-                                    // Process scan result here.
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
-                                            AIRSPECK_UUID)) {
-                                        mIsAirspeckFound = true;
-                                        SpeckBluetoothService.this.connectAndNotifyAirspeck();
-                                    }
-                                }
-                                if (mIsRESpeckEnabled && !mIsRESpeckFound) {
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(RESPECK_UUID)) {
-                                        mIsRESpeckFound = true;
-                                        SpeckBluetoothService.this.connectAndNotifyRespeck();
-                                    }
-                                }
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                // Handle an error here.
-                                Log.e("SpeckService", throwable.toString());
-                            }
-                        }
-                );
+        if (mIsRESpeckEnabled) {
+            connectToRESpeck();
+        }
+        if (mIsAirspeckEnabled) {
+            connectAndNotifyAirspeck();
+        }
     }
 
     private void connectAndNotifyAirspeck() {
-        if ((mIsAirspeckFound && mIsRESpeckFound) || !mIsRESpeckEnabled)
-            scanSubscription.unsubscribe();
-
-        RxBleDevice device = rxBleClient.getBleDevice(AIRSPECK_UUID);
+        mAirspeckDevice = rxBleClient.getBleDevice(AIRSPECK_UUID);
         // Given characteristic has been changes, here is the value.
-        airspeckSubscription = device.establishConnection(true)
+        airspeckSubscription = mAirspeckDevice.establishConnection(true)
                 .flatMap(new Func1<RxBleConnection, Observable<?>>() {
                     @Override
                     public Observable<?> call(RxBleConnection rxBleConnection) {
@@ -252,12 +219,52 @@ public class SpeckBluetoothService extends Service {
         connectAndNotifyAirspeck();
     }
 
-    private void connectAndNotifyRespeck() {
-        if ((mIsAirspeckFound && mIsRESpeckFound) || !mIsAirspeckEnabled)
-            scanSubscription.unsubscribe();
+    private void connectToRESpeck() {
+        mRESpeckDevice = rxBleClient.getBleDevice(RESPECK_UUID);
+        mRESpeckDevice.observeConnectionStateChanges()
+                .subscribe(
+                        new Action1<RxBleConnection.RxBleConnectionState>() {
+                            @Override
+                            public void call(RxBleConnection.RxBleConnectionState connectionState) {
+                                if (connectionState == RxBleConnection.RxBleConnectionState.DISCONNECTED) {
+                                    Intent respeckDisconnectedIntent = new Intent(
+                                            Constants.ACTION_RESPECK_DISCONNECTED);
+                                    sendBroadcast(respeckDisconnectedIntent);
 
-        RxBleDevice device = rxBleClient.getBleDevice(RESPECK_UUID);
-        respeckLiveSubscription = device.establishConnection(true)
+                                    if (mLastConnectionState == RxBleConnection.RxBleConnectionState.CONNECTED) {
+                                        // If we were just disconnected, try to immediately connect again.
+                                        Log.i("SpeckService", "Connection lost, trying to reconnect");
+                                        establishRESpeckConnection();
+                                    } else if (mLastConnectionState == RxBleConnection.RxBleConnectionState.CONNECTING) {
+                                        // This means we tried to reconnect, but there was a timeout. In this case we
+                                        // wait for x seconds before reconnecting
+                                        Log.i("SpeckService", "Connection timeout, waiting 20 seconds before reconnect");
+                                        new Timer().schedule(new TimerTask() {
+                                            @Override
+                                            public void run() {
+                                                Log.i("SpeckService", "Reconnecting...");
+                                                establishRESpeckConnection();
+                                            }
+                                        }, 20000);
+                                    }
+                                }
+                                mLastConnectionState = connectionState;
+                            }
+                        },
+                        new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                Log.e("SpeckService",
+                                        "Error occured while listening to RESpeck connection state changes: " +
+                                                throwable.getMessage());
+                            }
+                        }
+                );
+        establishRESpeckConnection();
+    }
+
+    private void establishRESpeckConnection() {
+        respeckLiveSubscription = mRESpeckDevice.establishConnection(false)
                 .flatMap(new Func1<RxBleConnection, Observable<?>>() {
                     @Override
                     public Observable<?> call(RxBleConnection rxBleConnection) {
@@ -293,33 +300,15 @@ public class SpeckBluetoothService extends Service {
                         new Action1<Throwable>() {
                             @Override
                             public void call(Throwable throwable) {
-                                // Handle an error here.
-                                if (throwable instanceof BleDisconnectedException) {
-                                    Log.i("SpeckService", "RESPECK DISCONNECTED: " + throwable.toString());
-                                    Intent respeckDisconnectedIntent = new Intent(
-                                            Constants.ACTION_RESPECK_DISCONNECTED);
-                                    sendBroadcast(respeckDisconnectedIntent);
-                                    SpeckBluetoothService.this.reconnectRespeck();
-                                } else {
-                                    Log.e("SpeckService", "Notification handling error: " + throwable.toString());
-                                }
+                                Log.e("SpeckService", "Notification handling error: " + throwable.toString());
                             }
                         }
                 );
     }
 
-    private void reconnectRespeck() {
-        respeckLiveSubscription.unsubscribe();
-        connectAndNotifyRespeck();
-    }
-
     public void stopSpeckService() {
         Log.i("SpeckService", "Stopping Speck Service");
 
-        // Close bluetooth scanning
-        if (scanSubscription != null) {
-            scanSubscription.unsubscribe();
-        }
         if (respeckLiveSubscription != null) {
             respeckLiveSubscription.unsubscribe();
         }
