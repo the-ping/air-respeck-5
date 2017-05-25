@@ -40,10 +40,11 @@
                     android:text="@string/graphs_breathing_flow_title"
                     android:layout_marginBottom="7dp"/>
 
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/breathing_flow_line_chart"
+                <FrameLayout
+                    android:id="@+id/breathing_graph_container"
+                    android:layout_height="250dp"
                     android:layout_width="match_parent"
-                    android:layout_height="250dp"/>
+                    android:layout_centerVertical="true"></FrameLayout>
 
             </LinearLayout>
         </ScrollView>

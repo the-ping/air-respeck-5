@@ -47,12 +47,11 @@
 
     </LinearLayout>
 
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/breathing_flow_line_chart"
-        android:layout_width="match_parent"
+    <FrameLayout
+        android:id="@+id/breathing_graph_container"
         android:layout_height="250dp"
-        android:layout_centerVertical="true"
-        android:layout_alignParentStart="false"/>
+        android:layout_width="match_parent"
+        android:layout_centerVertical="true"></FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
