@@ -1,8 +1,9 @@
 package com.specknet.airrespeck.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,8 +45,11 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
     private ReadingItemArrayAdapter mListViewAdapter;
 
     private int updateDelayBreathingGraph;
-
+    private Handler breathingGraphHandler;
     private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
+
+    private final int DEFAULT_DELAY = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS /
+            Constants.NUMBER_OF_SAMPLES_PER_BATCH;
 
     // Graphs
     private LineChart mBreathingFlowChart;
@@ -94,6 +98,23 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
         mIsCreated = true;
 
         return view;
+    }
+
+
+    @Override
+    public void updateRESpeckData(RESpeckLiveData data) {
+        Log.i("RESpeckReadings", "updateRESpeckData");
+        if (mIsCreated) {
+            mReadingItems.get(0).value = data.getBreathingRate();
+            mReadingItems.get(1).value = data.getAvgBreathingRate();
+            mListViewAdapter.notifyDataSetChanged();
+
+            // Update the graphs if present
+            BreathingGraphData breathingGraphData = new BreathingGraphData(
+                    Utils.onlyKeepTimeInHour(data.getPhoneTimestamp()), data.getAccelX(), data.getAccelY(),
+                    data.getAccelZ(), data.getBreathingSignal());
+            mBreathingDataQueue.add(breathingGraphData);
+        }
     }
 
     /**
@@ -204,26 +225,8 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
         chart.invalidate();
     }
 
-    @Override
-    public void updateRESpeckData(RESpeckLiveData data) {
-        if (mIsCreated) {
-            mReadingItems.get(0).value = data.getBreathingRate();
-            mReadingItems.get(1).value = data.getAvgBreathingRate();
-            mListViewAdapter.notifyDataSetChanged();
-
-            // Update the graphs if present
-            BreathingGraphData breathingGraphData = new BreathingGraphData(
-                    Utils.onlyKeepTimeInHour(data.getPhoneTimestamp()), data.getAccelX(), data.getAccelY(),
-                    data.getAccelZ(), data.getBreathingSignal());
-            mBreathingDataQueue.add(breathingGraphData);
-        }
-    }
-
     private void startBreathingGraphUpdaterTask() {
-        final Handler handler = new Handler();
-        final int defaultDelay = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS /
-                Constants.NUMBER_OF_SAMPLES_PER_BATCH;
-        updateDelayBreathingGraph = defaultDelay;
+        breathingGraphHandler = new Handler();
 
         // This class is used to determine the update frequency of the breathing data graph. The data from the
         // RESpeck is coming in in batches, which would make the graph hard to read. Therefore, we store the
@@ -240,14 +243,14 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
                     // If the queue is empty and there has been data in the queue previously,
                     // this means we were too fast. Wait for another delay and decrease the processing speed.
                     // Only do this if we're below a certain threshold (set with intuition here)
-                    if (queueHadBeenFilled && updateDelayBreathingGraph <= 1.1 * defaultDelay) {
+                    if (queueHadBeenFilled && updateDelayBreathingGraph <= 1.1 * DEFAULT_DELAY) {
                         updateDelayBreathingGraph += 1;
                         Log.v("DF", String.format(Locale.UK,
                                 "Breathing graph data queue empty: decrease processing speed to: %d ms",
                                 updateDelayBreathingGraph));
                     }
 
-                    handler.postDelayed(this, updateDelayBreathingGraph);
+                    breathingGraphHandler.postDelayed(this, updateDelayBreathingGraph);
                 } else {
                     // Remember the fact that we have already received data
                     queueHadBeenFilled = true;
@@ -270,11 +273,25 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
                                 updateDelayBreathingGraph));
                     }
 
-                    handler.postDelayed(this, updateDelayBreathingGraph);
+                    breathingGraphHandler.postDelayed(this, updateDelayBreathingGraph);
                 }
             }
         }
-        handler.postDelayed(new breathingUpdaterRunner(), updateDelayBreathingGraph);
+        breathingGraphHandler.postDelayed(new breathingUpdaterRunner(), updateDelayBreathingGraph);
     }
 
+    @Override
+    public void onDetach() {
+        if (breathingGraphHandler != null) {
+            breathingGraphHandler.removeCallbacksAndMessages(null);
+        }
+        super.onDetach();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        updateDelayBreathingGraph = DEFAULT_DELAY;
+        mBreathingDataQueue.clear();
+    }
 }

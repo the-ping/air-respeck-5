@@ -217,9 +217,6 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment implements Ai
         // Attach data sets to to chart
         mBinsLineChart.setData(new BarData(dataSets));
 
-        // Update chart
-        updateBinsChart();
-
         // Disable helper lines showing an element the user touched
         mBinsLineChart.getData().setHighlightEnabled(false);
 
@@ -241,7 +238,7 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment implements Ai
     private void updateBinsChart() {
         ArrayList<BarEntry> values = new ArrayList<>();
 
-        for (int i = 0; i < dataBuffer.size(); ++i) {
+        for (int i = 0; i < BINS_NUMBER; ++i) {
             values.add(new BarEntry(i, dataBuffer.peekLast().getBins()[i]));
         }
 

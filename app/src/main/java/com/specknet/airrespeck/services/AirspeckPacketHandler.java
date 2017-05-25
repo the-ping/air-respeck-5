@@ -192,8 +192,6 @@ public class AirspeckPacketHandler {
             Log.i("SpeckService", "Bin " + i + ": " + bins[i]);
         }
 
-        int binsTotal = Utils.sum(bins);
-
         // 4 8-bit values denoting average of how long particles were observed in laser beam for bin 1,3,5,7
         buffer.getInt();
         // OPC Temperature
@@ -214,7 +212,6 @@ public class AirspeckPacketHandler {
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
         // TODO: get real location from new Airspeck
-        String locationString = ",,";
 
         AirspeckData newAirspeckData = new AirspeckData(AIRSPECK_UUID, currentPhoneTimestamp, pm1, pm2_5, pm10,
                 mLastTemperatureAirspeck, mLastHumidityAirspeck, mLastNO2we, mLastNO2ae, mLastO3we, mLastO3ae, bins,

@@ -2,6 +2,7 @@ package com.specknet.airrespeck.adapters;
 
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -59,7 +60,7 @@ public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
         if (item.stringValue != null) {
             viewHolder.value.setText(item.stringValue);
         } else {
-            viewHolder.value.setText(String.valueOf(item.value));
+            viewHolder.value.setText(String.format(Locale.UK, "%.2f", item.value));
         }
 
         // Return the completed view to render on screen

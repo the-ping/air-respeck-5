@@ -155,7 +155,7 @@ public class SegmentedBar extends View {
             a.recycle();
         }
 
-        formatter = new DecimalFormat("##.####");
+        formatter = new DecimalFormat("##.#");
 
         segmentTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         segmentTextPaint.setColor(Color.WHITE);

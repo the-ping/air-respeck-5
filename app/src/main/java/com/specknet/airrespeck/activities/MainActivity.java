@@ -49,7 +49,6 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.AirspeckData;
-import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
@@ -65,8 +64,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -193,10 +192,6 @@ public class MainActivity extends AppCompatActivity {
     // Layout view for snack bar
     private CoordinatorLayout mCoordinatorLayout;
 
-    // READING VALUES
-    private LinkedList<BreathingGraphData> breathingSignalchartDataQueue = new LinkedList<>();
-    private int updateDelayBreathingGraph;
-
     // Speck service
     final int REQUEST_ENABLE_BLUETOOTH = 0;
     private BroadcastReceiver mSpeckServiceReceiver;
@@ -221,8 +216,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mIsActivityRunning = false;
 
-    private List<RESpeckDataObserver> respeckDataObservers = new ArrayList<>();
-    private List<AirspeckDataObserver> airspeckDataObservers = new ArrayList<>();
+    private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
+    private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -441,20 +436,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     throw new RuntimeException("Couldn't create phone directory on external storage");
                 }
-            }
-        }
-
-        // Create activity summary file if it doesn't exists
-        if (!new File(Constants.ACTIVITY_SUMMARY_FILE_PATH).exists()) {
-            Log.i("DF", "Activity summary file created with header");
-            try {
-                // Create file and add header to beginning
-                OutputStreamWriter activityWriter = new OutputStreamWriter(
-                        new FileOutputStream(Constants.ACTIVITY_SUMMARY_FILE_PATH, true));
-                activityWriter.append(Constants.ACTIVITY_SUMMARY_HEADER).append("\n");
-                activityWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -974,6 +955,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void registerRESpeckDataObserver(RESpeckDataObserver observer) {
         respeckDataObservers.add(observer);
+        Log.i("MainActivity", "Number of RESpeck observers: " + respeckDataObservers.size());
     }
 
 
