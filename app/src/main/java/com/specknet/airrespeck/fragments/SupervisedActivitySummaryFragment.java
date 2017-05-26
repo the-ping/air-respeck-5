@@ -123,6 +123,8 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                                     int activityType = Integer.parseInt(row[10]);
                                     if (activityType != -1) {
                                         hourStats[activityType]++;
+                                        dayStats[activityType]++;
+                                        weekStats[activityType]++;
                                     }
                                 }
                             }
@@ -140,8 +142,8 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                                 if (tsRow >= oneDayBefore && tsRow <= now) {
                                     int activityType = Integer.parseInt(row[10]);
                                     if (activityType != -1) {
-                                        hourStats[activityType]++;
                                         dayStats[activityType]++;
+                                        weekStats[activityType]++;
                                     }
                                 }
                             }
@@ -159,8 +161,6 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                                 if (tsRow >= oneWeekBefore && tsRow <= now) {
                                     int activityType = Integer.parseInt(row[10]);
                                     if (activityType != -1) {
-                                        hourStats[activityType]++;
-                                        dayStats[activityType]++;
                                         weekStats[activityType]++;
                                     }
                                 }
@@ -181,15 +181,15 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
             int daySum = Utils.sum(dayStats);
             int weekSum = Utils.sum(weekStats);
 
-            readings.add(0, String.format(Locale.UK, "Sit/stand:\u00A0%d%%, Walking:\u00A0%d%%, Lying:\u00A0%d%%",
-                    (int) (hourStats[0] * 1. / hourSum * 100), (int) (hourStats[1] * 1. / hourSum * 100),
-                    (int) (hourStats[2] * 1. / hourSum * 100)));
-            readings.add(1, String.format(Locale.UK, "Sit/stand:\u00A0%d%%, Walking:\u00A0%d%%, Lying:\u00A0%d%%",
-                    (int) (dayStats[0] * 1. / daySum * 100), (int) (dayStats[1] * 1. / daySum * 100),
-                    (int) (dayStats[2] * 1. / daySum * 100)));
-            readings.add(2, String.format(Locale.UK, "Sit/stand:\u00A0%d%%, Walking:\u00A0%d%%, Lying:\u00A0%d%%",
-                    (int) (weekStats[0] * 1. / weekSum * 100), (int) (weekStats[1] * 1. / weekSum * 100),
-                    (int) (weekStats[2] * 1. / weekSum * 100)));
+            readings.add(0, String.format(Locale.UK, "Sit/stand:\u00A0%.1f%%, Walking:\u00A0%.1f%%, Lying:\u00A0%.1f%%",
+                    (hourStats[0] * 1. / hourSum * 100), (hourStats[1] * 1. / hourSum * 100),
+                    (hourStats[2] * 1. / hourSum * 100)));
+            readings.add(1, String.format(Locale.UK, "Sit/stand:\u00A0%.1f%%, Walking:\u00A0%.1f%%, Lying:\u00A0%.1f%%",
+                    (dayStats[0] * 1. / daySum * 100), (dayStats[1] * 1. / daySum * 100),
+                    (dayStats[2] * 1. / daySum * 100)));
+            readings.add(2, String.format(Locale.UK, "Sit/stand:\u00A0%.1f%%, Walking:\u00A0%.1f%%, Lying:\u00A0%.1f%%",
+                    (weekStats[0] * 1. / weekSum * 100), (weekStats[1] * 1. / weekSum * 100),
+                    (weekStats[2] * 1. / weekSum * 100)));
             return readings;
         }
 

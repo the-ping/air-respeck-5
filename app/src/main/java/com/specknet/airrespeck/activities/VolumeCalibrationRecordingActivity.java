@@ -12,10 +12,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 
 import java.io.File;
@@ -38,6 +40,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
     private boolean mIsRecording;
     private String mBagSize;
     private String mActivity;
+    private String mSubjectName;
 
     private Button mStartStopButton;
     private Button mCancelButton;
@@ -59,12 +62,14 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
         final Spinner activitySpinner = (Spinner) findViewById(R.id.activity_spinner);
         final Spinner bagSizeSpinner = (Spinner) findViewById(R.id.bag_size_spinner);
 
+        final EditText nameTextField = (EditText) findViewById(R.id.name_text_field);
+
         String[] activitySpinnerElements = new String[]{SITTING, STANDING, LYING};
         ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
         activitySpinner.setAdapter(activityAdapter);
 
-        String[] bagSpinnerElements = new String[]{"0.35", "0.7", "1.2"};
+        String[] bagSpinnerElements = new String[]{"0.35", "0.5", "0.7", "1.2"};
         ArrayAdapter<String> bagSizeAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, bagSpinnerElements);
         bagSizeSpinner.setAdapter(bagSizeAdapter);
@@ -91,6 +96,9 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             try {
+                                // End recording
+                                mIsRecording = false;
+
                                 if (outputData.length() != 0) {
                                     mWriter.write(outputData.toString());
                                     mWriter.flush();
@@ -99,12 +107,10 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                                             Toast.LENGTH_LONG).show();
 
                                     // Add a line which indicates end of recording
-                                    mWriter.append("end of record,,,,,,").flush();
+                                    mWriter.append("end of record,,,,,,,").flush();
                                 }
-                                outputData = new StringBuilder();
 
-                                // End recording
-                                mIsRecording = false;
+                                outputData = new StringBuilder();
 
                                 // Change button label to tell the user that the recording has stopped
                                 mStartStopButton.setText(R.string.button_text_start_recording);
@@ -118,15 +124,23 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                     }, 1000);
                 } else {
                     // Start recording
-                    mBagSize = bagSizeSpinner.getSelectedItem().toString();
-                    mActivity = activitySpinner.getSelectedItem().toString();
-                    mIsRecording = true;
 
-                    // Change button label to tell the user that we are recording
-                    mStartStopButton.setText(R.string.button_text_stop_recording);
-                    mStartStopButton.setBackgroundColor(
-                            ContextCompat.getColor(getApplicationContext(), R.color.md_green_300));
-                    mCancelButton.setEnabled(true);
+                    mSubjectName = nameTextField.getText().toString();
+                    if (!mSubjectName.equals("")) {
+                        mBagSize = bagSizeSpinner.getSelectedItem().toString();
+                        mActivity = activitySpinner.getSelectedItem().toString();
+
+                        mIsRecording = true;
+
+                        // Change button label to tell the user that we are recording
+                        mStartStopButton.setText(R.string.button_text_stop_recording);
+                        mStartStopButton.setBackgroundColor(
+                                ContextCompat.getColor(getApplicationContext(), R.color.md_green_300));
+                        mCancelButton.setEnabled(true);
+                    } else {
+                        Toast.makeText(VolumeCalibrationRecordingActivity.this, "Enter subject name",
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         });
@@ -170,28 +184,27 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
         mSpeckServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+
+                RESpeckLiveData data = (RESpeckLiveData) intent.getSerializableExtra(Constants.RESPECK_LIVE_DATA);
+
                 // If we are currently recording (button is pressed), store the received values
                 if (mIsRecording) {
-                    int activityType = intent.getIntExtra(Constants.RESPECK_ACTIVITY_TYPE, Constants.WRONG_ORIENTATION);
                     if ((mActivity.equals(SITTING) || mActivity.equals(
-                            STANDING)) && !(activityType == Constants.ACTIVITY_STAND_SIT)) {
+                            STANDING)) && !(data.getActivityType() == Constants.ACTIVITY_STAND_SIT)) {
                         Toast.makeText(getApplicationContext(),
                                 "RESpeck registers activity other than sitting or standing, which is the selected option",
                                 Toast.LENGTH_LONG).show();
                         cancelRecording();
-                    } else if (mActivity.equals(LYING) && !(activityType == Constants.ACTIVITY_LYING)) {
+                    } else if (mActivity.equals(LYING) && !(data.getActivityType() == Constants.ACTIVITY_LYING)) {
                         Toast.makeText(getApplicationContext(),
                                 "RESpeck registers activity other than lying down, which is the selected option",
                                 Toast.LENGTH_LONG).show();
                         cancelRecording();
                     }
 
-                    String output = intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0) + "," +
-                            intent.getFloatExtra(Constants.RESPECK_X, Float.NaN) + "," +
-                            intent.getFloatExtra(Constants.RESPECK_Y, Float.NaN) + "," +
-                            intent.getFloatExtra(Constants.RESPECK_Z, Float.NaN) + "," +
-                            intent.getFloatExtra(Constants.RESPECK_BREATHING_SIGNAL, Float.NaN) + "," +
-                            mActivity + "," + mBagSize + "\n";
+                    String output = mSubjectName + "," + data.getPhoneTimestamp() + "," +
+                            data.getAccelX() + "," + data.getAccelY() + "," + data.getAccelZ() + "," +
+                            data.getBreathingSignal() + "," + mActivity + "," + mBagSize + "\n";
                     outputData.append(output);
                 }
             }
