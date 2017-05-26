@@ -250,7 +250,7 @@ public class SpeckBluetoothService extends Service {
                                             public void run() {
                                                 establishRESpeckConnection();
                                             }
-                                        }, 2000);
+                                        }, 0);
                                     } else if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTING) {
                                         // This means we tried to reconnect, but there was a timeout. In this case we
                                         // wait for x seconds before reconnecting
@@ -321,14 +321,6 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(Throwable throwable) {
                                 Log.e("SpeckService", "RESpeck bluetooth error: " + throwable.toString());
-                                /*
-                                respeckLiveSubscription.unsubscribe();
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        establishRESpeckConnection();
-                                    }
-                                }, 2000);*/
                             }
                         }
                 );

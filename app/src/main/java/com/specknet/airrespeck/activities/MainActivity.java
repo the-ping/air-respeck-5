@@ -756,7 +756,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startActivitySummaryUpdaterTask() {
-        final int delay = 10 * 60 * 1000;
+        final int delay = 2 * 60 * 1000;
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override

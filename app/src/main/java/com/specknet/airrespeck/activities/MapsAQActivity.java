@@ -286,7 +286,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                     } catch (IOException | ParseException e) {
                         e.printStackTrace();
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        Log.i("AirspeckMap", "Incomplete Airspeck data row (might be because location is missing");
+                        Log.i("AirspeckMap", "Incomplete Airspeck data row (might be because location is missing)");
                     }
                 }
             }
