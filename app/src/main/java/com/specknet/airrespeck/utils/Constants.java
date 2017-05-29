@@ -256,7 +256,7 @@ public class Constants {
     public static final String RESPECK_DATA_HEADER = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
-    public static final String VOLUME_DATA_HEADER = "interpolatedPhoneTimestamp,x,y,z," +
+    public static final String VOLUME_DATA_HEADER = "subjectName,interpolatedPhoneTimestamp,x,y,z," +
             "breathingSignal,activityTypeSelection,bagSizeSelection";
 
     public static final String AIRSPECK_DATA_HEADER = "airspeckUUID,phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity," +

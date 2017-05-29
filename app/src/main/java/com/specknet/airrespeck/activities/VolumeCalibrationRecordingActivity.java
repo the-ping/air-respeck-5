@@ -107,7 +107,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                                             Toast.LENGTH_LONG).show();
 
                                     // Add a line which indicates end of recording
-                                    mWriter.append("end of record,,,,,,,").flush();
+                                    mWriter.append("end of record,,,,,,,\n").flush();
                                 }
 
                                 outputData = new StringBuilder();
