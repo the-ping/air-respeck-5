@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.RxBleConnection;
 import com.polidea.rxandroidble.RxBleDevice;
+import com.polidea.rxandroidble.RxBleScanResult;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.AirspeckData;
@@ -57,6 +58,11 @@ public class SpeckBluetoothService extends Service {
 
     private RxBleDevice mAirspeckDevice;
     private RxBleDevice mRESpeckDevice;
+
+    private boolean mIsAirspeckFound;
+    private boolean mIsRESpeckFound;
+
+    private Subscription scanSubscription;
 
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
 
@@ -157,6 +163,51 @@ public class SpeckBluetoothService extends Service {
                     Toast.LENGTH_LONG).show();
             return;
         }
+
+        mIsAirspeckFound = false;
+        mIsRESpeckFound = false;
+
+        rxBleClient = RxBleClient.create(this);
+
+        scanSubscription = rxBleClient.scanBleDevices()
+                .subscribe(
+                        new Action1<RxBleScanResult>() {
+                            @Override
+                            public void call(RxBleScanResult rxBleScanResult) {
+                                Log.i("SpeckService",
+                                        "FOUND :" + rxBleScanResult.getBleDevice().getName() + ", " +
+                                                rxBleScanResult.getBleDevice().getMacAddress());
+
+                                if ((mIsAirspeckFound || !mIsAirspeckEnabled) &&
+                                        (mIsRESpeckFound || !mIsRESpeckEnabled)) {
+                                    scanSubscription.unsubscribe();
+                                }
+
+                                if (mIsAirspeckEnabled && !mIsAirspeckFound) {
+                                    // Process scan result here.
+                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
+                                            AIRSPECK_UUID)) {
+                                        mIsAirspeckFound = true;
+                                        SpeckBluetoothService.this.connectToAirspeck();
+                                    }
+                                }
+                                if (mIsRESpeckEnabled && !mIsRESpeckFound) {
+                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(RESPECK_UUID)) {
+                                        mIsRESpeckFound = true;
+                                        SpeckBluetoothService.this.connectToRESpeck();
+                                    }
+                                }
+                            }
+                        },
+                        new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                // Handle an error here.
+                                Log.e("SpeckService", "Error while scanning: " + throwable.toString());
+                            }
+                        }
+                );
+
 
         rxBleClient = RxBleClient.create(this);
         Log.i("SpeckService", "Scanning..");
