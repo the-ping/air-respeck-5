@@ -168,6 +168,7 @@ public class SpeckBluetoothService extends Service {
         mIsRESpeckFound = false;
 
         rxBleClient = RxBleClient.create(this);
+        Log.i("SpeckService", "Scanning..");
 
         scanSubscription = rxBleClient.scanBleDevices()
                 .subscribe(
@@ -194,6 +195,7 @@ public class SpeckBluetoothService extends Service {
                                 if (mIsRESpeckEnabled && !mIsRESpeckFound) {
                                     if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(RESPECK_UUID)) {
                                         mIsRESpeckFound = true;
+                                        Log.i("SpeckService", "Connecting after scanning");
                                         SpeckBluetoothService.this.connectToRESpeck();
                                     }
                                 }
@@ -207,17 +209,6 @@ public class SpeckBluetoothService extends Service {
                             }
                         }
                 );
-
-
-        rxBleClient = RxBleClient.create(this);
-        Log.i("SpeckService", "Scanning..");
-
-        if (mIsRESpeckEnabled) {
-            connectToRESpeck();
-        }
-        if (mIsAirspeckEnabled) {
-            connectToAirspeck();
-        }
     }
 
     private void connectToAirspeck() {
@@ -301,7 +292,7 @@ public class SpeckBluetoothService extends Service {
                                             public void run() {
                                                 establishRESpeckConnection();
                                             }
-                                        }, 0);
+                                        }, 2000);
                                     } else if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTING) {
                                         // This means we tried to reconnect, but there was a timeout. In this case we
                                         // wait for x seconds before reconnecting

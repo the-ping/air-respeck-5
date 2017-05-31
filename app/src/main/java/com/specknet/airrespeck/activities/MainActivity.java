@@ -59,9 +59,6 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -185,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsStorePhoneGPS;
     private boolean mIsStoreDataLocally;
     private boolean mIsStoreMergedFile;
+    private boolean mShowRESpeckWrongOrientationEnabled;
 
     // UTILS
     private Utils mUtils;
@@ -651,6 +649,10 @@ public class MainActivity extends AppCompatActivity {
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
         mIsStoreMergedFile = (Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && mIsAirspeckEnabled);
+
+        // Do we want to show wrong orientation dialog
+        mShowRESpeckWrongOrientationEnabled = !Boolean.parseBoolean(
+                mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_WRONG_ORIENTATION_DISABLED));
     }
 
     private void setupViewPager() {
@@ -930,17 +932,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRespeckReadings(RESpeckLiveData newData) {
         // If the sensor is in the wrong orientation, show a dialog
-        if (!mIsWrongOrientationDialogDisplayed) {
-            if (newData.getActivityType() == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
-                mIsWrongOrientationDialogDisplayed = true;
-                mWrongOrientationDialog = new WrongOrientationDialog();
-                mWrongOrientationDialog.show(getFragmentManager(), "wrong_orientation_dialog");
-            }
-        } else {
-            // If the current activity is sitting or standing the sensor was put into the correct orientation,
-            // so we can dismiss the dialog
-            if (newData.getActivityType() == Constants.ACTIVITY_STAND_SIT) {
-                mWrongOrientationDialog.dismiss();
+        if (mShowRESpeckWrongOrientationEnabled) {
+            if (!mIsWrongOrientationDialogDisplayed) {
+                if (newData.getActivityType() == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
+                    mIsWrongOrientationDialogDisplayed = true;
+                    mWrongOrientationDialog = new WrongOrientationDialog();
+                    mWrongOrientationDialog.show(getFragmentManager(), "wrong_orientation_dialog");
+                }
+            } else {
+                // If the current activity is sitting or standing the sensor was put into the correct orientation,
+                // so we can dismiss the dialog
+                if (newData.getActivityType() == Constants.ACTIVITY_STAND_SIT) {
+                    mWrongOrientationDialog.dismiss();
+                }
             }
         }
 
@@ -964,7 +968,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void notifyNewAirspeckReading(AirspeckData newData) {
-        for (AirspeckDataObserver observer: airspeckDataObservers) {
+        for (AirspeckDataObserver observer : airspeckDataObservers) {
             observer.updateAirspeckData(newData);
         }
     }

@@ -47,9 +47,13 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
 
     private StringBuilder outputData;
 
-    private final String SITTING = "Sitting";
+    private final String SITTING_STRAIGHT = "Sitting straight"; // normal straight sitting
+    private final String SITTING_FORWARD = "Sitting forward";
+    private final String SITTING_BACKWARD = "Sitting backward";
     private final String STANDING = "Standing";
-    private final String LYING = "Lying down";
+    private final String LYING_NORMAL = "Lying down normal"; // normal lying
+    private final String LYING_RIGHT = "Lying down right";
+    private final String LYING_LEFT = "Lying down left";
 
 
     @Override
@@ -64,7 +68,9 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
 
         final EditText nameTextField = (EditText) findViewById(R.id.name_text_field);
 
-        String[] activitySpinnerElements = new String[]{SITTING, STANDING, LYING};
+        //String[] activitySpinnerElements = new String[]{SITTING_STRAIGHT, STANDING, LYING_NORMAL};
+        String[] activitySpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD, SITTING_BACKWARD, STANDING,
+                LYING_NORMAL, LYING_RIGHT, LYING_LEFT};
         ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
         activitySpinner.setAdapter(activityAdapter);
@@ -189,13 +195,15 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
 
                 // If we are currently recording (button is pressed), store the received values
                 if (mIsRecording) {
-                    if ((mActivity.equals(SITTING) || mActivity.equals(
+                    if ((mActivity.equals(SITTING_STRAIGHT) || mActivity.equals(SITTING_BACKWARD) || mActivity.equals(
+                            SITTING_FORWARD) || mActivity.equals(
                             STANDING)) && !(data.getActivityType() == Constants.ACTIVITY_STAND_SIT)) {
                         Toast.makeText(getApplicationContext(),
                                 "RESpeck registers activity other than sitting or standing, which is the selected option",
                                 Toast.LENGTH_LONG).show();
                         cancelRecording();
-                    } else if (mActivity.equals(LYING) && !(data.getActivityType() == Constants.ACTIVITY_LYING)) {
+                    } else if ((mActivity.equals(LYING_NORMAL) || mActivity.equals(LYING_LEFT) || mActivity.equals(
+                            LYING_RIGHT)) && !(data.getActivityType() == Constants.ACTIVITY_LYING)) {
                         Toast.makeText(getApplicationContext(),
                                 "RESpeck registers activity other than lying down, which is the selected option",
                                 Toast.LENGTH_LONG).show();
