@@ -69,6 +69,10 @@ public class RESpeckPacketHandler {
 
     private Timer mActivityClassificationTimer;
 
+    public RESpeckPacketHandler() {
+        // This is only meant for runnig tests on the c code!
+    }
+
     public RESpeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
@@ -98,13 +102,14 @@ public class RESpeckPacketHandler {
                 utils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && isAirspeckEnabled);
 
         // Initialize Breathing Functions
-        initBreathing(isPostFilterBreathingSignalEnabled, 0.3f, 100);
+        initBreathing(isPostFilterBreathingSignalEnabled, 0.3f, 100, 0.015f, 0.5f);
 
         // Start task which makes activity predictions every 2 seconds
         startActivityClassificationTask();
     }
 
     public void processRESpeckLivePacket(final byte[] values) {
+
         final int packetSequenceNumber = values[0] & 0xFF;
 
         //Check if the reading is not repeated
@@ -529,7 +534,8 @@ public class RESpeckPacketHandler {
     }
 
     // JNI methods
-    public native void initBreathing(boolean isPostFilteringEnabled, float activityCutoff, int thresholdFilterSize);
+    public native void initBreathing(boolean isPostFilteringEnabled, float activityCutoff, int thresholdFilterSize,
+                                     float lowerThresholdLimit, float upperThresholdLimit);
 
     public native void updateBreathing(float x, float y, float z);
 

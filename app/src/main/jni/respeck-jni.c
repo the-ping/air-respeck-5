@@ -27,10 +27,12 @@ Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMsgFromJni(JNIEnv 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JNIEnv *env, jobject this,
                                                                               bool is_post_filtering_enabled,
                                                                               float activity_cutoff,
-                                                                              unsigned int threshold_filter_size) {
+                                                                              unsigned int threshold_filter_size,
+                                                                              float lower_threshold_limit,
+                                                                              float upper_threshold_limit) {
     initialise_breathing_measures(&breathing_buffer, is_post_filtering_enabled, activity_cutoff);
     initialise_rms_threshold_buffer(&threshold_buffer, threshold_filter_size);
-    initialise_breath(&current_breath);
+    initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit);
     initialise_breathing_rate_stats(&breathing_rate_stats);
 
     breathing_buffer.is_breathing_initialised = true;

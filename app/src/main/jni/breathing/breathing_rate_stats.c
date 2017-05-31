@@ -3,8 +3,6 @@
  */
 #include "breathing_rate_stats.h"
 #include <math.h>
-#include <android/log.h>
-#include <stdio.h>
 
 
 void initialise_breathing_rate_stats(BreathingRateStats *breathing_rate_stats) {

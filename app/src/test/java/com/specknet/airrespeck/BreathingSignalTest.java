@@ -1,5 +1,6 @@
 package com.specknet.airrespeck;
 
+import com.specknet.airrespeck.services.RESpeckPacketHandler;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 
 import org.junit.Test;
@@ -80,23 +81,23 @@ public class BreathingSignalTest {
                 "\\data\\breathing measures\\";
 
         File[] listOfFiles = new File(pathAccelDir).listFiles();
-        SpeckBluetoothService service = new SpeckBluetoothService();
+        RESpeckPacketHandler handler = new RESpeckPacketHandler();
 
         // Open each file, generate the breathing signal for it, and write the result into another file
         for (File file : listOfFiles) {
-            service.initBreathing(true);
+            handler.initBreathing(true, 0.3f, 100, 0.015f, 0.5f);
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
             ArrayList<Float[]> allMeasures = new ArrayList<>();
 
             Float[] measures;
             for (Float[] accelVector : accelValues) {
                 measures = new Float[5];
-                service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
-                measures[0] = service.getBreathingSignal();
-                measures[1] = service.getBreathingRate();
-                measures[2] = service.getBreathingAngle();
-                measures[3] = service.getLowerThreshold();
-                measures[4] = service.getUpperThreshold();
+                handler.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
+                measures[0] = handler.getBreathingSignal();
+                measures[1] = handler.getBreathingRate();
+                measures[2] = handler.getBreathingAngle();
+                measures[3] = handler.getLowerThreshold();
+                measures[4] = handler.getUpperThreshold();
                 allMeasures.add(measures);
             }
             saveMeasures(allMeasures, pathOutputFileMeasures + file.getName());
@@ -118,22 +119,22 @@ public class BreathingSignalTest {
     }
 
     private ArrayList<Float[]> calculateMeasuresBasedOnCurrentLibrary(ArrayList<Float[]> accelValues) {
-        SpeckBluetoothService service = new SpeckBluetoothService();
-        service.initBreathing(true);
+        RESpeckPacketHandler handler = new RESpeckPacketHandler();
+        handler.initBreathing(true, 0.3f, 100, 0.015f, 0.5f);
 
         ArrayList<Float[]> allMeasures = new ArrayList<>();
 
         for (Float[] accelVector : accelValues) {
             Float[] measures = new Float[7];
-            service.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
-            measures[0] = service.getBreathingSignal();
-            measures[1] = service.getBreathingAngle();
-            measures[2] = service.getBreathingRate();
-            measures[3] = service.getActivityLevel();
-            service.calculateAverageBreathing();
-            measures[4] = service.getAverageBreathingRate();
-            measures[5] = service.getStdDevBreathingRate();
-            measures[6] = (float) service.getNumberOfBreaths();
+            handler.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
+            measures[0] = handler.getBreathingSignal();
+            measures[1] = handler.getBreathingAngle();
+            measures[2] = handler.getBreathingRate();
+            measures[3] = handler.getActivityLevel();
+            handler.calculateAverageBreathing();
+            measures[4] = handler.getAverageBreathingRate();
+            measures[5] = handler.getStdDevBreathingRate();
+            measures[6] = (float) handler.getNumberOfBreaths();
             allMeasures.add(measures);
         }
         return allMeasures;

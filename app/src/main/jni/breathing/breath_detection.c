@@ -89,11 +89,11 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
     threshold_buffer->is_valid = true;
 }
 
-void initialise_breath(CurrentBreath *breath) {
+void initialise_breath(CurrentBreath *breath, float lower_threshold_limit, float upper_threshold_limit) {
     breath->state = UNKNOWN;
     breath->breathing_rate = NAN;
-    breath->min_threshold = 0.015;
-    breath->max_threshold = 0.5;
+    breath->min_threshold = lower_threshold_limit;
+    breath->max_threshold = upper_threshold_limit;
     breath->sample_count = 0;
     breath->is_current_breath_valid = false;
     breath->is_complete = false;

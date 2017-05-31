@@ -61,7 +61,7 @@ void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer, unsigned
 
 void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *threshold_buffer);
 
-void initialise_breath(CurrentBreath *breath);
+void initialise_breath(CurrentBreath *breath, float lower_threshold_limit, float upper_threshold_limit);
 
 void update_breath(float breathing_signal, float upper_threshold, float lower_threshold,
                    CurrentBreath *breath);
