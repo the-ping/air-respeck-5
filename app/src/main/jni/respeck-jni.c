@@ -25,9 +25,11 @@ Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMsgFromJni(JNIEnv 
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JNIEnv *env, jobject this,
-                                                                               bool isPostFilteringEnabled) {
-    initialise_breathing_measures(&breathing_buffer, isPostFilteringEnabled);
-    initialise_rms_threshold_buffer(&threshold_buffer);
+                                                                              bool is_post_filtering_enabled,
+                                                                              float activity_cutoff,
+                                                                              unsigned int threshold_filter_size) {
+    initialise_breathing_measures(&breathing_buffer, is_post_filtering_enabled, activity_cutoff);
+    initialise_rms_threshold_buffer(&threshold_buffer, threshold_filter_size);
     initialise_breath(&current_breath);
     initialise_breathing_rate_stats(&breathing_rate_stats);
 
@@ -36,7 +38,7 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JN
 
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(JNIEnv *env, jobject this, float x,
-                                                                                 float y, float z) {
+                                                                                float y, float z) {
     float new_accel_data[3] = {x, y, z};
     update_breathing_measures(new_accel_data, &breathing_buffer);
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
@@ -46,7 +48,7 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(
     lower_threshold = threshold_buffer.lower_threshold_value / 3.f;
     update_breath(breathing_buffer.signal, upper_threshold, lower_threshold, &current_breath);
 
-    // If the breathing rate has been updated, add it to the
+    // If the breathing rate has been updated, add it to the statistics
     if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
         update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
         current_breath.is_complete = false;
@@ -82,12 +84,12 @@ jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getStdDevBreat
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_resetMedianAverageBreathing(JNIEnv *env,
-                                                                                             jobject this) {
+                                                                                            jobject this) {
     initialise_breathing_rate_stats(&breathing_rate_stats);
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_calculateAverageBreathing(JNIEnv *env,
-                                                                                           jobject this) {
+                                                                                          jobject this) {
     calculate_breathing_rate_stats(&breathing_rate_stats);
 }
 
@@ -100,7 +102,7 @@ jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getActivityLev
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateActivityClassification(JNIEnv *env,
-                                                                                              jobject instance) {
+                                                                                             jobject instance) {
     // Only do something if buffer is filled
     if (get_is_buffer_full()) {
         current_activity_classification = simple_predict();
@@ -108,6 +110,6 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateActivityCl
 }
 
 jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getCurrentActivityClassification(JNIEnv *env,
-                                                                                                  jobject instance) {
+                                                                                                 jobject instance) {
     return (jint) current_activity_classification;
 }

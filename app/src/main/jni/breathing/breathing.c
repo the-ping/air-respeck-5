@@ -23,12 +23,13 @@ MeanPostFilter mean_filter_breathing_signal;
 MeanPostFilter mean_filter_angle;
 ActivityLevelBuffer activity_level_buffer;
 
-void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled) {
+void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled, float activity_cutoff) {
     breathing_measures->is_breathing_initialised = false;
     breathing_measures->is_valid = false;
     breathing_measures->signal = NAN;
     breathing_measures->angle = NAN;
     breathing_measures->max_act_level = NAN;
+    breathing_measures->activity_cutoff = activity_cutoff;
 
     initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, 12);
     initialise_rotation_axis(&rotation_axis);
@@ -71,7 +72,7 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
 
     // Use the maximum activity level in the buffer as a threshold to determine movement
     breathing_measures->max_act_level = activity_level_buffer.max;
-    if (activity_level_buffer.max > ACTIVITY_CUTOFF) {
+    if (activity_level_buffer.max > breathing_measures->activity_cutoff) {
         breathing_measures->signal = NAN;
         return;
     }

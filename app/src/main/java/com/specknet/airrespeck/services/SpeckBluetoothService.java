@@ -372,6 +372,10 @@ public class SpeckBluetoothService extends Service {
         Log.i("SpeckService", "Stopping Speck Service");
         mIsServiceRunning = false;
 
+        if (scanSubscription != null) {
+            scanSubscription.unsubscribe();
+        }
+
         if (respeckLiveSubscription != null) {
             respeckLiveSubscription.unsubscribe();
         }

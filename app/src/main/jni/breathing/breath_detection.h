@@ -13,7 +13,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define THRESHOLD_FILTER_SIZE 60 // (12*10)
 #define HIGHEST_POSSIBLE_BREATHING_RATE 45
 #define LOWEST_POSSIBLE_BREATHING_RATE 5
 
@@ -35,10 +34,11 @@ typedef enum {
 
 typedef struct {
     int current_position, fill;
-    float values[THRESHOLD_FILTER_SIZE];
-    threshold_value_type values_type[THRESHOLD_FILTER_SIZE];
+    float *values;
+    threshold_value_type *values_type;
     int upper_values_sum_fill, lower_values_sum_fill;
     float upper_values_sum, lower_values_sum;
+    int threshold_filter_size;
 
     bool is_valid;
     float upper_threshold_value, lower_threshold_value;
@@ -57,7 +57,7 @@ typedef struct {
 } CurrentBreath;
 
 
-void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer);
+void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer, unsigned int threshold_filter_size);
 
 void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *threshold_buffer);
 

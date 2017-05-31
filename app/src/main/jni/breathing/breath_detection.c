@@ -2,10 +2,12 @@
  *
  */
 
+#include <malloc.h>
 #include "breath_detection.h"
 #include "breathing.h"
 
-void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
+void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer, unsigned int threshold_filter_size) {
+    threshold_buffer->threshold_filter_size = threshold_filter_size;
     threshold_buffer->fill = 0;
     threshold_buffer->current_position = -1;
     threshold_buffer->is_valid = false;
@@ -16,14 +18,20 @@ void initialise_rms_threshold_buffer(ThresholdBuffer *threshold_buffer) {
     threshold_buffer->upper_threshold_value = NAN;
     threshold_buffer->lower_threshold_value = NAN;
 
-    for (int i = 0; i < THRESHOLD_FILTER_SIZE; i++)
+    threshold_buffer->values = calloc(threshold_filter_size, sizeof(float *));
+    threshold_buffer->values_type = calloc(threshold_filter_size, sizeof(float *));
+
+    for (int i = 0; i < threshold_filter_size; i++) {
         threshold_buffer->values_type[i] = INVALID;
+        threshold_buffer->values[i] = 0;
+    }
 }
 
 void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *threshold_buffer) {
 
     // Increment position
-    threshold_buffer->current_position = (threshold_buffer->current_position + 1) % THRESHOLD_FILTER_SIZE;
+    threshold_buffer->current_position =
+            (threshold_buffer->current_position + 1) % threshold_buffer->threshold_filter_size;
 
     // Overwrite value at current position by first deleting that value from the corresponding sum
     if (threshold_buffer->values_type[threshold_buffer->current_position] == POSITIVE) {
@@ -52,11 +60,11 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
         }
     }
 
-    if (threshold_buffer->fill < THRESHOLD_FILTER_SIZE) {
+    if (threshold_buffer->fill < threshold_buffer->threshold_filter_size) {
         threshold_buffer->fill++;
     }
 
-    if (threshold_buffer->fill < THRESHOLD_FILTER_SIZE) {
+    if (threshold_buffer->fill < threshold_buffer->threshold_filter_size) {
         threshold_buffer->is_valid = false;
         return;
     }
