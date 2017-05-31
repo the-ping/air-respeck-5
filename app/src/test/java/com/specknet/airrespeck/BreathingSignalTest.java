@@ -1,7 +1,6 @@
 package com.specknet.airrespeck;
 
 import com.specknet.airrespeck.services.RESpeckPacketHandler;
-import com.specknet.airrespeck.services.SpeckBluetoothService;
 
 import org.junit.Test;
 

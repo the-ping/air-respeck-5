@@ -70,7 +70,7 @@ public class RESpeckPacketHandler {
     private Timer mActivityClassificationTimer;
 
     public RESpeckPacketHandler() {
-        // This is only meant for runnig tests on the c code!
+        // This is only meant for running tests on the c code!
     }
 
     public RESpeckPacketHandler(SpeckBluetoothService speckService) {

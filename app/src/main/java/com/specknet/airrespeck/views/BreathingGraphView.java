@@ -51,7 +51,7 @@ public class BreathingGraphView extends LineChart {
 
     public void addToBreathingGraphQueue(RESpeckLiveData data) {
         BreathingGraphData breathingGraphData = new BreathingGraphData(
-                Utils.onlyKeepTimeInHour(data.getPhoneTimestamp()), data.getAccelX(), data.getAccelY(),
+                (float) data.getPhoneTimestamp(), data.getAccelX(), data.getAccelY(),
                 data.getAccelZ(), data.getBreathingSignal());
         mBreathingDataQueue.add(breathingGraphData);
     }
