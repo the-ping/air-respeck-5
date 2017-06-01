@@ -102,7 +102,7 @@ public class RESpeckPacketHandler {
                 utils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && isAirspeckEnabled);
 
         // Initialize Breathing Functions
-        initBreathing(isPostFilterBreathingSignalEnabled, 0.3f, 100, 0.015f, 0.5f);
+        initBreathing(isPostFilterBreathingSignalEnabled, 0.3f, 100, 0.015f, 0.5f, 3f);
 
         // Start task which makes activity predictions every 2 seconds
         startActivityClassificationTask();
@@ -535,7 +535,7 @@ public class RESpeckPacketHandler {
 
     // JNI methods
     public native void initBreathing(boolean isPostFilteringEnabled, float activityCutoff, int thresholdFilterSize,
-                                     float lowerThresholdLimit, float upperThresholdLimit);
+                                     float lowerThresholdLimit, float upperThresholdLimit, float threshold_factor);
 
     public native void updateBreathing(float x, float y, float z);
 

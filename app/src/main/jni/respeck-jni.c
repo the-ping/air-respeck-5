@@ -3,115 +3,97 @@
  */
 
 #include <jni.h>
+#include <stdbool.h>
 
-#include "breathing/breathing.h"
-#include "breathing/breath_detection.h"
-#include "breathing/breathing_rate_stats.h"
-#include "activityclassification/predictions.h"
-
-static BreathingMeasures breathing_buffer;
-static ThresholdBuffer threshold_buffer;
-static CurrentBreath current_breath;
-static BreathingRateStats breathing_rate_stats;
-static float upper_threshold;
-static float lower_threshold;
-
-// Activity classification
-static int current_activity_classification = -1;
+#include "respeck.h"
 
 JNIEXPORT jstring JNICALL
 Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMsgFromJni(JNIEnv *env, jobject instance) {
     return (*env)->NewStringUTF(env, "It works");
 }
 
+/**
+ *
+ * @param env
+ * @param this
+ * @param is_post_filtering_enabled Whether the breathing signal should be filtered in the end. Should be yes by default.
+ * @param activity_cutoff The acitivity level at which a breathing signal is invalidated due to moving.
+ * @param threshold_filter_size The size of the threshold filter (buffer) which is used to determine threshold crossings
+ * of the breathing signal
+ * @param lower_threshold_limit The minimum value the threshold is allowed to take
+ * @param upper_threshold_limit The maximum value the threshold is allowed to take
+ * @param threshold_factor The factor with which to multiply the RMS threshold before considering it for minimum/
+ * maximum limit and for the crossings
+ */
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JNIEnv *env, jobject this,
                                                                               bool is_post_filtering_enabled,
                                                                               float activity_cutoff,
                                                                               unsigned int threshold_filter_size,
                                                                               float lower_threshold_limit,
-                                                                              float upper_threshold_limit) {
-    initialise_breathing_measures(&breathing_buffer, is_post_filtering_enabled, activity_cutoff);
-    initialise_rms_threshold_buffer(&threshold_buffer, threshold_filter_size);
-    initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit);
-    initialise_breathing_rate_stats(&breathing_rate_stats);
-
-    breathing_buffer.is_breathing_initialised = true;
+                                                                              float upper_threshold_limit,
+                                                                              float threshold_factor) {
+    initBreathing(is_post_filtering_enabled, activity_cutoff, threshold_filter_size, lower_threshold_limit,
+                  upper_threshold_limit, threshold_factor);
 }
 
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(JNIEnv *env, jobject this, float x,
                                                                                 float y, float z) {
-    float new_accel_data[3] = {x, y, z};
-    update_breathing_measures(new_accel_data, &breathing_buffer);
-    update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
-
-    // Adjust the rms threshold by some factor. TODO: determine best factor
-    upper_threshold = threshold_buffer.upper_threshold_value / 3.f;
-    lower_threshold = threshold_buffer.lower_threshold_value / 3.f;
-    update_breath(breathing_buffer.signal, upper_threshold, lower_threshold, &current_breath);
-
-    // If the breathing rate has been updated, add it to the statistics
-    if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
-        update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
-        current_breath.is_complete = false;
-    }
+    updateBreathing(x, y, z);
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getUpperThreshold(JNIEnv *env, jobject this) {
-    return upper_threshold;
+    return getUpperThreshold();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getLowerThreshold(JNIEnv *env, jobject this) {
-    return lower_threshold;
+    return getLowerThreshold();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getBreathingSignal(JNIEnv *env, jobject this) {
-    return (jfloat) breathing_buffer.signal;
+    return getBreathingSignal();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getBreathingAngle(JNIEnv *env, jobject this) {
-    return (jfloat) breathing_buffer.angle;
+    return getBreathingAngle();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getBreathingRate(JNIEnv *env, jobject this) {
-    return (jfloat) current_breath.breathing_rate;
+    return getBreathingRate();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getAverageBreathingRate(JNIEnv *env, jobject this) {
-    return (jfloat) breathing_rate_mean(&breathing_rate_stats);
+    return getAverageBreathingRate();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getStdDevBreathingRate(JNIEnv *env, jobject this) {
-    return (jfloat) breathing_rate_standard_deviation(&breathing_rate_stats);
+    return getStdDevBreathingRate();
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_resetMedianAverageBreathing(JNIEnv *env,
                                                                                             jobject this) {
-    initialise_breathing_rate_stats(&breathing_rate_stats);
+    resetMedianAverageBreathing();
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_calculateAverageBreathing(JNIEnv *env,
                                                                                           jobject this) {
-    calculate_breathing_rate_stats(&breathing_rate_stats);
+    calculateAverageBreathing();
 }
 
 jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getNumberOfBreaths(JNIEnv *env, jobject this) {
-    return (jint) breathing_rate_number_of_breaths(&breathing_rate_stats);
+    return getNumberOfBreaths();
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getActivityLevel(JNIEnv *env, jobject this) {
-    return (jfloat) breathing_buffer.max_act_level;
+    return getActivityLevel();
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateActivityClassification(JNIEnv *env,
                                                                                              jobject instance) {
-    // Only do something if buffer is filled
-    if (get_is_buffer_full()) {
-        current_activity_classification = simple_predict();
-    }
+    updateActivityClassification();
 }
 
 jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getCurrentActivityClassification(JNIEnv *env,
                                                                                                  jobject instance) {
-    return (jint) current_activity_classification;
+    return getCurrentActivityClassification();
 }

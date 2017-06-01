@@ -79,8 +79,6 @@ public class BreathingGraphView extends LineChart {
 
         YAxis rightAxis = getAxisRight();
         rightAxis.setLabelCount(5, false);
-
-        //animateX(750);
     }
 
     private void setupLineDataSetForChart() {
