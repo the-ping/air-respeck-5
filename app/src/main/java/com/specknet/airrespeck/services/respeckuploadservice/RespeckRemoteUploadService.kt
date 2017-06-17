@@ -139,6 +139,7 @@ class RespeckRemoteUploadService : Service() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Constants.ACTION_RESPECK_LIVE_BROADCAST -> {
+                    /*
                     val jsonLiveData = JSONObject()
                     try {
                         val data = intent.getSerializableExtra(Constants.RESPECK_LIVE_DATA) as RESpeckLiveData
@@ -162,6 +163,7 @@ class RespeckRemoteUploadService : Service() {
                     // Log.d("RESPECK", "Sent LIVE JSON to upload service: " + json.toString());
                     Log.i("Upload", "Respeck upload live broadcast data")
                     mySubject.onNext(Gson().fromJson(jsonLiveData.toString(), JsonElement::class.java).asJsonObject)
+                    */
                 }
                 Constants.ACTION_RESPECK_AVG_BROADCAST -> {
                     val jsonAverageData = JSONObject()
