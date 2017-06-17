@@ -1,6 +1,7 @@
 package com.specknet.airrespeck;
 
 import com.specknet.airrespeck.services.RESpeckPacketHandler;
+import com.specknet.airrespeck.utils.Constants;
 
 import org.junit.Test;
 
@@ -84,7 +85,8 @@ public class BreathingSignalTest {
 
         // Open each file, generate the breathing signal for it, and write the result into another file
         for (File file : listOfFiles) {
-            handler.initBreathing(true, 0.3f, 60, 0.015f, 0.5f, 3.f);
+            handler.initBreathing(true, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
+                    Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR);
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
             ArrayList<Float[]> allMeasures = new ArrayList<>();
 
@@ -119,7 +121,8 @@ public class BreathingSignalTest {
 
     private ArrayList<Float[]> calculateMeasuresBasedOnCurrentLibrary(ArrayList<Float[]> accelValues) {
         RESpeckPacketHandler handler = new RESpeckPacketHandler();
-        handler.initBreathing(true, 0.3f, 100, 0.015f, 0.5f, 3.f);
+        handler.initBreathing(true, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
+                Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR);
 
         ArrayList<Float[]> allMeasures = new ArrayList<>();
 

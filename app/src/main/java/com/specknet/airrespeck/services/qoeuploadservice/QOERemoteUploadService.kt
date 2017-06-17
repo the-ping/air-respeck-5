@@ -129,11 +129,9 @@ class QOERemoteUploadService : Service() {
                     val json = JSONObject()
                     try {
                         json.put("messagetype", "qoe_data")
-                        json.put(Constants.INTERPOLATED_PHONE_TIMESTAMP,
-                                intent.getLongExtra(Constants.INTERPOLATED_PHONE_TIMESTAMP, 0))
 
                         val data = intent.getSerializableExtra(Constants.AIRSPECK_DATA) as AirspeckData
-
+                        json.put("timestamp", data.phoneTimestamp);
                         json.put(Constants.AIRSPECK_PM1, nanToNull(data.pm1))
                         json.put(Constants.AIRSPECK_PM2_5, nanToNull(data.pm2_5))
                         json.put(Constants.AIRSPECK_PM10, nanToNull(data.pm10))

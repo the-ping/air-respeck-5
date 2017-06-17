@@ -128,14 +128,14 @@ void update_breath(float breathing_signal, float upper_threshold,
         return;
     }
 
-    /*
+
     // The sum of the absolute threshold values has to lie below 2 * max_threshold
     if (upper_threshold - lower_threshold > breath->max_threshold * 2.0f) {
         breath->state = UNKNOWN;
         breath->breathing_rate = NAN;
         breath->is_current_breath_valid = false;
         return;
-    }*/
+    }
 
     if (breath->state == LOW && breathing_signal > lower_threshold) {
         breath->state = MID_RISING;

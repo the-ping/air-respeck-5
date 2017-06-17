@@ -293,4 +293,11 @@ public class Constants {
     public final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
     public final static String RESPECK_STORED_DATA_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
     public final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
+
+    // Breathing signal calculation constants
+    public static final int THRESHOLD_FILTER_SIZE = 60;
+    public static final float MINIMUM_THRESHOLD = 0.015f;
+    public static final float MAXIMUM_THRESHOLD = 0.34f;
+    public static final float THRESHOLD_FACTOR = 3.2f;
+    public static final float ACTIVITY_CUTOFF = 0.3f;
 }
