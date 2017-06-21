@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -219,6 +220,17 @@ public final class Utils {
         return sum;
     }
 
+    public static float mean(ArrayList<Float> a) {
+        if (a.size() == 0) {
+            return Float.NaN;
+        }
+        Float sum = 0f;
+        for (Float elem : a) {
+            sum += elem;
+        }
+        return sum / a.size();
+    }
+
     public static float mean(Float[] a) {
         Float sum = 0f;
         for (Float elem : a) {
@@ -354,5 +366,25 @@ public final class Utils {
                 });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public static int mode(ArrayList<Integer> a) {
+        int mode = a.get(0);
+        int maxCount = 0;
+        for (int i = 0; i < a.size(); i++) {
+            int value = a.get(i);
+            int count = 0;
+            for (int j = 0; j < a.size(); j++) {
+                if (a.get(j) == value) count++;
+                if (count > maxCount) {
+                    mode = value;
+                    maxCount = count;
+                }
+            }
+        }
+        if (maxCount > 1) {
+            return mode;
+        }
+        return 0;
     }
 }

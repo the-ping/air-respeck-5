@@ -175,7 +175,8 @@ class RespeckRemoteUploadService : Service() {
                         jsonAverageData.put("sd_br", nanToNull(data.stdBreathingRate))
                         jsonAverageData.put(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, data.numberOfBreaths)
                         // We don't calculate a minute average activity level at the moment
-                        jsonAverageData.put(Constants.RESPECK_ACTIVITY_LEVEL, null)
+                        jsonAverageData.put("act_level", nanToNull(data.activityLevel))
+                        jsonAverageData.put("act_type", data.activityType)
                         jsonAverageData.put(Constants.RESPECK_IS_DISCONNECTED_MODE, 0)
                         jsonAverageData.put(Constants.RESPECK_IS_VALID_BREATHING_RATE, 1)
                     } catch (e: JSONException) {

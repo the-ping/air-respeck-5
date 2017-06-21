@@ -18,7 +18,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -55,6 +58,8 @@ public class RESpeckPacketHandler {
     private float mAverageBreathingRate;
     private float mStdDevBreathingRate;
     private int mNumberOfBreaths;
+    private ArrayList<Float> lastMinuteActivityLevel = new ArrayList<>();
+    private ArrayList<Integer> lastMinuteActivityType = new ArrayList<>();
 
     // Writers
     private OutputStreamWriter mRespeckWriter;
@@ -96,8 +101,6 @@ public class RESpeckPacketHandler {
         patientID = utils.getProperties().getProperty(Constants.Config.PATIENT_ID);
         androidID = Secure.getString(speckService.getContentResolver(),
                 Secure.ANDROID_ID);
-
-        Log.i("RESpeckPacketHandler", "Android_ID: " + androidID);
 
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
@@ -229,6 +232,10 @@ public class RESpeckPacketHandler {
                     final float activityLevel = getActivityLevel();
                     final int activityType = getCurrentActivityClassification();
 
+                    // Store activity level and type for minute average
+                    lastMinuteActivityLevel.add(activityLevel);
+                    lastMinuteActivityType.add(activityType);
+
                     // Calculate interpolated timestamp of current sample based on sequence number
                     // There are 32 samples in each acceleration batch the RESpeck sends.
                     long interpolatedPhoneTimestampOfCurrentSample = (long)
@@ -242,7 +249,7 @@ public class RESpeckPacketHandler {
                             currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate, activityLevel,
                             activityType, mAverageBreathingRate);
 
-                    // Log.i("RESpeckHandler", "New RESpeck data: " + newRESpeckLiveData);
+                    // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
 
                     // Store the important data in the external storage if set in config
                     if (mIsStoreDataLocally) {
@@ -269,16 +276,24 @@ public class RESpeckPacketHandler {
                         // Empty the minute average window
                         resetMedianAverageBreathing();
 
-                        RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
-                                mAverageBreathingRate, mStdDevBreathingRate, mNumberOfBreaths);
+                        // Get activity level and type
+                        float meanActivityLevel = Utils.mean(lastMinuteActivityLevel);
+                        int modeActivityType = Utils.mode(lastMinuteActivityType);
 
+                        // Reset last minute values
+                        lastMinuteActivityLevel = new ArrayList<>();
+                        lastMinuteActivityType = new ArrayList<>();
+
+                        RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
+                                mAverageBreathingRate, mStdDevBreathingRate, mNumberOfBreaths, meanActivityLevel,
+                                modeActivityType);
 
                         // Send average broadcast intent
                         Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
                         avgDataIntent.putExtra(Constants.RESPECK_AVG_DATA, avgData);
                         mSpeckService.sendBroadcast(avgDataIntent);
 
-                        // Log.i("RESpeckHandler", "Avg data: " + avgData);
+                        Log.i("RESpeckPacketHandler", "Avg data: " + avgData);
 
                         latestProcessedMinute = currentProcessedMinute;
                     }

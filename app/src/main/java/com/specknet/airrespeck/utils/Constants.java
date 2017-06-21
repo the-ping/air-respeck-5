@@ -216,7 +216,6 @@ public class Constants {
     public static final int ACTIVITY_LYING = 2;
     public static final int WRONG_ORIENTATION = 3;
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down", "Wrong orientation"};
-    public static final int NUMBER_OF_ACTIVITY_TYPES = 4;
 
     /*
     Others
