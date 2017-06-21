@@ -222,6 +222,10 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment implements Ai
 
         // Disable zoom on double tap
         mBinsLineChart.setDoubleTapToZoomEnabled(false);
+
+        if (dataBuffer.size() > 0) {
+            updateBinsChart();
+        }
     }
 
 

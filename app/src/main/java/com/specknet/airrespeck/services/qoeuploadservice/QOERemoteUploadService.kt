@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
-
-import com.google.gson.*
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.specknet.airrespeck.models.AirspeckData
 import com.specknet.airrespeck.utils.Constants
 import com.specknet.airrespeck.utils.Utils
@@ -16,12 +18,10 @@ import com.squareup.tape.FileObjectQueue
 import com.squareup.tape.SerializedConverter
 import org.json.JSONException
 import org.json.JSONObject
-import rx.subjects.PublishSubject
 import rx.Observable
-
+import rx.subjects.PublishSubject
 import java.io.File
 import java.io.IOException
-import java.util.HashMap
 import java.util.concurrent.TimeUnit
 
 class QOERemoteUploadService : Service() {
@@ -128,6 +128,7 @@ class QOERemoteUploadService : Service() {
                 Constants.ACTION_AIRSPECK_LIVE_BROADCAST -> {
                     val json = JSONObject()
                     try {
+
                         json.put("messagetype", "qoe_data")
 
                         val data = intent.getSerializableExtra(Constants.AIRSPECK_DATA) as AirspeckData
@@ -135,12 +136,8 @@ class QOERemoteUploadService : Service() {
                         json.put(Constants.AIRSPECK_PM1, nanToNull(data.pm1))
                         json.put(Constants.AIRSPECK_PM2_5, nanToNull(data.pm2_5))
                         json.put(Constants.AIRSPECK_PM10, nanToNull(data.pm10))
-                        json.put(Constants.AIRSPECK_TEMPERATURE, nanToNull(data.temperature))
+                        json.put("temperature", nanToNull(data.temperature))
                         json.put(Constants.AIRSPECK_HUMIDITY, nanToNull(data.humidity))
-                        json.put(Constants.AIRSPECK_S1ae_NO2, nanToNull(data.no2ae))
-                        json.put(Constants.AIRSPECK_S1we_NO2, nanToNull(data.no2we))
-                        json.put(Constants.AIRSPECK_S2ae_O3, nanToNull(data.o3ae))
-                        json.put(Constants.AIRSPECK_S2we_O3, nanToNull(data.o3we))
                         json.put(Constants.AIRSPECK_BINS_0, data.bins[0])
                         json.put(Constants.AIRSPECK_BINS_1, data.bins[1])
                         json.put(Constants.AIRSPECK_BINS_2, data.bins[2])

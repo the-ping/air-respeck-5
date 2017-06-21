@@ -216,32 +216,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
                         mReadingItems.add(item);
                         break;
 
-                    case Constants.AIRSPECK_O3:
-                        segments = new ArrayList<>();
-                        segments.add(
-                                new Segment(0, 100f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(101f, 160f, "",
-                                ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(
-                                new Segment(161f, 240f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
-                        item = new ReadingItem(getString(R.string.reading_o3), getString(R.string.reading_unit_ug_m3),
-                                0, segments);
-                        mReadingItems.add(item);
-                        break;
-
-                    case Constants.AIRSPECK_NO2:
-                        segments = new ArrayList<>();
-                        segments.add(
-                                new Segment(0, 200f, "", ContextCompat.getColor(getContext(), R.color.md_green_400)));
-                        segments.add(new Segment(201f, 400f, "",
-                                ContextCompat.getColor(getContext(), R.color.md_orange_400)));
-                        segments.add(
-                                new Segment(401f, 600f, "", ContextCompat.getColor(getContext(), R.color.md_red_400)));
-                        item = new ReadingItem(getString(R.string.reading_no2), getString(R.string.reading_unit_ug_m3),
-                                0, segments);
-                        mReadingItems.add(item);
-                        break;
-
                     case Constants.AIRSPECK_BINS_TOTAL:
                         segments = new ArrayList<>();
                         segments.add(

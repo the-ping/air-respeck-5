@@ -3,7 +3,6 @@ package com.specknet.airrespeck.services;
 import android.content.Intent;
 import android.util.Log;
 
-import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.RESpeckAveragedData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
@@ -11,6 +10,8 @@ import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
+
+import android.provider.Settings.Secure;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,7 +58,6 @@ public class RESpeckPacketHandler {
 
     // Writers
     private OutputStreamWriter mRespeckWriter;
-    private OutputStreamWriter mMergedWriter;
     private Date mDateOfLastRESpeckWrite = new Date(0);
 
     private SpeckBluetoothService mSpeckService;
@@ -65,7 +65,8 @@ public class RESpeckPacketHandler {
     private static String RESPECK_UUID;
 
     private boolean mIsStoreDataLocally;
-    private boolean mIsStoreMergedFile;
+    private String patientID;
+    private String androidID;
 
     private Timer mActivityClassificationTimer;
 
@@ -92,14 +93,11 @@ public class RESpeckPacketHandler {
         mIsStoreDataLocally = Boolean.parseBoolean(
                 utils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
 
-        // Look whether Airspeck is enabled in config
-        boolean isAirspeckEnabled = Boolean.parseBoolean(
-                utils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
+        patientID = utils.getProperties().getProperty(Constants.Config.PATIENT_ID);
+        androidID = Secure.getString(speckService.getContentResolver(),
+                Secure.ANDROID_ID);
 
-        // Do we store a merged Airspeck-RESpeck file in addition to the individual files? Only
-        // works if Airspeck is enabled
-        mIsStoreMergedFile = (Boolean.parseBoolean(
-                utils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && isAirspeckEnabled);
+        Log.i("RESpeckPacketHandler", "Android_ID: " + androidID);
 
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
@@ -239,8 +237,8 @@ public class RESpeckPacketHandler {
                                             Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
                             mPhoneTimestampLastPacketReceived;
 
-                    RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(RESPECK_UUID,
-                            interpolatedPhoneTimestampOfCurrentSample, mRESpeckTimestampCurrentPacketReceived,
+                    RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
+                            mRESpeckTimestampCurrentPacketReceived,
                             currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate, activityLevel,
                             activityType, mAverageBreathingRate);
 
@@ -248,7 +246,7 @@ public class RESpeckPacketHandler {
 
                     // Store the important data in the external storage if set in config
                     if (mIsStoreDataLocally) {
-                        writeToRESpeckAndMergedFile(newRESpeckLiveData);
+                        writeToRESpeck(newRESpeckLiveData);
                     }
 
                     // Send live broadcast intent
@@ -403,20 +401,17 @@ public class RESpeckPacketHandler {
         return (int) (short) ((unsignedUpper << 8) | unsignedLower);
     }
 
-    private void writeToRESpeckAndMergedFile(RESpeckLiveData data) {
+    private void writeToRESpeck(RESpeckLiveData data) {
         // Check whether we are in a new day
         Date now = new Date();
         long currentWriteDay = DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime();
         long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameRESpeck = Constants.RESPECK_DATA_DIRECTORY_PATH +
+        String filenameRESpeck = Constants.RESPECK_DATA_DIRECTORY_PATH + "RESpeck " +
+                patientID + " " + androidID + " " + RESPECK_UUID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
-                " RESpeck.csv";
-
-        String filenameMerged = Constants.MERGED_DATA_DIRECTORY_PATH +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
-                " Merged.csv";
+                ".csv";
 
         // If we are in a new day, create a new file if necessary
         if (currentWriteDay != previousWriteDay ||
@@ -443,30 +438,6 @@ public class RESpeckPacketHandler {
                     mRespeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameRESpeck, true));
                 }
-
-                /*
-                 * Merged writer
-                 */
-                if (mIsStoreMergedFile) {
-                    // Close old connection if there was one
-                    if (mMergedWriter != null) {
-                        mMergedWriter.close();
-                    }
-
-                    // The file could already exist if we just started the app. If not, add the header
-                    if (!new File(filenameMerged).exists()) {
-                        Log.i("RESpeckPacketHandler", "Merged data file created with header");
-                        // Open new connection to new file
-                        mMergedWriter = new OutputStreamWriter(
-                                new FileOutputStream(filenameMerged, true));
-                        mMergedWriter.append(Constants.MERGED_DATA_HEADER).append("\n");
-                    } else {
-                        Log.i("RESpeckPacketHandler", "Open existing merged file");
-                        // Open new connection to new file
-                        mMergedWriter = new OutputStreamWriter(
-                                new FileOutputStream(filenameMerged, true));
-                    }
-                }
             } catch (IOException e) {
                 Log.e("RESpeckPacketHandler", "Error while creating respeck or merged file: " + e.getMessage());
             }
@@ -480,23 +451,6 @@ public class RESpeckPacketHandler {
 
         } catch (IOException e) {
             Log.e("RESpeckPacketHandler", "Error while writing to respeck file: " + e.getMessage());
-        }
-        try {
-            // If we want to store a merged file of Airspeck and RESpeck data, append the most
-            // recent Airspeck data to the current RESpeck data
-            if (mIsStoreMergedFile) {
-                AirspeckData recentData = mSpeckService.getMostRecentAirspeckReading();
-                String airspeckString;
-                if (recentData == null) {
-                    airspeckString = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
-                } else {
-                    airspeckString = recentData.toStringForFile();
-                }
-                mMergedWriter.append(data.toStringForFile()).append(",").append(airspeckString).append("\n");
-                mMergedWriter.flush();
-            }
-        } catch (IOException e) {
-            Log.e("RESpeckPacketHandler", "Error while writing to merged file: " + e.getMessage());
         }
     }
 
@@ -519,11 +473,6 @@ public class RESpeckPacketHandler {
         if (mRespeckWriter != null) {
             mRespeckWriter.flush();
             mRespeckWriter.close();
-        }
-
-        if (mMergedWriter != null) {
-            mMergedWriter.flush();
-            mMergedWriter.close();
         }
 
         if (mActivityClassificationTimer != null) {

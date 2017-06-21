@@ -391,9 +391,5 @@ public class SpeckBluetoothService extends Service {
             Log.e("SpeckService", "Error while closing handlers: " + e.getMessage());
         }
     }
-
-    public AirspeckData getMostRecentAirspeckReading() {
-        return airspeckHandler.getMostRecentAirspeckData();
-    }
 }
 

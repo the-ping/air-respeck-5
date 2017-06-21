@@ -114,7 +114,7 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
             File[] directoryListing = dir.listFiles();
             if (directoryListing != null) {
                 for (File file : directoryListing) {
-                    String fileDate = file.getName().split(" ")[0];
+                    String fileDate = file.getName().split(" ")[4];
                     try {
                         // If file lies in specified time period, open it and read content
                         long tsFile = Utils.timestampFromString(fileDate, "yyyy-MM-dd");
@@ -126,11 +126,11 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                             String currentLine;
                             while ((currentLine = reader.readLine()) != null) {
                                 String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[1]);
+                                long tsRow = Long.parseLong(row[0]);
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= oneHourBefore && tsRow <= now) {
-                                    int activityType = Integer.parseInt(row[10]);
+                                    int activityType = Integer.parseInt(row[9]);
                                     if (activityType != -1) {
                                         hourStats[activityType]++;
                                         dayStats[activityType]++;
@@ -146,11 +146,11 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                             String currentLine;
                             while ((currentLine = reader.readLine()) != null) {
                                 String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[1]);
+                                long tsRow = Long.parseLong(row[0]);
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= oneDayBefore && tsRow <= now) {
-                                    int activityType = Integer.parseInt(row[10]);
+                                    int activityType = Integer.parseInt(row[9]);
                                     if (activityType != -1) {
                                         dayStats[activityType]++;
                                         weekStats[activityType]++;
@@ -165,11 +165,11 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                             String currentLine;
                             while ((currentLine = reader.readLine()) != null) {
                                 String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[1]);
+                                long tsRow = Long.parseLong(row[0]);
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= oneWeekBefore && tsRow <= now) {
-                                    int activityType = Integer.parseInt(row[10]);
+                                    int activityType = Integer.parseInt(row[9]);
                                     if (activityType != -1) {
                                         weekStats[activityType]++;
                                     }

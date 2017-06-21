@@ -160,12 +160,6 @@ public class Constants {
     public static final String AIRSPECK_PM10 = "pm10";
     public static final String AIRSPECK_TEMPERATURE = "temperature";
     public static final String AIRSPECK_HUMIDITY = "humidity";
-    public static final String AIRSPECK_NO2 = "no2";
-    public static final String AIRSPECK_S1ae_NO2 = "s1_ae";
-    public static final String AIRSPECK_S1we_NO2 = "s1_we";
-    public static final String AIRSPECK_O3 = "o3";
-    public static final String AIRSPECK_S2ae_O3 = "s2_ae";
-    public static final String AIRSPECK_S2we_O3 = "s2_we";
     public static final String AIRSPECK_BINS_0 = "bins0";
     public static final String AIRSPECK_BINS_1 = "bins1";
     public static final String AIRSPECK_BINS_2 = "bins2";
@@ -247,31 +241,20 @@ public class Constants {
      */
     public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory() +
             "/AirRespeck").getPath() + "/";
-    public static final String ACTIVITY_SUMMARY_FILE_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Activity Summary.csv";
     public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck/";
     public static final String VOLUME_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Airspeck/";
-    public static final String MERGED_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck and Airspeck/";
     public static final String PHONE_LOCATION_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Phone GPS/";
 
-    public static final String RESPECK_DATA_HEADER = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
+    public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
 
     public static final String VOLUME_DATA_HEADER = "subjectName,interpolatedPhoneTimestamp,x,y,z," +
             "breathingSignal,activityTypeSelection,bagSizeSelection";
 
-    public static final String AIRSPECK_DATA_HEADER = "airspeckUUID,phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity," +
-            "no2we,no2ae,o3we,o3ae," +
+    public static final String AIRSPECK_DATA_HEADER = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity," +
             "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total," +
             "gpsLongitude,gpsLatitude,gpsAltitude";
-
-    public static final String MERGED_DATA_HEADER = "respeckUUID,interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber," +
-            "x,y,z,breathingSignal,breathingRate,activityLevel,activityType,airspeckUUID,airspeckTimestamp,pm1,pm2_5,pm10," +
-            "temperature,humidity,no2we,no2ae,o3we,o3ae,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13," +
-            "bin14,bin15,total,gpsLongitude,gpsLatitude,gpsAltitude";
-
-    public static final String ACTIVITY_SUMMARY_HEADER = "timestamp_end_of_10_minutes,percentage_standing_sitting," +
-            "percentage_walking,percentage_lying";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude";
 

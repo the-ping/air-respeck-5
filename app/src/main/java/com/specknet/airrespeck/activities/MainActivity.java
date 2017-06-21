@@ -146,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
     private final Handler mUIHandler = new UIHandler(this);
 
     // FRAGMENTS
-    private static final String TAG_HOME_FRAGMENT = "HOME_FRAGMENT";
     private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
     private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
     private static final String TAG_SUBJECT_HOME_FRAGMENT = "SUBJECT_HOME_FRAGMENT";
@@ -181,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsUploadDataToServer;
     private boolean mIsStorePhoneGPS;
     private boolean mIsStoreDataLocally;
-    private boolean mIsStoreMergedFile;
     private boolean mShowRESpeckWrongOrientationEnabled;
 
     // UTILS
@@ -413,17 +411,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        if (mIsStoreMergedFile) {
-            directory = new File(Constants.MERGED_DATA_DIRECTORY_PATH);
-            if (!directory.exists()) {
-                boolean created = directory.mkdirs();
-                if (created) {
-                    Log.i("DF", "Directory created: " + directory);
-                } else {
-                    throw new RuntimeException("Couldn't create Merged folder on external storage");
-                }
-            }
-        }
 
         if (mIsStorePhoneGPS) {
             directory = new File(Constants.PHONE_LOCATION_DIRECTORY_PATH);
@@ -647,8 +634,6 @@ public class MainActivity extends AppCompatActivity {
         // Load config related to storage
         mIsStoreDataLocally = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
-        mIsStoreMergedFile = (Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_MERGED_FILE)) && mIsAirspeckEnabled);
 
         // Do we want to show wrong orientation dialog
         mShowRESpeckWrongOrientationEnabled = !Boolean.parseBoolean(

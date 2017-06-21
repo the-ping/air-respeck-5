@@ -256,7 +256,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             File[] directoryListing = dir.listFiles();
             if (directoryListing != null) {
                 for (File file : directoryListing) {
-                    String fileDate = file.getName().split(" ")[0];
+                    String fileDate = file.getName().split(" ")[4];
                     try {
                         // If file lies in specified time period, open it and read content
                         long tsFile = Utils.timestampFromString(fileDate, "yyyy-MM-dd");
@@ -268,15 +268,17 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                             String currentLine;
                             while ((currentLine = reader.readLine()) != null) {
                                 String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[1]);
+                                long tsRow = Long.parseLong(row[0]);
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= tsFrom && tsRow <= tsTo) {
-                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[29]),
-                                            Double.parseDouble(row[28]));
+                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[24]),
+                                            Double.parseDouble(row[23]));
                                     AirspeckMapData readSample = new AirspeckMapData(circleLocation,
-                                            Float.parseFloat(row[2]), Float.parseFloat(row[3]),
-                                            Float.parseFloat(row[4]));
+                                            Float.parseFloat(row[1]), Float.parseFloat(row[2]),
+                                            Float.parseFloat(row[3]));
+
+                                    Log.i("AirspeckMapData", readSample.toString());
 
                                     mQueueMapData.add(readSample);
                                 }

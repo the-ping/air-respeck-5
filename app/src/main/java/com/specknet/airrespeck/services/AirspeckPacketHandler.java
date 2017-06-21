@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.specknet.airrespeck.models.AirspeckData;
@@ -37,10 +38,6 @@ public class AirspeckPacketHandler {
     private ByteBuffer opcData;
     private float mLastTemperatureAirspeck = Float.NaN;
     private float mLastHumidityAirspeck = Float.NaN;
-    private float mLastNO2ae = Float.NaN;
-    private float mLastNO2we = Float.NaN;
-    private float mLastO3ae = Float.NaN;
-    private float mLastO3we = Float.NaN;
 
     // GPS
     private LocationData mLastPhoneLocation = new LocationData(Double.NaN, Double.NaN, Double.NaN);
@@ -56,12 +53,8 @@ public class AirspeckPacketHandler {
     private SpeckBluetoothService mSpeckService;
 
     private boolean mIsStoreDataLocally;
-
-    private AirspeckData mMostRecentAirspeckData;
-
-    public AirspeckData getMostRecentAirspeckData() {
-        return mMostRecentAirspeckData;
-    }
+    private String patientID;
+    private String androidID;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
@@ -76,6 +69,10 @@ public class AirspeckPacketHandler {
         // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(
                 utils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+
+        patientID = utils.getProperties().getProperty(Constants.Config.PATIENT_ID);
+        androidID = Settings.Secure.getString(speckService.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
 
         // Start broadcastreceiver for phone location
         mLocationReceiver = new BroadcastReceiver() {
@@ -114,7 +111,6 @@ public class AirspeckPacketHandler {
         // The packet type is one of the following:
         final byte SENSOR_TYPE_UUID = 0x01;
         final byte SENSOR_TYPE_TEMPERATURE_HUMIDITY = 0x02;
-        final byte SENSOR_TYPE_GAS = 0x03;
         final byte SENSOR_TYPE_OPC1 = 0x04;
         final byte SENSOR_TYPE_OPC2 = 0x05;
         final byte SENSOR_TYPE_OPC3 = 0x06;
@@ -154,21 +150,10 @@ public class AirspeckPacketHandler {
 //                Log.i("AirspeckPacketHandler", "Temperature/humidity packet received");
                 processTempHumidity(payload);
                 break;
-            case SENSOR_TYPE_GAS:
-                processGasData(payload);
-                break;
             default:
 //                Log.e("AirspeckPacketHandler", "Unknown packet type received: " + String.format("0x%02X ", packetType));
                 break;
         }
-    }
-
-    private void processGasData(byte[] data) {
-        // TODO: implement
-        mLastNO2ae = -1;
-        mLastNO2we = -1;
-        mLastO3ae = -1;
-        mLastO3we = -1;
     }
 
     private void processOPC(ByteBuffer buffer) {
@@ -203,11 +188,8 @@ public class AirspeckPacketHandler {
 
         // TODO: get real location from new Airspeck
 
-        AirspeckData newAirspeckData = new AirspeckData(AIRSPECK_UUID, currentPhoneTimestamp, pm1, pm2_5, pm10,
-                mLastTemperatureAirspeck, mLastHumidityAirspeck, mLastNO2we, mLastNO2ae, mLastO3we, mLastO3ae, bins,
-                mLastPhoneLocation);
-
-        mMostRecentAirspeckData = newAirspeckData;
+        AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, pm1, pm2_5, pm10,
+                mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation);
 
 //        Log.i("AirspeckHandler", "New airspeck packet: " + newAirspeckData);
 
@@ -241,9 +223,10 @@ public class AirspeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastAirspeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameAirspeck = Constants.AIRSPECK_DATA_DIRECTORY_PATH +
+        String filenameAirspeck = Constants.AIRSPECK_DATA_DIRECTORY_PATH + "Airspeck " +
+                patientID + " " + androidID + " " + AIRSPECK_UUID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
-                " Airspeck.csv";
+                ".csv";
 
         // If we are in a new day, create a new file if necessary
         if (currentWriteDay != previousWriteDay ||
@@ -277,6 +260,7 @@ public class AirspeckPacketHandler {
 
         // Write new line to file
         try {
+            // Write Airspeck data together with patientID
             mAirspeckWriter.append(airspeckData.toStringForFile()).append("\n");
             mAirspeckWriter.flush();
         } catch (IOException e) {
