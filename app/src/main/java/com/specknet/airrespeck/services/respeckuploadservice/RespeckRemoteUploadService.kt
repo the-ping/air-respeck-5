@@ -89,7 +89,7 @@ class RespeckRemoteUploadService : Service() {
                 qoeuuid = ""
             }
             jsonHeader.put("qoe_uuid", qoeuuid)
-            jsonHeader.put("capture_name", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
+            jsonHeader.put("security_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
             jsonHeader.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
