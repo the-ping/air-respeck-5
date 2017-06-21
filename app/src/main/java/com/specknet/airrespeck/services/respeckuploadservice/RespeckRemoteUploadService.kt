@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
 
 import com.google.gson.*
@@ -80,9 +81,8 @@ class RespeckRemoteUploadService : Service() {
         // Create header json object
         val jsonHeader = JSONObject()
         try {
-            jsonHeader.put("bs_name", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
-            jsonHeader.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
-            jsonHeader.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
+            jsonHeader.put("android_id", Settings.Secure.getString(contentResolver,
+                    Settings.Secure.ANDROID_ID))
             jsonHeader.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             var qoeuuid = utils.properties.getProperty(Constants.Config.AIRSPECK_UUID)
             if (qoeuuid == null) {

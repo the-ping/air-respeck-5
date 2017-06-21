@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
@@ -74,9 +75,8 @@ class QOERemoteUploadService : Service() {
         // Create header json object
         val json = JSONObject()
         try {
-            json.put("bs_name", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
-            json.put("tablet_serial", utils.properties.getProperty(Constants.Config.TABLET_SERIAL))
-            json.put("rs_name", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
+            json.put("android_id", Settings.Secure.getString(contentResolver,
+                    Settings.Secure.ANDROID_ID))
             json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
             var qoeuuid = utils.properties.getProperty(Constants.Config.AIRSPECK_UUID)
             if (qoeuuid == null) {
