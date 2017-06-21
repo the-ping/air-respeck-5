@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -55,6 +56,8 @@ public class PhoneGPSService extends Service implements
     private Date mDateofLastWrite = new Date(0);
 
     private boolean mIsStoreDataLocally;
+    private String patientID;
+    private String androidID;
 
     @Nullable
     @Override
@@ -72,6 +75,11 @@ public class PhoneGPSService extends Service implements
                 mIsStoreDataLocally = Boolean.parseBoolean(
                         Utils.getInstance(PhoneGPSService.this).getProperties().
                                 getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+
+                patientID = Utils.getInstance(PhoneGPSService.this).getProperties().getProperty(
+                        Constants.Config.PATIENT_ID);
+                androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
+                        Settings.Secure.ANDROID_ID);
 
                 Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
                 PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
@@ -151,9 +159,10 @@ public class PhoneGPSService extends Service implements
         long previousWriteDay = DateUtils.truncate(mDateofLastWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filename = Constants.PHONE_LOCATION_DIRECTORY_PATH +
+        String filename = Constants.PHONE_LOCATION_DIRECTORY_PATH + "GPSPhone " +
+                patientID + " " + androidID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
-                " GPS Phone.csv";
+                ".csv";
 
         // If we are in a new day, create a new file if necessary
         if (currentWriteDay != previousWriteDay ||
