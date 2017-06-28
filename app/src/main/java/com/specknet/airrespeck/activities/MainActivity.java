@@ -215,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
     private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
     private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
 
+    private AutoUpdateApk aua;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -233,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initMainActivity(Bundle savedInstanceState) {
-        AutoUpdateApk.enableMobileUpdates();
+        aua = new AutoUpdateApk(getApplicationContext());
 
         // Initialise Fabrics, a tool to get the stacktrace remotely when problems occur.
         Fabric.with(this, new Crashlytics(), new CrashlyticsNdk());

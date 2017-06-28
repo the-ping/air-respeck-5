@@ -15,6 +15,31 @@
 
 package com.lazydroid.autoupdateapk;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Observable;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
+
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -33,27 +58,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.Settings.Secure;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Observable;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
+import android.support.v4.app.NotificationCompat;
 
 public class AutoUpdateApk extends Observable {
 
@@ -195,7 +200,7 @@ public class AutoUpdateApk extends Observable {
 	private BroadcastReceiver connectivity_receiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			NetworkInfo currentNetworkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+			NetworkInfo currentNetworkInfo = (NetworkInfo) intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 
 			// do application-specific task(s) based on the current network state, such 
 			// as enabling queuing of HTTP requests when currentNetworkInfo is connected etc.
@@ -405,10 +410,8 @@ public class AutoUpdateApk extends Observable {
 	}
 
 	protected void raise_notification() {
-
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager nm = (NotificationManager) context.getSystemService(ns);
-
 
 		String update_file = preferences.getString(UPDATE_FILE, "");
 		if( update_file.length() > 0 ) {
@@ -416,27 +419,13 @@ public class AutoUpdateApk extends Observable {
 			notifyObservers(AUTOUPDATE_HAVE_UPDATE);
 
 			// raise the notification
-
 			CharSequence contentTitle = appName + " update available";
 			CharSequence contentText = "Select to install";
-
 			Intent notificationIntent = new Intent(Intent.ACTION_VIEW );
 			notificationIntent.setDataAndType(
 					Uri.parse("file://" + context.getFilesDir().getAbsolutePath() + "/" + update_file),
 					ANDROID_PACKAGE);
-			//notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			//context.startActivity(notificationIntent);
 			PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-
-			try {
-				contentIntent.send();
-			}
-			catch (PendingIntent.CanceledException e) {
-				e.printStackTrace();
-			}
-
-			/*
-			//PendingIntent contentIntent = PendingIntent.getActivityLevel(context, 0, notificationIntent, 0);
 
 			NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
 			builder.setSmallIcon(appIcon);
@@ -449,13 +438,9 @@ public class AutoUpdateApk extends Observable {
 			builder.setOngoing(true);
 
 			nm.notify(NOTIFICATION_ID, builder.build());
-			*/
-
 		} else {
 			//nm.cancel( NOTIFICATION_ID );	// tried this, but it just doesn't do the trick =(
-
-			//nm.cancelAll();
-
+			nm.cancelAll();
 		}
 	}
 
