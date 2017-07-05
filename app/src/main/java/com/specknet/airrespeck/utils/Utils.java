@@ -333,6 +333,7 @@ public final class Utils {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Utils.checkAndRequestLocationPermission(activity);
+                        dialogInterface.dismiss();
                     }
                 });
         AlertDialog dialog = builder.create();
@@ -362,6 +363,7 @@ public final class Utils {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Utils.checkAndRequestStoragePermission(activity);
+                        dialogInterface.dismiss();
                     }
                 });
         AlertDialog dialog = builder.create();
