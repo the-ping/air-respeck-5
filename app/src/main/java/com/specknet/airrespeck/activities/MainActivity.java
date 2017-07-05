@@ -231,6 +231,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        boolean isLocationPermissionGranted = Utils.checkAndRequestLocationPermission(MainActivity.this);
+        if (isLocationPermissionGranted) {
+            startPhoneGPSService();
+        }
+
         initMainActivity(savedInstanceState);
     }
 
@@ -270,12 +275,7 @@ public class MainActivity extends AppCompatActivity {
         if (mIsStorePhoneGPS) {
             // Start task to regularly check if GPS is still turned on.
             startGPSCheckTask();
-
-            // Check whether we have location permission. Only then start GPS service intent.
-            boolean isLocationPermissionGranted = Utils.checkAndRequestLocationPermission(MainActivity.this);
-            if (isLocationPermissionGranted) {
-                startPhoneService();
-            }
+            startPhoneGPSService();
         }
 
         // Set activity title
@@ -336,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
         startActivitySummaryUpdaterTask();
     }
 
-    private void startPhoneService() {
+    private void startPhoneGPSService() {
         // Start the service which will regularly check GPS and store the data
         Intent startGPSServiceIntent = new Intent(this, PhoneGPSService.class);
         startService(startGPSServiceIntent);
@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted. Start the phone service.
-                startPhoneService();
+                startPhoneGPSService();
             } else {
                 // Permission was not granted. Explain to the user why we need permission and ask again
                 Utils.showLocationRequestDialog(MainActivity.this);
