@@ -278,7 +278,7 @@ public class Constants {
 
     // Breathing signal calculation constants
     public static final int THRESHOLD_FILTER_SIZE = 60;
-    public static final float MINIMUM_THRESHOLD = 0.015f;
+    public static final float MINIMUM_THRESHOLD = 0.0f; //0.015f;
     public static final float MAXIMUM_THRESHOLD = 0.34f;
     public static final float THRESHOLD_FACTOR = 3.2f;
     public static final float ACTIVITY_CUTOFF = 0.3f;

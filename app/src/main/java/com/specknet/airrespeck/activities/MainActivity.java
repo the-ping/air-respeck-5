@@ -226,14 +226,18 @@ public class MainActivity extends AppCompatActivity {
         themeUtils.onActivityCreateSetTheme(this);
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
+        checkPermissionsAndInitMainActivity(savedInstanceState);
+    }
+
+    private void checkPermissionsAndInitMainActivity(Bundle savedInstanceState) {
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
         if (!isStoragePermissionGranted) {
             return;
         }
 
         boolean isLocationPermissionGranted = Utils.checkAndRequestLocationPermission(MainActivity.this);
-        if (isLocationPermissionGranted) {
-            startPhoneGPSService();
+        if (!isLocationPermissionGranted) {
+            return;
         }
 
         initMainActivity(savedInstanceState);
@@ -350,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted. Start the phone service.
-                startPhoneGPSService();
+                checkPermissionsAndInitMainActivity(null);
             } else {
                 // Permission was not granted. Explain to the user why we need permission and ask again
                 Utils.showLocationRequestDialog(MainActivity.this);
@@ -359,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted. Initialise this activity.
-                initMainActivity(null);
+                checkPermissionsAndInitMainActivity(null);
             } else {
                 // Permission was not granted. Explain to the user why we need permission and ask again
                 Utils.showStorageRequestDialog(MainActivity.this);
