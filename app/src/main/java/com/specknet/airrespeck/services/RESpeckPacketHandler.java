@@ -280,6 +280,8 @@ public class RESpeckPacketHandler {
                         float meanActivityLevel = Utils.mean(lastMinuteActivityLevel);
                         int modeActivityType = Utils.mode(lastMinuteActivityType);
 
+                        // Log.i("RESpeckPacketHandler", "Mean act level: " + meanActivityLevel);
+
                         // Reset last minute values
                         lastMinuteActivityLevel = new ArrayList<>();
                         lastMinuteActivityType = new ArrayList<>();
