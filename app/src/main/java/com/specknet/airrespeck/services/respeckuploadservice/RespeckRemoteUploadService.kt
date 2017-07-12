@@ -176,6 +176,7 @@ class RespeckRemoteUploadService : Service() {
                         jsonAverageData.put("n_breaths", data.numberOfBreaths)
                         jsonAverageData.put("act_level", nanToNull(data.activityLevel))
                         jsonAverageData.put("act_type", data.activityType)
+                        jsonAverageData.put("step_count", data.minuteStepCount)
                         jsonAverageData.put("stored", 0)
                         jsonAverageData.put("valid", 1)
                     } catch (e: JSONException) {

@@ -33,6 +33,7 @@ public class Constants {
         public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
         public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
         public static final String SHOW_SUPERVISED_AQ_MAP = "EnableSupervisedAQMap";
+        public static final String SHOW_SUPERVISED_STEP_COUNT = "EnableSupervisedStepCount";
         public static final String SHOW_SUBJECT_HOME = "EnableSubjectHome";
         public static final String SHOW_SUBJECT_VALUES = "EnableSubjectValues";
         public static final String SHOW_SUBJECT_WINDMILL = "EnableSubjectWindmill";

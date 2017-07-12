@@ -574,6 +574,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadConfig() {
+        // Force reload of the properties
+        mUtils.reloadProperties();
+
         mIsSupervisedModeEnabled = Boolean.parseBoolean(
                 mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
         mIsSubjectModeEnabled = Boolean.parseBoolean(
@@ -599,7 +602,8 @@ public class MainActivity extends AppCompatActivity {
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
             mShowSupervisedAQMap = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_MAP));
-            mShowStepCount = true;
+            mShowStepCount = Boolean.parseBoolean(
+                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_STEP_COUNT));
         }
 
         // Load subject mode config if enabled

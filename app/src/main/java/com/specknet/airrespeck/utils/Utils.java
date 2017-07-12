@@ -194,6 +194,10 @@ public final class Utils {
         return mProperties;
     }
 
+    public void reloadProperties() {
+        loadPropertiesFile(Constants.Config.PROPERTIES_FILE_NAME);
+    }
+
     /**
      * Get app version code.
      *

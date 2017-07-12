@@ -75,6 +75,8 @@ public class RESpeckPacketHandler {
 
     private Timer mActivityClassificationTimer;
 
+    private StepCounter mStepCounter;
+
     public RESpeckPacketHandler() {
         // This is only meant for running tests on the c code!
     }
@@ -101,6 +103,8 @@ public class RESpeckPacketHandler {
         patientID = utils.getProperties().getProperty(Constants.Config.PATIENT_ID);
         androidID = Secure.getString(speckService.getContentResolver(),
                 Secure.ANDROID_ID);
+
+        mStepCounter = new StepCounter();
 
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
@@ -244,10 +248,13 @@ public class RESpeckPacketHandler {
                                             Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
                             mPhoneTimestampLastPacketReceived;
 
+                    mStepCounter.updateAccel(interpolatedPhoneTimestampOfCurrentSample, x, y, z);
+                    int stepCountInMinute = mStepCounter.getMinuteCount();
+
                     RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                             mRESpeckTimestampCurrentPacketReceived,
                             currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate, activityLevel,
-                            activityType, mAverageBreathingRate);
+                            activityType, mAverageBreathingRate, stepCountInMinute);
 
                     // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
 
@@ -280,6 +287,10 @@ public class RESpeckPacketHandler {
                         float meanActivityLevel = Utils.mean(lastMinuteActivityLevel);
                         int modeActivityType = Utils.mode(lastMinuteActivityType);
 
+                        // Get and reset minute step count
+                        int minuteStepCount = mStepCounter.getMinuteCount();
+                        mStepCounter.resetMinuteCount();
+
                         // Log.i("RESpeckPacketHandler", "Mean act level: " + meanActivityLevel);
 
                         // Reset last minute values
@@ -288,7 +299,7 @@ public class RESpeckPacketHandler {
 
                         RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
                                 mAverageBreathingRate, mStdDevBreathingRate, mNumberOfBreaths, meanActivityLevel,
-                                modeActivityType);
+                                modeActivityType, minuteStepCount);
 
                         // Send average broadcast intent
                         Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
