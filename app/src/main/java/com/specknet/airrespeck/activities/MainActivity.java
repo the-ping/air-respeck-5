@@ -48,6 +48,7 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedStepCounterFragment;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
@@ -154,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
     private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
+    private static final String TAG_STEPCOUNT_FRAGMENT = "STEPCOUNT_FRAGMENT";
 
     private SubjectHomeFragment mSubjectHomeFragment;
     private SubjectValuesFragment mSubjectValuesFragment;
@@ -163,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
     private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
+    private SupervisedStepCounterFragment mSupervisedStepCounterFragment;
 
     // Config loaded from RESpeck.config
     private boolean mIsSupervisedModeEnabled;
@@ -171,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedRESpeckReadings;
+    private boolean mShowStepCount;
     private boolean mShowSupervisedAQMap;
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
@@ -595,6 +599,7 @@ public class MainActivity extends AppCompatActivity {
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
             mShowSupervisedAQMap = Boolean.parseBoolean(
                     mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_MAP));
+            mShowStepCount = true;
         }
 
         // Load subject mode config if enabled
@@ -652,6 +657,10 @@ public class MainActivity extends AppCompatActivity {
             supervisedFragments.clear();
             supervisedTitles.clear();
             // Only show each fragment if we set the config to true
+            if (mShowStepCount) {
+                supervisedFragments.add(mSupervisedStepCounterFragment);
+                supervisedTitles.add("Steps");
+            }
             if (mShowSupervisedRESpeckReadings) {
                 supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
                 supervisedTitles.add(getString(R.string.menu_breathing_graph));
@@ -719,6 +728,8 @@ public class MainActivity extends AppCompatActivity {
                     TAG_SUBJECT_VALUES_FRAGMENT);
             mSubjectWindmillFragment = (SubjectWindmillFragment) fm.getFragment(savedInstanceState,
                     TAG_SUBJECT_WINDMILL_FRAGMENT);
+            mSupervisedStepCounterFragment = (SupervisedStepCounterFragment) fm.getFragment(savedInstanceState,
+                    TAG_STEPCOUNT_FRAGMENT);
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity
         // startup, create them now
@@ -745,6 +756,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSubjectWindmillFragment == null) {
             mSubjectWindmillFragment = new SubjectWindmillFragment();
+        }
+        if (mSupervisedStepCounterFragment == null) {
+            mSupervisedStepCounterFragment = new SupervisedStepCounterFragment();
         }
     }
 

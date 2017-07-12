@@ -85,6 +85,8 @@ dependencies {
     testCompile 'org.hamcrest:hamcrest-integration:1.1'
     testCompile 'org.hamcrest:hamcrest-library:1.1'
     compile 'com.polidea.rxandroidble:rxandroidble:1.2.2'
+    //compile 'com.trello.rxlifecycle2:rxlifecycle:2.1.0'
+    //compile 'com.trello.rxlifecycle2:rxlifecycle-android:2.1.0'
 }
 
 crashlytics {

@@ -40,13 +40,21 @@ public class BreathingGraphView extends LineChart {
 
     private Activity mParentActivity;
 
-    public BreathingGraphView(Activity parentActivity) {
+    private boolean mIsAxisLimits;
+
+    public BreathingGraphView(Activity parentActivity, boolean isAxisLimits) {
         super(parentActivity);
 
         mParentActivity = parentActivity;
 
+        mIsAxisLimits = isAxisLimits;
+
         setupBreathingSignalChart();
         setupLineDataSetForChart();
+    }
+
+    public BreathingGraphView(Activity parentActivity) {
+        this(parentActivity, true);
     }
 
     public void addToBreathingGraphQueue(RESpeckLiveData data) {
@@ -122,34 +130,36 @@ public class BreathingGraphView extends LineChart {
         // Recalculate dataSet parameters
         getData().notifyDataChanged();
 
-        // Load the current min and max of the data set
-        float minOfDataSet = dataSet.getYMin();
-        float maxOfDataSet = dataSet.getYMax();
+        if (mIsAxisLimits) {
+            // Load the current min and max of the data set
+            float minOfDataSet = dataSet.getYMin();
+            float maxOfDataSet = dataSet.getYMax();
 
-        // Adjust the minimum of the displayed chart based on the minimum of the dataset and the minimum/maximum limit
-        if (minOfDataSet < negativeLowerLimit) {
-            getAxisLeft().setAxisMinimum(negativeLowerLimit);
-            getAxisRight().setAxisMinimum(negativeLowerLimit);
-        } else if (minOfDataSet > negativeUpperLimit) {
-            getAxisLeft().setAxisMinimum(negativeUpperLimit);
-            getAxisRight().setAxisMinimum(negativeUpperLimit);
-        } else {
-            // Display slightly more than the current dataset, so that the lowest value doesn't get cut off
-            getAxisLeft().setAxisMinimum(minOfDataSet - 0.001f);
-            getAxisRight().setAxisMinimum(minOfDataSet - 0.001f);
-        }
+            // Adjust the minimum of the displayed chart based on the minimum of the dataset and the minimum/maximum limit
+            if (minOfDataSet < negativeLowerLimit) {
+                getAxisLeft().setAxisMinimum(negativeLowerLimit);
+                getAxisRight().setAxisMinimum(negativeLowerLimit);
+            } else if (minOfDataSet > negativeUpperLimit) {
+                getAxisLeft().setAxisMinimum(negativeUpperLimit);
+                getAxisRight().setAxisMinimum(negativeUpperLimit);
+            } else {
+                // Display slightly more than the current dataset, so that the lowest value doesn't get cut off
+                getAxisLeft().setAxisMinimum(minOfDataSet - 0.001f);
+                getAxisRight().setAxisMinimum(minOfDataSet - 0.001f);
+            }
 
-        // Adjust the maximum of the displayed chart based on the maximum of the dataset and the minimum/maximum limit
-        if (maxOfDataSet < positiveLowerLimit) {
-            getAxisLeft().setAxisMaximum(positiveLowerLimit);
-            getAxisRight().setAxisMaximum(positiveLowerLimit);
-        } else if (maxOfDataSet > positiveUpperLimit) {
-            getAxisLeft().setAxisMaximum(positiveUpperLimit);
-            getAxisRight().setAxisMaximum(positiveUpperLimit);
-        } else {
-            // Display slightly more than the current dataset, so that the highest value doesn't get cut off
-            getAxisLeft().setAxisMaximum(maxOfDataSet + 0.001f);
-            getAxisRight().setAxisMaximum(maxOfDataSet + 0.001f);
+            // Adjust the maximum of the displayed chart based on the maximum of the dataset and the minimum/maximum limit
+            if (maxOfDataSet < positiveLowerLimit) {
+                getAxisLeft().setAxisMaximum(positiveLowerLimit);
+                getAxisRight().setAxisMaximum(positiveLowerLimit);
+            } else if (maxOfDataSet > positiveUpperLimit) {
+                getAxisLeft().setAxisMaximum(positiveUpperLimit);
+                getAxisRight().setAxisMaximum(positiveUpperLimit);
+            } else {
+                // Display slightly more than the current dataset, so that the highest value doesn't get cut off
+                getAxisLeft().setAxisMaximum(maxOfDataSet + 0.001f);
+                getAxisRight().setAxisMaximum(maxOfDataSet + 0.001f);
+            }
         }
 
         // Update UI
