@@ -18,35 +18,47 @@ import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Utils;
 import com.specknet.airrespeck.views.BreathingGraphView;
 
+import java.util.LinkedList;
+
 /**
  * Created by Darius on 12.07.2017.
  */
 
 public class SupervisedStepCounterFragment extends BaseFragment implements RESpeckDataObserver {
 
-    private static final int ACCEL_RING_SIZE = 50;
-    private static final int VEL_RING_SIZE = 10;
-    private static final float STEP_THRESHOLD = 0.006f;
-    private static final int STEP_DELAY_MS = 250;
+    private static final float STEP_THRESHOLD = 1.02f;
+    private static final int STEP_MIN_DELAY_MS = 250;
 
-    private int accelRingCounter = 0;
-    private float[] accelRingX = new float[ACCEL_RING_SIZE];
-    private float[] accelRingY = new float[ACCEL_RING_SIZE];
-    private float[] accelRingZ = new float[ACCEL_RING_SIZE];
-    private int velRingCounter = 0;
-    private float[] velRing = new float[VEL_RING_SIZE];
-    private long lastStepTimeNs = 0;
-    private float oldVelocityEstimate = 0;
+    private long lastTimestamp = 0;
+    private float oldVectorLength = 0;
 
     private TextView mStepcountText;
     private BreathingGraphView mVelocityGraphView;
 
-    private void updateStep() {
+    private final int NUM_STEPS_UNTIL_COUNT_WALKING = 4;
+    private final int MAX_ALLOWED_DEVIATION_FROM_MEAN_DISTANCE = 6;
+    private final int NUM_SAMPLES_UNTIL_STATIC = 20;
+    private final int FILTER_LENGTH = 3;
+    private int[] stepDistances = new int[NUM_STEPS_UNTIL_COUNT_WALKING - 1];
+    private int mSamplesSinceLastStep = 0;
+    private int mNumValidSteps = 0;
+    private int mNumSamplesUntilStatic = 0;
+
+    private LinkedList<Float> mVectorLengthFilter = new LinkedList<>();
+
+    private enum State {
+        STATIC, MOVING, WALKING
+    }
+
+    private State mState = State.STATIC;
+
+    private void updateStep(final int number) {
         // Update text
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                mStepcountText.setText(Integer.toString(Integer.parseInt(mStepcountText.getText().toString()) + 1));
+                mStepcountText.setText(
+                        Integer.toString(Integer.parseInt(mStepcountText.getText().toString()) + number));
             }
         });
     }
@@ -80,49 +92,77 @@ public class SupervisedStepCounterFragment extends BaseFragment implements RESpe
         updateAccel(data.getPhoneTimestamp(), data.getAccelX(), data.getAccelY(), data.getAccelZ());
     }
 
-    public void updateAccel(long timeNs, float x, float y, float z) {
-        float[] currentAccel = new float[3];
-        currentAccel[0] = x;
-        currentAccel[1] = y;
-        currentAccel[2] = z;
+    public void updateAccel(long currentTimestamp, float x, float y, float z) {
 
-        // First step is to update our guess of where the global z vector is.
-        accelRingCounter++;
-        accelRingX[accelRingCounter % ACCEL_RING_SIZE] = currentAccel[0];
-        accelRingY[accelRingCounter % ACCEL_RING_SIZE] = currentAccel[1];
-        accelRingZ[accelRingCounter % ACCEL_RING_SIZE] = currentAccel[2];
+        float unfilteredVectorLength = Utils.norm(new float[]{x, y, z});
+        mVectorLengthFilter.addLast(unfilteredVectorLength);
 
-        float[] worldZ = new float[3];
-        worldZ[0] = Utils.sum(accelRingX) / Math.min(accelRingCounter, ACCEL_RING_SIZE);
-        worldZ[1] = Utils.sum(accelRingY) / Math.min(accelRingCounter, ACCEL_RING_SIZE);
-        worldZ[2] = Utils.sum(accelRingZ) / Math.min(accelRingCounter, ACCEL_RING_SIZE);
+        if (mVectorLengthFilter.size() > FILTER_LENGTH) {
+            mVectorLengthFilter.removeFirst();
+            float vectorLength = Utils.mean(mVectorLengthFilter.toArray(new Float[FILTER_LENGTH]));
 
-        float normalization_factor = Utils.norm(worldZ);
+            mVelocityGraphView.addToBreathingGraphQueue(
+                    new RESpeckLiveData(currentTimestamp, 0, 0, 0, 0, 0, vectorLength, 0, 0, 0, 0));
 
-        worldZ[0] = worldZ[0] / normalization_factor;
-        worldZ[1] = worldZ[1] / normalization_factor;
-        worldZ[2] = worldZ[2] / normalization_factor;
+            mSamplesSinceLastStep++;
 
-        // Next step is to figure out the component of the current acceleration
-        // in the direction of world_z and subtract gravity's contribution
-        float currentZ = Utils.dot(worldZ, currentAccel) - normalization_factor;
-        velRingCounter++;
-        velRing[velRingCounter % VEL_RING_SIZE] = currentZ;
+            if (vectorLength > STEP_THRESHOLD && oldVectorLength <= STEP_THRESHOLD
+                    && (currentTimestamp - lastTimestamp > STEP_MIN_DELAY_MS)) {
 
-        float velocityEstimate = Utils.sum(velRing);
+                mNumSamplesUntilStatic = NUM_SAMPLES_UNTIL_STATIC;
 
-        Log.i("Step", "velocitiy: " + velocityEstimate);
+                // We have a potentially valid step. If we were static before, start moving and keep track of valid steps
+                if (mState == State.STATIC) {
+                    mNumValidSteps = 1;
+                    mState = State.MOVING;
+                } else if (mState == State.MOVING) {
+                    // If we were in moving state, take note of this valid step
+                    mNumValidSteps++;
+                    Log.i("Step", "Count step in movement state");
 
-        // Update the graph
-        mVelocityGraphView.addToBreathingGraphQueue(
-                new RESpeckLiveData(timeNs, 0, 0, 0, 0, 0, velocityEstimate, 0, 0, 0, 0));
+                    // Keep track of step time differences after second step
+                    stepDistances[mNumValidSteps - 2] = mSamplesSinceLastStep;
 
-        if (velocityEstimate > STEP_THRESHOLD && oldVelocityEstimate <= STEP_THRESHOLD
-                && (timeNs - lastStepTimeNs > STEP_DELAY_MS)) {
-            updateStep();
-            lastStepTimeNs = timeNs;
+                    if (mNumValidSteps == NUM_STEPS_UNTIL_COUNT_WALKING) {
+                        // We have the number of steps required for walking. Only register walking if the steps were
+                        // in regular time intervals
+                        float meanDistance = Utils.mean(stepDistances);
+                        boolean validWalking = true;
+                        for (int distance : stepDistances) {
+                            if (Math.abs(meanDistance - distance) > MAX_ALLOWED_DEVIATION_FROM_MEAN_DISTANCE) {
+                                validWalking = false;
+                            }
+                            Log.i("Step", "Distance: " + distance);
+                            Log.i("Step", "Diff from mean distance: " + Math.abs(meanDistance - distance));
+                        }
+                        if (validWalking) {
+                            mState = State.WALKING;
+                            updateStep(mNumValidSteps);
+                        } else {
+                            // Reset to static state
+                            mState = State.STATIC;
+                            Log.i("Step", "Irregular steps. Fall back to static and don't count them");
+                        }
+                    }
+                } else {
+                    // State is walking
+                    updateStep(1);
+                }
+
+                lastTimestamp = currentTimestamp;
+                mSamplesSinceLastStep = 0;
+            } else {
+                if (mState != State.STATIC) {
+                    // We are not above the threshold. If this happens often, fall back to static state
+                    mNumSamplesUntilStatic--;
+                    if (mNumSamplesUntilStatic == 0) {
+                        Log.i("Step", "Didn't move for 20 samples. Fall back to static state");
+                        mState = State.STATIC;
+                    }
+                }
+            }
+            oldVectorLength = vectorLength;
         }
-        oldVelocityEstimate = velocityEstimate;
     }
 
     @Override

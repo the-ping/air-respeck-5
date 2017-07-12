@@ -228,6 +228,16 @@ public final class Utils {
         return sum;
     }
 
+    public static float mean(int[] a) {
+        if (a.length == 0) {
+            return Float.NaN;
+        }
+        int sum = 0;
+        for (int elem : a) {
+            sum += elem;
+        }
+        return sum / a.length;
+    }
 
     public static float mean(ArrayList<Float> a) {
         if (a.size() == 0) {
