@@ -20,7 +20,7 @@ import java.util.LinkedList;
 
 public class StepCounter {
     private static final float STEP_THRESHOLD = 1.02f;
-    private static final int STEP_MIN_DELAY_MS = 250;
+    private static final int STEP_MIN_DELAY_MS = 40;
 
     private long mlastTimestamp = 0;
     private float mOldVectorLength = 0;
