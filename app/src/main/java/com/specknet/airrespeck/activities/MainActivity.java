@@ -249,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initMainActivity(Bundle savedInstanceState) {
         aua = new AutoUpdateApk(getApplicationContext());
+        AutoUpdateApk.enableMobileUpdates();
 
         // Initialise Fabrics, a tool to get the stacktrace remotely when problems occur.
         Fabric.with(this, new Crashlytics(), new CrashlyticsNdk());
