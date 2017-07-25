@@ -643,6 +643,7 @@ public class MainActivity extends AppCompatActivity {
             mShowSupervisedAirspeckReadings = false;
         }
         if (!mIsRESpeckEnabled) {
+            mShowStepCount = false;
             mShowSupervisedRESpeckReadings = false;
             mShowSupervisedActivitySummary = false;
         }

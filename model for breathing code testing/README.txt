@@ -1,0 +1,1 @@
+These files are used to test changes on the breathing signal c code. Before implementing any changes, all breathing measures should be calculated on "model_accel.csv" into "model_measures.csv". After the changes, these measures should be calculated again and compared to the old ones. Only if all measures match we can be very certain that the code has identical output.

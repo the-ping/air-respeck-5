@@ -272,15 +272,21 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                                 // Only if the timestamp of the currently read line is in specified time period,
                                 // do we draw a circle on the map corresponding to the measurements
                                 if (tsRow >= tsFrom && tsRow <= tsTo) {
-                                    LatLng circleLocation = new LatLng(Double.parseDouble(row[24]),
-                                            Double.parseDouble(row[23]));
-                                    AirspeckMapData readSample = new AirspeckMapData(circleLocation,
-                                            Float.parseFloat(row[1]), Float.parseFloat(row[2]),
-                                            Float.parseFloat(row[3]));
+                                    double lat = Double.parseDouble(row[24]);
+                                    double lng = Double.parseDouble(row[23]);
 
-                                    Log.i("AirspeckMapData", readSample.toString());
+                                    // Only if there is actual location data do we display it
+                                    if (!Double.isNaN(lat) && !Double.isNaN(lng)) {
+                                        LatLng circleLocation = new LatLng(lat, lng);
 
-                                    mQueueMapData.add(readSample);
+                                        AirspeckMapData readSample = new AirspeckMapData(circleLocation,
+                                                Float.parseFloat(row[1]), Float.parseFloat(row[2]),
+                                                Float.parseFloat(row[3]));
+
+                                        Log.i("AirspeckMapData", readSample.toString());
+
+                                        mQueueMapData.add(readSample);
+                                    }
                                 }
                             }
                             reader.close();
