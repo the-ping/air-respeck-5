@@ -226,6 +226,13 @@
     <string name="notification_speck_title">RESpeck and Airspeck</string>
     <string name="notification_speck_text">Listening for sensor data</string>
 
+    <string name="notification_respeck_upload_title">Upload RESpeck</string>
+    <string name="notification_respeck_upload_text">Uploading RESpeck data</string>
+
+    <string name="notification_airspeck_upload_title">Upload Airspeck</string>
+    <string name="notification_airspeck_upload_text">Uploading Airspeck data</string>
+
+
     <!-- Map -->
     <string name="title_activity_maps_aq">Map</string>
     <string name="maps_loader_live_button">Show live data and recent historical data on map</string>

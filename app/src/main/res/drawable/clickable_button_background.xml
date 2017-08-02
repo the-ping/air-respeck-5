@@ -17,8 +17,8 @@
         <shape>
             <gradient
                 android:angle="270"
-                android:endColor="#ffa500"
-                android:startColor="#ffcf82"/>
+                android:endColor="#ff8000"
+                android:startColor="#ffbf36"/>
             <corners
                 android:radius="20dp"/>
             <padding

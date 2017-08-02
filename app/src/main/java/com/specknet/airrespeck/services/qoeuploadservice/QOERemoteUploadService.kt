@@ -1,5 +1,7 @@
 package com.specknet.airrespeck.services.qoeuploadservice
 
+import android.app.Notification
+import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,6 +14,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.specknet.airrespeck.R
+import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.AirspeckData
 import com.specknet.airrespeck.utils.Constants
 import com.specknet.airrespeck.utils.Utils
@@ -55,8 +59,30 @@ class QOERemoteUploadService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        initQOEUploadService()
-        return super.onStartCommand(intent, flags, startId)
+        object : Thread() {
+            override fun run() {
+                Log.i("Upload", "Starting Airspeck upload...")
+                startInForeground()
+                initQOEUploadService()
+            }
+        }.start()
+        return Service.START_STICKY
+    }
+
+    private fun startInForeground() {
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+
+        val notification = Notification.Builder(this)
+                .setContentTitle(getText(R.string.notification_airspeck_upload_title))
+                .setContentText(getText(R.string.notification_airspeck_upload_text))
+                .setSmallIcon(R.drawable.vec_wireless)
+                .setContentIntent(pendingIntent)
+                .build()
+
+        // Just use a "random" service ID
+        val SERVICE_NOTIFICATION_ID = 89247238
+        startForeground(SERVICE_NOTIFICATION_ID, notification)
     }
 
     override fun onDestroy() {

@@ -18,13 +18,13 @@
         android:weightSum="1">
 
         <ImageButton
+            android:id="@+id/imageButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:background="@drawable/clickable_button_background"
             android:padding="15dp"
-            app:srcCompat="@drawable/vec_diary"
-            />
+            app:srcCompat="@drawable/vec_diary"/>
 
         <TableLayout
             android:layout_width="match_parent"
@@ -89,7 +89,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="@dimen/button_and_battery_height"

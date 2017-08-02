@@ -1,6 +1,8 @@
 package com.specknet.airrespeck.services.respeckuploadservice
 
 
+import android.app.Notification
+import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -11,6 +13,8 @@ import android.provider.Settings
 import android.util.Log
 
 import com.google.gson.*
+import com.specknet.airrespeck.R
+import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.RESpeckAveragedData
 import com.specknet.airrespeck.models.RESpeckLiveData
 import com.specknet.airrespeck.utils.Constants
@@ -58,11 +62,28 @@ class RespeckRemoteUploadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         object : Thread() {
             override fun run() {
-                Log.i("SpeckService", "Starting SpeckService...")
+                Log.i("Upload", "Starting RESpeck upload...")
+                startInForeground()
                 initRespeckUploadService()
             }
         }.start()
         return Service.START_STICKY
+    }
+
+    private fun startInForeground() {
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+
+        val notification = Notification.Builder(this)
+                .setContentTitle(getText(R.string.notification_respeck_upload_title))
+                .setContentText(getText(R.string.notification_respeck_upload_text))
+                .setSmallIcon(R.drawable.vec_wireless)
+                .setContentIntent(pendingIntent)
+                .build()
+
+        // Just use a "random" service ID
+        val SERVICE_NOTIFICATION_ID = 89347238
+        startForeground(SERVICE_NOTIFICATION_ID, notification)
     }
 
     override fun onDestroy() {
