@@ -26,8 +26,6 @@ public class SupervisedPasswordDialog extends DialogFragment {
         View dialogView = inflater.inflate(R.layout.supervised_password_dialog, null);
 
         final EditText passwordField = (EditText) dialogView.findViewById(R.id.dialog_password);
-        // Only during test period we already pre-set the password
-        passwordField.setText("2F0wwN01pFW");
 
         // Pass null as the parent view because its going in the dialog layout
         builder.setView(dialogView)
@@ -35,7 +33,7 @@ public class SupervisedPasswordDialog extends DialogFragment {
                 .setPositiveButton(R.string.supervised_mode_dialog_enter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        if (passwordField.getText().toString().equals("2F0wwN01pFW")) {
+                        if (passwordField.getText().toString().equals("daphnedelhi")) {
                             ((MainActivity) getActivity()).displaySupervisedMode();
                         }
                     }

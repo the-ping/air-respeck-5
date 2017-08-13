@@ -5,6 +5,8 @@ import android.os.Environment;
 
 import com.specknet.airrespeck.R;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 
 /**
@@ -21,7 +23,6 @@ public class Constants {
         public static final String RESPECK_KEY = "RESpeckKey";
         public static final String RESPECK_UUID = "RESpeckUUID";
         public static final String AIRSPECK_UUID = "QoEUUID";
-        public static final String TABLET_SERIAL = "DeviceSerial";
         public static final String PATIENT_ID = "PatientID";
         public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
@@ -108,6 +109,9 @@ public class Constants {
             "com.specknet.respeck.RESPECK_AVG_BROADCAST";
     public static final String ACTION_RESPECK_AVG_STORED_BROADCAST =
             "com.specknet.respeck.RESPECK_AVG_STORED_BROADCAST";
+
+    public static final String ACTION_DIARY_BROADCAST = "com.specknet.diarydaphne.DIARY_BROADCAST";
+    public static final String DIARY_DATA = "diary_data";
 
     public static final String ACTION_RESPECK_CONNECTED =
             "com.specknet.respeck.RESPECK_CONNECTED";

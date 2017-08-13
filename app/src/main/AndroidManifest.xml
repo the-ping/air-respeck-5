@@ -106,7 +106,7 @@
             </intent-filter>
         </service>
         <service
-            android:name=".services.respeckuploadservice.RespeckRemoteUploadService"
+            android:name=".services.respeckuploadservice.RespeckAndDiaryRemoteUploadService"
             android:enabled="true"
             android:exported="true"
             android:process=":upload_process_respeck">
@@ -118,6 +118,9 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="com.specknet.respeck.RESPECK_AVG_STORED_BROADCAST"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.diarydaphne.DIARY_BROADCAST"/>
             </intent-filter>
         </service>
         <service

@@ -1,12 +1,18 @@
 package com.specknet.airrespeck.fragments;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
@@ -20,6 +26,8 @@ public class SubjectHomeFragment extends BaseFragment {
 
     private ImageView connectedStatusRESpeck;
     private ImageView connectedStatusAirspeck;
+    private ProgressBar progressBarRESpeck;
+    private ProgressBar progressBarAirspeck;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -44,7 +52,24 @@ public class SubjectHomeFragment extends BaseFragment {
         connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);
         connectedStatusAirspeck = (ImageView) view.findViewById(R.id.connected_status_airspeck);
 
+        progressBarRESpeck = (ProgressBar) view.findViewById(R.id.progress_bar_respeck);
+        progressBarAirspeck = (ProgressBar) view.findViewById(R.id.progress_bar_airspeck);
+
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+
+        ImageButton diaryButton = (ImageButton) view.findViewById(R.id.diary_button);
+        diaryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                /*
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.setComponent(
+                        new ComponentName("com.specknet.diarydaphne", "com.specknet.diarydaphne.MainActivity"));
+                startActivity(intent);*/
+                startApp(getActivity(), "com.specknet.diarydaphne");
+            }
+        });
 
         mIsCreated = true;
 
@@ -53,6 +78,17 @@ public class SubjectHomeFragment extends BaseFragment {
         updateAirspeckConnectionSymbol(((MainActivity) getActivity()).getIsAirspeckConnected());
 
         return view;
+    }
+
+    public void startApp(Context context, String packageName) {
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        if (intent == null) {
+            Toast.makeText(context, "Diary app not installed. Contact researchers for further information.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
     }
 
     @Override
@@ -69,7 +105,7 @@ public class SubjectHomeFragment extends BaseFragment {
         if (mIsCreated) {
             if (isConnected) {
                 // "Flash" with symbol when updating to indicate data coming in
-                connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
+                progressBarRESpeck.setVisibility(View.GONE);
                 connectedStatusRESpeck.setVisibility(View.INVISIBLE);
 
                 Handler handler = new Handler();
@@ -81,7 +117,8 @@ public class SubjectHomeFragment extends BaseFragment {
                 }, 100);
 
             } else {
-                connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
+                connectedStatusRESpeck.setVisibility(View.GONE);
+                progressBarRESpeck.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -90,7 +127,7 @@ public class SubjectHomeFragment extends BaseFragment {
         if (mIsCreated) {
             if (isConnected) {
                 // "Flash" with symbol when updating to indicate data coming in
-                connectedStatusAirspeck.setImageResource(R.drawable.vec_wireless);
+                progressBarAirspeck.setVisibility(View.GONE);
                 connectedStatusAirspeck.setVisibility(View.INVISIBLE);
 
                 Handler handler = new Handler();
@@ -102,7 +139,8 @@ public class SubjectHomeFragment extends BaseFragment {
                 }, 100);
 
             } else {
-                connectedStatusAirspeck.setImageResource(R.drawable.vec_xmark);
+                connectedStatusAirspeck.setVisibility(View.GONE);
+                progressBarAirspeck.setVisibility(View.VISIBLE);
             }
         }
     }

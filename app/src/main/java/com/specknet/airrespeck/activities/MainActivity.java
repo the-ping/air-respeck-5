@@ -54,7 +54,7 @@ import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
-import com.specknet.airrespeck.services.respeckuploadservice.RespeckRemoteUploadService;
+import com.specknet.airrespeck.services.respeckuploadservice.RespeckAndDiaryRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
         // Initialise upload services if desired
         if (mIsUploadDataToServer) {
             if (mIsRESpeckEnabled) {
-                Intent startUploadRESpeckIntent = new Intent(this, RespeckRemoteUploadService.class);
+                Intent startUploadRESpeckIntent = new Intent(this, RespeckAndDiaryRemoteUploadService.class);
                 startService(startUploadRESpeckIntent);
             }
 
@@ -838,7 +838,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i("DF", "Services are being stopped");
         Intent intentStopSpeckService = new Intent(this, SpeckBluetoothService.class);
         stopService(intentStopSpeckService);
-        Intent intentStopUploadRespeck = new Intent(this, RespeckRemoteUploadService.class);
+        Intent intentStopUploadRespeck = new Intent(this, RespeckAndDiaryRemoteUploadService.class);
         stopService(intentStopUploadRespeck);
         Intent intentStopUploadAirspeck = new Intent(this, QOERemoteUploadService.class);
         stopService(intentStopUploadAirspeck);

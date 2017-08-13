@@ -31,7 +31,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-class RespeckRemoteUploadService : Service() {
+class RespeckAndDiaryRemoteUploadService : Service() {
     companion object {
         const val FILENAME = "respeck_upload_queue6"
 
@@ -125,6 +125,7 @@ class RespeckRemoteUploadService : Service() {
         registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST))
         registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_BROADCAST))
         registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST))
+        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_DIARY_BROADCAST))
 
         // Setup upload queue which stores data until it can be uploaded
         val queueFile = File(filesDir, FILENAME)
@@ -233,7 +234,13 @@ class RespeckRemoteUploadService : Service() {
                     Log.i("Upload", "Respeck upload averaged stored broadcast data")
                     //mySubject.onNext(Gson().fromJson(jsonAverageStoredData.toString(), JsonElement::class.java).asJsonObject)
                 }
-
+                Constants.ACTION_DIARY_BROADCAST -> {
+                    val diaryString = intent.getSerializableExtra(Constants.DIARY_DATA) as String
+                    val diaryGson = Gson().fromJson(diaryString, JsonElement::class.java).asJsonObject
+                    diaryGson.addProperty("messagetype", "diary")
+                    Log.i("Upload", "Diary upload")
+                    mySubject.onNext(diaryGson)
+                }
                 else -> {
                     Log.i("Upload", "Respeck invalid message received")
                 }
