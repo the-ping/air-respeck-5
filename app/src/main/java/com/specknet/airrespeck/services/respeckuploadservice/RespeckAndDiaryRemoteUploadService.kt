@@ -238,7 +238,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                     val diaryString = intent.getSerializableExtra(Constants.DIARY_DATA) as String
                     val diaryGson = Gson().fromJson(diaryString, JsonElement::class.java).asJsonObject
                     diaryGson.addProperty("messagetype", "diary")
-                    Log.i("Upload", "Diary upload")
+                    Log.i("Upload", "Diary upload: " + diaryGson)
                     mySubject.onNext(diaryGson)
                 }
                 else -> {
