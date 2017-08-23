@@ -28,8 +28,7 @@ import static org.hamcrest.Matchers.is;
 
 public class BreathingSignalTest {
 
-    private static final String directory = "C:/Users/Darius/Dropbox/Studium/ArbeitArvind/Projects/Western General" +
-            "/RESpeck vs. Cannula/Comparison data breathing code/";
+    private static final String directory = "C:/Code/Arvind/AirRespeck/model for breathing code testing/";
     private static final String rawModelFilePath = directory + "model_accel.csv";
     private static final String measuresModelFilePath = directory + "model_measures.csv";
 

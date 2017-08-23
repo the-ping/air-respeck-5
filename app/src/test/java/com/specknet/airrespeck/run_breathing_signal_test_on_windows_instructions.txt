@@ -13,9 +13,9 @@ First, we open the path where the respeck-jni.c file is located. For convenience
 
 After that, we create the library with the following command. This is the command for 64 bit systems and the paths have to be modified to fit the system.
 Note that the library won't work if there's a link to the android logging library, probably because that will be connected to other Android code. Therefore, 
-all logging references have to be commented out before runnning this.
+all logging references have to be commented out before running this.
 
-> gcc -Wall -Wl,--export-all-symbols -Wl,--add-stdcall-alias -m64 -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -I"C:/Program Files/Java/jdk1.8.0_66/include" -I"C:/Program Files/Java/jdk1.8.0_66/include/win32" -shared respeck-jni.c breathing/* activityclassification/* -o respeck-jni.dll
+> gcc -Wall -Wl,--export-all-symbols -Wl,--add-stdcall-alias -m64 -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -I"C:/Program Files/Java/jdk1.8.0_66/include" -I"C:/Program Files/Java/jdk1.8.0_66/include/win32" -shared respeck-jni.c respeck.c breathing/* activityclassification/* -o respeck-jni.dll
 
 After the library has been created, we need to configure the running of the test to load the created library into the PATH:
 "Edit configurations" from running menu for BreathingSignalTest. At "VM options", add the following line:
