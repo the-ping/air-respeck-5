@@ -3,9 +3,7 @@
       xmlns:tools="https://schemas.android.com/tools"
       tools:context="com.specknet.airrespeck.activities.MainActivity">
 
-    <group
-        >
-
+    <group>
         <item
             android:id="@+id/action_subject_mode"
             android:orderInCategory="10"
@@ -22,7 +20,7 @@
             android:id="@+id/action_close_app"
             android:orderInCategory="100"
             android:title="@string/action_close_app"
-            app:showAsAction="never" />
+            app:showAsAction="never"/>
 
     </group>
 

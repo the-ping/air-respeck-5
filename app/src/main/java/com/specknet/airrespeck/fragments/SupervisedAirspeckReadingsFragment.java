@@ -137,7 +137,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
             ArrayList<Segment> segments;
 
             String[] readingsDisplayed = new String[]{Constants.AIRSPECK_PM1, Constants.AIRSPECK_PM2_5,
-                    Constants.AIRSPECK_PM10};
+                    Constants.AIRSPECK_PM10, Constants.AIRSPECK_TEMPERATURE};
 
             for (String key : readingsDisplayed) {
                 switch (key) {
@@ -396,6 +396,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
             mReadingItems.get(0).value = data.getPm1();
             mReadingItems.get(1).value = data.getPm2_5();
             mReadingItems.get(2).value = data.getPm10();
+            mReadingItems.get(3).value = data.getTemperature();
 
             // For humidity:
             // buildRelativeHumidityScale(Math.round(data.getTemperature()));

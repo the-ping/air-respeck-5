@@ -3,36 +3,19 @@
       xmlns:tools="https://schemas.android.com/tools"
       tools:context="com.specknet.airrespeck.activities.MainActivity">
 
-    <group
-        >
+    <group>
 
         <item
-            android:id="@+id/action_subject_mode"
-            android:orderInCategory="10"
-            android:title="@string/action_subject_mode"
-            app:showAsAction="never"/>
-
-        <item
-            android:id="@+id/action_close_app"
-            android:orderInCategory="100"
-            android:title="@string/action_close_app"
-            app:showAsAction="never" />
-
-        <!--
-        <item
-            android:id="@+id/action_settings"
-            android:icon="@drawable/ic_settings"
+            android:id="@+id/action_supervised_mode"
             android:orderInCategory="90"
-            android:title="@string/action_settings"
+            android:title="@string/action_supervised_mode"
             app:showAsAction="never"/>
-
-        <item
-            android:id="@+id/action_user_profile"
-            android:orderInCategory="80"
-            android:title="@string/action_user_profile"
-            app:showAsAction="never" />
+        <!--
+                <item
+                    android:id="@+id/action_close_app"
+                    android:orderInCategory="100"
+                    android:title="@string/action_close_app"
+                    app:showAsAction="never" />
         -->
-
     </group>
-
 </menu>

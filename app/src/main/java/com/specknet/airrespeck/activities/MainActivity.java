@@ -378,8 +378,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Just destroy this activity, but keep the services running.
-        finish();
+        // Do nothing.
     }
 
     private void createExternalDirectories() {
@@ -885,9 +884,9 @@ public class MainActivity extends AppCompatActivity {
                     mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_VOLUME_CALIBRATION_SCREEN));
 
             if (mIsSubjectModeEnabled && isSpirometerRecordingEnabled) {
-                getMenuInflater().inflate(R.menu.menu_subject_volume_recording, menu);
+                getMenuInflater().inflate(R.menu.menu_supervised_volume_recording, menu);
             } else if (mIsSubjectModeEnabled) {
-                getMenuInflater().inflate(R.menu.menu_subject, menu);
+                getMenuInflater().inflate(R.menu.menu_supervised, menu);
             } else if (isSpirometerRecordingEnabled) {
                 getMenuInflater().inflate(R.menu.menu_volume_recording, menu);
             } else {
@@ -897,7 +896,7 @@ public class MainActivity extends AppCompatActivity {
             // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
             // If subject mode is disabled, don't load the menu
             if (mIsSupervisedModeEnabled) {
-                getMenuInflater().inflate(R.menu.menu_supervised, menu);
+                getMenuInflater().inflate(R.menu.menu_subject, menu);
             }
         }
 
