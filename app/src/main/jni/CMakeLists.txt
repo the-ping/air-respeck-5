@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.6)
 # automatically packages shared libraries with your APK.
 
 # Add respeck-jni.c and all files in breathing and activitiyclassification directories to library sources
-file(GLOB RESPECK_SOURCES respeck-jni.c respeck.c respeck.h breathing/* activityclassification/*)
+file(GLOB RESPECK_SOURCES respeck-jni.c respeck.c respeck.h breathing/* stepcount/* activityclassification/*)
 
 add_library( # Specifies the name of the library.
              respeck-jni

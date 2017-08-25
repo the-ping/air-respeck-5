@@ -13,7 +13,7 @@ import com.specknet.airrespeck.activities.MainActivity;
 
 /**
  * Dialog which is started when the orientation of the RESpeck is incorrect. The dialog is only "dismissable"
- * when the RESpeck shows an acceptable orientation (!= WRONG_ORIENTATION) for 10 seconds.
+ * when the RESpeck shows an acceptable orientation (!= ACTIVITY_WRONG_ORIENTATION) for 10 seconds.
  */
 
 public class WrongOrientationDialog extends DialogFragment {

@@ -1,8 +1,20 @@
 #include "math_helper.h"
 #include <math.h>
 
+double calculate_vector_length(float *vector) {
+    return sqrt(dot_product(vector, vector));
+}
+
+float mean(int *array, int length) {
+    int sum = 0;
+    for (int i = 0; i < length; i += 1) {
+        sum += array[i];
+    }
+    return ((float) sum) / length;
+}
+
 void normalise_vector_to_unit_length(float *vector) {
-    float length = (float) sqrt(dot_product(vector, vector));
+    float length = calculate_vector_length(vector);
 
     if (length != 0) {
         vector[0] /= length;

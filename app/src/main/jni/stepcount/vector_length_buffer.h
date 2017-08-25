@@ -7,19 +7,21 @@
 
 #include <stdbool.h>
 
-#define FILTER_LENGTH 3
+#define VECTOR_LENGTH_BUFFER_SIZE 3
 
 typedef struct {
 
     int current_position, fill;
-    float vector_lengths[FILTER_LENGTH];
-
+    double *values;
+    double mean_length;
     bool is_valid;
+    double sum;
+
 } VectorLengthBuffer;
 
 void initialise_vector_length_buffer(VectorLengthBuffer *vector_length_buffer);
 
-void update_vector_length_buffer(float *current_accel, VectorLengthBuffer *vector_length_buffer);
+void update_vector_length_buffer(double new_vector_length, VectorLengthBuffer *vector_length_buffer);
 
 #endif //AIRRESPECK_VECTOR_LENGTH_BUFFER_H
 

@@ -23,6 +23,10 @@ void initBreathing(bool is_post_filtering_enabled, float activity_cutoff, unsign
 
 void updateBreathing(float x, float y, float z);
 
+int getMinuteStepcount();
+
+void resetMinuteStepcount();
+
 float getUpperThreshold();
 
 float getLowerThreshold();

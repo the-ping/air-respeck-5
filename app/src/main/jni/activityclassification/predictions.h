@@ -5,10 +5,10 @@
 #ifndef __PREDICTIONS_H__
 #define __PREDICTIONS_H__
 
-#define STAND_SIT 0
-#define WALKING 1
-#define LYING 2
-#define WRONG_ORIENTATION 3
+#define ACTIVITY_STAND_SIT 0
+#define ACTIVITY_WALKING 1
+#define ACTIVITY_LYING 2
+#define ACTIVITY_WRONG_ORIENTATION 3
 
 #include <stdbool.h>
 

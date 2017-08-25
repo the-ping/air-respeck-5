@@ -1,12 +1,14 @@
-#include <string.h>
+
 #include "breathing/breathing.h"
 #include "breathing/breath_detection.h"
 #include "breathing/breathing_rate_stats.h"
 #include "activityclassification/predictions.h"
+#include "stepcount/step_count.h"
 
 static BreathingMeasures breathing_buffer;
 static ThresholdBuffer threshold_buffer;
 static CurrentBreath current_breath;
+static StepCounter step_counter;
 static BreathingRateStats breathing_rate_stats;
 static float upper_threshold;
 static float lower_threshold;
@@ -26,6 +28,7 @@ void initBreathing(bool is_post_filtering_enabled, float activity_cutoff, unsign
     initialise_rms_threshold_buffer(&threshold_buffer, threshold_filter_size);
     initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit);
     initialise_breathing_rate_stats(&breathing_rate_stats);
+    initialise_stepcounter(&step_counter);
 
     th_factor = threshold_factor;
     breathing_buffer.is_breathing_initialised = true;
@@ -34,6 +37,10 @@ void initBreathing(bool is_post_filtering_enabled, float activity_cutoff, unsign
 
 void updateBreathing(float x, float y, float z) {
     float new_accel_data[3] = {x, y, z};
+
+    // Update the step counter
+    update_stepcounter(new_accel_data, &step_counter);
+
     update_breathing_measures(new_accel_data, &breathing_buffer);
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
@@ -47,6 +54,14 @@ void updateBreathing(float x, float y, float z) {
         update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
         current_breath.is_complete = false;
     }
+}
+
+int getMinuteStepcount() {
+    return step_counter.minute_step_count;
+}
+
+void resetMinuteStepcount() {
+    step_counter.minute_step_count = 0;
 }
 
 float getUpperThreshold() {

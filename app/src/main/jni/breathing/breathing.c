@@ -7,6 +7,7 @@
 #include "breathing.h"
 
 #include <math.h>
+#include <malloc.h>
 
 #include "rotation_axis.h"
 #include "mean_post_filter.h"
@@ -15,15 +16,16 @@
 #include "activity_level_buffer.h"
 #include "../activityclassification/predictions.h"
 
-MeanUnitAccelBuffer mean_unit_accel_filter;
-RotationAxis rotation_axis;
-MeanRotationAxisBuffer mean_rotation_axis_buffer;
-MeanUnitAccelBuffer mean_unit_accel_buffer;
-MeanPostFilter mean_filter_breathing_signal;
-MeanPostFilter mean_filter_angle;
-ActivityLevelBuffer activity_level_buffer;
+static MeanUnitAccelBuffer mean_unit_accel_filter;
+static RotationAxis rotation_axis;
+static MeanRotationAxisBuffer mean_rotation_axis_buffer;
+static MeanUnitAccelBuffer mean_unit_accel_buffer;
+static MeanPostFilter mean_filter_breathing_signal;
+static MeanPostFilter mean_filter_angle;
+static ActivityLevelBuffer activity_level_buffer;
 
-void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled, float activity_cutoff) {
+void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled,
+                                   float activity_cutoff) {
     breathing_measures->is_breathing_initialised = false;
     breathing_measures->is_valid = false;
     breathing_measures->signal = NAN;
@@ -55,7 +57,7 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
     }
 
     // First, make a copy of input accel vector and use that in the following
-    float new_accel_data[3];
+    float *new_accel_data = calloc(3, sizeof(float));
     copy_accel_vector(new_accel_data, new_accel_data_original);
 
     // Fill the buffer for the activity level

@@ -1,7 +1,3 @@
-/**
- *
- */
-
 #include <jni.h>
 #include <stdbool.h>
 
@@ -36,6 +32,13 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JN
                   upper_threshold_limit, threshold_factor);
 }
 
+int Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMinuteStepcount(JNIEnv *env, jobject this) {
+    return getMinuteStepcount();
+}
+
+void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_resetMinuteStepcount(JNIEnv *env, jobject this) {
+    resetMinuteStepcount();
+}
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(JNIEnv *env, jobject this, float x,
                                                                                 float y, float z) {

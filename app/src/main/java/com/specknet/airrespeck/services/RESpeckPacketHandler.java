@@ -56,8 +56,6 @@ public class RESpeckPacketHandler {
 
     // Minute average breathing stats
     private float mAverageBreathingRate;
-    private float mStdDevBreathingRate;
-    private int mNumberOfBreaths;
     private ArrayList<Float> lastMinuteActivityLevel = new ArrayList<>();
     private ArrayList<Integer> lastMinuteActivityType = new ArrayList<>();
 
@@ -74,8 +72,6 @@ public class RESpeckPacketHandler {
     private String androidID;
 
     private Timer mActivityClassificationTimer;
-
-    private StepCounter mStepCounter;
 
     public RESpeckPacketHandler() {
         // This is only meant for running tests on the c code!
@@ -104,8 +100,6 @@ public class RESpeckPacketHandler {
         androidID = Secure.getString(speckService.getContentResolver(),
                 Secure.ANDROID_ID);
 
-        mStepCounter = new StepCounter();
-
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
                 Constants.THRESHOLD_FILTER_SIZE, Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD,
@@ -115,7 +109,7 @@ public class RESpeckPacketHandler {
         startActivityClassificationTask();
     }
 
-    public void processRESpeckLivePacket(final byte[] values) {
+    void processRESpeckLivePacket(final byte[] values) {
 
         final int packetSequenceNumber = values[0] & 0xFF;
 
@@ -248,13 +242,10 @@ public class RESpeckPacketHandler {
                                             Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
                             mPhoneTimestampLastPacketReceived;
 
-                    mStepCounter.updateAccel(interpolatedPhoneTimestampOfCurrentSample, x, y, z);
-                    int stepCountInMinute = mStepCounter.getMinuteCount();
-
                     RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                             mRESpeckTimestampCurrentPacketReceived,
                             currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate, activityLevel,
-                            activityType, mAverageBreathingRate, stepCountInMinute);
+                            activityType, mAverageBreathingRate, getMinuteStepcount());
 
                     // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
 
@@ -277,8 +268,12 @@ public class RESpeckPacketHandler {
                         calculateAverageBreathing();
 
                         mAverageBreathingRate = getAverageBreathingRate();
-                        mStdDevBreathingRate = getStdDevBreathingRate();
-                        mNumberOfBreaths = getNumberOfBreaths();
+                        float stdDevBreathingRate = getStdDevBreathingRate();
+                        int numberOfBreaths = getNumberOfBreaths();
+                        int stepCountC = getMinuteStepcount();
+
+                        // Reset the minute step count
+                        resetMinuteStepcount();
 
                         // Empty the minute average window
                         resetMedianAverageBreathing();
@@ -287,19 +282,13 @@ public class RESpeckPacketHandler {
                         float meanActivityLevel = Utils.mean(lastMinuteActivityLevel);
                         int modeActivityType = Utils.mode(lastMinuteActivityType);
 
-                        // Get and reset minute step count
-                        int minuteStepCount = mStepCounter.getMinuteCount();
-                        mStepCounter.resetMinuteCount();
-
-                        // Log.i("RESpeckPacketHandler", "Mean act level: " + meanActivityLevel);
-
                         // Reset last minute values
                         lastMinuteActivityLevel = new ArrayList<>();
                         lastMinuteActivityType = new ArrayList<>();
 
                         RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
-                                mAverageBreathingRate, mStdDevBreathingRate, mNumberOfBreaths, meanActivityLevel,
-                                modeActivityType, minuteStepCount);
+                                mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
+                                modeActivityType, stepCountC);
 
                         // Send average broadcast intent
                         Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
@@ -496,7 +485,7 @@ public class RESpeckPacketHandler {
         }, 0, delay);
     }
 
-    public void closeHandler() throws IOException {
+    void closeHandler() throws IOException {
         Log.i("RESpeckPacketHandler", "Close handler (i.e. OutputstreamWriters)");
         if (mRespeckWriter != null) {
             mRespeckWriter.flush();
@@ -515,6 +504,10 @@ public class RESpeckPacketHandler {
     // JNI methods
     public native void initBreathing(boolean isPostFilteringEnabled, float activityCutoff, int thresholdFilterSize,
                                      float lowerThresholdLimit, float upperThresholdLimit, float threshold_factor);
+
+    public native int getMinuteStepcount();
+
+    public native void resetMinuteStepcount();
 
     public native void updateBreathing(float x, float y, float z);
 
