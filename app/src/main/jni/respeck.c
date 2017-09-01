@@ -44,7 +44,7 @@ void updateBreathing(float x, float y, float z) {
     update_breathing_measures(new_accel_data, &breathing_buffer);
     update_rms_threshold(breathing_buffer.signal, &threshold_buffer);
 
-    // Adjust the rms threshold by some factor. TODO: determine best factor
+    // Adjust the rms threshold by some factor.
     upper_threshold = threshold_buffer.upper_threshold_value / th_factor;
     lower_threshold = threshold_buffer.lower_threshold_value / th_factor;
     update_breath(breathing_buffer.signal, upper_threshold, lower_threshold, &current_breath);
