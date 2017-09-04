@@ -20,8 +20,6 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -425,13 +423,14 @@ public class RESpeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameRESpeck = Constants.RESPECK_DATA_DIRECTORY_PATH + "RESpeck " +
+        String filenameRESpeck = Utils.getInstance(
+                mSpeckService).getDataDirectory() + Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +
                 patientID + " " + androidID + " " + RESPECK_UUID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
-        // If we are in a new day, create a new file if necessary
-        if (currentWriteDay != previousWriteDay ||
+        // If the file doesn't exist, or we are in a new day, create a new file
+        if (!new File(filenameRESpeck).exists() || currentWriteDay != previousWriteDay ||
                 now.getTime() - mDateOfLastRESpeckWrite.getTime() > numberOfMillisInDay) {
             try {
                 /*

@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Create the external directories for storing the data if storage is enabled
         if (mIsStoreDataLocally) {
-            createExternalDirectories();
+            createExternalDirectory();
         }
 
         // Start GPS tasks
@@ -381,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
         // Do nothing.
     }
 
-    private void createExternalDirectories() {
+    private void createExternalDirectory() {
         // Create directories on external storage if they don't exist
         File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
         if (!directory.exists()) {
@@ -399,38 +399,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("DF", "Directory created: " + directory);
             } else {
                 throw new RuntimeException("Couldn't create app root folder on external storage");
-            }
-        }
-        directory = new File(Constants.RESPECK_DATA_DIRECTORY_PATH);
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            if (created) {
-                Log.i("DF", "Directory created: " + directory);
-            } else {
-                throw new RuntimeException("Couldn't create Respeck folder on external storage");
-            }
-        }
-        if (mIsAirspeckEnabled) {
-            directory = new File(Constants.AIRSPECK_DATA_DIRECTORY_PATH);
-            if (!directory.exists()) {
-                boolean created = directory.mkdirs();
-                if (created) {
-                    Log.i("DF", "Directory created: " + directory);
-                } else {
-                    throw new RuntimeException("Couldn't create Airspeck folder on external storage");
-                }
-            }
-        }
-
-        if (mIsStorePhoneGPS) {
-            directory = new File(Constants.PHONE_LOCATION_DIRECTORY_PATH);
-            if (!directory.exists()) {
-                boolean created = directory.mkdirs();
-                if (created) {
-                    Log.i("DF", "Directory created: " + directory);
-                } else {
-                    throw new RuntimeException("Couldn't create phone directory on external storage");
-                }
             }
         }
     }

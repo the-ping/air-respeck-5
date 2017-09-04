@@ -22,7 +22,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.activities.MapsAQActivity;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -159,7 +158,8 @@ public class PhoneGPSService extends Service implements
         long previousWriteDay = DateUtils.truncate(mDateofLastWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filename = Constants.PHONE_LOCATION_DIRECTORY_PATH + "GPSPhone " +
+        String filename = Utils.getInstance(
+                this).getDataDirectory() + Constants.PHONE_LOCATION_DIRECTORY_NAME + "GPSPhone " +
                 patientID + " " + androidID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";

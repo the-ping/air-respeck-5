@@ -245,10 +245,10 @@ public class Constants {
      */
     public static final String EXTERNAL_DIRECTORY_STORAGE_PATH = new File(Environment.getExternalStorageDirectory() +
             "/AirRespeck").getPath() + "/";
-    public static final String RESPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "RESpeck/";
-    public static final String VOLUME_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Volume calibration/";
-    public static final String AIRSPECK_DATA_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Airspeck/";
-    public static final String PHONE_LOCATION_DIRECTORY_PATH = EXTERNAL_DIRECTORY_STORAGE_PATH + "Phone GPS/";
+    public static final String RESPECK_DATA_DIRECTORY_NAME = "/RESpeck/";
+    public static final String VOLUME_DATA_DIRECTORY_NAME = "/Volume calibration/";
+    public static final String AIRSPECK_DATA_DIRECTORY_NAME = "/Airspeck/";
+    public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp.sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";

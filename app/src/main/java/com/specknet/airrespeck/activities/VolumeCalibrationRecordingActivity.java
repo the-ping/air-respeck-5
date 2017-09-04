@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -159,7 +160,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
         });
 
         // Create volume directory if it doesn't exist
-        File directory = new File(Constants.VOLUME_DATA_DIRECTORY_PATH);
+        File directory = new File(Utils.getInstance(this).getDataDirectory() + Constants.VOLUME_DATA_DIRECTORY_NAME);
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (created) {
@@ -169,7 +170,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
             }
         }
 
-        String filename = Constants.VOLUME_DATA_DIRECTORY_PATH +
+        String filename = directory.getAbsolutePath() +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
                 " Volume calibration.csv";
         try {

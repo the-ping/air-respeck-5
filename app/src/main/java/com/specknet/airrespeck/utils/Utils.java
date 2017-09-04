@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Point;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Display;
@@ -196,6 +198,64 @@ public final class Utils {
 
     public void reloadProperties() {
         loadPropertiesFile(Constants.Config.PROPERTIES_FILE_NAME);
+    }
+
+
+    public String getDataDirectory() {
+        // First, we check whether there is a data path stored in preferences
+        SharedPreferences prefs = mContext.getSharedPreferences(
+                "com.specknet.airrespeck", Context.MODE_PRIVATE);
+        final String dataDirectoryKey = "com.specknet.airrespeck.datadirectory";
+        String dataDirectoryPath = prefs.getString(dataDirectoryKey, "");
+
+        // If this is the first time the app is started, or the directory doesn't exist, create a new directory
+        if (dataDirectoryPath.equals("") || !new File(dataDirectoryPath).exists()) {
+            dataDirectoryPath = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
+                    getProperties().getProperty(Constants.Config.PATIENT_ID) + " " +
+                    Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
+                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK).format(new Date());
+
+            prefs.edit().putString(dataDirectoryKey, dataDirectoryPath).apply();
+
+            File directory;
+            // Create other directories
+            if (!Boolean.parseBoolean(getProperties().getProperty(Constants.Config.IS_RESPECK_DISABLED))) {
+                directory = new File(dataDirectoryPath + Constants.RESPECK_DATA_DIRECTORY_NAME);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create RESpeck folder on external storage");
+                    }
+                }
+            }
+            if (Boolean.parseBoolean(getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED))) {
+                directory = new File(dataDirectoryPath + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create Airspeck folder on external storage");
+                    }
+                }
+            }
+
+            if (Boolean.parseBoolean(getProperties().getProperty(Constants.Config.IS_STORE_PHONE_GPS))) {
+                directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
+                if (!directory.exists()) {
+                    boolean created = directory.mkdirs();
+                    if (created) {
+                        Log.i("DF", "Directory created: " + directory);
+                    } else {
+                        throw new RuntimeException("Couldn't create phone directory on external storage");
+                    }
+                }
+            }
+        }
+
+        return dataDirectoryPath;
     }
 
     /**

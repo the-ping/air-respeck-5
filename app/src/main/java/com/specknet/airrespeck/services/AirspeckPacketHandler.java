@@ -223,13 +223,14 @@ public class AirspeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastAirspeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameAirspeck = Constants.AIRSPECK_DATA_DIRECTORY_PATH + "Airspeck " +
+        String filenameAirspeck = Utils.getInstance(
+                mSpeckService).getDataDirectory() + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
                 patientID + " " + androidID + " " + AIRSPECK_UUID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
         // If we are in a new day, create a new file if necessary
-        if (currentWriteDay != previousWriteDay ||
+        if (!new File(filenameAirspeck).exists() || currentWriteDay != previousWriteDay ||
                 now.getTime() - mDateOfLastAirspeckWrite.getTime() > numberOfMillisInDay) {
             try {
                 // Close old connection if there was one
