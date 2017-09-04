@@ -425,7 +425,7 @@ public class RESpeckPacketHandler {
 
         String filenameRESpeck = Utils.getInstance(
                 mSpeckService).getDataDirectory() + Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +
-                patientID + " " + androidID + " " + RESPECK_UUID + " " +
+                patientID + " " + androidID + " " + RESPECK_UUID.replace(":","") + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 

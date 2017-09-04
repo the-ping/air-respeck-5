@@ -213,7 +213,7 @@ public final class Utils {
             dataDirectoryPath = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
                     getProperties().getProperty(Constants.Config.PATIENT_ID) + " " +
                     Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
-                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK).format(new Date());
+                    new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date());
 
             prefs.edit().putString(dataDirectoryKey, dataDirectoryPath).apply();
 

@@ -144,6 +144,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         Observable.interval(9, TimeUnit.SECONDS)
                 .concatMap { Observable.range(0, filequeue.size()) }
                 .map { jsonPacketFrom(filequeue.peek()) }
+                .doOnError { Log.e("Upload", "Respeck filequeue: " + it.toString()) }
                 .concatMap { respeckServer.submitData(it, configPath) }
                 .doOnError { Log.e("Upload", "Respeck: " + it.toString()) }
                 .retry()

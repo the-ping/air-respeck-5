@@ -225,7 +225,7 @@ public class AirspeckPacketHandler {
 
         String filenameAirspeck = Utils.getInstance(
                 mSpeckService).getDataDirectory() + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
-                patientID + " " + androidID + " " + AIRSPECK_UUID + " " +
+                patientID + " " + androidID + " " + AIRSPECK_UUID.replace(":","") + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
