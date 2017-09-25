@@ -136,7 +136,7 @@ public class PhoneGPSService extends Service implements
     public void onLocationChanged(Location location) {
         long currentTimestamp = Utils.getUnixTimestamp();
         String locationString = currentTimestamp + "," + location.getLongitude() + "," + location.getLatitude() +
-                "," + location.getAltitude();
+                "," + location.getAltitude() + "," + location.getAccuracy();
         Log.i("GPSService", "Location updated: " + locationString);
 
         // If we have local storage enabled, write the location to a file
@@ -147,7 +147,7 @@ public class PhoneGPSService extends Service implements
         // Broadcast location
         Intent intentData = new Intent(Constants.ACTION_PHONE_LOCATION_BROADCAST);
         intentData.putExtra(Constants.PHONE_LOCATION,
-                new LocationData(location.getLatitude(), location.getLongitude(), location.getAltitude()));
+                new LocationData(location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getAccuracy()));
         sendBroadcast(intentData);
     }
 

@@ -184,6 +184,7 @@ class QOERemoteUploadService : Service() {
                         json.put(Constants.LOC_LATITUDE, data.location.latitude)
                         json.put(Constants.LOC_LONGITUDE, data.location.longitude)
                         json.put(Constants.LOC_ALTITUDE, data.location.altitude)
+                        json.put(Constants.LOC_ACCURACY, data.location.accuracy)
 
                     } catch (e: JSONException) {
                         e.printStackTrace()

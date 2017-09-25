@@ -40,7 +40,7 @@ public class AirspeckPacketHandler {
     private float mLastHumidityAirspeck = Float.NaN;
 
     // GPS
-    private LocationData mLastPhoneLocation = new LocationData(Double.NaN, Double.NaN, Double.NaN);
+    private LocationData mLastPhoneLocation = new LocationData(Double.NaN, Double.NaN, Double.NaN, Float.NaN);
     private BroadcastReceiver mLocationReceiver;
 
     // Initial values for last write timestamps

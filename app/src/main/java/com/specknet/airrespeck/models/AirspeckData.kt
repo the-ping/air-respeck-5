@@ -18,7 +18,7 @@ data class AirspeckData(val phoneTimestamp: Long, val pm1: Float, val pm2_5: Flo
                 temperature + "," + humidity + ",")
         bins.forEach { bin -> builder.append(bin.toString() + ",") }
         builder.append(binsTotalCount.toString() + "," + location.longitude + "," + location.latitude + "," +
-                location.altitude)
+                location.altitude + "," + location.accuracy)
         return builder.toString()
     }
 }
