@@ -37,6 +37,8 @@ float getBreathingAngle();
 
 float getBreathingRate();
 
+void resetBreathingRate();
+
 float getAverageBreathingRate();
 
 float getStdDevBreathingRate();
