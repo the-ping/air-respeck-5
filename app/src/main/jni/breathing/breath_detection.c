@@ -144,10 +144,6 @@ void update_breath(float breathing_signal, float upper_threshold,
     } else if ((breath->state == MID_RISING || breath->state == MID_UNKNOWN) &&
                breathing_signal > upper_threshold) {
         breath->state = HIGH;
-    } else if ((breath->state == MID_FALLING || breath->state == MID_UNKNOWN) &&
-               breathing_signal < lower_threshold) {
-        breath->state = LOW;
-
         if (breath->is_current_breath_valid) {
             // A full breath cycle is finished. Calculate the breathing rate of the last cycle
             float new_breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
@@ -163,5 +159,8 @@ void update_breath(float breathing_signal, float upper_threshold,
         }
         breath->sample_count = 0;
         breath->is_current_breath_valid = true;
+    } else if ((breath->state == MID_FALLING || breath->state == MID_UNKNOWN) &&
+               breathing_signal < lower_threshold) {
+        breath->state = LOW;
     }
 }
