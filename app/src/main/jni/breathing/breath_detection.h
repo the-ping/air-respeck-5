@@ -15,6 +15,7 @@
 
 #define HIGHEST_POSSIBLE_BREATHING_RATE 45
 #define LOWEST_POSSIBLE_BREATHING_RATE 5
+#define NUMBER_OF_ABNORMAL_BREATHS_SWITCH 3
 
 typedef enum {
     POSITIVE,
@@ -54,6 +55,16 @@ typedef struct {
     int sample_count;
     bool is_current_breath_valid;
     bool is_complete;
+
+    // This stores the length of the part between the beginning of the breath and the crossing of the
+    // opposite threshold (dependent in which orientation the RESpeck signal is)
+    int first_part_length;
+
+    bool is_inspiration_above_x;
+
+    // Keeps count of how many abnormal breaths there are in a row. Abnormal means not matching the typical pattern
+    // of a breath, i.e. inspiration shorter than expiration.
+    int count_abnormal_breaths;
 } CurrentBreath;
 
 

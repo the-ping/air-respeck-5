@@ -97,6 +97,46 @@ void initialise_breath(CurrentBreath *breath, float lower_threshold_limit, float
     breath->sample_count = 0;
     breath->is_current_breath_valid = false;
     breath->is_complete = false;
+    // We assume by default that the inspiration is above the x-axis. Adjust this if several breaths indicate
+    // otherwise (i.e. shorter inspiration part below x).
+    breath->is_inspiration_above_x = true;
+    breath->first_part_length = 0;
+    breath->count_abnormal_breaths = 0;
+}
+
+void end_breath(CurrentBreath *breath) {
+    if (breath->is_current_breath_valid) {
+        // If the first part of the breath was longer than the second, this breath counts as abnormal.
+        if (breath->first_part_length > breath->sample_count - breath->first_part_length) {
+            breath->count_abnormal_breaths += 1;
+        } else {
+            // Reset count
+            breath->count_abnormal_breaths = 0;
+        }
+
+        // If we have three abnormal breaths, the breath detection is "flipped", i.e. inspiration is above x axis
+        // instead of below or other way around
+        if (breath->count_abnormal_breaths >= NUMBER_OF_ABNORMAL_BREATHS_SWITCH) {
+            breath->count_abnormal_breaths = 0;
+            breath->is_inspiration_above_x = !breath->is_inspiration_above_x;
+        } else {
+            // Only when we didn't have 3 abnormal breaths in a row do we count this breath as valid.
+            // Calculate the breathing rate of the last cycle
+            float new_breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
+
+            // We want the breathing rate to lie in a realistic range
+            if (new_breathing_rate >= LOWEST_POSSIBLE_BREATHING_RATE &&
+                new_breathing_rate <= HIGHEST_POSSIBLE_BREATHING_RATE) {
+                // Current breathing rate is valid -> Store it!
+                breath->breathing_rate = new_breathing_rate;
+                // Signal to caller that the breathing rate has changed
+                breath->is_complete = true;
+            }
+        }
+    }
+    breath->sample_count = 0;
+    breath->first_part_length = 0;
+    breath->is_current_breath_valid = true;
 }
 
 void update_breath(float breathing_signal, float upper_threshold,
@@ -109,7 +149,7 @@ void update_breath(float breathing_signal, float upper_threshold,
         return;
     }
 
-    // set initial state, if required
+    // Set initial state, if required
     if (breath->state == UNKNOWN) {
         if (breathing_signal < lower_threshold) {
             breath->state = LOW;
@@ -144,23 +184,24 @@ void update_breath(float breathing_signal, float upper_threshold,
     } else if ((breath->state == MID_RISING || breath->state == MID_UNKNOWN) &&
                breathing_signal > upper_threshold) {
         breath->state = HIGH;
-        if (breath->is_current_breath_valid) {
-            // A full breath cycle is finished. Calculate the breathing rate of the last cycle
-            float new_breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
 
-            // We want the breathing rate to lie in a realistic range
-            if (new_breathing_rate >= LOWEST_POSSIBLE_BREATHING_RATE &&
-                new_breathing_rate <= HIGHEST_POSSIBLE_BREATHING_RATE) {
-                // Current breathing rate is valid -> Store it!
-                breath->breathing_rate = new_breathing_rate;
-                // Signal to caller that the breathing rate has changed
-                breath->is_complete = true;
-            }
+        // If inspiration is above x axis, the breath has now ended
+        if (breath->is_inspiration_above_x) {
+            end_breath(breath);
+        } else {
+            // The first part of the breath is over -> note down length
+            breath->first_part_length = breath->sample_count;
         }
-        breath->sample_count = 0;
-        breath->is_current_breath_valid = true;
     } else if ((breath->state == MID_FALLING || breath->state == MID_UNKNOWN) &&
                breathing_signal < lower_threshold) {
         breath->state = LOW;
+
+        // If inspiration is above x axis, the breath has now ended
+        if (breath->is_inspiration_above_x) {
+            // The first part of the breath is over -> note down length
+            breath->first_part_length = breath->sample_count;
+        } else {
+            end_breath(breath);
+        }
     }
 }

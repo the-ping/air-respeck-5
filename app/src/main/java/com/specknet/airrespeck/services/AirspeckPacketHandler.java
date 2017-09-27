@@ -163,8 +163,9 @@ public class AirspeckPacketHandler {
 
         int[] bins = new int[16];
         for (int i = 0; i < bins.length; i++) {
-            bins[i] = buffer.getShort();
-//            Log.i("AirspeckPacketHandler", "Bin " + i + ": " + bins[i]);
+            // Convert the signed short to unsigned int
+            bins[i] = buffer.getShort() & 0xffff;
+            // Log.i("AirspeckPacketHandler", "Bin " + i + ": " + bins[i]);
         }
 
         // 4 8-bit values denoting average of how long particles were observed in laser beam for bin 1,3,5,7
