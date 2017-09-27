@@ -163,7 +163,7 @@ public class AirspeckPacketHandler {
 
         int[] bins = new int[16];
         for (int i = 0; i < bins.length; i++) {
-            bins[i] = buffer.getShort();
+            bins[i] = buffer.getShort() & 0xffff;
 //            Log.i("AirspeckPacketHandler", "Bin " + i + ": " + bins[i]);
         }
 
