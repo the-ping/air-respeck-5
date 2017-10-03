@@ -157,13 +157,11 @@ public class AirspeckPacketHandler {
     }
 
     private void processOPC(ByteBuffer buffer) {
-//        Log.i("AirspeckPacketHandler", "Processing OPC data: " + buffer.toString());
-
+        // Log.i("AirspeckPacketHandler", "Processing OPC data: " + buffer.toString());
         buffer.position(0);
 
         int[] bins = new int[16];
         for (int i = 0; i < bins.length; i++) {
-            // Convert the signed short to unsigned int
             bins[i] = buffer.getShort() & 0xffff;
             // Log.i("AirspeckPacketHandler", "Bin " + i + ": " + bins[i]);
         }
