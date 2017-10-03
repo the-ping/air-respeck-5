@@ -195,7 +195,7 @@ public class Constants {
     public static final String LOC_LATITUDE = "latitude";
     public static final String LOC_LONGITUDE = "longitude";
     public static final String LOC_ALTITUDE = "altitude";
-    public static final String LOC_ACCURACY = "accuracy";
+    public static final String LOC_ACCURACY = "gps_accuracy";
 
 
     /**

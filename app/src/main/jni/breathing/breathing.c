@@ -16,6 +16,8 @@
 #include "activity_level_buffer.h"
 #include "../activityclassification/predictions.h"
 
+#define PRE_FILTER_SIZE 8
+
 static MeanUnitAccelBuffer mean_unit_accel_filter;
 static RotationAxis rotation_axis;
 static MeanRotationAxisBuffer mean_rotation_axis_buffer;
@@ -24,8 +26,8 @@ static MeanPostFilter mean_filter_breathing_signal;
 static MeanPostFilter mean_filter_angle;
 static ActivityLevelBuffer activity_level_buffer;
 
-void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool isPostFilteringEnabled,
-                                   float activity_cutoff) {
+void initialise_breathing_measures(BreathingMeasures *breathing_measures, unsigned int pre_filter_length,
+                                   unsigned int post_filter_length, float activity_cutoff) {
     breathing_measures->is_breathing_initialised = false;
     breathing_measures->is_valid = false;
     breathing_measures->signal = NAN;
@@ -33,12 +35,12 @@ void initialise_breathing_measures(BreathingMeasures *breathing_measures, bool i
     breathing_measures->max_act_level = NAN;
     breathing_measures->activity_cutoff = activity_cutoff;
 
-    initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, 12);
+    initialise_mean_unit_accel_buffer(&mean_unit_accel_filter, pre_filter_length);
     initialise_rotation_axis(&rotation_axis);
     initialise_mean_rotation_axis_buffer(&mean_rotation_axis_buffer);
     initialise_mean_unit_accel_buffer(&mean_unit_accel_buffer, 128);
-    initialise_mean_post_filter(&mean_filter_breathing_signal, isPostFilteringEnabled);
-    initialise_mean_post_filter(&mean_filter_angle, isPostFilteringEnabled);
+    initialise_mean_post_filter(&mean_filter_breathing_signal, post_filter_length);
+    initialise_mean_post_filter(&mean_filter_angle, post_filter_length);
     initialise_activity_level_buffer(&activity_level_buffer);
 }
 

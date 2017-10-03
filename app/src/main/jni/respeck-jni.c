@@ -28,8 +28,13 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JN
                                                                               float lower_threshold_limit,
                                                                               float upper_threshold_limit,
                                                                               float threshold_factor) {
-    initBreathing(is_post_filtering_enabled, activity_cutoff, threshold_filter_size, lower_threshold_limit,
-                  upper_threshold_limit, threshold_factor);
+    if (is_post_filtering_enabled) {
+        initBreathing(12, 12, activity_cutoff, threshold_filter_size, lower_threshold_limit,
+                      upper_threshold_limit, threshold_factor);
+    } else {
+        initBreathing(12, 1, activity_cutoff, threshold_filter_size, lower_threshold_limit,
+                      upper_threshold_limit, threshold_factor);
+    }
 }
 
 int Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMinuteStepcount(JNIEnv *env, jobject this) {

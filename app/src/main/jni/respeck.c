@@ -22,9 +22,11 @@ char *testEcho(char* testString) {
     return testString;
 }
 
-void initBreathing(bool is_post_filtering_enabled, float activity_cutoff, unsigned int threshold_filter_size,
+void initBreathing(int pre_filter_length, int post_filter_length, float activity_cutoff,
+                   unsigned int threshold_filter_size,
                    float lower_threshold_limit, float upper_threshold_limit, float threshold_factor) {
-    initialise_breathing_measures(&breathing_measures, is_post_filtering_enabled, activity_cutoff);
+    initialise_breathing_measures(&breathing_measures, (unsigned int) pre_filter_length,
+                                  (unsigned int) post_filter_length, activity_cutoff);
     initialise_rms_threshold_buffer(&threshold_buffer, threshold_filter_size);
     initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit);
     initialise_breathing_rate_stats(&breathing_rate_stats);

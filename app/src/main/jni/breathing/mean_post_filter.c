@@ -1,17 +1,14 @@
 #include <malloc.h>
 #include "mean_post_filter.h"
 
-void initialise_mean_post_filter(MeanPostFilter *mean_buffer, bool isPostFilteringEnabled) {
+void initialise_mean_post_filter(MeanPostFilter *mean_buffer, unsigned int post_filter_size) {
     mean_buffer->current_position = -1;
     mean_buffer->fill = 0;
     mean_buffer->is_valid = false;
     mean_buffer->sum = 0;
 
-    if (isPostFilteringEnabled) {
-        mean_buffer->buffer_size = 12;
-    } else {
-        mean_buffer->buffer_size = 1;
-    }
+    mean_buffer->buffer_size = post_filter_size;
+
     // Allocate space for values array:
     mean_buffer->values = calloc(mean_buffer->buffer_size, sizeof(float *));
 

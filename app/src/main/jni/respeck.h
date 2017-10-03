@@ -18,7 +18,8 @@ char *testMessage();
  * @param threshold_factor The factor with which to multiply the RMS threshold before considering it for minimum/
  * maximum limit and for the crossings
  */
-void initBreathing(bool is_post_filtering_enabled, float activity_cutoff, unsigned int threshold_filter_size,
+void initBreathing(int pre_filter_length, int post_filter_length, float activity_cutoff,
+                   unsigned int threshold_filter_size,
                    float lower_threshold_limit, float upper_threshold_limit, float threshold_factor);
 
 void updateBreathing(float x, float y, float z);

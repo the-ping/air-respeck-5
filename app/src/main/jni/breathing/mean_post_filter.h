@@ -18,7 +18,7 @@ typedef struct
 
 } MeanPostFilter;
 
-void initialise_mean_post_filter(MeanPostFilter *mean_buffer, bool isPostFilteringEnabled);
+void initialise_mean_post_filter(MeanPostFilter *mean_buffer, unsigned int post_filter_size);
 void update_mean_post_filter(float value, MeanPostFilter *mean_buffer);
 
 #endif
