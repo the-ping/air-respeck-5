@@ -23,7 +23,7 @@ public class Constants {
         public static final String RESPECK_KEY = "RESpeckKey";
         public static final String RESPECK_UUID = "RESpeckUUID";
         public static final String AIRSPECK_UUID = "QoEUUID";
-        public static final String PATIENT_ID = "PatientID";
+        public static final String SUBJECT_ID = "PatientID";
         public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
         public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
         public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";

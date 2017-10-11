@@ -16,7 +16,6 @@ import com.google.gson.*
 import com.specknet.airrespeck.R
 import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.RESpeckAveragedData
-import com.specknet.airrespeck.models.RESpeckLiveData
 import com.specknet.airrespeck.utils.Constants
 import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
@@ -111,7 +110,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
             }
             jsonHeader.put("qoe_uuid", qoeuuid)
             jsonHeader.put("security_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
-            jsonHeader.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
+            jsonHeader.put("patient_id", utils.properties.getProperty(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -146,7 +145,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                 .map { jsonPacketFrom(filequeue.peek()) }
                 .doOnError { Log.e("Upload", "Respeck filequeue: " + it.toString()) }
                 .concatMap { respeckServer.submitData(it, configPath) }
-                .doOnError { Log.e("Upload", "Respeck: " + it.toString()) }
+                .doOnError { Log.e("Upload", "Error during upload") }
                 .retry()
                 .doOnCompleted { }
                 .subscribe {

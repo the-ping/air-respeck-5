@@ -70,7 +70,7 @@ public class AirspeckPacketHandler {
         mIsStoreDataLocally = Boolean.parseBoolean(
                 utils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
 
-        patientID = utils.getProperties().getProperty(Constants.Config.PATIENT_ID);
+        patientID = utils.getProperties().getProperty(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 

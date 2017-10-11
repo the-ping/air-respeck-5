@@ -76,7 +76,7 @@ public class PhoneGPSService extends Service implements
                                 getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
 
                 patientID = Utils.getInstance(PhoneGPSService.this).getProperties().getProperty(
-                        Constants.Config.PATIENT_ID);
+                        Constants.Config.SUBJECT_ID);
                 androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
                         Settings.Secure.ANDROID_ID);
 

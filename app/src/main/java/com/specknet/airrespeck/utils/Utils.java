@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.models.AirspeckData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -208,10 +207,15 @@ public final class Utils {
         final String dataDirectoryKey = "com.specknet.airrespeck.datadirectory";
         String dataDirectoryPath = prefs.getString(dataDirectoryKey, "");
 
-        // If this is the first time the app is started, or the directory doesn't exist, create a new directory
-        if (dataDirectoryPath.equals("") || !new File(dataDirectoryPath).exists()) {
+        // Get previously used ID from file path. If this doesn't match with current ID, create new file!
+        String previousId = new File(dataDirectoryPath).getName().split(" ")[0];
+        String currentId = getProperties().getProperty(Constants.Config.SUBJECT_ID);
+
+        // If this is the first time the app is started, or the directory doesn't exist, or the subject ID has changed,
+        // create a new directory
+        if (dataDirectoryPath.equals("") || !new File(dataDirectoryPath).exists() || !previousId.equals(currentId)) {
             dataDirectoryPath = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
-                    getProperties().getProperty(Constants.Config.PATIENT_ID) + " " +
+                    currentId + " " +
                     Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
                     new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date());
 

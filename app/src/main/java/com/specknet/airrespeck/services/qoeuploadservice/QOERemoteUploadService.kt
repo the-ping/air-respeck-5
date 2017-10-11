@@ -110,7 +110,7 @@ class QOERemoteUploadService : Service() {
             }
             json.put("qoe_uuid", qoeuuid)
             json.put("security_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
-            json.put("patient_id", utils.properties.getProperty(Constants.Config.PATIENT_ID))
+            json.put("patient_id", utils.properties.getProperty(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -141,7 +141,7 @@ class QOERemoteUploadService : Service() {
                 .concatMap { Observable.range(0, filequeue.size()) }
                 .map { jsonPacketFrom(filequeue.peek()) }
                 .concatMap { qoeServer.submitData(it, configPath) }
-                .doOnError { Log.e("Upload", "Airspeck: " + it.toString()) }
+                .doOnError { Log.e("Upload", "Error on upload Airspeck") }
                 .retry()
                 .doOnCompleted { }
                 .subscribe { Log.d("Upload", "Airspeck done: " + it.toString()); filequeue.remove() }

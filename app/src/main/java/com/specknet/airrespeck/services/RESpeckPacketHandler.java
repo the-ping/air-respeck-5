@@ -94,7 +94,7 @@ public class RESpeckPacketHandler {
         mIsStoreDataLocally = Boolean.parseBoolean(
                 utils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
 
-        patientID = utils.getProperties().getProperty(Constants.Config.PATIENT_ID);
+        patientID = utils.getProperties().getProperty(Constants.Config.SUBJECT_ID);
         androidID = Secure.getString(speckService.getContentResolver(),
                 Secure.ANDROID_ID);
 
