@@ -36,6 +36,7 @@ public class AirspeckPacketHandler {
 
     // Airspeck
     private ByteBuffer opcData;
+    private ByteBuffer packetData;
     private float mLastTemperatureAirspeck = Float.NaN;
     private float mLastHumidityAirspeck = Float.NaN;
 
@@ -62,6 +63,7 @@ public class AirspeckPacketHandler {
         // Initialise opc data arrays
         opcData = ByteBuffer.allocate(62);
         opcData.order(ByteOrder.LITTLE_ENDIAN);
+        packetData = ByteBuffer.allocate(128); // A little larger than necessary in case we add fields to the packet
 
         Utils utils = Utils.getInstance(speckService);
         AIRSPECK_UUID = utils.getProperties().getProperty(Constants.Config.AIRSPECK_UUID);
@@ -84,75 +86,46 @@ public class AirspeckPacketHandler {
         speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
     }
 
+    void processCompleteAirSpeckPacket(ByteBuffer buffer) {
+        char header = buffer.getChar();
+        long uuid = buffer.getLong();
+        short patientID = buffer.getShort();
+        int timestamp = buffer.getInt();
+        short temperature = buffer.getShort();
+        short humidity = buffer.getShort();
+        opcData.put(buffer.array(), 0, 62);
+        short battery_level = buffer.getShort();
+        float latitude = buffer.getFloat();
+        float longitude = buffer.getFloat();
+        short height = buffer.getShort();
+        char last_error = buffer.getChar();
+        mLastTemperatureAirspeck = temperature * 0.1f;
+//        Log.i("AirspeckPacketHandler", "Temp: " + mLastTemperatureAirspeck);
+        mLastHumidityAirspeck = humidity * 0.1f;
+        processOPC(opcData);
+        opcData.clear();
+    }
+
     void processAirspeckPacket(byte[] bytes) {
-        // Packet Format
 
-        // Each packet has a header as follows, followed by the sensor-specific data:
-
-        // 1B Length
-        // 1B Packet Type
-        // 2B Mini Timestamp
-
-        int headerLength = 4;
-        int payloadLength = bytes[0];
         int packetLength = bytes.length;
-        Log.i("AirspeckPacketHandler", "Payload length: " + payloadLength);
-
-        if (packetLength != payloadLength + headerLength) {
-            Log.e("AirspeckPacketHandler", "Unexpected packet length: " + packetLength);
-            return;
-        }
-
-        byte packetType = bytes[1];
-        Log.i("AirspeckPacketHandler", "Packet type: " + String.format("0x%02X ", packetType));
-
-        byte[] miniTimestamp = Arrays.copyOfRange(bytes, 2, 3);
-
-        // The packet type is one of the following:
-        final byte SENSOR_TYPE_UUID = 0x01;
-        final byte SENSOR_TYPE_TEMPERATURE_HUMIDITY = 0x02;
-        final byte SENSOR_TYPE_OPC1 = 0x04;
-        final byte SENSOR_TYPE_OPC2 = 0x05;
-        final byte SENSOR_TYPE_OPC3 = 0x06;
-        final byte SENSOR_TYPE_OPC4 = 0x07;
-        final byte SENSOR_TYPE_GPS = 0x08;
-        final byte SENSOR_TYPE_TIMESTAMP = 0x09;
-
-        byte[] payload = Arrays.copyOfRange(bytes, 4, bytes.length);
-
         StringBuilder sb = new StringBuilder();
-        for (byte b : payload) {
+        for (byte b : bytes) {
             sb.append(String.format("%02X ", b));
         }
-//        Log.i("AirspeckPacketHandler", "Payload: " + sb.toString());
+        Log.i("AirspeckPacketHandler", "Payload: " + sb.toString());
 
-        switch (packetType) {
-            case SENSOR_TYPE_OPC1:
-//                Log.i("AirspeckPacketHandler", "OPC1 packet received");
-                opcData.clear();
-                opcData.put(payload);
-                break;
-            case SENSOR_TYPE_OPC2:
-//                Log.i("AirspeckPacketHandler", "OPC2 packet received");
-                opcData.put(payload);
-                break;
-            case SENSOR_TYPE_OPC3:
-//                Log.i("AirspeckPacketHandler", "OPC3 packet received");
-                opcData.put(payload);
-                break;
-            case SENSOR_TYPE_OPC4:
-//                Log.i("AirspeckPacketHandler", "OPC4 packet received");
-                opcData.put(payload);
-                processOPC(opcData);
-                opcData.clear();
-                break;
-            case SENSOR_TYPE_TEMPERATURE_HUMIDITY:
-//                Log.i("AirspeckPacketHandler", "Temperature/humidity packet received");
-                processTempHumidity(payload);
-                break;
-            default:
-//                Log.e("AirspeckPacketHandler", "Unknown packet type received: " + String.format("0x%02X ", packetType));
-                break;
+        if (packetData.position() > 0) {
+            packetData.put(bytes);
+            if (packetData.position() >= 96) {
+                Log.i("AirSpeckPacketHandler", "completed packet");
+                processCompleteAirSpeckPacket(packetData);
+                packetData.clear();
+            }
+        } else if (bytes[0] == 0x03) {
+            packetData.put(bytes);
+        } else {
+            Log.i("AirspeckPacketHandler", "out of order packet");
         }
     }
 
@@ -202,18 +175,6 @@ public class AirspeckPacketHandler {
         }
     }
 
-    void processTempHumidity(byte[] bytes) {
-        if (bytes.length != 4) {
-//            Log.i("AirspeckPacketHandler", "Temp/humidity packet length incorrect: " + bytes.length);
-            return;
-        }
-
-        ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
-        mLastTemperatureAirspeck = ((float) buf.getShort()) * 0.1f;
-//        Log.i("AirspeckPacketHandler", "Temp: " + mLastTemperatureAirspeck);
-        mLastHumidityAirspeck = ((float) buf.getShort()) * 0.1f;
-//        Log.i("AirspeckPacketHandler", "Humidity: " + mLastHumidityAirspeck);
-    }
 
     private void writeToAirspeckFile(AirspeckData airspeckData) {
         // Check whether we are in a new day
