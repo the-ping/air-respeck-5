@@ -80,7 +80,7 @@ public class AirspeckPacketHandler {
         mLocationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                mLastPhoneLocation = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
+                //mLastPhoneLocation = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
             }
         };
         speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
@@ -89,7 +89,11 @@ public class AirspeckPacketHandler {
     void processCompleteAirSpeckPacket(ByteBuffer buffer) {
         char header = buffer.getChar();
         long uuid = buffer.getLong();
-        short patientID = buffer.getShort();
+        byte[] patientIdBytes = new byte[6];
+        buffer.get(patientIdBytes, buffer.position(), 6);
+        patientID = new String( patientIdBytes);
+
+        //short patientID = buffer.getShort();
         int timestamp = buffer.getInt();
         short temperature = buffer.getShort();
         short humidity = buffer.getShort();
@@ -98,6 +102,7 @@ public class AirspeckPacketHandler {
         float latitude = buffer.getFloat();
         float longitude = buffer.getFloat();
         short height = buffer.getShort();
+        mLastPhoneLocation = new LocationData(latitude, longitude, height, (float)1.0);
         char last_error = buffer.getChar();
         mLastTemperatureAirspeck = temperature * 0.1f;
 //        Log.i("AirspeckPacketHandler", "Temp: " + mLastTemperatureAirspeck);
