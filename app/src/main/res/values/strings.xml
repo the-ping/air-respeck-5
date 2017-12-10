@@ -68,6 +68,7 @@
     <string name="action_subject_mode">Subject mode</string>
     <string name="action_volume_recording">Volume recording</string>
     <string name="action_close_app">Close app</string>
+    <string name="action_view_config">Pairing info</string>
 
     <!-- Volume recording -->
     <string name="title_activity_volume_recording">Volume recording</string>
@@ -253,4 +254,6 @@
         and to store recorded values</string>
     <string name="dialog_button_ok">OK</string>
 
+    <!-- Config view screen -->
+    <string name="config_view_title">Pairing configuration</string>
 </resources>

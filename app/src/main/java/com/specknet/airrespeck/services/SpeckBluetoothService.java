@@ -379,6 +379,7 @@ public class SpeckBluetoothService extends Service {
         if (respeckLiveSubscription != null) {
             respeckLiveSubscription.unsubscribe();
         }
+
         if (airspeckSubscription != null) {
             airspeckSubscription.unsubscribe();
         }

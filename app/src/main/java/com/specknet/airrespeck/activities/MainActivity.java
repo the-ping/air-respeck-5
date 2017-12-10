@@ -893,6 +893,8 @@ public class MainActivity extends AppCompatActivity {
             finish();
         } else if (id == R.id.action_volume_recording) {
             startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
+        } else if (id == R.id.action_view_config) {
+            startActivity(new Intent(this, ConfigViewActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
