@@ -252,8 +252,8 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             Log.i("AirspeckMap", "Day to: " + dayTo);
 
             // Go through filenames in Airspeck directory
-            File dir = new File(
-                    Utils.getInstance(MapsAQActivity.this).getDataDirectory() + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
+            File dir = new File(Utils.getInstance().getDataDirectory(MapsAQActivity.this) +
+                    Constants.AIRSPECK_DATA_DIRECTORY_NAME);
             File[] directoryListing = dir.listFiles();
             if (directoryListing != null) {
                 for (File file : directoryListing) {

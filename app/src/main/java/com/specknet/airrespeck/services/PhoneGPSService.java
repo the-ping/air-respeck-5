@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Service which listens to GPS updates of the phone and stores the data on the external directory
@@ -70,11 +71,14 @@ public class PhoneGPSService extends Service implements
             @Override
             public void run() {
                 Log.i("GPSService", "Starting GPS service...");
-                // Store whether we want to store data locally
-                mIsStoreDataLocally = Boolean.parseBoolean(
-                        Utils.getInstance(PhoneGPSService.this).getConfig(Constants.Config.STORE_DATA_LOCALLY));
 
-                patientID = Utils.getInstance(PhoneGPSService.this).getConfig(Constants.Config.SUBJECT_ID);
+                Utils utils = Utils.getInstance();
+                Map<String,String> loadedConfig = utils.getConfig(PhoneGPSService.this);
+
+                // Store whether we want to store data locally
+                mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
+
+                patientID = loadedConfig.get(Constants.Config.SUBJECT_ID);
                 androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
                         Settings.Secure.ANDROID_ID);
 
@@ -157,8 +161,8 @@ public class PhoneGPSService extends Service implements
         long previousWriteDay = DateUtils.truncate(mDateofLastWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filename = Utils.getInstance(
-                this).getDataDirectory() + Constants.PHONE_LOCATION_DIRECTORY_NAME + "GPSPhone " +
+        String filename = Utils.getInstance().getDataDirectory(this) +
+                Constants.PHONE_LOCATION_DIRECTORY_NAME + "GPSPhone " +
                 patientID + " " + androidID + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";

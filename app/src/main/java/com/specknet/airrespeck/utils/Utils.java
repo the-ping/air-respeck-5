@@ -47,43 +47,25 @@ import java.util.Properties;
 public final class Utils {
 
     private static Utils mUtils;
-    private final Context mContext;
-    private Map<String,String> loadedConfig;
+    private Map<String, String> loadedConfig;
 
-    /**
-     * Private constructor for singleton class.
-     *
-     * @param context Context Application context.
-     */
-    private Utils(Context context) {
-        mContext = context;
+    private Utils() {
     }
 
-    /**
-     * Get singleton class instance.
-     *
-     * @param context Context Application context.
-     * @return Utils Singleton class instance.
-     */
-    public static synchronized Utils getInstance(Context context) {
-        Log.i("DFUtils","mUtils" + mUtils);
+    public static synchronized Utils getInstance() {
         if (mUtils == null) {
-            mUtils = new Utils(context);
+            mUtils = new Utils();
         }
         return mUtils;
     }
-
-    /***********************************************************************************************
-     * GENERAL UTIL METHODS
-     **********************************************************************************************/
 
     /**
      * Get screen size.
      *
      * @return Point Screen size i.e. Point(x, y).
      */
-    public Point getScreenSize() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+    public Point getScreenSize(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
@@ -96,8 +78,8 @@ public final class Utils {
      *
      * @return float Screen density.
      */
-    public float getScreenDensity() {
-        return mContext.getResources().getDisplayMetrics().density;
+    public float getScreenDensity(Context context) {
+        return context.getResources().getDisplayMetrics().density;
     }
 
 
@@ -124,30 +106,32 @@ public final class Utils {
         return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
     }
 
-    public String getDataDirectory() {
+    public String getDataDirectory(Context context) {
+        Log.i("DFUtils", "Context: " + context);
         // First, we check whether there is a data path stored in preferences
-        SharedPreferences prefs = mContext.getSharedPreferences(
+        SharedPreferences prefs = context.getSharedPreferences(
                 "com.specknet.airrespeck", Context.MODE_PRIVATE);
         final String dataDirectoryKey = "com.specknet.airrespeck.datadirectory";
         String dataDirectoryPath = prefs.getString(dataDirectoryKey, "");
 
         // Get previously used ID from file path. If this doesn't match with current ID, create new file!
         String previousId = new File(dataDirectoryPath).getName().split(" ")[0];
-        String currentId = getConfig(Constants.Config.SUBJECT_ID);
+        loadConfig(context);
+        String currentId = loadedConfig.get(Constants.Config.SUBJECT_ID);
 
         // If this is the first time the app is started, or the directory doesn't exist, or the subject ID has changed,
         // create a new directory
         if (dataDirectoryPath.equals("") || !new File(dataDirectoryPath).exists() || !previousId.equals(currentId)) {
             dataDirectoryPath = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
                     currentId + " " +
-                    Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
+                    Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
                     new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date());
 
             prefs.edit().putString(dataDirectoryKey, dataDirectoryPath).apply();
 
             File directory;
             // Create other directories
-            if (!getConfig(Constants.Config.RESPECK_UUID).isEmpty()) {
+            if (!loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.RESPECK_DATA_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -158,7 +142,7 @@ public final class Utils {
                     }
                 }
             }
-            if (!getConfig(Constants.Config.AIRSPECK_UUID).isEmpty()) {
+            if (!loadedConfig.get(Constants.Config.AIRSPECK_UUID).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -170,7 +154,7 @@ public final class Utils {
                 }
             }
 
-            if (!getConfig(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE).isEmpty()) {
+            if (!loadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -186,10 +170,10 @@ public final class Utils {
         return dataDirectoryPath;
     }
 
-    public void loadConfig(MainActivity mainActivity) {
-        CursorLoader cursorLoader = new CursorLoader(mainActivity, Constants.Config.CONFIG_CONTENT_URI,
+    private void loadConfig(Context context) {
+        Cursor cursor = context.getContentResolver().query(Constants.Config.CONFIG_CONTENT_URI,
                 null, null, null, null);
-        Cursor cursor = cursorLoader.loadInBackground();
+
         // Set cursor to first row
         cursor.moveToNext();
         loadedConfig = new HashMap<>();
@@ -198,13 +182,14 @@ public final class Utils {
             loadedConfig.put(cursor.getString(0), cursor.getString(1));
             cursor.moveToNext();
         }
-        Log.i("DFUtils", "cursor loaded");
-        mainActivity.afterConfigurationLoaded();
+        cursor.close();
     }
 
-    public String getConfig(String key) {
-        Log.i("DFUtils", "config queried: " + loadedConfig);
-        return loadedConfig.get(key);
+    public Map<String,String> getConfig(Context context) {
+        if (loadedConfig == null) {
+            loadConfig(context);
+        }
+        return loadedConfig;
     }
 
     public int getAppVersionCode() {
@@ -442,7 +427,7 @@ public final class Utils {
         return retArray;
     }
 
-    public String getSecurityKey() {
+    public String getSecurityKey(Context context) {
         return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
                 Constants.SECURITY_KEY, "");
     }

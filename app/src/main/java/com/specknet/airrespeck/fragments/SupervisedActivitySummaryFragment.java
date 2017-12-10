@@ -110,8 +110,11 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
             int[] weekStats = new int[]{0, 0, 0};
 
             // Go through filenames in Airspeck directory
-            File dir = new File(
-                    Utils.getInstance(getActivity()).getDataDirectory() + Constants.RESPECK_DATA_DIRECTORY_NAME);
+            if (getActivity() == null) {
+                return null;
+            }
+            File dir = new File(Utils.getInstance().getDataDirectory(getActivity()) +
+                    Constants.RESPECK_DATA_DIRECTORY_NAME);
             File[] directoryListing = dir.listFiles();
             if (directoryListing != null) {
                 for (File file : directoryListing) {

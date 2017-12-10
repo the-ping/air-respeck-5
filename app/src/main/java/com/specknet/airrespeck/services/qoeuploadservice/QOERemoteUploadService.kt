@@ -94,21 +94,22 @@ class QOERemoteUploadService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun initQOEUploadService() {
-        val utils = Utils.getInstance(applicationContext)
+        val utils = Utils.getInstance()
+        val loadedConfig = utils.getConfig(this)
 
         // Create header json object
         val json = JSONObject()
         try {
             json.put("android_id", Settings.Secure.getString(contentResolver,
                     Settings.Secure.ANDROID_ID))
-            json.put("respeck_uuid", utils.getConfig(Constants.Config.RESPECK_UUID))
-            var qoeuuid = utils.getConfig(Constants.Config.AIRSPECK_UUID)
+            json.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
+            var qoeuuid = loadedConfig.get(Constants.Config.AIRSPECK_UUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
             json.put("qoe_uuid", qoeuuid)
-            json.put("security_key", utils.securityKey)
-            json.put("patient_id", utils.getConfig(Constants.Config.SUBJECT_ID))
+            json.put("security_key", utils.getSecurityKey(this))
+            json.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()

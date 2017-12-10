@@ -160,7 +160,8 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
         });
 
         // Create volume directory if it doesn't exist
-        File directory = new File(Utils.getInstance(this).getDataDirectory() + Constants.VOLUME_DATA_DIRECTORY_NAME);
+        File directory = new File(Utils.getInstance().getDataDirectory(this) +
+                Constants.VOLUME_DATA_DIRECTORY_NAME);
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (created) {

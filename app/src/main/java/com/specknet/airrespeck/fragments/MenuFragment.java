@@ -66,7 +66,7 @@ public class MenuFragment extends BaseFragment {
         mButtons.add(new MenuButton(MenuButton.buttonType.GRAPHS, getString(R.string.menu_aq_graphs),
                 Constants.MENU_ICON_GRAPHS));
 
-        mUtils = Utils.getInstance(getContext());
+        mUtils = Utils.getInstance();
     }
 
     @Override
@@ -123,7 +123,7 @@ public class MenuFragment extends BaseFragment {
             }
         });
 
-        int padding_dp = (int) (mButtonsPadding * mUtils.getScreenDensity() + 0.5f);
+        int padding_dp = (int) (mButtonsPadding * mUtils.getScreenDensity(getActivity()) + 0.5f);
         mMenuItemLayoutParameters.setMargins(padding_dp, padding_dp, padding_dp, padding_dp);
 
         mMenuContainer.addView(button, mMenuItemLayoutParameters);

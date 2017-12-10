@@ -62,6 +62,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -224,6 +225,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Bundle mSavedInstanceState;
 
+    private Map<String,String> mLoadedConfig;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -249,18 +252,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        loadConfiguration();
+        initMainActivity();
     }
 
-    private void loadConfiguration() {
-        // Utils
-        mUtils = Utils.getInstance(getApplicationContext());
-
-        // Load configuration
-        mUtils.loadConfig(this);
-    }
-
-    public void afterConfigurationLoaded() {
+    public void initMainActivity() {
         aua = new AutoUpdateApk(getApplicationContext());
         AutoUpdateApk.enableMobileUpdates();
 
@@ -282,6 +277,9 @@ public class MainActivity extends AppCompatActivity {
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
         wakeLock.acquire();
 
+        // Load configuration
+        mUtils = Utils.getInstance();
+        mLoadedConfig = mUtils.getConfig(this);
         loadConfigInstanceVariables();
 
         // Create the external directories for storing the data if storage is enabled
@@ -544,8 +542,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadConfigInstanceVariables() {
         // Check whether RESpeck and/or Airspeck have been paired
-        mIsRESpeckEnabled = !mUtils.getConfig(Constants.Config.RESPECK_UUID).isEmpty();
-        mIsAirspeckEnabled = !mUtils.getConfig(Constants.Config.AIRSPECK_UUID).isEmpty();
+        mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
+        mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECK_UUID).isEmpty();
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;
@@ -571,18 +569,18 @@ public class MainActivity extends AppCompatActivity {
 
         mShowStepCount = false;
         mShowSubjectHome = true;
-        mShowSubjectValues = true;
+        mShowSubjectValues = false;
         mShowSubjectWindmill = false;
 
         // Load custom config which can be changed in pairing app
-        mIsUploadDataToServer = Boolean.parseBoolean(mUtils.getConfig(Constants.Config.UPLOAD_TO_SERVER));
-        mIsEncryptLocalData = Boolean.parseBoolean(mUtils.getConfig(Constants.Config.ENCRYPT_LOCAL_DATA));
+        mIsUploadDataToServer = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
+        mIsEncryptLocalData = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
         mIsSupervisedStartingMode = Boolean.parseBoolean(
-                mUtils.getConfig(Constants.Config.IS_SUPERVISED_STARTING_MODE));
-        mIsStorePhoneGPS = Boolean.parseBoolean(mUtils.getConfig(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE));
-        mShowVolumeBagCalibrationView = Boolean.parseBoolean(mUtils.getConfig(
+                mLoadedConfig.get(Constants.Config.IS_SUPERVISED_STARTING_MODE));
+        mIsStorePhoneGPS = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE));
+        mShowVolumeBagCalibrationView = Boolean.parseBoolean(mLoadedConfig.get(
                 Constants.Config.ENABLE_VOLUME_BAG_CALIBRATION_VIEW));
-        mDisableBreathingPostFiltering = Boolean.parseBoolean(mUtils.getConfig(
+        mDisableBreathingPostFiltering = Boolean.parseBoolean(mLoadedConfig.get(
                 Constants.Config.DISABLE_POST_FILTERING_BREATHING));
     }
 

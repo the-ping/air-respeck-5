@@ -21,6 +21,7 @@ import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -135,17 +136,18 @@ public class SpeckBluetoothService extends Service {
 
     private void loadConfigInstanceVariables() {
         // Get references to Utils
-        Utils mUtils = Utils.getInstance(getApplicationContext());
+        Utils utils = Utils.getInstance();
+        Map<String,String> loadedConfig = utils.getConfig(this);
 
         // Look whether Airspeck is enabled in config
-        mIsAirspeckEnabled = !mUtils.getConfig(Constants.Config.AIRSPECK_UUID).isEmpty();
+        mIsAirspeckEnabled = !loadedConfig.get(Constants.Config.AIRSPECK_UUID).isEmpty();
 
         // Is RESpeck enabled?
-        mIsRESpeckEnabled = !mUtils.getConfig(Constants.Config.RESPECK_UUID).isEmpty();
+        mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
 
         // Get Bluetooth address
-        AIRSPECK_UUID = mUtils.getConfig(Constants.Config.AIRSPECK_UUID);
-        RESPECK_UUID = mUtils.getConfig(Constants.Config.RESPECK_UUID);
+        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECK_UUID);
+        RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
     }
 
     /**

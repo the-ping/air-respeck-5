@@ -96,21 +96,22 @@ class RespeckAndDiaryRemoteUploadService : Service() {
     }
 
     private fun initRespeckUploadService() {
-        val utils = Utils.getInstance(applicationContext)
+        val utils = Utils.getInstance()
+        val loadedConfig = utils.getConfig(this)
 
         // Create header json object
         val jsonHeader = JSONObject()
         try {
             jsonHeader.put("android_id", Settings.Secure.getString(contentResolver,
                     Settings.Secure.ANDROID_ID))
-            jsonHeader.put("respeck_uuid", utils.getConfig(Constants.Config.RESPECK_UUID))
-            var airspeckUUID = utils.getConfig(Constants.Config.AIRSPECK_UUID)
+            jsonHeader.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
+            var airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECK_UUID)
             if (airspeckUUID == null) {
                 airspeckUUID = ""
             }
             jsonHeader.put("qoe_uuid", airspeckUUID)
-            jsonHeader.put("security_key", utils.getSecurityKey());
-            jsonHeader.put("patient_id", utils.getConfig(Constants.Config.SUBJECT_ID))
+            jsonHeader.put("security_key", utils.getSecurityKey(this));
+            jsonHeader.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()

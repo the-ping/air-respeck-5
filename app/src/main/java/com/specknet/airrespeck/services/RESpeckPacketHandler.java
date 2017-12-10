@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -81,19 +82,20 @@ public class RESpeckPacketHandler {
         // Initialise stored queue
         storedQueue = new LinkedList<>();
 
-        Utils utils = Utils.getInstance(speckService);
+        Utils utils = Utils.getInstance();
+        Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
 
         // Do we want to enable the post-filtering of the breathing signal?
         boolean isPostFilterBreathingSignalEnabled = !Boolean.parseBoolean(
-                utils.getConfig(Constants.Config.DISABLE_POST_FILTERING_BREATHING));
+                loadedConfig.get(Constants.Config.DISABLE_POST_FILTERING_BREATHING));
 
-        RESPECK_UUID = utils.getConfig(Constants.Config.RESPECK_UUID);
+        RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
 
         // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(
-                utils.getConfig(Constants.Config.STORE_DATA_LOCALLY));
+                loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
 
-        patientID = utils.getConfig(Constants.Config.SUBJECT_ID);
+        patientID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Secure.getString(speckService.getContentResolver(),
                 Secure.ANDROID_ID);
 
@@ -424,9 +426,9 @@ public class RESpeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameRESpeck = Utils.getInstance(
-                mSpeckService).getDataDirectory() + Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +
-                patientID + " " + androidID + " " + RESPECK_UUID.replace(":","") + " " +
+        String filenameRESpeck = Utils.getInstance().getDataDirectory(mSpeckService) +
+                Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +
+                patientID + " " + androidID + " " + RESPECK_UUID.replace(":", "") + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 

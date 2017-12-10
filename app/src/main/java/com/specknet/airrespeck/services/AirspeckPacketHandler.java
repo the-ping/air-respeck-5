@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * This class processes new Airspeck packets which are passed from the SpeckBluetoothService.
@@ -63,13 +64,14 @@ public class AirspeckPacketHandler {
         opcData = ByteBuffer.allocate(62);
         opcData.order(ByteOrder.LITTLE_ENDIAN);
 
-        Utils utils = Utils.getInstance(speckService);
-        AIRSPECK_UUID = utils.getConfig(Constants.Config.AIRSPECK_UUID);
+        Utils utils = Utils.getInstance();
+        Map<String,String> loadedConfig = utils.getConfig(mSpeckService);
+        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECK_UUID);
 
         // Do we store data locally?
-        mIsStoreDataLocally = Boolean.parseBoolean(utils.getConfig(Constants.Config.STORE_DATA_LOCALLY));
+        mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
 
-        subjectID = utils.getConfig(Constants.Config.SUBJECT_ID);
+        subjectID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
@@ -221,8 +223,7 @@ public class AirspeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastAirspeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameAirspeck = Utils.getInstance(
-                mSpeckService).getDataDirectory() + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
+        String filenameAirspeck = Utils.getInstance().getDataDirectory(mSpeckService) + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
                 subjectID + " " + androidID + " " + AIRSPECK_UUID.replace(":", "") + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
