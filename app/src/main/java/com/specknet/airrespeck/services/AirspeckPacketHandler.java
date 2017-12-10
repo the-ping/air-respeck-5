@@ -53,7 +53,7 @@ public class AirspeckPacketHandler {
     private SpeckBluetoothService mSpeckService;
 
     private boolean mIsStoreDataLocally;
-    private String patientID;
+    private String subjectID;
     private String androidID;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
@@ -64,13 +64,12 @@ public class AirspeckPacketHandler {
         opcData.order(ByteOrder.LITTLE_ENDIAN);
 
         Utils utils = Utils.getInstance(speckService);
-        AIRSPECK_UUID = utils.getProperties().getProperty(Constants.Config.AIRSPECK_UUID);
+        AIRSPECK_UUID = utils.getConfig(Constants.Config.AIRSPECK_UUID);
 
         // Do we store data locally?
-        mIsStoreDataLocally = Boolean.parseBoolean(
-                utils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+        mIsStoreDataLocally = Boolean.parseBoolean(utils.getConfig(Constants.Config.STORE_DATA_LOCALLY));
 
-        patientID = utils.getProperties().getProperty(Constants.Config.SUBJECT_ID);
+        subjectID = utils.getConfig(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
@@ -224,7 +223,7 @@ public class AirspeckPacketHandler {
 
         String filenameAirspeck = Utils.getInstance(
                 mSpeckService).getDataDirectory() + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
-                patientID + " " + androidID + " " + AIRSPECK_UUID.replace(":","") + " " +
+                subjectID + " " + androidID + " " + AIRSPECK_UUID.replace(":", "") + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
@@ -260,7 +259,7 @@ public class AirspeckPacketHandler {
 
         // Write new line to file
         try {
-            // Write Airspeck data together with patientID
+            // Write Airspeck data together with subjectID
             mAirspeckWriter.append(airspeckData.toStringForFile()).append("\n");
             mAirspeckWriter.flush();
         } catch (IOException e) {

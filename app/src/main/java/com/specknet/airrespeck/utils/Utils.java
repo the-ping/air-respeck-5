@@ -4,10 +4,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.os.Environment;
 import android.provider.Settings;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +37,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 
 
@@ -42,6 +48,7 @@ public final class Utils {
     private static Utils mUtils;
     private final Context mContext;
     private static Properties mProperties = null;
+    private Map<String,String> loadedConfig;
 
     /**
      * Private constructor for singleton class.
@@ -183,23 +190,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Get a properties object from a file from the external storage directory.
-     *
-     * @return Properties The properties object.
-     */
-    public Properties getProperties() {
-        if (mProperties == null) {
-            loadPropertiesFile(Constants.Config.PROPERTIES_FILE_NAME);
-        }
-        return mProperties;
-    }
-
-    public void reloadProperties() {
-        loadPropertiesFile(Constants.Config.PROPERTIES_FILE_NAME);
-    }
-
-
     public String getDataDirectory() {
         // First, we check whether there is a data path stored in preferences
         SharedPreferences prefs = mContext.getSharedPreferences(
@@ -209,7 +199,7 @@ public final class Utils {
 
         // Get previously used ID from file path. If this doesn't match with current ID, create new file!
         String previousId = new File(dataDirectoryPath).getName().split(" ")[0];
-        String currentId = getProperties().getProperty(Constants.Config.SUBJECT_ID);
+        String currentId = getConfig(Constants.Config.SUBJECT_ID);
 
         // If this is the first time the app is started, or the directory doesn't exist, or the subject ID has changed,
         // create a new directory
@@ -223,7 +213,7 @@ public final class Utils {
 
             File directory;
             // Create other directories
-            if (!Boolean.parseBoolean(getProperties().getProperty(Constants.Config.IS_RESPECK_DISABLED))) {
+            if (!getConfig(Constants.Config.RESPECK_UUID).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.RESPECK_DATA_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -234,7 +224,7 @@ public final class Utils {
                     }
                 }
             }
-            if (Boolean.parseBoolean(getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED))) {
+            if (!getConfig(Constants.Config.AIRSPECK_UUID).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -246,7 +236,7 @@ public final class Utils {
                 }
             }
 
-            if (Boolean.parseBoolean(getProperties().getProperty(Constants.Config.IS_STORE_PHONE_GPS))) {
+            if (!getConfig(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -262,20 +252,31 @@ public final class Utils {
         return dataDirectoryPath;
     }
 
-    /**
-     * Get app version code.
-     *
-     * @return int The version code.
-     */
+    public void loadConfig(Activity activity) {
+        CursorLoader cursorLoader = new CursorLoader(activity, Constants.Config.CONFIG_CONTENT_URI,
+                null, null, null, null);
+        Cursor cursor = cursorLoader.loadInBackground();
+        // Set cursor to first row
+        cursor.moveToNext();
+        loadedConfig = new HashMap<>();
+        // Save each row as key-value pair in HashMap
+        while (!cursor.isAfterLast()) {
+            loadedConfig.put(cursor.getString(0), cursor.getString(1));
+            cursor.moveToNext();
+        }
+    }
+
+    public Map<String,String> getConfig(Activity activity) {
+        if (loadedConfig == null) {
+            loadConfig(activity);
+        }
+        return loadedConfig;
+    }
+
     public int getAppVersionCode() {
         return BuildConfig.VERSION_CODE;
     }
 
-    /**
-     * Get app version name.
-     *
-     * @return String The version name.
-     */
     public String getAppVersionName() {
         return BuildConfig.VERSION_NAME;
     }
@@ -505,5 +506,10 @@ public final class Utils {
         retArray[1] = arrayA[2] * arrayB[0] - arrayA[0] * arrayB[2];
         retArray[2] = arrayA[0] * arrayB[1] - arrayA[1] * arrayB[0];
         return retArray;
+    }
+
+    public String getSecurityKey() {
+        return mContext.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
+                Constants.SECURITY_KEY, "");
     }
 }

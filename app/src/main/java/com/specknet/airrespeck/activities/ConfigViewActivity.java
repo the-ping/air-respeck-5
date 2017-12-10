@@ -7,10 +7,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.utils.Constants;
 
 /**
  * Page to view the configuration set by the pairing app
@@ -18,8 +18,6 @@ import com.specknet.airrespeck.R;
 
 public class ConfigViewActivity extends AppCompatActivity {
 
-    private static final String PROVIDER_NAME = "com.specknet.pairingdaphne.provider.config";
-    private static final Uri CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/config");
     private ListView configList;
 
     @Override
@@ -33,7 +31,7 @@ public class ConfigViewActivity extends AppCompatActivity {
     }
 
     private void loadValuesFromContentProvider() {
-        CursorLoader cursorLoader = new CursorLoader(getBaseContext(), CONTENT_URI,
+        CursorLoader cursorLoader = new CursorLoader(getBaseContext(), Constants.Config.CONFIG_CONTENT_URI,
                 null, null, null, null);
         Cursor cursor = cursorLoader.loadInBackground();
 

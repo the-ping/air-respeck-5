@@ -72,11 +72,9 @@ public class PhoneGPSService extends Service implements
                 Log.i("GPSService", "Starting GPS service...");
                 // Store whether we want to store data locally
                 mIsStoreDataLocally = Boolean.parseBoolean(
-                        Utils.getInstance(PhoneGPSService.this).getProperties().
-                                getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+                        Utils.getInstance(PhoneGPSService.this).getConfig(Constants.Config.STORE_DATA_LOCALLY));
 
-                patientID = Utils.getInstance(PhoneGPSService.this).getProperties().getProperty(
-                        Constants.Config.SUBJECT_ID);
+                patientID = Utils.getInstance(PhoneGPSService.this).getConfig(Constants.Config.SUBJECT_ID);
                 androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
                         Settings.Secure.ANDROID_ID);
 
@@ -147,7 +145,8 @@ public class PhoneGPSService extends Service implements
         // Broadcast location
         Intent intentData = new Intent(Constants.ACTION_PHONE_LOCATION_BROADCAST);
         intentData.putExtra(Constants.PHONE_LOCATION,
-                new LocationData(location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getAccuracy()));
+                new LocationData(location.getLatitude(), location.getLongitude(), location.getAltitude(),
+                        location.getAccuracy()));
         sendBroadcast(intentData);
     }
 

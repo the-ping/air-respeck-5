@@ -1,6 +1,7 @@
 package com.specknet.airrespeck.utils;
 
 
+import android.net.Uri;
 import android.os.Environment;
 
 import com.specknet.airrespeck.R;
@@ -14,39 +15,6 @@ import java.io.File;
  * enums, as we use the constants as keys for methods requiring a String, such as SharedPreferences.
  */
 public class Constants {
-
-    /**
-     * App config file
-     */
-    public static class Config {
-        public static final String PROPERTIES_FILE_NAME = "RESpeck.config";
-        public static final String RESPECK_KEY = "RESpeckKey";
-        public static final String RESPECK_UUID = "RESpeckUUID";
-        public static final String AIRSPECK_UUID = "QoEUUID";
-        public static final String SUBJECT_ID = "PatientID";
-        public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
-        public static final String IS_SUPERVISED_MODE_ENABLED = "EnableSupervisedMode";
-        public static final String IS_SUBJECT_MODE_ENABLED = "EnableSubjectMode";
-        public static final String IS_AIRSPECK_ENABLED = "EnableAirspeck";
-        public static final String IS_RESPECK_DISABLED = "DisableRESpeck";
-        public static final String SHOW_SUPERVISED_AQ_GRAPHS = "EnableSupervisedAQGraphs";
-        public static final String SHOW_SUPERVISED_ACTIVITY_SUMMARY = "EnableSupervisedActivitySummary";
-        public static final String SHOW_SUPERVISED_RESPECK_READINGS = "EnableSupervisedRESpeckReadings";
-        public static final String SHOW_SUPERVISED_AIRSPECK_READINGS = "EnableSupervisedAirspeckReadings";
-        public static final String SHOW_SUPERVISED_AQ_MAP = "EnableSupervisedAQMap";
-        public static final String SHOW_SUPERVISED_STEP_COUNT = "EnableSupervisedStepCount";
-        public static final String SHOW_SUBJECT_HOME = "EnableSubjectHome";
-        public static final String SHOW_SUBJECT_VALUES = "EnableSubjectValues";
-        public static final String SHOW_SUBJECT_WINDMILL = "EnableSubjectWindmill";
-        public static final String IS_UPLOAD_DATA_TO_SERVER = "UploadToServer";
-        public static final String IS_STORE_DATA_LOCALLY = "StoreDataLocally";
-        public static final String IS_STORE_MERGED_FILE = "StoreMergedFile";
-        public static final String IS_STORE_PHONE_GPS = "EnablePhoneLocationStorage";
-        public static final String IS_SHOW_VOLUME_CALIBRATION_SCREEN = "EnableVolumeCalibration";
-        public static final String IS_POST_FILTER_BREATHING_SIGNAL_DISABLED = "DisablePostFilterBreathing";
-        public static final String IS_SHOW_WRONG_ORIENTATION_DISABLED = "DisableWrongOrientationDialog";
-    }
-
     /**
      * Preferences
      */
@@ -123,8 +91,6 @@ public class Constants {
             "com.specknet.airspeck.AIRSPECK_CONNECTED";
     public static final String ACTION_AIRSPECK_DISCONNECTED =
             "com.specknet.airspeck.AIRSPECK_DISCONNECTED";
-    public static final String RESPECK_UUID = "respeck uuid";
-    public static final String AIRSPECK_UUID = "airspeck uuid";
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
 
     /**
@@ -149,14 +115,8 @@ public class Constants {
     public static final String RESPECK_SENSOR_TIMESTAMP = "live_rs_timestamp";
     public static final String RESPECK_SEQUENCE_NUMBER = "live_seq";
     public static final String RESPECK_STORED_SENSOR_TIMESTAMP = "live_rs_timestamp";
-    public static final String RESPECK_TIMESTAMP_MINUTE_AVG = "timestamp";
-
-    public static final String INTERPOLATED_PHONE_TIMESTAMP = "timestamp";
-    public static final String PHONE_TIMESTAMP_HOUR = "timestamp hour";
 
     public static final String RESPECK_STORED_TIMESTAMP_OFFSET = "timestamp_offset";
-    public static final String RESPECK_IS_DISCONNECTED_MODE = "stored";
-    public static final String RESPECK_IS_VALID_BREATHING_RATE = "valid";
 
 
     public static final String AIRSPECK_DATA = "airspeck_data";
@@ -288,4 +248,24 @@ public class Constants {
     public static final float MAXIMUM_THRESHOLD = 0.34f;
     public static final float THRESHOLD_FACTOR = 3.2f;
     public static final float ACTIVITY_CUTOFF = 0.3f;
+
+    // Information for config content provider
+    public static class Config {
+        public static final String PROVIDER_NAME = "com.specknet.pairingdaphne.provider.config";
+        public static final Uri CONFIG_CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/config");
+        public static final String SUBJECT_ID = "SubjectID";
+        public static final String RESPECK_UUID = "RESpeckUUID";
+        public static final String AIRSPECK_UUID = "AirspeckUUID";
+        public static final String SPIROMETER_UUID = "SpirometerUUID";
+        public static final String UPLOAD_TO_SERVER = "UploadToServer";
+        public static final String STORE_DATA_LOCALLY = "StoreDataLocally";
+        public static final String ENCRYPT_LOCAL_DATA = "EncryptLocalData";
+        public static final String IS_SUPERVISED_STARTING_MODE = "IsSupervisedStartingMode";
+        public static final String ENABLE_PHONE_LOCATION_STORAGE = "EnablePhoneLocationStorage";
+        public static final String ENABLE_VOLUME_BAG_CALIBRATION_VIEW = "EnableVolumeBagCalibrationView";
+        public static final String DISABLE_POST_FILTERING_BREATHING = "DisablePostFilteringBreathing";
+    }
+
+    public static final String SECURITY_KEY_FILE = "SecurityKeyFile";
+    public static final String SECURITY_KEY = "SecurityKey";
 }

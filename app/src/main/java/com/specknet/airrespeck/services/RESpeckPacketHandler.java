@@ -85,16 +85,15 @@ public class RESpeckPacketHandler {
 
         // Do we want to enable the post-filtering of the breathing signal?
         boolean isPostFilterBreathingSignalEnabled = !Boolean.parseBoolean(
-                utils.getProperties().getProperty(
-                        Constants.Config.IS_POST_FILTER_BREATHING_SIGNAL_DISABLED));
+                utils.getConfig(Constants.Config.DISABLE_POST_FILTERING_BREATHING));
 
-        RESPECK_UUID = utils.getProperties().getProperty(Constants.Config.RESPECK_UUID);
+        RESPECK_UUID = utils.getConfig(Constants.Config.RESPECK_UUID);
 
         // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(
-                utils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+                utils.getConfig(Constants.Config.STORE_DATA_LOCALLY));
 
-        patientID = utils.getProperties().getProperty(Constants.Config.SUBJECT_ID);
+        patientID = utils.getConfig(Constants.Config.SUBJECT_ID);
         androidID = Secure.getString(speckService.getContentResolver(),
                 Secure.ANDROID_ID);
 
@@ -179,6 +178,7 @@ public class RESpeckPacketHandler {
                 // process any queued stored data. TODO:test this if the stored mode is activated again in the
                 // RESpeck.
                 while (!storedQueue.isEmpty()) {
+                    /*
                     // TODO: this doesn't seem to be reached? Is the queue only for the case when
                     // the RESpeck was disconnected from the phone?
                     RESpeckStoredSample s = storedQueue.remove();
@@ -205,6 +205,7 @@ public class RESpeckPacketHandler {
                             s.getStdBreathingRate());
                     liveDataIntent.putExtra(Constants.RESPECK_MINUTE_NUMBER_OF_BREATHS, s.getNumberOfBreaths());
                     mSpeckService.sendBroadcast(liveDataIntent);
+                    */
                 }
             } else if (startByte == -2 && currentSequenceNumberInBatch >= 0) { //OxFE - accel packet
                 // Only do something with data if the timestamps are synchronised

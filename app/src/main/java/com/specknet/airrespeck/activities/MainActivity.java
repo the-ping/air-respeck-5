@@ -6,9 +6,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -29,7 +31,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
@@ -62,6 +63,7 @@ import com.specknet.airrespeck.utils.Utils;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
@@ -167,9 +169,8 @@ public class MainActivity extends AppCompatActivity {
     private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
     private SupervisedStepCounterFragment mSupervisedStepCounterFragment;
 
-    // Config loaded from RESpeck.config
-    private boolean mIsSupervisedModeEnabled;
-    private boolean mIsSubjectModeEnabled;
+    // Config loaded from config content provider
+    private boolean mIsSupervisedStartingMode;
     private boolean mShowSupervisedAQGraphs;
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
@@ -182,11 +183,14 @@ public class MainActivity extends AppCompatActivity {
     private boolean mShowSubjectValues;
     private boolean mShowSubjectWindmill;
     private boolean mIsUploadDataToServer;
+    private boolean mIsEncryptLocalData;
+    private boolean mShowVolumeBagCalibrationView;
+    private boolean mDisableBreathingPostFiltering;
     private boolean mIsStorePhoneGPS;
     private boolean mIsStoreDataLocally;
     private boolean mShowRESpeckWrongOrientationEnabled;
 
-    // UTILS
+    // Utils
     private Utils mUtils;
 
     // Layout view for snack bar
@@ -199,8 +203,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsAirspeckConnected;
 
     // Variable to switch modes: subject mode or supervised mode
-    private static final String IS_SUPERVISED_MODE = "supervised_mode";
-    private boolean isSupervisedMode;
+    private static final String SAVED_STATE_IS_SUPERVISED_MODE = "supervised_mode";
+    private boolean mIsSupervisedModeCurrentlyShown;
 
     TabLayout tabLayout;
     ViewPager viewPager;
@@ -293,24 +297,16 @@ public class MainActivity extends AppCompatActivity {
         setupFragments(savedInstanceState);
         setupViewPager();
 
-        // Load mode if stored. If no mode was stored, this defaults to false, i.e. subject mode
-        if (mIsSubjectModeEnabled && mIsSupervisedModeEnabled) {
-            if (savedInstanceState != null) {
-                isSupervisedMode = savedInstanceState.getBoolean(IS_SUPERVISED_MODE);
-            } else {
-                // Set mode to starting mode specified in config file
-                isSupervisedMode = Boolean.parseBoolean(
-                        mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_STARTING_MODE));
-
-            }
-        } else if (mIsSubjectModeEnabled) {
-            isSupervisedMode = false;
-        } else if (mIsSupervisedModeEnabled) {
-            isSupervisedMode = true;
+        // Load current mode if stored. If no mode was stored, use starting mode.
+        if (savedInstanceState != null) {
+            mIsSupervisedModeCurrentlyShown = savedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
+        } else {
+            // Set mode to starting mode specified in config file
+            mIsSupervisedModeCurrentlyShown = mIsSupervisedStartingMode;
         }
 
         // Call displayMode methods so the tabs are set correctly
-        if (isSupervisedMode) {
+        if (mIsSupervisedModeCurrentlyShown) {
             displaySupervisedMode();
         } else {
             displaySubjectMode();
@@ -492,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
                         sendMessageToHandler(UPDATE_RESPECK_READINGS, liveRESpeckData);
                         break;
                     case Constants.ACTION_RESPECK_CONNECTED:
-                        String respeckUUID = intent.getStringExtra(Constants.RESPECK_UUID);
+                        String respeckUUID = intent.getStringExtra(Constants.Config.RESPECK_UUID);
                         sendMessageToHandler(SHOW_RESPECK_CONNECTED, respeckUUID);
                         break;
                     case Constants.ACTION_RESPECK_DISCONNECTED:
@@ -504,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
                         sendMessageToHandler(UPDATE_AIRSPECK_READINGS, liveAirspeckData);
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
-                        String airspeckUUID = intent.getStringExtra(Constants.AIRSPECK_UUID);
+                        String airspeckUUID = intent.getStringExtra(Constants.Config.AIRSPECK_UUID);
                         sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, airspeckUUID);
                         break;
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
@@ -542,138 +538,95 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadConfig() {
-        // Force reload of the properties
-        mUtils.reloadProperties();
+        // Check whether RESpeck and/or Airspeck have been paired
+        mIsRESpeckEnabled = !mUtils.getConfig(Constants.Config.RESPECK_UUID).isEmpty();
+        mIsAirspeckEnabled = !mUtils.getConfig(Constants.Config.AIRSPECK_UUID).isEmpty();
 
-        mIsSupervisedModeEnabled = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUPERVISED_MODE_ENABLED));
-        mIsSubjectModeEnabled = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SUBJECT_MODE_ENABLED));
+        // Options which are fixed for now
+        mIsStoreDataLocally = true;
+        mShowRESpeckWrongOrientationEnabled = true;
 
-        if (!mIsSubjectModeEnabled && !mIsSupervisedModeEnabled) {
-            Log.e("DF", "Neither subject more, nor supervised mode enabled in config file");
-            Toast.makeText(getApplicationContext(),
-                    "Neither subject more, nor supervised mode are enabled in config file. Showing subject mode as default.",
-                    Toast.LENGTH_LONG).show();
-            mIsSubjectModeEnabled = true;
+        if (mIsRESpeckEnabled) {
+            mShowSupervisedActivitySummary = true;
+            mShowSupervisedRESpeckReadings = true;
+        } else {
+            mShowSupervisedActivitySummary = false;
+            mShowSupervisedRESpeckReadings = false;
         }
 
-        // Load supervised mode config if enabled
-        if (mIsSupervisedModeEnabled) {
-            mShowSupervisedAQGraphs = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_GRAPHS));
-            mShowSupervisedAirspeckReadings = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AIRSPECK_READINGS));
-            mShowSupervisedActivitySummary = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_ACTIVITY_SUMMARY));
-            mShowSupervisedRESpeckReadings = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_RESPECK_READINGS));
-            mShowSupervisedAQMap = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_AQ_MAP));
-            mShowStepCount = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUPERVISED_STEP_COUNT));
-        }
-
-        // Load subject mode config if enabled
-        if (mIsSubjectModeEnabled) {
-            mShowSubjectHome = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_HOME));
-            mShowSubjectValues = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_VALUES));
-            mShowSubjectWindmill = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.SHOW_SUBJECT_WINDMILL));
-        }
-
-        mIsAirspeckEnabled = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
-
-        mIsRESpeckEnabled = !Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_RESPECK_DISABLED));
-
-        if (!mIsAirspeckEnabled && !mIsRESpeckEnabled) {
-            Log.e("DF", "Neither RESpeck nor Airspeck enabled in Config");
-            Toast.makeText(getApplicationContext(),
-                    "Neither RESpeck nor Airspeck is enabled in config file. Enabling RESpeck by default.",
-                    Toast.LENGTH_LONG).show();
-            mIsRESpeckEnabled = true;
-        }
-
-        mIsUploadDataToServer = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_UPLOAD_DATA_TO_SERVER));
-
-        mIsStorePhoneGPS = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_PHONE_GPS));
-
-        // Overwrite configs for certain screens if the corresponding sensor is disabled
-        if (!mIsAirspeckEnabled) {
+        if (mIsAirspeckEnabled) {
+            mShowSupervisedAQGraphs = true;
+            mShowSupervisedAirspeckReadings = true;
+        } else {
             mShowSupervisedAQGraphs = false;
             mShowSupervisedAirspeckReadings = false;
         }
-        if (!mIsRESpeckEnabled) {
-            mShowStepCount = false;
-            mShowSupervisedRESpeckReadings = false;
-            mShowSupervisedActivitySummary = false;
-        }
 
-        // Load config related to storage
-        mIsStoreDataLocally = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_STORE_DATA_LOCALLY));
+        mShowSupervisedAQMap = true;
+        mShowStepCount = false;
 
-        // Do we want to show wrong orientation dialog
-        mShowRESpeckWrongOrientationEnabled = !Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_WRONG_ORIENTATION_DISABLED));
+        mShowSubjectHome = true;
+        mShowSubjectValues = true;
+        mShowSubjectWindmill = false;
+
+        // Load custom config which can be changed in pairing app
+        mIsUploadDataToServer = Boolean.parseBoolean(mUtils.getConfig(Constants.Config.UPLOAD_TO_SERVER));
+        mIsEncryptLocalData = Boolean.parseBoolean(mUtils.getConfig(Constants.Config.ENCRYPT_LOCAL_DATA));
+        mIsSupervisedStartingMode = Boolean.parseBoolean(
+                mUtils.getConfig(Constants.Config.IS_SUPERVISED_STARTING_MODE));
+        mIsStorePhoneGPS = Boolean.parseBoolean(mUtils.getConfig(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE));
+        mShowVolumeBagCalibrationView = Boolean.parseBoolean(mUtils.getConfig(
+                Constants.Config.ENABLE_VOLUME_BAG_CALIBRATION_VIEW));
+        mDisableBreathingPostFiltering = Boolean.parseBoolean(mUtils.getConfig(
+                Constants.Config.DISABLE_POST_FILTERING_BREATHING));
     }
 
     private void setupViewPager() {
-        if (mIsSupervisedModeEnabled) {
-            // Setup supervised mode arrays
-            supervisedFragments.clear();
-            supervisedTitles.clear();
-            // Only show each fragment if we set the config to true
-            if (mShowStepCount) {
-                supervisedFragments.add(mSupervisedStepCounterFragment);
-                supervisedTitles.add("Steps");
-            }
-            if (mShowSupervisedRESpeckReadings) {
-                supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
-                supervisedTitles.add(getString(R.string.menu_breathing_graph));
-            }
-            if (mShowSupervisedAirspeckReadings) {
-                supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
-                supervisedTitles.add(getString(R.string.menu_air_quality));
-            }
-            if (mShowSupervisedAQGraphs) {
-                supervisedFragments.add(mSupervisedAirspeckGraphsFragment);
-                supervisedTitles.add(getString(R.string.menu_aq_graphs));
-            }
-            if (mShowSupervisedActivitySummary) {
-                supervisedFragments.add(mSupervisedActivitySummaryFragment);
-                supervisedTitles.add(getString(R.string.menu_activity_summary));
-            }
-            if (mShowSupervisedAQMap) {
-                supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
-                supervisedTitles.add(getString(R.string.menu_aq_map));
-            }
+        // Setup supervised mode arrays
+        supervisedFragments.clear();
+        supervisedTitles.clear();
+        // Only show each fragment if we set the config to true
+        if (mShowStepCount) {
+            supervisedFragments.add(mSupervisedStepCounterFragment);
+            supervisedTitles.add("Steps");
+        }
+        if (mShowSupervisedRESpeckReadings) {
+            supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
+            supervisedTitles.add(getString(R.string.menu_breathing_graph));
+        }
+        if (mShowSupervisedAirspeckReadings) {
+            supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
+            supervisedTitles.add(getString(R.string.menu_air_quality));
+        }
+        if (mShowSupervisedAQGraphs) {
+            supervisedFragments.add(mSupervisedAirspeckGraphsFragment);
+            supervisedTitles.add(getString(R.string.menu_aq_graphs));
+        }
+        if (mShowSupervisedActivitySummary) {
+            supervisedFragments.add(mSupervisedActivitySummaryFragment);
+            supervisedTitles.add(getString(R.string.menu_activity_summary));
+        }
+        if (mShowSupervisedAQMap) {
+            supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
+            supervisedTitles.add(getString(R.string.menu_aq_map));
         }
 
-        if (mIsSubjectModeEnabled) {
-            // Setup subject mode arrays
-            subjectFragments.clear();
-            subjectTitles.clear();
+        // Setup subject mode arrays
+        subjectFragments.clear();
+        subjectTitles.clear();
 
-            if (mShowSubjectHome) {
-                subjectFragments.add(mSubjectHomeFragment);
-                // Emtpy title as we display icons
-                subjectTitles.add("");
-            }
-            if (mShowSubjectValues) {
-                subjectFragments.add(mSubjectValuesFragment);
-                subjectTitles.add("");
-            }
-            if (mShowSubjectWindmill) {
-                subjectFragments.add(mSubjectWindmillFragment);
-                subjectTitles.add("");
-            }
+        if (mShowSubjectHome) {
+            subjectFragments.add(mSubjectHomeFragment);
+            // Emtpy title as we display icons
+            subjectTitles.add("");
+        }
+        if (mShowSubjectValues) {
+            subjectFragments.add(mSubjectValuesFragment);
+            subjectTitles.add("");
+        }
+        if (mShowSubjectWindmill) {
+            subjectFragments.add(mSubjectWindmillFragment);
+            subjectTitles.add("");
         }
 
         // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
@@ -750,7 +703,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displaySupervisedMode() {
-        isSupervisedMode = true;
+        mIsSupervisedModeCurrentlyShown = true;
 
         // Update displayed Fragments to reflect mode
         ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(supervisedFragments, supervisedTitles);
@@ -771,7 +724,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displaySubjectMode() {
-        isSupervisedMode = false;
+        mIsSupervisedModeCurrentlyShown = false;
 
         // Update displayed Fragments to reflect mode
         ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(subjectFragments, subjectTitles);
@@ -815,7 +768,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(IS_SUPERVISED_MODE, isSupervisedMode);
+        outState.putBoolean(SAVED_STATE_IS_SUPERVISED_MODE, mIsSupervisedModeCurrentlyShown);
         super.onSaveInstanceState(outState);
 
         FragmentManager fm = getSupportFragmentManager();
@@ -845,30 +798,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu, this adds items to the action bar if it is present.
-        if (isSupervisedMode) {
-            // We currently only use one setting item in supervised mode, namely for enabling the subject mode.
-            // If subject mode is disabled, don't load the menu
-            boolean isSpirometerRecordingEnabled = Boolean.parseBoolean(
-                    mUtils.getProperties().getProperty(Constants.Config.IS_SHOW_VOLUME_CALIBRATION_SCREEN));
-
-            if (mIsSubjectModeEnabled && isSpirometerRecordingEnabled) {
+        if (mIsSupervisedModeCurrentlyShown) {
+            if (mShowVolumeBagCalibrationView) {
                 getMenuInflater().inflate(R.menu.menu_supervised_volume_recording, menu);
-            } else if (mIsSubjectModeEnabled) {
-                getMenuInflater().inflate(R.menu.menu_supervised, menu);
-            } else if (isSpirometerRecordingEnabled) {
-                getMenuInflater().inflate(R.menu.menu_volume_recording, menu);
             } else {
-                getMenuInflater().inflate(R.menu.menu_close_app_only, menu);
+                getMenuInflater().inflate(R.menu.menu_supervised, menu);
             }
         } else {
             // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
-            // If subject mode is disabled, don't load the menu
-            if (mIsSupervisedModeEnabled) {
-                getMenuInflater().inflate(R.menu.menu_subject, menu);
-            }
+            getMenuInflater().inflate(R.menu.menu_subject, menu);
         }
-
-
         return true;
     }
 
@@ -903,7 +842,7 @@ public class MainActivity extends AppCompatActivity {
         boolean showAirspeckConnecting = mIsAirspeckEnabled && !mIsAirspeckConnected;
         boolean showRESpeckConnecting = mIsRESpeckEnabled && !mIsRESpeckConnected;
 
-        if (isSupervisedMode) {
+        if (mIsSupervisedModeCurrentlyShown) {
             mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
             mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
@@ -975,10 +914,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRESpeckConnection(boolean isConnected) {
         mIsRESpeckConnected = isConnected;
-        if (!isSupervisedMode && mShowSubjectHome) {
+        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
             mSubjectHomeFragment.updateRESpeckConnectionSymbol(isConnected);
         }
-        if (!isSupervisedMode && mShowSubjectWindmill) {
+        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectWindmill) {
             mSubjectWindmillFragment.updateRESpeckConnectionSymbol(isConnected);
         }
         updateConnectionLoadingLayout();
@@ -986,7 +925,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateAirspeckConnection(boolean isConnected) {
         mIsAirspeckConnected = isConnected;
-        if (!isSupervisedMode && mShowSubjectHome) {
+        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
             mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
         }
         updateConnectionLoadingLayout();
@@ -1007,7 +946,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateActivitySummary() {
         // The activity summary is only displayed in supervised mode
-        if (mIsSupervisedModeEnabled && mShowSupervisedActivitySummary) {
+        if (mIsSupervisedModeCurrentlyShown && mShowSupervisedActivitySummary) {
             mSupervisedActivitySummaryFragment.updateActivitySummary();
         }
     }

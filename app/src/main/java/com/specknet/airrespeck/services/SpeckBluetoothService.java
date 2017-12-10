@@ -139,16 +139,14 @@ public class SpeckBluetoothService extends Service {
         Utils mUtils = Utils.getInstance(getApplicationContext());
 
         // Look whether Airspeck is enabled in config
-        mIsAirspeckEnabled = Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_AIRSPECK_ENABLED));
+        mIsAirspeckEnabled = !mUtils.getConfig(Constants.Config.AIRSPECK_UUID).isEmpty();
 
         // Is RESpeck enabled?
-        mIsRESpeckEnabled = !Boolean.parseBoolean(
-                mUtils.getProperties().getProperty(Constants.Config.IS_RESPECK_DISABLED));
+        mIsRESpeckEnabled = !mUtils.getConfig(Constants.Config.RESPECK_UUID).isEmpty();
 
         // Get Bluetooth address
-        AIRSPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.AIRSPECK_UUID);
-        RESPECK_UUID = mUtils.getProperties().getProperty(Constants.Config.RESPECK_UUID);
+        AIRSPECK_UUID = mUtils.getConfig(Constants.Config.AIRSPECK_UUID);
+        RESPECK_UUID = mUtils.getConfig(Constants.Config.RESPECK_UUID);
     }
 
     /**
@@ -232,7 +230,7 @@ public class SpeckBluetoothService extends Service {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to Airspeck");
                         Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
-                        airspeckFoundIntent.putExtra(Constants.AIRSPECK_UUID, AIRSPECK_UUID);
+                        airspeckFoundIntent.putExtra(Constants.Config.AIRSPECK_UUID, AIRSPECK_UUID);
                         sendBroadcast(airspeckFoundIntent);
                     }
                 })
@@ -340,7 +338,7 @@ public class SpeckBluetoothService extends Service {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to RESpeck");
                         Intent respeckFoundIntent = new Intent(Constants.ACTION_RESPECK_CONNECTED);
-                        respeckFoundIntent.putExtra(Constants.RESPECK_UUID, RESPECK_UUID);
+                        respeckFoundIntent.putExtra(Constants.Config.RESPECK_UUID, RESPECK_UUID);
                         sendBroadcast(respeckFoundIntent);
                     }
                 })

@@ -103,14 +103,14 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         try {
             jsonHeader.put("android_id", Settings.Secure.getString(contentResolver,
                     Settings.Secure.ANDROID_ID))
-            jsonHeader.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            var qoeuuid = utils.properties.getProperty(Constants.Config.AIRSPECK_UUID)
-            if (qoeuuid == null) {
-                qoeuuid = ""
+            jsonHeader.put("respeck_uuid", utils.getConfig(Constants.Config.RESPECK_UUID))
+            var airspeckUUID = utils.getConfig(Constants.Config.AIRSPECK_UUID)
+            if (airspeckUUID == null) {
+                airspeckUUID = ""
             }
-            jsonHeader.put("qoe_uuid", qoeuuid)
-            jsonHeader.put("security_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
-            jsonHeader.put("patient_id", utils.properties.getProperty(Constants.Config.SUBJECT_ID))
+            jsonHeader.put("qoe_uuid", airspeckUUID)
+            jsonHeader.put("security_key", utils.getSecurityKey());
+            jsonHeader.put("patient_id", utils.getConfig(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()

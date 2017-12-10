@@ -91,26 +91,26 @@ class QOERemoteUploadService : Service() {
         Log.i("Upload", "QOE upload has been stopped")
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent?): IBinder? = null
 
     private fun initQOEUploadService() {
         val utils = Utils.getInstance(applicationContext)
+
+        val config = utils.getConfig()
 
         // Create header json object
         val json = JSONObject()
         try {
             json.put("android_id", Settings.Secure.getString(contentResolver,
                     Settings.Secure.ANDROID_ID))
-            json.put("respeck_uuid", utils.properties.getProperty(Constants.Config.RESPECK_UUID))
-            var qoeuuid = utils.properties.getProperty(Constants.Config.AIRSPECK_UUID)
+            json.put("respeck_uuid", utils.getConfig(Constants.Config.RESPECK_UUID))
+            var qoeuuid = utils.getConfig(Constants.Config.AIRSPECK_UUID)
             if (qoeuuid == null) {
                 qoeuuid = ""
             }
             json.put("qoe_uuid", qoeuuid)
-            json.put("security_key", utils.properties.getProperty(Constants.Config.RESPECK_KEY))
-            json.put("patient_id", utils.properties.getProperty(Constants.Config.SUBJECT_ID))
+            json.put("security_key", utils.securityKey)
+            json.put("patient_id", utils.getConfig(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -154,11 +154,10 @@ class QOERemoteUploadService : Service() {
                 Constants.ACTION_AIRSPECK_LIVE_BROADCAST -> {
                     val json = JSONObject()
                     try {
-
                         json.put("messagetype", "qoe_data")
 
                         val data = intent.getSerializableExtra(Constants.AIRSPECK_DATA) as AirspeckData
-                        json.put("timestamp", data.phoneTimestamp);
+                        json.put("timestamp", data.phoneTimestamp)
                         json.put(Constants.AIRSPECK_PM1, nanToNull(data.pm1))
                         json.put(Constants.AIRSPECK_PM2_5, nanToNull(data.pm2_5))
                         json.put(Constants.AIRSPECK_PM10, nanToNull(data.pm10))
