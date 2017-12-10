@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +48,6 @@ public final class Utils {
 
     private static Utils mUtils;
     private final Context mContext;
-    private static Properties mProperties = null;
     private Map<String,String> loadedConfig;
 
     /**
@@ -65,7 +65,8 @@ public final class Utils {
      * @param context Context Application context.
      * @return Utils Singleton class instance.
      */
-    public static Utils getInstance(Context context) {
+    public static synchronized Utils getInstance(Context context) {
+        Log.i("DFUtils","mUtils" + mUtils);
         if (mUtils == null) {
             mUtils = new Utils(context);
         }
@@ -119,75 +120,8 @@ public final class Utils {
         return Float.valueOf(String.format(Locale.UK, "%.2f%n", value));
     }
 
-    /**
-     * Get all the configuration properties.
-     *
-     * @return Properties All configuration properties.
-     */
-    public Properties getConfigProperties() {
-        Properties properties = new Properties();
-        AssetManager assetManager = mContext.getAssets();
-
-        try {
-            InputStream inputStream = assetManager.open("config.properties");
-            properties.load(inputStream);
-        } catch (IOException e) { }
-
-        return properties;
-    }
-
     public static String getCurrentTimeStamp() {
         return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
-    }
-
-    /**
-     * Get a configuration property value by its key.
-     *
-     * @param key String Configuration property key.
-     * @return String Configuration property value.
-     */
-    public String getConfigProperty(String key) {
-        Properties properties = new Properties();
-        AssetManager assetManager = mContext.getAssets();
-
-        try {
-            InputStream inputStream = assetManager.open("config.properties");
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return properties.getProperty(key);
-    }
-
-    /**
-     * Load properties file from the external storage directory.
-     *
-     * @param fileName String Properties file name.
-     */
-    private void loadPropertiesFile(final String fileName) {
-        try {
-            mProperties = new Properties();
-
-            // Load file
-            File file = new File(Environment.getExternalStorageDirectory(), fileName);
-            InputStream inputStream = new FileInputStream(file);
-
-            // Load file stream
-            mProperties.load(inputStream);
-            Log.i("DF", "Loaded properties file");
-        } catch (FileNotFoundException e) {
-            try {
-                Toast.makeText(mContext, "Properties file not found", Toast.LENGTH_LONG).show();
-            } catch (RuntimeException re) {
-                // Do nothing. This means we tried to make a toast message within a non-activity thread
-            }
-            Log.e("DF", "Properties file not found.");
-            e.printStackTrace();
-        } catch (IOException e) {
-            Log.e("DF", "Cannot load properties file.");
-            e.printStackTrace();
-        }
     }
 
     public String getDataDirectory() {
@@ -252,8 +186,8 @@ public final class Utils {
         return dataDirectoryPath;
     }
 
-    public void loadConfig(Activity activity) {
-        CursorLoader cursorLoader = new CursorLoader(activity, Constants.Config.CONFIG_CONTENT_URI,
+    public void loadConfig(MainActivity mainActivity) {
+        CursorLoader cursorLoader = new CursorLoader(mainActivity, Constants.Config.CONFIG_CONTENT_URI,
                 null, null, null, null);
         Cursor cursor = cursorLoader.loadInBackground();
         // Set cursor to first row
@@ -264,13 +198,13 @@ public final class Utils {
             loadedConfig.put(cursor.getString(0), cursor.getString(1));
             cursor.moveToNext();
         }
+        Log.i("DFUtils", "cursor loaded");
+        mainActivity.afterConfigurationLoaded();
     }
 
-    public Map<String,String> getConfig(Activity activity) {
-        if (loadedConfig == null) {
-            loadConfig(activity);
-        }
-        return loadedConfig;
+    public String getConfig(String key) {
+        Log.i("DFUtils", "config queried: " + loadedConfig);
+        return loadedConfig.get(key);
     }
 
     public int getAppVersionCode() {
@@ -509,7 +443,7 @@ public final class Utils {
     }
 
     public String getSecurityKey() {
-        return mContext.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
+        return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
                 Constants.SECURITY_KEY, "");
     }
 }

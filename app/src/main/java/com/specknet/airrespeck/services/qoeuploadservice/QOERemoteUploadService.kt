@@ -96,8 +96,6 @@ class QOERemoteUploadService : Service() {
     private fun initQOEUploadService() {
         val utils = Utils.getInstance(applicationContext)
 
-        val config = utils.getConfig()
-
         // Create header json object
         val json = JSONObject()
         try {

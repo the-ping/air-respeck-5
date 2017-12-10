@@ -6,11 +6,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -63,7 +61,6 @@ import com.specknet.airrespeck.utils.Utils;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
@@ -225,19 +222,23 @@ public class MainActivity extends AppCompatActivity {
 
     private AutoUpdateApk aua;
 
+    private Bundle mSavedInstanceState;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mSavedInstanceState = savedInstanceState;
 
         ThemeUtils themeUtils = ThemeUtils.getInstance();
         themeUtils.setTheme(ThemeUtils.NORMAL_FONT_SIZE);
         themeUtils.onActivityCreateSetTheme(this);
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
-        checkPermissionsAndInitMainActivity(savedInstanceState);
+        checkPermissionsAndInitMainActivity();
     }
 
-    private void checkPermissionsAndInitMainActivity(Bundle savedInstanceState) {
+    private void checkPermissionsAndInitMainActivity() {
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
         if (!isStoragePermissionGranted) {
             return;
@@ -248,10 +249,18 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        initMainActivity(savedInstanceState);
+        loadConfiguration();
     }
 
-    private void initMainActivity(Bundle savedInstanceState) {
+    private void loadConfiguration() {
+        // Utils
+        mUtils = Utils.getInstance(getApplicationContext());
+
+        // Load configuration
+        mUtils.loadConfig(this);
+    }
+
+    public void afterConfigurationLoaded() {
         aua = new AutoUpdateApk(getApplicationContext());
         AutoUpdateApk.enableMobileUpdates();
 
@@ -273,11 +282,7 @@ public class MainActivity extends AppCompatActivity {
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
         wakeLock.acquire();
 
-        // Utils
-        mUtils = Utils.getInstance(getApplicationContext());
-
-        // Load configuration
-        loadConfig();
+        loadConfigInstanceVariables();
 
         // Create the external directories for storing the data if storage is enabled
         if (mIsStoreDataLocally) {
@@ -294,12 +299,12 @@ public class MainActivity extends AppCompatActivity {
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        setupFragments(savedInstanceState);
+        setupFragments();
         setupViewPager();
 
         // Load current mode if stored. If no mode was stored, use starting mode.
-        if (savedInstanceState != null) {
-            mIsSupervisedModeCurrentlyShown = savedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
+        if (mSavedInstanceState != null) {
+            mIsSupervisedModeCurrentlyShown = mSavedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
         } else {
             // Set mode to starting mode specified in config file
             mIsSupervisedModeCurrentlyShown = mIsSupervisedStartingMode;
@@ -355,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted. Start the phone service.
-                checkPermissionsAndInitMainActivity(null);
+                checkPermissionsAndInitMainActivity();
             } else {
                 // Permission was not granted. Explain to the user why we need permission and ask again
                 Utils.showLocationRequestDialog(MainActivity.this);
@@ -364,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted. Initialise this activity.
-                checkPermissionsAndInitMainActivity(null);
+                checkPermissionsAndInitMainActivity();
             } else {
                 // Permission was not granted. Explain to the user why we need permission and ask again
                 Utils.showStorageRequestDialog(MainActivity.this);
@@ -537,7 +542,7 @@ public class MainActivity extends AppCompatActivity {
         msg.sendToTarget();
     }
 
-    private void loadConfig() {
+    private void loadConfigInstanceVariables() {
         // Check whether RESpeck and/or Airspeck have been paired
         mIsRESpeckEnabled = !mUtils.getConfig(Constants.Config.RESPECK_UUID).isEmpty();
         mIsAirspeckEnabled = !mUtils.getConfig(Constants.Config.AIRSPECK_UUID).isEmpty();
@@ -557,14 +562,14 @@ public class MainActivity extends AppCompatActivity {
         if (mIsAirspeckEnabled) {
             mShowSupervisedAQGraphs = true;
             mShowSupervisedAirspeckReadings = true;
+            mShowSupervisedAQMap = true;
         } else {
             mShowSupervisedAQGraphs = false;
             mShowSupervisedAirspeckReadings = false;
+            mShowSupervisedAQMap = false;
         }
 
-        mShowSupervisedAQMap = true;
         mShowStepCount = false;
-
         mShowSubjectHome = true;
         mShowSubjectValues = true;
         mShowSubjectWindmill = false;
@@ -633,28 +638,28 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
     }
 
-    private void setupFragments(Bundle savedInstanceState) {
+    private void setupFragments() {
         // Load or create fragments
         FragmentManager fm = getSupportFragmentManager();
-        if (savedInstanceState != null) {
+        if (mSavedInstanceState != null) {
             // If we have saved something from a previous activity lifecycle, the fragments probably already exist
             mSupervisedAirspeckReadingsFragment =
-                    (SupervisedAirspeckReadingsFragment) fm.getFragment(savedInstanceState, TAG_AQREADINGS_FRAGMENT);
+                    (SupervisedAirspeckReadingsFragment) fm.getFragment(mSavedInstanceState, TAG_AQREADINGS_FRAGMENT);
             mSupervisedAirspeckGraphsFragment =
-                    (SupervisedAirspeckGraphsFragment) fm.getFragment(savedInstanceState, TAG_GRAPHS_FRAGMENT);
-            mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(savedInstanceState,
+                    (SupervisedAirspeckGraphsFragment) fm.getFragment(mSavedInstanceState, TAG_GRAPHS_FRAGMENT);
+            mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(mSavedInstanceState,
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
-            mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(savedInstanceState,
+            mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(mSavedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
             mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(
-                    savedInstanceState,
+                    mSavedInstanceState,
                     TAG_AQ_MAP_FRAGMENT);
-            mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(savedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
-            mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(savedInstanceState,
+            mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(mSavedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
+            mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(mSavedInstanceState,
                     TAG_SUBJECT_VALUES_FRAGMENT);
-            mSubjectWindmillFragment = (SubjectWindmillFragment) fm.getFragment(savedInstanceState,
+            mSubjectWindmillFragment = (SubjectWindmillFragment) fm.getFragment(mSavedInstanceState,
                     TAG_SUBJECT_WINDMILL_FRAGMENT);
-            mSupervisedStepCounterFragment = (SupervisedStepCounterFragment) fm.getFragment(savedInstanceState,
+            mSupervisedStepCounterFragment = (SupervisedStepCounterFragment) fm.getFragment(mSavedInstanceState,
                     TAG_STEPCOUNT_FRAGMENT);
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity

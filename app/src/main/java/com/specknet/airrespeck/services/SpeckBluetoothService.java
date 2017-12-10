@@ -18,7 +18,6 @@ import com.polidea.rxandroidble.RxBleDevice;
 import com.polidea.rxandroidble.RxBleScanResult;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
@@ -121,7 +120,7 @@ public class SpeckBluetoothService extends Service {
      * Initiate Bluetooth adapter.
      */
     public void initSpeckService() {
-        loadConfig();
+        loadConfigInstanceVariables();
 
         // Initializes a Bluetooth adapter. For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
@@ -134,7 +133,7 @@ public class SpeckBluetoothService extends Service {
         airspeckHandler = new AirspeckPacketHandler(this);
     }
 
-    private void loadConfig() {
+    private void loadConfigInstanceVariables() {
         // Get references to Utils
         Utils mUtils = Utils.getInstance(getApplicationContext());
 
