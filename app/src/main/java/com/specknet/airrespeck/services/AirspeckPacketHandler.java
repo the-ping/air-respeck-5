@@ -56,6 +56,7 @@ public class AirspeckPacketHandler {
     private boolean mIsStoreDataLocally;
     private String patientID;
     private String androidID;
+    private short lux;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
@@ -102,6 +103,7 @@ public class AirspeckPacketHandler {
         float latitude = buffer.getFloat();
         float longitude = buffer.getFloat();
         short height = buffer.getShort();
+        lux = buffer.getShort();
         mLastPhoneLocation = new LocationData(latitude, longitude, height, (float)1.0);
         char last_error = buffer.getChar();
         mLastTemperatureAirspeck = temperature * 0.1f;
@@ -122,7 +124,7 @@ public class AirspeckPacketHandler {
 
         if (packetData.position() > 0) {
             packetData.put(bytes);
-            if (packetData.position() >= 96) {
+            if (packetData.position() >= 98) {
                 Log.i("AirSpeckPacketHandler", "completed packet");
                 processCompleteAirSpeckPacket(packetData);
                 packetData.clear();
@@ -163,10 +165,10 @@ public class AirspeckPacketHandler {
 
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
-        // TODO: get real location from new Airspeck
+
 
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, pm1, pm2_5, pm10,
-                mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation);
+                mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation, lux);
 
 //        Log.i("AirspeckHandler", "New airspeck packet: " + newAirspeckData);
 
