@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -36,6 +37,7 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
+import static android.provider.ContactsContract.Intents.Insert.ACTION;
 import static com.specknet.airrespeck.utils.Constants.AIRSPECK_LIVE_CHARACTERISTIC;
 import static com.specknet.airrespeck.utils.Constants.AIRSPECK_POWER_CHARACTERISTIC;
 
@@ -78,20 +80,19 @@ public class SpeckBluetoothService extends Service {
 
     private byte[] offCommand = {1};
 
-    private static boolean turn_off = false;
-
+    private static final String ACTION="com.specknet.airrespeck.AIRSPECK_OFF";
+    private BroadcastReceiver yourReceiver;
 
 
     public SpeckBluetoothService() {
 
     }
 
-    public static class AirspeckOffReceiver extends BroadcastReceiver {
+    public class AirspeckOffReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i("SpeckService", "Turn off");
-            turn_off = true;
         }
 
     }
@@ -156,6 +157,26 @@ public class SpeckBluetoothService extends Service {
         // Get singleton instances of packet handler classes
         respeckHandler = new RESpeckPacketHandler(this);
         airspeckHandler = new AirspeckPacketHandler(this);
+
+        final IntentFilter theFilter = new IntentFilter();
+        theFilter.addAction(ACTION);
+        this.yourReceiver = new BroadcastReceiver() {
+
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // Do whatever you need it to do when it receives the broadcast
+                // Example show a Toast message...
+                Log.i("SpeckService", "Got turn off message");
+                airspeckSubscription.unsubscribe();
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        turnOffAirspeck();
+                    }
+                }, 2000);
+            }
+        };
+        this.registerReceiver(this.yourReceiver, theFilter);
     }
 
     private void loadConfig() {
@@ -273,16 +294,7 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(Object bytes) {
                                 airspeckHandler.processAirspeckPacket((byte[]) bytes);
-                                Log.i("SpeckService", "turnOff: " + turn_off);
-                                if (turn_off) {
-                                    airspeckSubscription.unsubscribe();
-                                    new Timer().schedule(new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            turnOffAirspeck();
-                                        }
-                                    }, 2000);
-                                }
+                                //Log.i("SpeckService", "turnOff: " + turn_off);
                             }
                         },
                         new Action1<Throwable>() {
@@ -334,9 +346,6 @@ public class SpeckBluetoothService extends Service {
                             }
                         }) // <-- Notification has been set up, now observe value changes.
 
-
-
-
                 .subscribe(
                 new Action1<Object>() {
                     @Override
@@ -347,8 +356,20 @@ public class SpeckBluetoothService extends Service {
                 new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+
                         // An error with autoConnect means that we are disconnected
-                        Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
+                        Log.e("SpeckService", "Airspeck turned off: " + throwable.toString());
+
+                        Intent airspeckDisconnectedIntent = new Intent(
+                                Constants.ACTION_AIRSPECK_DISCONNECTED);
+                        sendBroadcast(airspeckDisconnectedIntent);
+
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                establishAirspeckConnection();
+                            }
+                        }, 2000);
                     }
                 });
     }
