@@ -5,9 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -17,6 +19,8 @@ import android.widget.Toast;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.utils.Constants;
+
+import org.greenrobot.eventbus.EventBus;
 
 /**
  * Created by Darius on 08.02.2017.
@@ -70,6 +74,16 @@ public class SubjectHomeFragment extends BaseFragment {
                 startApp(getActivity(), "com.specknet.diarydaphne");
             }
         });
+
+        Button airspeckOffButton = (Button) view.findViewById(R.id.airspeck_off_button);
+        airspeckOffButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Send switch off message to BLE service
+                EventBus.getDefault().post(new MainActivity.MessageEvent());
+            }
+        });
+
 
         mIsCreated = true;
 

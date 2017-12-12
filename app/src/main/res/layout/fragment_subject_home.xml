@@ -132,6 +132,12 @@
 
         </LinearLayout>
 
+        <Button
+            android:id="@+id/airspeck_off_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Turn Off Aprspeck" />
+
     </LinearLayout>
 
 </FrameLayout>

@@ -154,6 +154,12 @@
                 <action android:name="com.specknet.airrespeck.PHONE_LOCATION"/>
             </intent-filter>
         </activity>
+
+        <receiver android:name="com.specknet.airrespeck.services.SpeckBluetoothService$AirspeckOffReceiver" >
+            <intent-filter>
+                <action android:name="com.specknet.airrespeck.AIRSPECK_OFF" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

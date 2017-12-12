@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
@@ -18,9 +19,13 @@ import com.polidea.rxandroidble.RxBleDevice;
 import com.polidea.rxandroidble.RxBleScanResult;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.models.AirspeckData;
+//import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -73,7 +78,21 @@ public class SpeckBluetoothService extends Service {
 
     private byte[] offCommand = {1};
 
+    private static boolean turn_off = false;
+
+
+
     public SpeckBluetoothService() {
+
+    }
+
+    public static class AirspeckOffReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("SpeckService", "Turn off");
+            turn_off = true;
+        }
 
     }
 
@@ -173,6 +192,7 @@ public class SpeckBluetoothService extends Service {
         mIsRESpeckFound = false;
 
         rxBleClient = RxBleClient.create(this);
+
         Log.i("SpeckService", "Scanning..");
 
         scanSubscription = rxBleClient.scanBleDevices()
@@ -253,13 +273,16 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(Object bytes) {
                                 airspeckHandler.processAirspeckPacket((byte[]) bytes);
-                                airspeckSubscription.unsubscribe();
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        turnOffAirspeck();
-                                    }
-                                }, 2000);
+                                Log.i("SpeckService", "turnOff: " + turn_off);
+                                if (turn_off) {
+                                    airspeckSubscription.unsubscribe();
+                                    new Timer().schedule(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            turnOffAirspeck();
+                                        }
+                                    }, 2000);
+                                }
                             }
                         },
                         new Action1<Throwable>() {
@@ -425,6 +448,8 @@ public class SpeckBluetoothService extends Service {
                         }
                 );
     }
+
+
 
     public void stopSpeckService() {
         Log.i("SpeckService", "Stopping Speck Service");

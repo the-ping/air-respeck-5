@@ -59,6 +59,9 @@ import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -221,6 +224,8 @@ public class MainActivity extends AppCompatActivity {
 
     private AutoUpdateApk aua;
 
+    public static class MessageEvent{};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -231,7 +236,19 @@ public class MainActivity extends AppCompatActivity {
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity(savedInstanceState);
+
+        EventBus.getDefault().register(this);
     }
+
+    @Subscribe
+    public void onMessageEvent(MessageEvent event) {
+        Log.i("MainActivity", "Turn off");
+
+        Intent i = new Intent("com.specknet.airrespeck.AIRSPECK_OFF");
+        sendBroadcast(i);
+
+    }
+
 
     private void checkPermissionsAndInitMainActivity(Bundle savedInstanceState) {
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
