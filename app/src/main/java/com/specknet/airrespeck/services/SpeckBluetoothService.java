@@ -31,6 +31,9 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
+import static com.specknet.airrespeck.utils.Constants.AIRSPECK_LIVE_CHARACTERISTIC;
+import static com.specknet.airrespeck.utils.Constants.AIRSPECK_POWER_CHARACTERISTIC;
+
 /**
  * Service for connecting to RESpeck and Airspeck sensors, converting the data into a readable format and
  * sending the result to the interested Activities.
@@ -67,6 +70,8 @@ public class SpeckBluetoothService extends Service {
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
 
     private boolean mIsServiceRunning = false;
+
+    private byte[] offCommand = {1};
 
     public SpeckBluetoothService() {
 
@@ -223,7 +228,7 @@ public class SpeckBluetoothService extends Service {
                     @Override
                     public Observable<?> call(RxBleConnection rxBleConnection) {
                         return rxBleConnection.setupNotification(UUID.fromString(
-                                Constants.AIRSPECK_LIVE_CHARACTERISTIC));
+                                AIRSPECK_LIVE_CHARACTERISTIC));
                     }
                 })
                 .doOnNext(new Action1<Object>() {
@@ -248,6 +253,13 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(Object bytes) {
                                 airspeckHandler.processAirspeckPacket((byte[]) bytes);
+                                airspeckSubscription.unsubscribe();
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        turnOffAirspeck();
+                                    }
+                                }, 2000);
                             }
                         },
                         new Action1<Throwable>() {
@@ -270,6 +282,52 @@ public class SpeckBluetoothService extends Service {
                             }
                         }
                 );
+    }
+
+    public void turnOffAirspeck() {
+        Log.e("SpeckService", "Turning off");
+        mAirspeckDevice.establishConnection(true)
+        .flatMap(new Func1<RxBleConnection, Observable<?>>() {
+            @Override
+            public Observable<?> call(RxBleConnection rxBleConnection) {
+                return rxBleConnection.writeCharacteristic(UUID.fromString(AIRSPECK_POWER_CHARACTERISTIC),offCommand);
+
+            }
+        }).doOnNext(new Action1<Object>() {
+            @Override
+            public void call(Object notificationObservable) {
+                // Notification has been set up
+                Log.i("SpeckService", "Subscribed to Airspeck");
+                Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
+                airspeckFoundIntent.putExtra(Constants.AIRSPECK_UUID, AIRSPECK_UUID);
+                sendBroadcast(airspeckFoundIntent);
+            }
+        })
+                .flatMap(
+                        new Func1<Object, Observable<?>>() {
+                            @Override
+                            public Observable<?> call(Object notificationObservable) {
+                                return (Observable) notificationObservable;
+                            }
+                        }) // <-- Notification has been set up, now observe value changes.
+
+
+
+
+                .subscribe(
+                new Action1<Object>() {
+                    @Override
+                    public void call(Object bytes) {
+                        Log.e("SpeckService", "Turning off: " + bytes.toString());
+                    }
+                },
+                new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        // An error with autoConnect means that we are disconnected
+                        Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
+                    }
+                });
     }
 
     private void connectToRESpeck() {
