@@ -88,14 +88,6 @@ public class SpeckBluetoothService extends Service {
 
     }
 
-    public class AirspeckOffReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.i("SpeckService", "Turn off");
-        }
-
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, final int startId) {
@@ -494,6 +486,8 @@ public class SpeckBluetoothService extends Service {
         } catch (Exception e) {
             Log.e("SpeckService", "Error while closing handlers: " + e.getMessage());
         }
+
+        this.unregisterReceiver(this.yourReceiver);
     }
 }
 

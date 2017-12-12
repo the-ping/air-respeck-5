@@ -813,7 +813,7 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         // Unregister receivers
         unregisterReceiver(mSpeckServiceReceiver);
-
+        EventBus.getDefault().unregister(this);
         Log.i("DF", "App is being destroyed");
         super.onDestroy();
     }

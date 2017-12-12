@@ -132,11 +132,14 @@
 
         </LinearLayout>
 
-        <Button
+        <ImageButton
             android:id="@+id/airspeck_off_button"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Turn Off Aprspeck" />
+
+            android:background="@drawable/clickable_button_background"
+            android:padding="15dp"
+            android:src="@android:drawable/ic_lock_power_off" />
 
     </LinearLayout>
 

@@ -32,6 +32,7 @@ public class SubjectHomeFragment extends BaseFragment {
     private ImageView connectedStatusAirspeck;
     private ProgressBar progressBarRESpeck;
     private ProgressBar progressBarAirspeck;
+    private ImageView airspeckOffButton;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -75,12 +76,16 @@ public class SubjectHomeFragment extends BaseFragment {
             }
         });
 
-        Button airspeckOffButton = (Button) view.findViewById(R.id.airspeck_off_button);
+        airspeckOffButton = (ImageButton) view.findViewById(R.id.airspeck_off_button);
+        airspeckOffButton.setEnabled(false);
         airspeckOffButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Send switch off message to BLE service
                 EventBus.getDefault().post(new MainActivity.MessageEvent());
+                airspeckOffButton.setEnabled(false);
+                connectedStatusAirspeck.setVisibility(View.GONE);
+                progressBarAirspeck.setVisibility(View.VISIBLE);
             }
         });
 
@@ -143,6 +148,7 @@ public class SubjectHomeFragment extends BaseFragment {
                 // "Flash" with symbol when updating to indicate data coming in
                 progressBarAirspeck.setVisibility(View.GONE);
                 connectedStatusAirspeck.setVisibility(View.INVISIBLE);
+                airspeckOffButton.setEnabled(true);
 
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
