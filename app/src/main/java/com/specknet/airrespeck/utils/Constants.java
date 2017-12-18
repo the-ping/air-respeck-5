@@ -79,7 +79,8 @@ public class Constants {
             "com.specknet.respeck.RESPECK_AVG_STORED_BROADCAST";
 
     public static final String ACTION_DIARY_BROADCAST = "com.specknet.diarydaphne.DIARY_BROADCAST";
-    public static final String DIARY_DATA = "diary_data";
+    public static final String DIARY_JSON = "diary_json";
+    public static final String DIARY_FILE_STRING = "diary_string";
 
     public static final String ACTION_RESPECK_CONNECTED =
             "com.specknet.respeck.RESPECK_CONNECTED";
@@ -210,6 +211,7 @@ public class Constants {
     public static final String VOLUME_DATA_DIRECTORY_NAME = "/Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_NAME = "/Airspeck/";
     public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
+    public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
@@ -222,6 +224,9 @@ public class Constants {
             "gpsLongitude,gpsLatitude,gpsAltitude,gpsAccuracy";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
+
+    public static final String DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6," +
+            "answer7,answer8,pef,fev1,fev6,fvc,fef2575";
 
     // Air quality display on map
     public static final int PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX = 25;
@@ -251,7 +256,7 @@ public class Constants {
 
     // Information for config content provider
     public static class Config {
-        public static final String PROVIDER_NAME = "com.specknet.pairingdaphne.provider.config";
+        public static final String PROVIDER_NAME = "com.specknet.pairing.provider.config";
         public static final Uri CONFIG_CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/config");
         public static final String SUBJECT_ID = "SubjectID";
         public static final String RESPECK_UUID = "RESpeckUUID";

@@ -4,33 +4,23 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Point;
-import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.specknet.airrespeck.BuildConfig;
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.activities.MainActivity;
-
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,7 +31,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 
 
 public final class Utils {
@@ -154,7 +143,7 @@ public final class Utils {
                 }
             }
 
-            if (!loadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE).isEmpty()) {
+            if (Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE))) {
                 directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();
@@ -165,24 +154,40 @@ public final class Utils {
                     }
                 }
             }
+
+            // Create diary folder in any case for now
+            directory = new File(dataDirectoryPath + Constants.DIARY_DATA_DIRECTORY_NAME);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create diary directory on external storage");
+                }
+            }
         }
 
         return dataDirectoryPath;
     }
 
-    private void loadConfig(Context context) {
+    private boolean loadConfig(Context context) {
         Cursor cursor = context.getContentResolver().query(Constants.Config.CONFIG_CONTENT_URI,
                 null, null, null, null);
-
-        // Set cursor to first row
-        cursor.moveToNext();
         loadedConfig = new HashMap<>();
-        // Save each row as key-value pair in HashMap
-        while (!cursor.isAfterLast()) {
-            loadedConfig.put(cursor.getString(0), cursor.getString(1));
+
+        if (cursor != null) {
+            // Set cursor to first row
             cursor.moveToNext();
+            // Save each row as key-value pair in HashMap
+            while (!cursor.isAfterLast()) {
+                loadedConfig.put(cursor.getString(0), cursor.getString(1));
+                cursor.moveToNext();
+            }
+            cursor.close();
+            return true;
+        } else {
+            return false;
         }
-        cursor.close();
     }
 
     public Map<String,String> getConfig(Context context) {

@@ -26,7 +26,11 @@ import rx.subjects.PublishSubject
 import rx.Observable
 
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStreamWriter
+import java.io.Serializable
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -41,8 +45,9 @@ class RespeckAndDiaryRemoteUploadService : Service() {
 
         internal var mySubject = PublishSubject.create<JsonObject>()
         internal lateinit var respeckServer: RespeckServer
-        internal val respeckReceiver = RespeckReceiver()
     }
+
+    lateinit var respeckReceiver: RespeckReceiver
 
     internal fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
         val jsonArray = JsonArray().asJsonArray
@@ -98,6 +103,8 @@ class RespeckAndDiaryRemoteUploadService : Service() {
     private fun initRespeckUploadService() {
         val utils = Utils.getInstance()
         val loadedConfig = utils.getConfig(this)
+
+        respeckReceiver = RespeckReceiver(this)
 
         // Create header json object
         val jsonHeader = JSONObject()
@@ -158,7 +165,8 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         Log.i("Upload", "Respeck upload service started.")
     }
 
-    class RespeckReceiver : BroadcastReceiver() {
+    class RespeckReceiver(var service: RespeckAndDiaryRemoteUploadService) : BroadcastReceiver() {
+
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Constants.ACTION_RESPECK_LIVE_BROADCAST -> {
@@ -236,8 +244,38 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                     //mySubject.onNext(Gson().fromJson(jsonAverageStoredData.toString(), JsonElement::class.java).asJsonObject)
                 }
                 Constants.ACTION_DIARY_BROADCAST -> {
-                    val diaryString = intent.getSerializableExtra(Constants.DIARY_DATA) as String
-                    val diaryGson = Gson().fromJson(diaryString, JsonElement::class.java).asJsonObject
+                    val recordString = intent.getSerializableExtra(Constants.DIARY_FILE_STRING) as String
+                    val recordJSONString = intent.getSerializableExtra(Constants.DIARY_JSON) as String
+
+                    // Store diary
+                    var diaryWriter: OutputStreamWriter
+
+                    val subjectID = Utils.getInstance().getConfig(service)[Constants.Config.SUBJECT_ID]
+                    val androidID = Settings.Secure.getString(service.contentResolver, Settings.Secure.ANDROID_ID)
+
+                    val filenameDiary = Utils.getInstance().getDataDirectory(service) +
+                            Constants.DIARY_DATA_DIRECTORY_NAME + "/Diary $subjectID $androidID.csv"
+
+                    Log.i("Diary", "file path: " + filenameDiary)
+                    if (!File(filenameDiary).exists()) run {
+                        Log.i("RESpeckPacketHandler", "RESpeck data file created with header")
+                        // Open new connection to file (which creates file)
+                        diaryWriter = OutputStreamWriter(
+                                FileOutputStream(filenameDiary, true))
+
+                        diaryWriter.append(Constants.DIARY_HEADER).append("\n")
+                        diaryWriter.close()
+                    }
+                    Log.i("Diary", "record created: " + recordString)
+
+                    diaryWriter = OutputStreamWriter(
+                            FileOutputStream(filenameDiary, true))
+                    diaryWriter.append(recordString + "\n")
+                    diaryWriter.close()
+
+                    // Upload
+                    val parser = JsonParser()
+                    val diaryGson = parser.parse(recordJSONString).asJsonObject
                     diaryGson.addProperty("messagetype", "diary")
                     Log.i("Upload", "Diary upload: " + diaryGson)
                     mySubject.onNext(diaryGson)
@@ -253,6 +291,15 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                 return null
             } else {
                 return value.toDouble()
+            }
+        }
+
+        data class DiaryRecord(val diary_id: Int, val timestamp: Long, val answers: Array<Int>,
+                               val pef: Float?, val fev1: Float?, val fev6: Float?, val fvc: Float?, val fef2575: Float?) : Serializable {
+            fun toStringForFile(): String {
+                return timestamp.toString() + "," + diary_id + "," +
+                        Arrays.toString(answers).replace("[", "").replace("]", "").replace(" ", "") +
+                        "," + pef + "," + fev1 + "," + fev6 + "," + fvc + "," + fef2575
             }
         }
     }

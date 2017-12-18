@@ -1,11 +1,13 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -225,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Bundle mSavedInstanceState;
 
-    private Map<String,String> mLoadedConfig;
+    private Map<String, String> mLoadedConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,8 +239,31 @@ public class MainActivity extends AppCompatActivity {
         themeUtils.setTheme(ThemeUtils.NORMAL_FONT_SIZE);
         themeUtils.onActivityCreateSetTheme(this);
 
+        // Check whether we can load the configuration
+        // Load configuration
+        mUtils = Utils.getInstance();
+        mLoadedConfig = mUtils.getConfig(this);
+
+        if (mLoadedConfig.isEmpty()) {
+            showDoPairingDialog();
+            return;
+        }
+
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
+    }
+
+    private void showDoPairingDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+        alertDialogBuilder
+                .setMessage("No pairing detected. Please run Pairing app before starting this app!")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        MainActivity.this.finish();
+                    }
+                });
+        alertDialogBuilder.create().show();
     }
 
     private void checkPermissionsAndInitMainActivity() {
@@ -277,9 +302,7 @@ public class MainActivity extends AppCompatActivity {
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
         wakeLock.acquire();
 
-        // Load configuration
-        mUtils = Utils.getInstance();
-        mLoadedConfig = mUtils.getConfig(this);
+        // Load configuration variables
         loadConfigInstanceVariables();
 
         // Create the external directories for storing the data if storage is enabled
@@ -751,7 +774,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         // Unregister receivers
-        unregisterReceiver(mSpeckServiceReceiver);
+        try {
+            unregisterReceiver(mSpeckServiceReceiver);
+        } catch (IllegalArgumentException e) {
+            // Intent receivers have not been registered yet. Skip unregistration in this case.
+        }
 
         Log.i("DF", "App is being destroyed");
         super.onDestroy();
