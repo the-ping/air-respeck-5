@@ -526,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
                         sendMessageToHandler(UPDATE_AIRSPECK_READINGS, liveAirspeckData);
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
-                        String airspeckUUID = intent.getStringExtra(Constants.Config.AIRSPECK_UUID);
+                        String airspeckUUID = intent.getStringExtra(Constants.Config.AIRSPECKP_UUID);
                         sendMessageToHandler(SHOW_AIRSPECK_CONNECTED, airspeckUUID);
                         break;
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
@@ -566,7 +566,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadConfigInstanceVariables() {
         // Check whether RESpeck and/or Airspeck have been paired
         mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
-        mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECK_UUID).isEmpty();
+        mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;

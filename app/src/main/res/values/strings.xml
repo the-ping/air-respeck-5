@@ -256,4 +256,11 @@
 
     <!-- Config view screen -->
     <string name="config_view_title">Pairing configuration</string>
+
+    <!-- Security generation screen -->
+    <string name="title_activity_security_key">Security Key</string>
+    <string name="security_key_explanation">Please login to receive a security key for your application. This
+    key is used to encrypt all recorded data, so that no one can view or modify the data before it is uploaded
+    to the server. Note that you need a network connection for this operation.</string>
+
 </resources>

@@ -112,7 +112,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
             jsonHeader.put("android_id", Settings.Secure.getString(contentResolver,
                     Settings.Secure.ANDROID_ID))
             jsonHeader.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
-            var airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECK_UUID)
+            var airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID)
             if (airspeckUUID == null) {
                 airspeckUUID = ""
             }

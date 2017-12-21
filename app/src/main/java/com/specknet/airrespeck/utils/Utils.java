@@ -131,7 +131,7 @@ public final class Utils {
                     }
                 }
             }
-            if (!loadedConfig.get(Constants.Config.AIRSPECK_UUID).isEmpty()) {
+            if (!loadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty()) {
                 directory = new File(dataDirectoryPath + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
                 if (!directory.exists()) {
                     boolean created = directory.mkdirs();

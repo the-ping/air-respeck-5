@@ -66,7 +66,7 @@ public class AirspeckPacketHandler {
 
         Utils utils = Utils.getInstance();
         Map<String,String> loadedConfig = utils.getConfig(mSpeckService);
-        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECK_UUID);
+        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
 
         // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));

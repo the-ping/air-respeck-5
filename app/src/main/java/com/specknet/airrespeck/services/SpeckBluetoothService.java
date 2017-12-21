@@ -140,13 +140,13 @@ public class SpeckBluetoothService extends Service {
         Map<String,String> loadedConfig = utils.getConfig(this);
 
         // Look whether Airspeck is enabled in config
-        mIsAirspeckEnabled = !loadedConfig.get(Constants.Config.AIRSPECK_UUID).isEmpty();
+        mIsAirspeckEnabled = !loadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
 
         // Is RESpeck enabled?
         mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
 
         // Get Bluetooth address
-        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECK_UUID);
+        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
         RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
     }
 
@@ -231,7 +231,7 @@ public class SpeckBluetoothService extends Service {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to Airspeck");
                         Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
-                        airspeckFoundIntent.putExtra(Constants.Config.AIRSPECK_UUID, AIRSPECK_UUID);
+                        airspeckFoundIntent.putExtra(Constants.Config.AIRSPECKP_UUID, AIRSPECK_UUID);
                         sendBroadcast(airspeckFoundIntent);
                     }
                 })

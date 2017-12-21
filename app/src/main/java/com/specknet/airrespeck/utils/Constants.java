@@ -260,7 +260,7 @@ public class Constants {
         public static final Uri CONFIG_CONTENT_URI = Uri.parse("content://" + PROVIDER_NAME + "/config");
         public static final String SUBJECT_ID = "SubjectID";
         public static final String RESPECK_UUID = "RESpeckUUID";
-        public static final String AIRSPECK_UUID = "AirspeckUUID";
+        public static final String AIRSPECKP_UUID = "AirspeckPUUID";
         public static final String SPIROMETER_UUID = "SpirometerUUID";
         public static final String UPLOAD_TO_SERVER = "UploadToServer";
         public static final String STORE_DATA_LOCALLY = "StoreDataLocally";
