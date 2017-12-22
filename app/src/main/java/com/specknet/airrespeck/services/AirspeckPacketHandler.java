@@ -136,7 +136,7 @@ public class AirspeckPacketHandler {
 
         if (packetData.position() > 0) {
             packetData.put(bytes);
-            if (packetData.position() >= 100) {
+            if (packetData.position() >= 102) {
                 Log.i("AirSpeckPacketHandler", "completed packet");
                 //packetData.clear();
                 processCompleteAirSpeckPacket(packetData);
@@ -182,7 +182,7 @@ public class AirspeckPacketHandler {
 
 
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, pm1, pm2_5, pm10,
-                mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation, lux);
+                mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation, lux, motion);
 
         Log.i("AirspeckHandler", "New airspeck packet: " + newAirspeckData);
 
