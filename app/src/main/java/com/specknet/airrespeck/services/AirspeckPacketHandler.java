@@ -57,6 +57,7 @@ public class AirspeckPacketHandler {
     private String patientID;
     private String androidID;
     private short lux;
+    private short motion;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
@@ -88,22 +89,33 @@ public class AirspeckPacketHandler {
     }
 
     void processCompleteAirSpeckPacket(ByteBuffer buffer) {
-        char header = buffer.getChar();
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.position(0);
+        byte header = buffer.get();
         long uuid = buffer.getLong();
         byte[] patientIdBytes = new byte[6];
-        buffer.get(patientIdBytes, buffer.position(), 6);
+        //Log.i("AirspeckPacketHandler", "Buffer: " + buffer.toString());
+        //Log.i("AirspeckPacketHandler", "position: " + buffer.position());
+        buffer.get(patientIdBytes);
         patientID = new String( patientIdBytes);
+        Log.i("AirspeckPacketHandler", "patientID: " + patientID);
 
         //short patientID = buffer.getShort();
         int timestamp = buffer.getInt();
         short temperature = buffer.getShort();
         short humidity = buffer.getShort();
-        opcData.put(buffer.array(), 0, 62);
+        Log.i("AirspeckPacketHandler", "temperature: " + temperature + " humidity: " + humidity);
+        opcData.put(buffer.array(), buffer.position(), 62);
+        buffer.position(buffer.position() + 62);
         short battery_level = buffer.getShort();
         float latitude = buffer.getFloat();
         float longitude = buffer.getFloat();
         short height = buffer.getShort();
+        byte last_error_id = buffer.get();
         lux = buffer.getShort();
+        motion = buffer.getShort();
+
+        Log.i("AirspeckPacketHandler", "battery: " + battery_level + ", lux: " + lux);
         mLastPhoneLocation = new LocationData(latitude, longitude, height, (float)1.0);
         char last_error = buffer.getChar();
         mLastTemperatureAirspeck = temperature * 0.1f;
@@ -124,10 +136,12 @@ public class AirspeckPacketHandler {
 
         if (packetData.position() > 0) {
             packetData.put(bytes);
-            if (packetData.position() >= 98) {
+            if (packetData.position() >= 100) {
                 Log.i("AirSpeckPacketHandler", "completed packet");
+                //packetData.clear();
                 processCompleteAirSpeckPacket(packetData);
                 packetData.clear();
+
             }
         } else if (bytes[0] == 0x03) {
             packetData.put(bytes);
@@ -170,7 +184,7 @@ public class AirspeckPacketHandler {
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, pm1, pm2_5, pm10,
                 mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation, lux);
 
-//        Log.i("AirspeckHandler", "New airspeck packet: " + newAirspeckData);
+        Log.i("AirspeckHandler", "New airspeck packet: " + newAirspeckData);
 
         Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
         intentData.putExtra(Constants.AIRSPECK_DATA, newAirspeckData);
