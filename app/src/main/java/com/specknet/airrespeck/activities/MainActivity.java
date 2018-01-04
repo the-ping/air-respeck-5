@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
@@ -229,9 +230,13 @@ public class MainActivity extends AppCompatActivity {
 
     private Map<String, String> mLoadedConfig;
 
+    private boolean mIsActivityInisialised;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mIsActivityInisialised = false;
 
         mSavedInstanceState = savedInstanceState;
 
@@ -253,6 +258,19 @@ public class MainActivity extends AppCompatActivity {
         checkPermissionsAndInitMainActivity();
     }
 
+    private boolean checkIfSecurityKeyExists() {
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        String securityKey = sharedPref.getString(Constants.SECURITY_KEY_FILE, "");
+        if (securityKey.equals("")) {
+            // Security key hasn't been created yet. Open SecurityKeyActivity
+            Intent intent = new Intent(this, SecurityKeySetupActivity.class);
+            startActivity(intent);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     private void showDoPairingDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
                 this);
@@ -267,6 +285,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkPermissionsAndInitMainActivity() {
+        // Check whether this is the first app start. If yes, a security key needs to be created
+        boolean keyExists = checkIfSecurityKeyExists();
+        if (!keyExists) {
+            return;
+        }
+
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
         if (!isStoragePermissionGranted) {
             return;
@@ -365,6 +389,8 @@ public class MainActivity extends AppCompatActivity {
         initSpeckServiceReceiver();
 
         startActivitySummaryUpdaterTask();
+
+        mIsActivityInisialised = true;
     }
 
     private void startPhoneGPSService() {
@@ -428,6 +454,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!mIsActivityInisialised) {
+            checkPermissionsAndInitMainActivity();
+        }
         mIsActivityRunning = true;
     }
 

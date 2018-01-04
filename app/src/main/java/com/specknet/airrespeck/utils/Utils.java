@@ -190,7 +190,7 @@ public final class Utils {
         }
     }
 
-    public Map<String,String> getConfig(Context context) {
+    public Map<String, String> getConfig(Context context) {
         if (loadedConfig == null) {
             loadConfig(context);
         }
