@@ -259,8 +259,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean checkIfSecurityKeyExists() {
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        String securityKey = sharedPref.getString(Constants.SECURITY_KEY_FILE, "");
+        String securityKey = Utils.getSecurityKey(this);
         if (securityKey.equals("")) {
             // Security key hasn't been created yet. Open SecurityKeyActivity
             Intent intent = new Intent(this, SecurityKeySetupActivity.class);
@@ -285,12 +284,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkPermissionsAndInitMainActivity() {
-        // Check whether this is the first app start. If yes, a security key needs to be created
-        boolean keyExists = checkIfSecurityKeyExists();
-        if (!keyExists) {
-            return;
-        }
-
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
         if (!isStoragePermissionGranted) {
             return;
@@ -298,6 +291,12 @@ public class MainActivity extends AppCompatActivity {
 
         boolean isLocationPermissionGranted = Utils.checkAndRequestLocationPermission(MainActivity.this);
         if (!isLocationPermissionGranted) {
+            return;
+        }
+
+        // Check whether this is the first app start. If yes, a security key needs to be created
+        boolean keyExists = checkIfSecurityKeyExists();
+        if (!keyExists) {
             return;
         }
 

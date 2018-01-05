@@ -108,7 +108,7 @@ class QOERemoteUploadService : Service() {
                 qoeuuid = ""
             }
             json.put("qoe_uuid", qoeuuid)
-            json.put("security_key", "6f2f0a99645346e7b537d9fc0c1198c8")
+            json.put("security_key", Utils.getSecurityKey(this))
             json.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {

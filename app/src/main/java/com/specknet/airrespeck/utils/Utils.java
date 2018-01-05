@@ -432,7 +432,7 @@ public final class Utils {
         return retArray;
     }
 
-    public String getSecurityKey(Context context) {
+    public static String getSecurityKey(Context context) {
         return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
                 Constants.SECURITY_KEY, "");
     }

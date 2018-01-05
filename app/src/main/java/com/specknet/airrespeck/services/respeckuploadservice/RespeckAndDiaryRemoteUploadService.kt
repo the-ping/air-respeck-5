@@ -117,7 +117,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                 airspeckUUID = ""
             }
             jsonHeader.put("qoe_uuid", airspeckUUID)
-            jsonHeader.put("security_key", utils.getSecurityKey(this));
+            jsonHeader.put("security_key", Utils.getSecurityKey(this));
             jsonHeader.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
@@ -153,7 +153,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                 .map { jsonPacketFrom(filequeue.peek()) }
                 .doOnError { Log.e("Upload", "Respeck filequeue: " + it.toString()) }
                 .concatMap { respeckServer.submitData(it, configPath) }
-                .doOnError { Log.e("Upload", "Error during upload") }
+                .doOnError { Log.e("Upload", "Error during upload: " + Log.getStackTraceString(it)) }
                 .retry()
                 .doOnCompleted { }
                 .subscribe {
