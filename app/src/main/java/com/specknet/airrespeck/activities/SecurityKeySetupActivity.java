@@ -2,6 +2,7 @@ package com.specknet.airrespeck.activities;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -92,7 +93,9 @@ public class SecurityKeySetupActivity extends Activity {
         Toast.makeText(SecurityKeySetupActivity.this, "Key successfully created!",
                 Toast.LENGTH_LONG).show();
 
-        // Close activity
+        // Start main activity
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
         finish();
     }
 }

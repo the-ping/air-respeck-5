@@ -230,13 +230,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Map<String, String> mLoadedConfig;
 
-    private boolean mIsActivityInisialised;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mIsActivityInisialised = false;
 
         mSavedInstanceState = savedInstanceState;
 
@@ -297,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
         // Check whether this is the first app start. If yes, a security key needs to be created
         boolean keyExists = checkIfSecurityKeyExists();
         if (!keyExists) {
-            return;
+            finish();
         }
 
         initMainActivity();
@@ -388,8 +384,6 @@ public class MainActivity extends AppCompatActivity {
         initSpeckServiceReceiver();
 
         startActivitySummaryUpdaterTask();
-
-        mIsActivityInisialised = true;
     }
 
     private void startPhoneGPSService() {
@@ -453,9 +447,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!mIsActivityInisialised) {
-            checkPermissionsAndInitMainActivity();
-        }
         mIsActivityRunning = true;
     }
 
