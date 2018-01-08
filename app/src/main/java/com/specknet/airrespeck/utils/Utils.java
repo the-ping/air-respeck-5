@@ -96,7 +96,6 @@ public final class Utils {
     }
 
     public String getDataDirectory(Context context) {
-        Log.i("DFUtils", "Context: " + context);
         // First, we check whether there is a data path stored in preferences
         SharedPreferences prefs = context.getSharedPreferences(
                 "com.specknet.airrespeck", Context.MODE_PRIVATE);

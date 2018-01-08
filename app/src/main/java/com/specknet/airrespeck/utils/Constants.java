@@ -214,7 +214,7 @@ public class Constants {
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,sequenceNumber,x,y,z," +
-            "breathingSignal,breathingRate,activityLevel,activityType";
+            "breathingSignal,breathingRate,activityLevel,activityType,isBreathStart";
 
     public static final String VOLUME_DATA_HEADER = "subjectName,interpolatedPhoneTimestamp,x,y,z," +
             "breathingSignal,activityTypeSelection,bagSizeSelection";

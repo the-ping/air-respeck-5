@@ -13,6 +13,7 @@ static BreathingRateStats breathing_rate_stats;
 static float upper_threshold;
 static float lower_threshold;
 static float th_factor = 1.f;
+static bool is_breath_end = false;
 
 // Activity classification
 static int current_activity_classification = -1;
@@ -55,6 +56,9 @@ void updateBreathing(float x, float y, float z) {
     if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
         update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
         current_breath.is_complete = false;
+        is_breath_end = true;
+    } else {
+        is_breath_end = false;
     }
 }
 
@@ -126,4 +130,8 @@ void updateActivityClassification() {
 
 int getCurrentActivityClassification() {
     return current_activity_classification;
+}
+
+bool getIsBreathEnd() {
+    return is_breath_end;
 }

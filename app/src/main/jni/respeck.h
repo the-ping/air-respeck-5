@@ -56,4 +56,6 @@ void updateActivityClassification();
 
 int getCurrentActivityClassification();
 
+bool getIsBreathEnd();
+
 #endif

@@ -105,3 +105,7 @@ jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getCurrentActivi
                                                                                                  jobject instance) {
     return getCurrentActivityClassification();
 }
+
+jboolean Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getIsBreathEnd(JNIEnv *env, jobject instance) {
+    return (jboolean) getIsBreathEnd();
+}

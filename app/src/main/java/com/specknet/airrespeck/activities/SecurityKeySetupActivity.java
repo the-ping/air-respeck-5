@@ -81,6 +81,7 @@ public class SecurityKeySetupActivity extends Activity {
                         Toast.makeText(SecurityKeySetupActivity.this,
                                 "Could not communicate with server. Please check network connection!",
                                 Toast.LENGTH_LONG).show();
+                        mLoginButton.setEnabled(true);
                     }
                 });
     }
