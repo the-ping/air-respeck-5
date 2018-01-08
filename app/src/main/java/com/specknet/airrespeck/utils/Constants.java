@@ -273,4 +273,5 @@ public class Constants {
 
     public static final String SECURITY_KEY_FILE = "SecurityKeyFile";
     public static final String SECURITY_KEY = "SecurityKey";
+    public static final String PROJECT_ID = "ProjectID";
 }

@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
@@ -256,8 +255,13 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean checkIfSecurityKeyExists() {
         String securityKey = Utils.getSecurityKey(this);
-        if (securityKey.equals("")) {
-            // Security key hasn't been created yet. Open SecurityKeyActivity
+        String projectIDKey = Utils.getProjectIDForKey(this);
+
+        // If either the key hasn't been set yet, or if it wasn't created with the currently used project ID,
+        // create a new key.
+        if (securityKey.equals("") || !projectIDKey.equals(
+                mLoadedConfig.get(Constants.Config.SUBJECT_ID).substring(0, 2))) {
+            // Open SecurityKeyActivity
             Intent intent = new Intent(this, SecurityKeySetupActivity.class);
             startActivity(intent);
             return false;

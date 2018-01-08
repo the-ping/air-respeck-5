@@ -57,16 +57,17 @@ public class SecurityKeySetupActivity extends Activity {
     private void requestSecurityKey(String username, String password) {
         Utils utils = Utils.getInstance();
         Map<String, String> config = utils.getConfig(this);
+        final String projectID = config.get(Constants.Config.SUBJECT_ID).substring(0, 2);
 
         SpecknetService specknetService = SpecknetClient.getSpecknetService();
 
-        specknetService.makeUploadKey(username, password, config.get(Constants.Config.SUBJECT_ID).substring(0, 2),
+        specknetService.makeUploadKey(username, password, projectID,
                 Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID)).enqueue(
                 new Callback<KeyHolder>() {
                     @Override
                     public void onResponse(Call<KeyHolder> call, Response<KeyHolder> response) {
                         if (response.isSuccessful()) {
-                            saveKey(response.body().getKey());
+                            saveKey(response.body().getKey(), projectID);
                         } else {
                             Toast.makeText(SecurityKeySetupActivity.this, "Username or password incorrect.",
                                     Toast.LENGTH_LONG).show();
@@ -84,10 +85,12 @@ public class SecurityKeySetupActivity extends Activity {
                 });
     }
 
-    public void saveKey(String key) {
+    public void saveKey(String key, String projectID) {
         SharedPreferences sharedPref = getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(Constants.SECURITY_KEY, key);
+        // Also save project ID
+        editor.putString(Constants.PROJECT_ID, projectID);
         editor.apply();
 
         Toast.makeText(SecurityKeySetupActivity.this, "Key successfully created!",

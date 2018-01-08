@@ -436,4 +436,8 @@ public final class Utils {
         return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
                 Constants.SECURITY_KEY, "");
     }
+    public static String getProjectIDForKey(Context context) {
+        return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
+                Constants.PROJECT_ID, "");
+    }
 }
