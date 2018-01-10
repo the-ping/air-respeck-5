@@ -1,9 +1,6 @@
 package com.specknet.airrespeck.services;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -21,7 +18,6 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -35,30 +31,26 @@ import java.util.Map;
 
 public class AirspeckPacketHandler {
 
-    // Airspeck
-    private ByteBuffer opcData;
+    // Airspeck data
     private ByteBuffer packetData;
-    private float mLastTemperatureAirspeck = Float.NaN;
-    private float mLastHumidityAirspeck = Float.NaN;
-
-    // GPS
-    private LocationData mLastPhoneLocation = new LocationData(Double.NaN, Double.NaN, Double.NaN, Float.NaN);
-    private BroadcastReceiver mLocationReceiver;
+    private ByteBuffer opcData;
+    private int[] mBins;
+    private float mPm1;
+    private float mPm2_5;
+    private float mPm10;
 
     // Initial values for last write timestamps
     private Date mDateOfLastAirspeckWrite = new Date(0);
 
     private OutputStreamWriter mAirspeckWriter;
 
-    private static String AIRSPECK_UUID;
+    private static String airspeckUUID;
 
     private SpeckBluetoothService mSpeckService;
 
     private boolean mIsStoreDataLocally;
     private String subjectID;
     private String androidID;
-    private short lux;
-    private short motion;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
@@ -69,8 +61,8 @@ public class AirspeckPacketHandler {
         packetData = ByteBuffer.allocate(128); // A little larger than necessary in case we add fields to the packet
 
         Utils utils = Utils.getInstance();
-        Map<String,String> loadedConfig = utils.getConfig(mSpeckService);
-        AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
+        Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
+        airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
 
         // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
@@ -78,56 +70,9 @@ public class AirspeckPacketHandler {
         subjectID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-
-        // Start broadcastreceiver for phone location
-        mLocationReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                //mLastPhoneLocation = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
-            }
-        };
-        speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
-    }
-
-    void processCompleteAirSpeckPacket(ByteBuffer buffer) {
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        buffer.position(0);
-        byte header = buffer.get();
-        long uuid = buffer.getLong();
-        byte[] patientIdBytes = new byte[6];
-        //Log.i("AirspeckPacketHandler", "Buffer: " + buffer.toString());
-        //Log.i("AirspeckPacketHandler", "position: " + buffer.position());
-        buffer.get(patientIdBytes);
-        patientID = new String( patientIdBytes);
-        Log.i("AirspeckPacketHandler", "patientID: " + patientID);
-
-        //short patientID = buffer.getShort();
-        int timestamp = buffer.getInt();
-        short temperature = buffer.getShort();
-        short humidity = buffer.getShort();
-        Log.i("AirspeckPacketHandler", "temperature: " + temperature + " humidity: " + humidity);
-        opcData.put(buffer.array(), buffer.position(), 62);
-        buffer.position(buffer.position() + 62);
-        short battery_level = buffer.getShort();
-        float latitude = buffer.getFloat();
-        float longitude = buffer.getFloat();
-        short height = buffer.getShort();
-        byte last_error_id = buffer.get();
-        lux = buffer.getShort();
-        motion = buffer.getShort();
-
-        Log.i("AirspeckPacketHandler", "battery: " + battery_level + ", lux: " + lux);
-        mLastPhoneLocation = new LocationData(latitude, longitude, height, (float)1.0);
-        char last_error = buffer.getChar();
-        mLastTemperatureAirspeck = temperature * 0.1f;
-//        Log.i("AirspeckPacketHandler", "Temp: " + mLastTemperatureAirspeck);
-        mLastHumidityAirspeck = humidity * 0.1f;
-        processOPC(opcData);
-        opcData.clear();
     }
 
     void processAirspeckPacket(byte[] bytes) {
-
         int packetLength = bytes.length;
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -138,26 +83,84 @@ public class AirspeckPacketHandler {
         if (packetData.position() > 0) {
             packetData.put(bytes);
             if (packetData.position() >= 102) {
-                Log.i("AirSpeckPacketHandler", "completed packet");
-                //packetData.clear();
-                processCompleteAirSpeckPacket(packetData);
+                Log.i("AirSpeckPacketHandler", "Full length packet received");
+                processDataFromPacket(packetData);
                 packetData.clear();
 
             }
         } else if (bytes[0] == 0x03) {
             packetData.put(bytes);
         } else {
-            Log.i("AirspeckPacketHandler", "out of order packet");
+            Log.i("AirspeckPacketHandler", "Unknown packet received");
         }
     }
 
-    private void processOPC(ByteBuffer buffer) {
+    private void processDataFromPacket(ByteBuffer buffer) {
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.position(0);
+        byte header = buffer.get();
+        long uuid = buffer.getLong();
+
+        // Load subject ID from device. Not used at the moment
+        byte[] subjectIDBytes = new byte[6];
+        buffer.get(subjectIDBytes);
+        String loadedSubjectID = new String(subjectIDBytes);
+        Log.i("AirspeckPacketHandler", "Received subject ID: " + loadedSubjectID);
+
+        // Timestamp also not used at the moment
+        int timestamp = buffer.getInt();
+
+        // Load temperature and humidity
+        float temperature = buffer.getShort() * 0.1f;
+        float humidity = buffer.getShort() * 0.1f;
+        Log.i("AirspeckPacketHandler", "Temperature: " + temperature + " Humidity: " + humidity);
+
+        // Load OPC data
+        opcData.put(buffer.array(), buffer.position(), 62);
+        buffer.position(buffer.position() + 62);
+        processOPCPacket(opcData);
+        opcData.clear();
+
+        short batteryLevel = buffer.getShort();
+        Log.i("AirspeckPacketHandler", "Battery: " + batteryLevel);
+
+        // Process location
+        float latitude = buffer.getFloat();
+        float longitude = buffer.getFloat();
+        short altitude = buffer.getShort();
+        LocationData location = new LocationData(latitude, longitude, altitude, Float.NaN);
+
+        byte lastErrorId = buffer.get();
+
+        short lux = buffer.getShort();
+        short motion = buffer.getShort();
+        char lastError = buffer.getChar();
+
+        long currentPhoneTimestamp = Utils.getUnixTimestamp();
+
+        AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10,
+                temperature, humidity, mBins, location, lux, motion);
+
+        Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
+
+        // Send data to upload
+        Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
+        intentData.putExtra(Constants.AIRSPECK_DATA, newAirspeckData);
+        mSpeckService.sendBroadcast(intentData);
+
+        // Store the important data in the external storage if set in config
+        if (mIsStoreDataLocally) {
+            writeToAirspeckFile(newAirspeckData);
+        }
+    }
+
+    private void processOPCPacket(ByteBuffer buffer) {
         // Log.i("AirspeckPacketHandler", "Processing OPC data: " + buffer.toString());
         buffer.position(0);
 
-        int[] bins = new int[16];
-        for (int i = 0; i < bins.length; i++) {
-            bins[i] = buffer.getShort() & 0xffff;
+        mBins = new int[16];
+        for (int i = 0; i < mBins.length; i++) {
+            mBins[i] = buffer.getShort() & 0xffff;
             // Log.i("AirspeckPacketHandler", "Bin " + i + ": " + bins[i]);
         }
 
@@ -174,27 +177,9 @@ public class AirspeckPacketHandler {
         // Checksum: count of all bin, keep last 16 bits.
         buffer.getShort();
 
-        float pm1 = buffer.getFloat();
-        float pm2_5 = buffer.getFloat();
-        float pm10 = buffer.getFloat();
-
-        long currentPhoneTimestamp = Utils.getUnixTimestamp();
-
-
-
-        AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, pm1, pm2_5, pm10,
-                mLastTemperatureAirspeck, mLastHumidityAirspeck, bins, mLastPhoneLocation, lux, motion);
-
-        Log.i("AirspeckHandler", "New airspeck packet: " + newAirspeckData);
-
-        Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
-        intentData.putExtra(Constants.AIRSPECK_DATA, newAirspeckData);
-        mSpeckService.sendBroadcast(intentData);
-
-        // Store the important data in the external storage if set in config
-        if (mIsStoreDataLocally) {
-            writeToAirspeckFile(newAirspeckData);
-        }
+        mPm1 = buffer.getFloat();
+        mPm2_5 = buffer.getFloat();
+        mPm10 = buffer.getFloat();
     }
 
 
@@ -205,8 +190,9 @@ public class AirspeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastAirspeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String filenameAirspeck = Utils.getInstance().getDataDirectory(mSpeckService) + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
-                subjectID + " " + androidID + " " + AIRSPECK_UUID.replace(":", "") + " " +
+        String filenameAirspeck = Utils.getInstance().getDataDirectory(
+                mSpeckService) + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
+                subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") + " " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
@@ -251,11 +237,10 @@ public class AirspeckPacketHandler {
     }
 
 
-    public void closeHandler() throws Exception {
+    void closeHandler() throws Exception {
         if (mAirspeckWriter != null) {
             Log.i("AirspeckPacketHandler", "Respeck writer was closed");
             mAirspeckWriter.close();
         }
-        mSpeckService.unregisterReceiver(mLocationReceiver);
     }
 }

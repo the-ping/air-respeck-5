@@ -8,7 +8,8 @@ import java.io.Serializable
  */
 
 data class AirspeckData(val phoneTimestamp: Long, val pm1: Float, val pm2_5: Float, val pm10: Float,
-                        val temperature: Float, val humidity: Float, val bins: IntArray, val location: LocationData, val lux: Long, val motion: Long) : Serializable {
+                        val temperature: Float, val humidity: Float, val bins: IntArray, val location: LocationData,
+                        val lux: Long, val motion: Long) : Serializable {
     val binsTotalCount: Int = Utils.sum(bins)
 
     // Returns a one-line representation of data separated by comma used for storage
