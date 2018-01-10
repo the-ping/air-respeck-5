@@ -178,6 +178,7 @@
                 <action android:name="com.specknet.airrespeck.PHONE_LOCATION"/>
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

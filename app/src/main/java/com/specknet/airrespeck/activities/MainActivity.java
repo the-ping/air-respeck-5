@@ -802,7 +802,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IllegalArgumentException e) {
             // Intent receivers have not been registered yet. Skip unregistration in this case.
         }
-
         Log.i("DF", "App is being destroyed");
         super.onDestroy();
     }

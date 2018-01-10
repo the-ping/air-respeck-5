@@ -239,6 +239,7 @@ public class Constants {
     // Characteristics Airspeck
     public static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
     public static final String AIRSPECK_LIVE_CHARACTERISTIC = "00001524-1212-efde-1523-784feabcd123";
+    public static final String AIRSPECK_POWER_OFF_CHARACTERISTIC = "00001525-1212-efde-1523-784feabcd123";
     public final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 
     // Characteristics RESpeck
@@ -274,4 +275,7 @@ public class Constants {
     public static final String SECURITY_KEY_FILE = "SecurityKeyFile";
     public static final String SECURITY_KEY = "SecurityKey";
     public static final String PROJECT_ID = "ProjectID";
+
+    public static final String AIRSPECK_OFF_ACTION = "com.specknet.airrespeck.AIRSPECK_OFF";
+    public static final byte[] OFF_COMMAND = {1};
 }

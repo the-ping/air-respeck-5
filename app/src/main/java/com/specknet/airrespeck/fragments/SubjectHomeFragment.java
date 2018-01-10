@@ -1,6 +1,5 @@
 package com.specknet.airrespeck.fragments;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,7 +18,7 @@ import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.utils.Constants;
 
 /**
- * Created by Darius on 08.02.2017.
+ * Home screen for subjects using the app
  */
 
 public class SubjectHomeFragment extends BaseFragment {
@@ -28,6 +27,7 @@ public class SubjectHomeFragment extends BaseFragment {
     private ImageView connectedStatusAirspeck;
     private ProgressBar progressBarRESpeck;
     private ProgressBar progressBarAirspeck;
+    private ImageView airspeckOffButton;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -61,15 +61,26 @@ public class SubjectHomeFragment extends BaseFragment {
         diaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                /*
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.setComponent(
-                        new ComponentName("com.specknet.diarydaphne", "com.specknet.diarydaphne.MainActivity"));
-                startActivity(intent);*/
                 startApp(getActivity(), "com.specknet.diarydaphne");
             }
         });
+
+        // Initialise turn off button for Airspeck
+        airspeckOffButton = (ImageButton) view.findViewById(R.id.airspeck_off_button);
+        airspeckOffButton.setEnabled(false);
+        airspeckOffButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Send switch off message to BLE service
+                airspeckOffButton.setEnabled(false);
+                connectedStatusAirspeck.setVisibility(View.GONE);
+                progressBarAirspeck.setVisibility(View.VISIBLE);
+
+                Intent i = new Intent(Constants.AIRSPECK_OFF_ACTION);
+                getActivity().sendBroadcast(i);
+            }
+        });
+
 
         mIsCreated = true;
 
@@ -129,6 +140,7 @@ public class SubjectHomeFragment extends BaseFragment {
                 // "Flash" with symbol when updating to indicate data coming in
                 progressBarAirspeck.setVisibility(View.GONE);
                 connectedStatusAirspeck.setVisibility(View.INVISIBLE);
+                airspeckOffButton.setEnabled(true);
 
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
@@ -139,6 +151,7 @@ public class SubjectHomeFragment extends BaseFragment {
                 }, 100);
 
             } else {
+                airspeckOffButton.setEnabled(false);
                 connectedStatusAirspeck.setVisibility(View.GONE);
                 progressBarAirspeck.setVisibility(View.VISIBLE);
             }
