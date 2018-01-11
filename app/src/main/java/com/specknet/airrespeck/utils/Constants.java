@@ -270,6 +270,7 @@ public class Constants {
         public static final String ENABLE_PHONE_LOCATION_STORAGE = "EnablePhoneLocationStorage";
         public static final String ENABLE_VOLUME_BAG_CALIBRATION_VIEW = "EnableVolumeBagCalibrationView";
         public static final String DISABLE_POST_FILTERING_BREATHING = "DisablePostFilteringBreathing";
+        public static final String DISABLE_WRONG_ORIENTATION_DIALOG = "DisableWrongOrientationDialog";
     }
 
     public static final String SECURITY_KEY_FILE = "SecurityKeyFile";

@@ -593,7 +593,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;
-        mShowRESpeckWrongOrientationEnabled = true;
 
         if (mIsRESpeckEnabled) {
             mShowSupervisedActivitySummary = true;
@@ -619,6 +618,8 @@ public class MainActivity extends AppCompatActivity {
         mShowSubjectWindmill = false;
 
         // Load custom config which can be changed in pairing app
+        mShowRESpeckWrongOrientationEnabled = Boolean.parseBoolean(mLoadedConfig.get(
+                Constants.Config.DISABLE_WRONG_ORIENTATION_DIALOG));
         mIsUploadDataToServer = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
         mIsEncryptLocalData = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
         mIsSupervisedStartingMode = Boolean.parseBoolean(
