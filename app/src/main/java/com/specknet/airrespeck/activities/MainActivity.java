@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
                                 + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
+                        service.updateAirspeckConnection(true);
                         service.showSnackbarFromHandler(messageAir);
                         break;
                     case SHOW_AIRSPECK_DISCONNECTED:
@@ -136,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                                 + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
+                        service.updateRESpeckConnection(true);
                         service.showSnackbarFromHandler(messageRE);
                         break;
                     case SHOW_RESPECK_DISCONNECTED:
@@ -298,6 +300,7 @@ public class MainActivity extends AppCompatActivity {
         boolean keyExists = checkIfSecurityKeyExists();
         if (!keyExists) {
             finish();
+            return;
         }
 
         initMainActivity();
@@ -354,11 +357,20 @@ public class MainActivity extends AppCompatActivity {
             mIsSupervisedModeCurrentlyShown = mIsSupervisedStartingMode;
         }
 
+
         // Call displayMode methods so the tabs are set correctly
         if (mIsSupervisedModeCurrentlyShown) {
             displaySupervisedMode();
         } else {
             displaySubjectMode();
+        }
+
+        // Load connection state
+        if (mSavedInstanceState != null) {
+            mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
+            mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
+            updateRESpeckConnection(mIsRESpeckConnected);
+            updateAirspeckConnection(mIsAirspeckConnected);
         }
 
         // Add the toolbar
@@ -846,6 +858,10 @@ public class MainActivity extends AppCompatActivity {
         if (mSubjectWindmillFragment != null && mSubjectWindmillFragment.isAdded()) {
             fm.putFragment(outState, TAG_SUBJECT_WINDMILL_FRAGMENT, mSubjectWindmillFragment);
         }
+
+        // Save connection state
+        outState.putBoolean(Constants.IS_RESPECK_CONNECTED, mIsRESpeckConnected);
+        outState.putBoolean(Constants.IS_AIRSPECK_CONNECTED, mIsAirspeckConnected);
     }
 
     @Override

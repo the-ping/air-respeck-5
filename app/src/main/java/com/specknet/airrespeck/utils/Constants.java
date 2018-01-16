@@ -15,6 +15,7 @@ import java.io.File;
  * enums, as we use the constants as keys for methods requiring a String, such as SharedPreferences.
  */
 public class Constants {
+
     /**
      * Preferences
      */
@@ -279,4 +280,7 @@ public class Constants {
 
     public static final String AIRSPECK_OFF_ACTION = "com.specknet.airrespeck.AIRSPECK_OFF";
     public static final byte[] OFF_COMMAND = {1};
+
+    public static final String IS_RESPECK_CONNECTED = "IsRespeckConnected";
+    public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
 }

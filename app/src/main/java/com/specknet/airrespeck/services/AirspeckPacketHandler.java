@@ -134,6 +134,8 @@ public class AirspeckPacketHandler {
 
         short lux = buffer.getShort();
         short motion = buffer.getShort();
+        Log.i("AirspeckPacketHandler", "Lux: " + lux + " Motion: " + motion);
+
         char lastError = buffer.getChar();
 
         long currentPhoneTimestamp = Utils.getUnixTimestamp();

@@ -80,6 +80,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
 
+                    android:layout_marginRight="10dp"
                     android:background="@drawable/clickable_button_background"
                     android:padding="15dp"
                     android:src="@android:drawable/ic_lock_power_off"/>
@@ -87,9 +88,9 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="50dp"
+                    android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    app:srcCompat="@drawable/vec_airspeck"
-                    />
+                    app:srcCompat="@drawable/vec_airspeck"/>
 
                 <ProgressBar
                     android:id="@+id/progress_bar_airspeck"
