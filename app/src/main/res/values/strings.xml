@@ -263,4 +263,9 @@
     key is used to encrypt all recorded data, so that no one can view or modify the data before it is uploaded
     to the server. Note that you need a network connection for this operation.</string>
 
+    <string name="airspeck_power_off_message">This action turns off the air pollution monitor. You can turn it back
+        on by pressing the power button on the device next to the white lamp.\n
+        यह क्रिया वायु प्रदूषण मॉनिटर को बंद कर देती है आप उसे सफेद दीपक के बगल में डिवाइस पर पावर बटन दबाकर इसे वापस चालू कर सकते हैं।</string>
+
+
 </resources>

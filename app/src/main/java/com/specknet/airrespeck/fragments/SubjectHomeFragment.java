@@ -1,6 +1,9 @@
 package com.specknet.airrespeck.fragments;
 
+import android.app.AlertDialog;
+import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,6 +18,7 @@ import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.utils.Constants;
 
 /**
@@ -61,7 +65,7 @@ public class SubjectHomeFragment extends BaseFragment {
         diaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startApp(getActivity(), "com.specknet.diarydaphne");
+                startDiaryApp(getActivity(), "com.specknet.diarydaphne");
             }
         });
 
@@ -73,11 +77,7 @@ public class SubjectHomeFragment extends BaseFragment {
             public void onClick(View view) {
                 // Send switch off message to BLE service
                 airspeckOffButton.setEnabled(false);
-                connectedStatusAirspeck.setVisibility(View.GONE);
-                progressBarAirspeck.setVisibility(View.VISIBLE);
-
-                Intent i = new Intent(Constants.AIRSPECK_OFF_ACTION);
-                getActivity().sendBroadcast(i);
+                showPowerOffDialog();
             }
         });
 
@@ -91,7 +91,34 @@ public class SubjectHomeFragment extends BaseFragment {
         return view;
     }
 
-    public void startApp(Context context, String packageName) {
+    private void showPowerOffDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        alertDialogBuilder
+                .setMessage(getString(R.string.airspeck_power_off_message))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        connectedStatusAirspeck.setVisibility(View.GONE);
+                        progressBarAirspeck.setVisibility(View.VISIBLE);
+                        Intent i = new Intent(Constants.AIRSPECK_OFF_ACTION);
+                        getActivity().sendBroadcast(i);
+                    }
+                })
+                .setCancelable(true)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        airspeckOffButton.setEnabled(true);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        airspeckOffButton.setEnabled(true);
+                    }
+                });
+        alertDialogBuilder.create().show();
+    }
+
+    public void startDiaryApp(Context context, String packageName) {
         Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
         if (intent == null) {
             Toast.makeText(context, "Diary app not installed. Contact researchers for further information.",
