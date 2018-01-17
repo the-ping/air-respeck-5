@@ -1,6 +1,9 @@
 package com.specknet.airrespeck.services;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -48,6 +51,9 @@ public class AirspeckPacketHandler {
 
     private SpeckBluetoothService mSpeckService;
 
+    private BroadcastReceiver mLocationReceiver;
+    private LocationData mLastPhoneLocation;
+
     private boolean mIsStoreDataLocally;
     private String subjectID;
     private String androidID;
@@ -70,6 +76,16 @@ public class AirspeckPacketHandler {
         subjectID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+
+        // Start broadcast receiver for phone location
+        mLastPhoneLocation = new LocationData(0,0,0,0);
+        mLocationReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                mLastPhoneLocation = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
+            }
+        };
+        speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
     }
 
     void processAirspeckPacket(byte[] bytes) {
@@ -125,10 +141,17 @@ public class AirspeckPacketHandler {
         Log.i("AirspeckPacketHandler", "Battery: " + batteryLevel);
 
         // Process location
+        LocationData location;
         float latitude = buffer.getFloat();
         float longitude = buffer.getFloat();
         short altitude = buffer.getShort();
-        LocationData location = new LocationData(latitude, longitude, altitude, Float.NaN);
+
+        // Fallback to phone location if Airspeck GPS is sending zero data.
+        if (latitude == 0f && longitude == 0f) {
+            location = mLastPhoneLocation;
+        } else {
+            location = new LocationData(latitude, longitude, altitude, Float.NaN);
+        }
 
         byte lastErrorId = buffer.get();
 
