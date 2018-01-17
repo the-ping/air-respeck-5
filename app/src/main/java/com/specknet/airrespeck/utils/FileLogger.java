@@ -52,7 +52,7 @@ public class FileLogger {
 
         try {
             outputWriter.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.UK).format(now)).
-                    append(": ").append(log);
+                    append(": ").append(log).append("\n");
             outputWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
