@@ -54,7 +54,7 @@ import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
-import com.specknet.airrespeck.services.qoeuploadservice.QOERemoteUploadService;
+import com.specknet.airrespeck.services.airspeckuploadservice.AirspeckRemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckAndDiaryRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.ThemeUtils;
@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (mIsAirspeckEnabled) {
-                Intent startUploadAirspeckIntent = new Intent(this, QOERemoteUploadService.class);
+                Intent startUploadAirspeckIntent = new Intent(this, AirspeckRemoteUploadService.class);
                 startService(startUploadAirspeckIntent);
             }
         }
@@ -825,7 +825,7 @@ public class MainActivity extends AppCompatActivity {
         stopService(intentStopSpeckService);
         Intent intentStopUploadRespeck = new Intent(this, RespeckAndDiaryRemoteUploadService.class);
         stopService(intentStopUploadRespeck);
-        Intent intentStopUploadAirspeck = new Intent(this, QOERemoteUploadService.class);
+        Intent intentStopUploadAirspeck = new Intent(this, AirspeckRemoteUploadService.class);
         stopService(intentStopUploadAirspeck);
         Intent intentStopGPSService = new Intent(this, PhoneGPSService.class);
         stopService(intentStopGPSService);

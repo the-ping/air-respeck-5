@@ -213,6 +213,7 @@ public class Constants {
     public static final String AIRSPECK_DATA_DIRECTORY_NAME = "/Airspeck/";
     public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
+    public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType,isBreathStart";

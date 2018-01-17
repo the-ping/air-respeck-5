@@ -17,6 +17,7 @@ import com.specknet.airrespeck.R
 import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.RESpeckAveragedData
 import com.specknet.airrespeck.utils.Constants
+import com.specknet.airrespeck.utils.FileLogger
 import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
 import com.squareup.tape.SerializedConverter
@@ -67,6 +68,8 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         object : Thread() {
             override fun run() {
                 Log.i("Upload", "Starting RESpeck upload...")
+                FileLogger.logToFile(this@RespeckAndDiaryRemoteUploadService,
+                        "RESpeck and Diary upload service started")
                 startInForeground()
                 initRespeckUploadService()
             }
@@ -302,5 +305,10 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                         "," + pef + "," + fev1 + "," + fev6 + "," + fvc + "," + fef2575
             }
         }
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        FileLogger.logToFile(this, "RESpeck and Diary upload service stopped by Android")
+        return super.onUnbind(intent)
     }
 }

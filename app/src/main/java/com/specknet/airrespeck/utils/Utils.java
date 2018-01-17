@@ -164,6 +164,17 @@ public final class Utils {
                     throw new RuntimeException("Couldn't create diary directory on external storage");
                 }
             }
+
+            // Create logging folder
+            directory = new File(dataDirectoryPath + Constants.LOGGING_DIRECTORY_NAME);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create logging directory on external storage");
+                }
+            }
         }
 
         return dataDirectoryPath;

@@ -21,8 +21,10 @@ import com.polidea.rxandroidble.RxBleScanResult;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -83,6 +85,7 @@ public class SpeckBluetoothService extends Service {
             @Override
             public void run() {
                 Log.i("SpeckService", "Starting SpeckService...");
+                FileLogger.logToFile(SpeckBluetoothService.this, "Main Bluetooth service started");
                 startInForeground();
                 initSpeckService();
                 startServiceAndBluetoothScanning();
@@ -242,6 +245,8 @@ public class SpeckBluetoothService extends Service {
 
     private void establishAirspeckConnection() {
         Log.i("SpeckService", "Connecting to Airspeck...");
+        FileLogger.logToFile(this, "Connecting to Airspeck");
+
         airspeckSubscription = mAirspeckDevice.establishConnection(true)
                 .flatMap(new Func1<RxBleConnection, Observable<?>>() {
                     @Override
@@ -255,6 +260,7 @@ public class SpeckBluetoothService extends Service {
                     public void call(Object notificationObservable) {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to Airspeck");
+                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Airspeck");
                         Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
                         airspeckFoundIntent.putExtra(Constants.Config.AIRSPECKP_UUID, AIRSPECK_UUID);
                         sendBroadcast(airspeckFoundIntent);
@@ -280,6 +286,7 @@ public class SpeckBluetoothService extends Service {
                             public void call(Throwable throwable) {
                                 // An error with autoConnect means that we are disconnected
                                 Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck disconnected");
 
                                 Intent airspeckDisconnectedIntent = new Intent(
                                         Constants.ACTION_AIRSPECK_DISCONNECTED);
@@ -299,6 +306,7 @@ public class SpeckBluetoothService extends Service {
 
     public void turnOffAirspeck() {
         Log.e("SpeckService", "Turning off");
+        FileLogger.logToFile(this, "Turning off Airspeck after power off command");
         mAirspeckDevice.establishConnection(true)
                 .flatMap(new Func1<RxBleConnection, Observable<?>>() {
                     @Override
@@ -345,6 +353,7 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(RxBleConnection.RxBleConnectionState connectionState) {
                                 if (connectionState == RxBleConnection.RxBleConnectionState.DISCONNECTED && mIsServiceRunning) {
+                                    FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck disconnected");
                                     Intent respeckDisconnectedIntent = new Intent(
                                             Constants.ACTION_RESPECK_DISCONNECTED);
                                     sendBroadcast(respeckDisconnectedIntent);
@@ -391,6 +400,7 @@ public class SpeckBluetoothService extends Service {
 
     private void establishRESpeckConnection() {
         Log.i("SpeckService", "Connecting to RESpeck...");
+        FileLogger.logToFile(this, "Connecting to RESpeck");
         respeckLiveSubscription = mRESpeckDevice.establishConnection(false)
                 .flatMap(new Func1<RxBleConnection, Observable<?>>() {
                     @Override
@@ -404,6 +414,7 @@ public class SpeckBluetoothService extends Service {
                     public void call(Object notificationObservable) {
                         // Notification has been set up
                         Log.i("SpeckService", "Subscribed to RESpeck");
+                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to RESpeck");
                         Intent respeckFoundIntent = new Intent(Constants.ACTION_RESPECK_CONNECTED);
                         respeckFoundIntent.putExtra(Constants.Config.RESPECK_UUID, RESPECK_UUID);
                         sendBroadcast(respeckFoundIntent);
@@ -459,6 +470,12 @@ public class SpeckBluetoothService extends Service {
         }
 
         this.unregisterReceiver(this.airspeckOffSignalReceiver);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        FileLogger.logToFile(this, "Main Bluetooth service stopped by Android");
+        return super.onUnbind(intent);
     }
 }
 

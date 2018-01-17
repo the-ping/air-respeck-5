@@ -1,4 +1,4 @@
-package com.specknet.airrespeck.services.qoeuploadservice
+package com.specknet.airrespeck.services.airspeckuploadservice
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -18,6 +18,7 @@ import com.specknet.airrespeck.R
 import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.AirspeckData
 import com.specknet.airrespeck.utils.Constants
+import com.specknet.airrespeck.utils.FileLogger
 import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
 import com.squareup.tape.SerializedConverter
@@ -29,7 +30,7 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class QOERemoteUploadService : Service() {
+class AirspeckRemoteUploadService : Service() {
     companion object {
         const val FILENAME = "qoe_upload_queue6"
 
@@ -39,7 +40,7 @@ class QOERemoteUploadService : Service() {
         private var configPath = ""
 
         internal var mySubject = PublishSubject.create<JsonObject>()
-        internal lateinit var qoeServer: QOEServer
+        internal lateinit var airspeckServer: AirspeckServer
 
         internal val qoeReceiver = QOEReceiver()
     }
@@ -62,6 +63,8 @@ class QOERemoteUploadService : Service() {
         object : Thread() {
             override fun run() {
                 Log.i("Upload", "Starting Airspeck upload...")
+                FileLogger.logToFile(this@AirspeckRemoteUploadService,
+                        "Airspeck upload service started")
                 startInForeground()
                 initQOEUploadService()
             }
@@ -118,7 +121,7 @@ class QOERemoteUploadService : Service() {
         jsonHeaders = Gson().fromJson(json.toString(), JsonElement::class.java).asJsonObject
         configUrl = Constants.UPLOAD_SERVER_URL
         configPath = Constants.UPLOAD_SERVER_PATH
-        qoeServer = QOEServer.create(configUrl)
+        airspeckServer = AirspeckServer.create(configUrl)
 
         registerReceiver(qoeReceiver, IntentFilter(Constants.ACTION_AIRSPECK_LIVE_BROADCAST))
 
@@ -139,7 +142,7 @@ class QOERemoteUploadService : Service() {
         Observable.interval(10, TimeUnit.SECONDS)
                 .concatMap { Observable.range(0, filequeue.size()) }
                 .map { jsonPacketFrom(filequeue.peek()) }
-                .concatMap { qoeServer.submitData(it, configPath) }
+                .concatMap { airspeckServer.submitData(it, configPath) }
                 .doOnError { Log.e("Upload", "Error on upload Airspeck") }
                 .retry()
                 .doOnCompleted { }
@@ -208,5 +211,10 @@ class QOERemoteUploadService : Service() {
             }
         }
 
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        FileLogger.logToFile(this, "Airspeck upload service stopped by Android")
+        return super.onUnbind(intent)
     }
 }

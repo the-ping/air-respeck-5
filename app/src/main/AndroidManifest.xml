@@ -147,7 +147,7 @@
             </intent-filter>
         </service>
         <service
-            android:name=".services.qoeuploadservice.QOERemoteUploadService"
+            android:name=".services.airspeckuploadservice.AirspeckRemoteUploadService"
             android:enabled="true"
             android:exported="true"
             android:process=":upload_process_airspeck">

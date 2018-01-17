@@ -24,6 +24,7 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -71,6 +72,7 @@ public class PhoneGPSService extends Service implements
             @Override
             public void run() {
                 Log.i("GPSService", "Starting GPS service...");
+                FileLogger.logToFile(PhoneGPSService.this, "Phone GPS service started");
 
                 Utils utils = Utils.getInstance();
                 Map<String,String> loadedConfig = utils.getConfig(PhoneGPSService.this);
@@ -233,5 +235,11 @@ public class PhoneGPSService extends Service implements
         }
         Log.i("GPSService", "GPS service stopped");
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        FileLogger.logToFile(PhoneGPSService.this, "Phone GPS service stopped by Android");
+        return super.onUnbind(intent);
     }
 }
