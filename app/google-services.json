@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "958739433950",
+    "firebase_url": "https://airrespeck.firebaseio.com",
+    "project_id": "airrespeck",
+    "storage_bucket": "airrespeck.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958739433950:android:09b3d33a068e64d2",
+        "android_client_info": {
+          "package_name": "com.specknet.airrespeck"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPSRA88H2wktNtM416GoRcHHSYoXSgQbc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

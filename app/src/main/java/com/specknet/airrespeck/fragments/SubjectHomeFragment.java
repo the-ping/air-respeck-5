@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+//import com.crashlytics.android.Crashlytics;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
@@ -120,6 +121,7 @@ public class SubjectHomeFragment extends BaseFragment {
 
     public void startDiaryApp(Context context, String packageName) {
         Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+
         if (intent == null) {
             Toast.makeText(context, "Diary app not installed. Contact researchers for further information.",
                     Toast.LENGTH_LONG).show();
