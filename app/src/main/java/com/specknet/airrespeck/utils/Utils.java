@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.graphics.Point;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -22,6 +23,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,6 +36,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public final class Utils {
@@ -446,8 +455,70 @@ public final class Utils {
         return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
                 Constants.SECURITY_KEY, "");
     }
+
     public static String getProjectIDForKey(Context context) {
         return context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE).getString(
                 Constants.PROJECT_ID, "");
+    }
+
+    public static <T> T concatenate(T a, T b) {
+        if (!a.getClass().isArray() || !b.getClass().isArray()) {
+            throw new IllegalArgumentException();
+        }
+
+        Class<?> resCompType;
+        Class<?> aCompType = a.getClass().getComponentType();
+        Class<?> bCompType = b.getClass().getComponentType();
+
+        if (aCompType.isAssignableFrom(bCompType)) {
+            resCompType = aCompType;
+        } else if (bCompType.isAssignableFrom(aCompType)) {
+            resCompType = bCompType;
+        } else {
+            throw new IllegalArgumentException();
+        }
+
+        int aLen = Array.getLength(a);
+        int bLen = Array.getLength(b);
+
+        @SuppressWarnings("unchecked")
+        T result = (T) Array.newInstance(resCompType, aLen + bLen);
+        System.arraycopy(a, 0, result, 0, aLen);
+        System.arraycopy(b, 0, result, aLen, bLen);
+
+        return result;
+    }
+
+    public static String encrypt(String plainText, Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.SECURITY_KEY_FILE, Context.MODE_PRIVATE);
+        String key = prefs.getString(Constants.SECURITY_KEY, "");
+
+        if (key.isEmpty()) {
+            throw new RuntimeException(
+                    "No encryption key stored. This key should have been created on first app startup");
+        }
+
+        // Encryption
+        try {
+            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
+
+            // Create random initialisation vector
+            SecureRandom random = new SecureRandom();
+            byte[] ivBytes = new byte[16];
+            random.nextBytes(ivBytes);
+            IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+            // Initialise AES cipher with CBC algorithm and PKCS5 padding
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
+
+            //  Encrypt plain text and prepend initialisation vector
+            byte[] cipherText = concatenate(iv.getIV(),
+                    cipher.doFinal(concatenate("valid".getBytes(), plainText.getBytes("UTF8"))));
+            return new String(Base64.encode(cipherText, Base64.NO_WRAP), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -231,6 +231,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Map<String, String> mLoadedConfig;
 
+    private BluetoothAdapter mBluetoothAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -380,7 +382,11 @@ public class MainActivity extends AppCompatActivity {
         // For use with snack bar (notification bar at the bottom of the screen)
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
+        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
+                Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
         startBluetoothCheckTask();
+
         startSpeckService();
 
         // Initialise upload services if desired
@@ -506,9 +512,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showBluetoothRequest() {
-        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
-                Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
         if (!mBluetoothAdapter.isEnabled() && !mIsBluetoothRequestDialogDisplayed) {
             mIsBluetoothRequestDialogDisplayed = true;
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);

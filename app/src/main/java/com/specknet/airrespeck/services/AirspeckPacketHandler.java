@@ -4,7 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.provider.Settings;
+import android.util.Base64;
 import android.util.Log;
 
 import com.specknet.airrespeck.models.AirspeckData;
@@ -20,11 +22,19 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * This class processes new Airspeck packets which are passed from the SpeckBluetoothService.
@@ -55,6 +65,7 @@ public class AirspeckPacketHandler {
     private LocationData mLastPhoneLocation;
 
     private boolean mIsStoreDataLocally;
+    private boolean mIsEncryptData;
     private String subjectID;
     private String androidID;
 
@@ -70,15 +81,16 @@ public class AirspeckPacketHandler {
         Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
         airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
 
-        // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
+
+        mIsEncryptData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
 
         subjectID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
         // Start broadcast receiver for phone location
-        mLastPhoneLocation = new LocationData(0,0,0,0);
+        mLastPhoneLocation = new LocationData(0, 0, 0, 0);
         mLocationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -148,6 +160,7 @@ public class AirspeckPacketHandler {
 
         // Fallback to phone location if Airspeck GPS is sending zero data.
         if (latitude == 0f && longitude == 0f) {
+            Log.i("AirspeckPacketHandler", "Airspeck didn't receive GPS, fallback to phone GPS");
             location = mLastPhoneLocation;
         } else {
             location = new LocationData(latitude, longitude, altitude, Float.NaN);
@@ -207,7 +220,6 @@ public class AirspeckPacketHandler {
         mPm10 = buffer.getFloat();
     }
 
-
     private void writeToAirspeckFile(AirspeckData airspeckData) {
         // Check whether we are in a new day
         Date now = new Date();
@@ -236,6 +248,9 @@ public class AirspeckPacketHandler {
                     // Open new connection to new file
                     mAirspeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameAirspeck, true));
+                    if (mIsEncryptData) {
+                        mAirspeckWriter.append("Encrypted").append("\n");
+                    }
                     mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER).append("\n");
                     mAirspeckWriter.flush();
                 } else {
@@ -253,14 +268,17 @@ public class AirspeckPacketHandler {
 
         // Write new line to file
         try {
-            // Write Airspeck data together with subjectID
-            mAirspeckWriter.append(airspeckData.toStringForFile()).append("\n");
+            // Write Airspeck data together with subjectID. If encryption is enabled, encrypt line
+            if (mIsEncryptData) {
+                mAirspeckWriter.append(Utils.encrypt(airspeckData.toStringForFile(), mSpeckService)).append("\n");
+            } else {
+                mAirspeckWriter.append(airspeckData.toStringForFile()).append("\n");
+            }
             mAirspeckWriter.flush();
         } catch (IOException e) {
             Log.e("AirspeckPacketHandler", "Error while writing to airspeck file: " + e.getMessage());
         }
     }
-
 
     void closeHandler() throws Exception {
         if (mAirspeckWriter != null) {
