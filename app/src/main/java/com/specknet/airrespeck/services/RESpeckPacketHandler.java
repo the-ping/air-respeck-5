@@ -109,7 +109,6 @@ public class RESpeckPacketHandler {
     }
 
     void processRESpeckLivePacket(final byte[] values) {
-
         final int packetSequenceNumber = values[0] & 0xFF;
 
         //Check if the reading is not repeated

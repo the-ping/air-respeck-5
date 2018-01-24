@@ -32,8 +32,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.ndk.CrashlyticsNdk;
+//import com.crashlytics.android.ndk.CrashlyticsNdk;
+//import com.crashlytics.android.Crashlytics;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
@@ -69,7 +69,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import io.fabric.sdk.android.Fabric;
+//import io.fabric.sdk.android.Fabric;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -311,9 +311,6 @@ public class MainActivity extends AppCompatActivity {
     public void initMainActivity() {
         aua = new AutoUpdateApk(getApplicationContext());
         AutoUpdateApk.enableMobileUpdates();
-
-        // Initialise Fabrics, a tool to get the stacktrace remotely when problems occur.
-        Fabric.with(this, new Crashlytics(), new CrashlyticsNdk());
 
         // Setup the part of the layout which is the same for both modes
         setContentView(R.layout.activity_main_tabs);
