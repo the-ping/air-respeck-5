@@ -248,13 +248,14 @@ public class MainActivity extends AppCompatActivity {
         // Load configuration
         mUtils = Utils.getInstance();
         mLoadedConfig = mUtils.getConfig(this);
-        // Create data directories
-        mUtils.createDataDirectoriesIfTheyDontExist(this);
 
         if (mLoadedConfig.isEmpty()) {
             showDoPairingDialog();
             return;
         }
+
+        // Create data directories
+        mUtils.createDataDirectoriesIfTheyDontExist(this);
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
