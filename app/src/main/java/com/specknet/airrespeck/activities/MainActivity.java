@@ -254,9 +254,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Create data directories
-        mUtils.createDataDirectoriesIfTheyDontExist(this);
-
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
     }
@@ -308,6 +305,9 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        // Create data directories
+        mUtils.createDataDirectoriesIfTheyDontExist(this);
 
         initMainActivity();
     }

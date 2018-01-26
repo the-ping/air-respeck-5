@@ -142,6 +142,7 @@ public final class Utils {
                     if (created) {
                         Log.i("DF", "Directory created: " + directory);
                     } else {
+                        Log.e("DF", "Directory creation failed: " + directory);
                         throw new RuntimeException("Couldn't create RESpeck folder on external storage");
                     }
                 }
