@@ -105,15 +105,22 @@ public final class Utils {
     }
 
     public String getDataDirectory(Context context) {
-        // First, we check whether there is a data path stored in preferences
         SharedPreferences prefs = context.getSharedPreferences(
+                "com.specknet.airrespeck", Context.MODE_PRIVATE);
+        final String dataDirectoryKey = "com.specknet.airrespeck.datadirectory";
+        return prefs.getString(dataDirectoryKey, "");
+    }
+
+    public void createDataDirectoriesIfTheyDontExist(Activity activity) {
+        // First, we check whether there is a data path stored in preferences
+        SharedPreferences prefs = activity.getSharedPreferences(
                 "com.specknet.airrespeck", Context.MODE_PRIVATE);
         final String dataDirectoryKey = "com.specknet.airrespeck.datadirectory";
         String dataDirectoryPath = prefs.getString(dataDirectoryKey, "");
 
         // Get previously used ID from file path. If this doesn't match with current ID, create new file!
         String previousId = new File(dataDirectoryPath).getName().split(" ")[0];
-        loadConfig(context);
+        loadConfig(activity);
         String currentId = loadedConfig.get(Constants.Config.SUBJECT_ID);
 
         // If this is the first time the app is started, or the directory doesn't exist, or the subject ID has changed,
@@ -121,7 +128,7 @@ public final class Utils {
         if (dataDirectoryPath.equals("") || !new File(dataDirectoryPath).exists() || !previousId.equals(currentId)) {
             dataDirectoryPath = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
                     currentId + " " +
-                    Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
+                    Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
                     new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date());
 
             prefs.edit().putString(dataDirectoryKey, dataDirectoryPath).apply();
@@ -185,8 +192,6 @@ public final class Utils {
                 }
             }
         }
-
-        return dataDirectoryPath;
     }
 
     private boolean loadConfig(Context context) {

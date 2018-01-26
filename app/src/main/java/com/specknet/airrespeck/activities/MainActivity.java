@@ -243,10 +243,13 @@ public class MainActivity extends AppCompatActivity {
         themeUtils.setTheme(ThemeUtils.NORMAL_FONT_SIZE);
         themeUtils.onActivityCreateSetTheme(this);
 
+
         // Check whether we can load the configuration
         // Load configuration
         mUtils = Utils.getInstance();
         mLoadedConfig = mUtils.getConfig(this);
+        // Create data directories
+        mUtils.createDataDirectoriesIfTheyDontExist(this);
 
         if (mLoadedConfig.isEmpty()) {
             showDoPairingDialog();
