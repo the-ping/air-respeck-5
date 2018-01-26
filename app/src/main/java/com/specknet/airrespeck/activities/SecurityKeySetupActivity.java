@@ -1,7 +1,9 @@
 package com.specknet.airrespeck.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -57,7 +59,15 @@ public class SecurityKeySetupActivity extends Activity {
     private void requestSecurityKey(String username, String password) {
         Utils utils = Utils.getInstance();
         Map<String, String> config = utils.getConfig(this);
-        final String projectID = config.get(Constants.Config.SUBJECT_ID).substring(0, 2);
+        String subjectID = config.get(Constants.Config.SUBJECT_ID);
+
+        if (subjectID.length() == 0) {
+            // The access to pairing information didn't work
+            showDoPairingDialog();
+            return;
+        }
+
+        final String projectID = subjectID.substring(0,2);
 
         SpecknetService specknetService = SpecknetClient.getSpecknetService();
 
@@ -101,5 +111,18 @@ public class SecurityKeySetupActivity extends Activity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void showDoPairingDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+        alertDialogBuilder
+                .setMessage("No pairing detected. Please run Pairing app before starting this app!")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        SecurityKeySetupActivity.this.finish();
+                    }
+                });
+        alertDialogBuilder.create().show();
     }
 }
