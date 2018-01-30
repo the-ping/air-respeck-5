@@ -216,7 +216,7 @@ public class Constants {
     public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,sequenceNumber,x,y,z," +
-            "breathingSignal,breathingRate,activityLevel,activityType,isBreathStart";
+            "breathingSignal,breathingRate,activityLevel,activityType";
 
     public static final String VOLUME_DATA_HEADER = "subjectName,interpolatedPhoneTimestamp,x,y,z," +
             "breathingSignal,activityTypeSelection,bagSizeSelection";

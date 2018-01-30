@@ -109,3 +109,7 @@ jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getCurrentActivi
 jboolean Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getIsBreathEnd(JNIEnv *env, jobject instance) {
     return (jboolean) getIsBreathEnd();
 }
+
+void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_resetBreathingRate(JNIEnv *env, jobject instance) {
+    resetBreathingRate();
+}

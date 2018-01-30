@@ -225,11 +225,11 @@ public class RESpeckPacketHandler {
 
                     updateBreathing(x, y, z);
 
-                    final float breathingRate = getBreathingRate();
                     final float breathingSignal = getBreathingSignal();
                     final float activityLevel = getActivityLevel();
                     final int activityType = getCurrentActivityClassification();
-                    final boolean isBreathEnd = getIsBreathEnd();
+                    final float breathingRate = getBreathingRate();
+                    resetBreathingRate();
 
                     // Store activity level and type for minute average
                     lastMinuteActivityLevel.add(activityLevel);
@@ -245,8 +245,8 @@ public class RESpeckPacketHandler {
 
                     RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                             mRESpeckTimestampCurrentPacketReceived, currentSequenceNumberInBatch, x, y, z,
-                            breathingSignal, breathingRate, isBreathEnd,
-                            activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount());
+                            breathingSignal, breathingRate, activityLevel, activityType, mAverageBreathingRate,
+                            getMinuteStepcount());
 
                     // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
 
@@ -516,6 +516,8 @@ public class RESpeckPacketHandler {
     public native float getBreathingSignal();
 
     public native float getBreathingRate();
+
+    public native void resetBreathingRate();
 
     public native boolean getIsBreathEnd();
 
