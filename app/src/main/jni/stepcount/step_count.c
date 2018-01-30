@@ -86,3 +86,7 @@ void update_stepcounter(float *new_accel_data, StepCounter *step_counter) {
         step_counter->previous_vector_length = mean_length;
     }
 }
+
+bool is_walking(StepCounter *step_counter) {
+    return step_counter->current_state == WALKING;
+}

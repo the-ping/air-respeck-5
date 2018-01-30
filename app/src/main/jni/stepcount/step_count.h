@@ -37,4 +37,6 @@ void initialise_stepcounter(StepCounter *step_counter);
 
 void update_stepcounter(float *new_accel_data, StepCounter *step_counter);
 
+bool is_walking(StepCounter *step_counter);
+
 #endif //AIRRESPECK_STEP_COUNT_H

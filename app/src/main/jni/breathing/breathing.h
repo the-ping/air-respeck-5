@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "../stepcount/step_count.h"
 
 typedef struct {
     float signal;
@@ -19,6 +20,7 @@ typedef struct {
 void initialise_breathing_measures(BreathingMeasures *breathing_measures, unsigned int pre_filter_length,
                                    unsigned int post_filter_length, float activity_cutoff);
 
-void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures);
+void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures,
+                               StepCounter *step_counter);
 
 #endif

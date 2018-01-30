@@ -44,7 +44,7 @@ void updateBreathing(float x, float y, float z) {
     // Update the step counter
     update_stepcounter(new_accel_data, &step_counter);
 
-    update_breathing_measures(new_accel_data, &breathing_measures);
+    update_breathing_measures(new_accel_data, &breathing_measures, &step_counter);
     update_rms_threshold(breathing_measures.signal, &threshold_buffer);
 
     // Adjust the rms threshold by some factor.

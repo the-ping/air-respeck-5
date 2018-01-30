@@ -15,6 +15,7 @@
 #include "mean_unit_accel_buffer.h"
 #include "activity_level_buffer.h"
 #include "../activityclassification/predictions.h"
+#include "../stepcount/step_count.h"
 
 #define PRE_FILTER_SIZE 8
 
@@ -44,7 +45,8 @@ void initialise_breathing_measures(BreathingMeasures *breathing_measures, unsign
     initialise_activity_level_buffer(&activity_level_buffer);
 }
 
-void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures) {
+void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures,
+                               StepCounter *step_counter) {
     // We assume apriori that the current breathing value is not valid.
     breathing_measures->is_valid = false;
 
@@ -77,6 +79,12 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
     // Use the maximum activity level in the buffer as a threshold to determine movement
     breathing_measures->max_act_level = activity_level_buffer.max;
     if (activity_level_buffer.max > breathing_measures->activity_cutoff) {
+        breathing_measures->signal = NAN;
+        return;
+    }
+
+    // If the subject is currently walking, discard signal
+    if (is_walking(step_counter)) {
         breathing_measures->signal = NAN;
         return;
     }
