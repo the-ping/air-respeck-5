@@ -98,7 +98,7 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
     private class LoadActivityDataTask extends AsyncTask<Void, Integer, Void> {
 
         protected Void doInBackground(Void... params) {
-            Log.i("AirspeckMap", "Started loading stored data task");
+            Log.i("ActivitySummary", "Started loading stored data task");
 
             long now = new Date().getTime();
             long oneHourBefore = now - 60 * 60 * 1000;

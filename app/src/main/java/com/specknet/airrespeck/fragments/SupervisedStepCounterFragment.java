@@ -69,8 +69,7 @@ public class SupervisedStepCounterFragment extends BaseFragment implements RESpe
         float vectorLength = Utils.norm(new float[]{data.getAccelX(), data.getAccelY(), data.getAccelZ()});
         mVelocityGraphView.addToBreathingGraphQueue(
                 new RESpeckLiveData(data.getPhoneTimestamp(), 0, 0, 0, 0,
-                        0, vectorLength, 0, false, 0, 0,
-                        0, 0));
+                        0, vectorLength, 0, 0, 0, 0, 0));
     }
 
     @Override

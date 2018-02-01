@@ -1,10 +1,6 @@
 package com.specknet.airrespeck.fragments;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,29 +8,15 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
-import com.specknet.airrespeck.models.BreathingGraphData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.ReadingItem;
-import com.specknet.airrespeck.models.XAxisValueFormatter;
-import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.Utils;
 import com.specknet.airrespeck.views.BreathingGraphView;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Locale;
 
 /**
  * Fragment to display the respiratory signal
@@ -70,6 +52,7 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
                 getString(R.string.reading_unit_bpm), Float.NaN));
         mReadingItems.add(new ReadingItem(getString(R.string.reading_avg_breathing_rate),
                 getString(R.string.reading_unit_bpm), Float.NaN));
+        mReadingItems.add(new ReadingItem(getString(R.string.readings_step_count), "", 0f));
         mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
     }
 
@@ -100,8 +83,15 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
         if (mIsCreated) {
-            mReadingItems.get(0).value = data.getBreathingRate();
-            mReadingItems.get(1).value = data.getAvgBreathingRate();
+            // Only update readings if they are not NaN
+            if (!Float.isNaN(data.getBreathingRate())) {
+                Log.i("RespeckReadings", "Updated breathing rate: " + data.getBreathingRate());
+                mReadingItems.get(0).value = data.getBreathingRate();
+            }
+            if (!Float.isNaN(data.getAvgBreathingRate())) {
+                mReadingItems.get(1).value = data.getAvgBreathingRate();
+            }
+            mReadingItems.get(2).value = data.getMinuteStepCount();
             mListViewAdapter.notifyDataSetChanged();
 
             // Update the graph
