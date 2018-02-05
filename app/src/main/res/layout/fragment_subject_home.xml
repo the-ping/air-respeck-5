@@ -39,10 +39,11 @@
             android:paddingTop="30dp">
 
             <TableRow
+                android:id="@+id/row_respeck"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
-                >
+                android:gravity="center_vertical">
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -68,9 +69,17 @@
                     android:paddingTop="15dp"
                     android:visibility="gone"
                     app:srcCompat="@drawable/vec_wireless"/>
+
+                <ImageView
+                    android:id="@+id/not_enabled_respeck"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/vec_xmark"
+                    android:visibility="gone"/>
             </TableRow>
 
             <TableRow
+                android:id="@+id/row_airspeck"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical">
@@ -109,6 +118,13 @@
                     android:paddingTop="15dp"
                     android:visibility="gone"
                     app:srcCompat="@drawable/vec_wireless"/>
+
+                <ImageView
+                    android:id="@+id/not_enabled_airspeck"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/vec_xmark"
+                    android:visibility="gone"/>
             </TableRow>
 
         </TableLayout>

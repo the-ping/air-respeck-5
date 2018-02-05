@@ -72,7 +72,9 @@ public class SubjectValuesFragment extends BaseFragment implements RESpeckDataOb
         // Only update view if fragment has been created!
         if (mIsCreated) {
             // Set breathing rate text to currently calculated rates
-            breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+            if (!Float.isNaN(data.getBreathingRate())) {
+                breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+            }
             averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
 
             // Set activity icon to reflect currently predicted activity

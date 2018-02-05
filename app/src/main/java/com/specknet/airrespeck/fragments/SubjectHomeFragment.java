@@ -5,6 +5,7 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TableRow;
 import android.widget.Toast;
 
 //import com.crashlytics.android.Crashlytics;
@@ -21,6 +23,9 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
+
+import java.util.Map;
 
 /**
  * Home screen for subjects using the app
@@ -33,6 +38,9 @@ public class SubjectHomeFragment extends BaseFragment {
     private ProgressBar progressBarRESpeck;
     private ProgressBar progressBarAirspeck;
     private ImageView airspeckOffButton;
+    private ImageView respeckDisabledImage;
+    private ImageView airspeckDisabledImage;
+
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -60,6 +68,9 @@ public class SubjectHomeFragment extends BaseFragment {
         progressBarRESpeck = (ProgressBar) view.findViewById(R.id.progress_bar_respeck);
         progressBarAirspeck = (ProgressBar) view.findViewById(R.id.progress_bar_airspeck);
 
+        airspeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_airspeck);
+        respeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_respeck);
+
         mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
 
         ImageButton diaryButton = (ImageButton) view.findViewById(R.id.diary_button);
@@ -82,13 +93,32 @@ public class SubjectHomeFragment extends BaseFragment {
             }
         });
 
+        Utils utils = Utils.getInstance();
+        Map<String, String> config = utils.getConfig(getActivity());
+        boolean airspeckEnabled = !config.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
+        boolean respeckEnabled = !config.get(Constants.Config.RESPECK_UUID).isEmpty();
+
+        // Show disabled symbol if a device is not paired
+        if (airspeckEnabled) {
+            // Update connection symbol based on state stored in MainActivity
+            updateAirspeckConnectionSymbol(((MainActivity) getActivity()).getIsAirspeckConnected());
+        } else {
+            // Only show disabled symbol if Airspeck is disabled
+            connectedStatusAirspeck.setVisibility(View.GONE);
+            progressBarAirspeck.setVisibility(View.GONE);
+            airspeckDisabledImage.setVisibility(View.VISIBLE);
+        }
+        if (respeckEnabled) {
+            // Update connection symbol based on state stored in MainActivity
+            updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
+        } else {
+            // Only show disabled symbol if RESpeck is disabled
+            connectedStatusRESpeck.setVisibility(View.GONE);
+            progressBarRESpeck.setVisibility(View.GONE);
+            respeckDisabledImage.setVisibility(View.VISIBLE);
+        }
 
         mIsCreated = true;
-
-        // Update connection symbol based on state stored in MainActivity
-        updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
-        updateAirspeckConnectionSymbol(((MainActivity) getActivity()).getIsAirspeckConnected());
-
         return view;
     }
 

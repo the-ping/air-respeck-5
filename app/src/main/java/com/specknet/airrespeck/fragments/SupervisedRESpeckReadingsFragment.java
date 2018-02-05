@@ -88,9 +88,7 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
                 Log.i("RespeckReadings", "Updated breathing rate: " + data.getBreathingRate());
                 mReadingItems.get(0).value = data.getBreathingRate();
             }
-            if (!Float.isNaN(data.getAvgBreathingRate())) {
-                mReadingItems.get(1).value = data.getAvgBreathingRate();
-            }
+            mReadingItems.get(1).value = data.getAvgBreathingRate();
             mReadingItems.get(2).value = data.getMinuteStepCount();
             mListViewAdapter.notifyDataSetChanged();
 

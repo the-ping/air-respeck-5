@@ -630,7 +630,6 @@ public class MainActivity extends AppCompatActivity {
 
         mShowStepCount = false;
         mShowSubjectHome = true;
-        mShowSubjectValues = false;
         mShowSubjectWindmill = false;
 
         // Load custom config which can be changed in pairing app
@@ -645,6 +644,8 @@ public class MainActivity extends AppCompatActivity {
                 Constants.Config.ENABLE_VOLUME_BAG_CALIBRATION_VIEW));
         mDisableBreathingPostFiltering = Boolean.parseBoolean(mLoadedConfig.get(
                 Constants.Config.DISABLE_POST_FILTERING_BREATHING));
+        mShowSubjectValues = Boolean.parseBoolean(mLoadedConfig.get(
+                Constants.Config.SHOW_SUBJECT_VALUES_SCREEN));
     }
 
     private void setupViewPager() {
