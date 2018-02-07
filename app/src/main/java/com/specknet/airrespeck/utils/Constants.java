@@ -223,7 +223,7 @@ public class Constants {
 
     public static final String AIRSPECK_DATA_HEADER = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity," +
             "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total," +
-            "gpsLongitude,gpsLatitude,gpsAltitude,gpsAccuracy,luxLevel,motion";
+            "gpsLongitude,gpsLatitude,gpsAltitude,gpsAccuracy,luxLevel,motion,battery";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 

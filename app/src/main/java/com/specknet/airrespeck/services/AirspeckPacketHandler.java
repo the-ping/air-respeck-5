@@ -177,7 +177,7 @@ public class AirspeckPacketHandler {
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10,
-                temperature, humidity, mBins, location, lux, motion);
+                temperature, humidity, mBins, location, lux, motion,batteryLevel);
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
 
