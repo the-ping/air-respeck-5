@@ -31,6 +31,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.zip.CRC32;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -100,7 +101,7 @@ public class AirspeckPacketHandler {
         speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
     }
 
-    void processAirspeckPacket(byte[] bytes) {
+    synchronized void processAirspeckPacket(byte[] bytes) {
         int packetLength = bytes.length;
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -110,11 +111,27 @@ public class AirspeckPacketHandler {
 
         if (packetData.position() > 0) {
             packetData.put(bytes);
-            if (packetData.position() >= 102) {
-                Log.i("AirSpeckPacketHandler", "Full length packet received");
+            if (packetData.position() == 102) {
+                Log.i("AirspeckPacketHandler",
+                        "Full length packet received from old firmware without CRC byte");
                 processDataFromPacket(packetData);
                 packetData.clear();
+            } else if (packetData.position() == 110) {
+                // Set to beginning of CRC value
+                packetData.position(102);
+                Long transmittedCRC = packetData.getLong();
 
+                CRC32 calculatedCRC = new CRC32();
+                calculatedCRC.update(packetData.array());
+
+                if (calculatedCRC.getValue() == transmittedCRC) {
+                    Log.i("AirSpeckPacketHandler",
+                            "Full length packet received from new firmware with CRC byte: " + packetData.position());
+                    processDataFromPacket(packetData);
+                    packetData.clear();
+                }
+            } else if (packetData.position() > 102) {
+                Log.i("AirSpeckPacketHandler", "Received packet with unexpected length: " + packetData.position());
             }
         } else if (bytes[0] == 0x03) {
             packetData.put(bytes);
@@ -177,7 +194,7 @@ public class AirspeckPacketHandler {
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10,
-                temperature, humidity, mBins, location, lux, motion,batteryLevel);
+                temperature, humidity, mBins, location, lux, motion, batteryLevel);
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
 
