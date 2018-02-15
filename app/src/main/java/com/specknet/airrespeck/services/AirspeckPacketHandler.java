@@ -12,6 +12,7 @@ import android.util.Log;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -116,19 +117,43 @@ public class AirspeckPacketHandler {
                         "Full length packet received from old firmware without CRC byte");
                 processDataFromPacket(packetData);
                 packetData.clear();
-            } else if (packetData.position() == 110) {
+            } else if (packetData.position() == 106) {
                 // Set to beginning of CRC value
-                packetData.position(102);
-                Long transmittedCRC = packetData.getLong();
+                packetData.position(104);
+                int transmittedCRC = packetData.getInt();
+                int calculatedCRC = calculateCRC16(packetData.array());
 
-                CRC32 calculatedCRC = new CRC32();
-                calculatedCRC.update(packetData.array());
-
-                if (calculatedCRC.getValue() == transmittedCRC) {
+                if (calculatedCRC == transmittedCRC) {
                     Log.i("AirSpeckPacketHandler",
                             "Full length packet received from new firmware with CRC byte: " + packetData.position());
                     processDataFromPacket(packetData);
                     packetData.clear();
+                } else {
+                    /*
+                     We are probably not at the end of the full packet, but somewhere in between:
+                     Normally, the full packet is made up of two 40 byte packets, and one 24 byte packet:
+                     X [40 bytes] Y [40 bytes] Z [22 bytes + 2 byte CRC] X
+                     Instead of the standard position X, we are at Y or Z. This can occur when the Airspeck temporarily
+                     disconnects and packets get dropped. In addition to that, there has to be a "03" byte at Y or Z,
+                     which is likely at a bin count.
+                     The correct beginning must be after the 24 byte packet. We can therefore check the two possible
+                     starting locations: 24 and 64. If one of them has a "03" byte, that's the actual starting position.
+                     */
+                    if (((ByteBuffer) packetData.position(24)).get() == 0x03) {
+                        removeBytesFromStart(packetData, 24);
+                        Log.i("AirSpeckPacketHandler", "Falsely detected beginning of packet. Dropped one packet.");
+                        FileLogger.logToFile(mSpeckService,
+                                "Dropped one packet in AirspeckPacketHandler because start of packet was falsely detected");
+                    } else if (((ByteBuffer) packetData.position(64)).get() == 0x03) {
+                        removeBytesFromStart(packetData, 64);
+                        Log.i("AirSpeckPacketHandler", "Falsely detected beginning of packet. Dropped two packets.");
+                        FileLogger.logToFile(mSpeckService,
+                                "Dropped two packets in AirspeckPacketHandler because start of packet was falsely detected");
+                    } else {
+                        // A bad packet was received. Clear buffer and start receiving new packet.
+                        packetData.clear();
+                        Log.i("AirSpeckPacketHandler", "CRC check failed. Starting new packet.");
+                    }
                 }
             } else if (packetData.position() > 102) {
                 Log.i("AirSpeckPacketHandler", "Received packet with unexpected length: " + packetData.position());
@@ -138,6 +163,32 @@ public class AirspeckPacketHandler {
         } else {
             Log.i("AirspeckPacketHandler", "Unknown packet received");
         }
+    }
+
+    public void removeBytesFromStart(ByteBuffer bf, int n) {
+        int index = 0;
+        for (int i = n; i < bf.position(); i++) {
+            bf.put(index++, bf.get(i));
+            bf.put(i, (byte) 0);
+        }
+        bf.position(index);
+    }
+
+    private int calculateCRC16(byte[] byteArray) {
+        int crc = 0xFFFF;          // initial value
+        int polynomial = 0x1021;   // 0001 0000 0010 0001  (0, 5, 12)
+
+        for (byte b : byteArray) {
+            for (int i = 0; i < 8; i++) {
+                boolean bit = ((b >> (7 - i) & 1) == 1);
+                boolean c15 = ((crc >> 15 & 1) == 1);
+                crc <<= 1;
+                if (c15 ^ bit) crc ^= polynomial;
+            }
+        }
+
+        crc &= 0xffff;
+        return crc;
     }
 
     private void processDataFromPacket(ByteBuffer buffer) {
