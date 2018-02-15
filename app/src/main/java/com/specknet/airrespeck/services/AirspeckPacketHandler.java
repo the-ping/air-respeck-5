@@ -91,7 +91,7 @@ public class AirspeckPacketHandler {
                 Settings.Secure.ANDROID_ID);
 
         // Start broadcast receiver for phone location
-        mLastPhoneLocation = new LocationData(0, 0, 0, 0);
+        mLastPhoneLocation = new LocationData(Float.NaN, Float.NaN, Float.NaN, Float.NaN);
         mLocationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
