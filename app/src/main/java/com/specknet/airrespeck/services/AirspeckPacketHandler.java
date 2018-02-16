@@ -131,24 +131,27 @@ public class AirspeckPacketHandler {
                 } else {
                     /*
                      We are probably not at the end of the full packet, but somewhere in between:
-                     Normally, the full packet is made up of two 40 byte packets, and one 24 byte packet:
-                     X [40 bytes] Y [40 bytes] Z [22 bytes + 2 byte CRC] X
-                     Instead of the standard position X, we are at Y or Z. This can occur when the Airspeck temporarily
-                     disconnects and packets get dropped. In addition to that, there has to be a "03" byte at Y or Z,
-                     which is likely at a bin count.
-                     The correct beginning must be after the 24 byte packet. We can therefore check the two possible
-                     starting locations: 24 and 64. If one of them has a "03" byte, that's the actual starting position.
+                     Normally, the full packet is made up of 5 20 byte packets, and one 6 byte packet:
+                     X[20 bytes]Y[20 bytes]Y[20 bytes]Y[20 bytes]Y[20 bytes]Y[4 bytes + 2 bytes CRC]X
+                     Instead of the standard position X, we are at one of the Y's.
+                     This can occur when the Airspeck temporarily disconnects and packets get dropped. In addition to
+                     that, there has to be a "03" byte at Y in order for the packet to be accepted.
+                     The correct beginning must be after the 6 byte packet. We can therefore find the real start by
+                     first looking at position 6 and then incrementing by 20.
                      */
-                    if (((ByteBuffer) packetData.position(24)).get() == 0x03) {
-                        removeBytesFromStart(packetData, 24);
-                        Log.i("AirSpeckPacketHandler", "Falsely detected beginning of packet. Dropped one packet.");
-                        FileLogger.logToFile(mSpeckService,
-                                "Dropped one packet in AirspeckPacketHandler because start of packet was falsely detected");
-                    } else if (((ByteBuffer) packetData.position(64)).get() == 0x03) {
-                        removeBytesFromStart(packetData, 64);
-                        Log.i("AirSpeckPacketHandler", "Falsely detected beginning of packet. Dropped two packets.");
-                        FileLogger.logToFile(mSpeckService,
-                                "Dropped two packets in AirspeckPacketHandler because start of packet was falsely detected");
+                    int curPos = 6;
+                    while (((ByteBuffer) packetData.position(curPos)).get() != 0x03 && curPos < 106) {
+                        curPos += 20;
+                    }
+
+                    if (curPos < 106) {
+                        // We found another possible start location!
+                        removeBytesFromStart(packetData, curPos);
+
+                        String logMessage = String.format(Locale.UK, "Falsely detected beginning of packet. Dropped %d",
+                                curPos);
+                        Log.i("AirSpeckPacketHandler", logMessage);
+                        FileLogger.logToFile(mSpeckService, logMessage);
                     } else {
                         // A bad packet was received. Clear buffer and start receiving new packet.
                         packetData.clear();
@@ -165,7 +168,7 @@ public class AirspeckPacketHandler {
         }
     }
 
-    public void removeBytesFromStart(ByteBuffer bf, int n) {
+    private void removeBytesFromStart(ByteBuffer bf, int n) {
         int index = 0;
         for (int i = n; i < bf.position(); i++) {
             bf.put(index++, bf.get(i));

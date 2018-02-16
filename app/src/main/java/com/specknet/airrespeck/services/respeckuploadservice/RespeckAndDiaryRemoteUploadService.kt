@@ -261,7 +261,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
 
                     Log.i("Diary", "file path: " + filenameDiary)
                     if (!File(filenameDiary).exists()) run {
-                        Log.i("RESpeckPacketHandler", "RESpeck data file created with header")
+                        Log.i("RESpeckPacketHandler", "Diary data file created with header")
                         // Open new connection to file (which creates file)
                         diaryWriter = OutputStreamWriter(
                                 FileOutputStream(filenameDiary, true))
