@@ -47,7 +47,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
 
     private GoogleMap mMap;
     private Deque<AirspeckMapData> mQueueMapData;
-    private final int MAX_DISPLAYED_DATA = 10000;
+    private final int MAX_DISPLAYED_DATA = 1800; // Three hours worth of 10 second data
     private BroadcastReceiver mBroadcastReceiver;
 
     private LatLng mLastLatLng;
@@ -137,21 +137,19 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getAction()) {
                     case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
-                        if (mLastLatLng != null) {
-                            AirspeckData allData = (AirspeckData) intent.getSerializableExtra(Constants.AIRSPECK_DATA);
-                            LatLng dataLatLng = new LatLng(allData.getLocation().getLatitude(),
-                                    allData.getLocation().getLongitude());
-                            AirspeckMapData newData = new AirspeckMapData(dataLatLng, allData.getPm1(),
-                                    allData.getPm2_5(), allData.getPm10());
-                            mQueueMapData.addLast(newData);
-                            Toast.makeText(getApplicationContext(),
-                                    String.format(Locale.UK, "PM 2.5: %f, PM 10: %f", newData.getPm2_5(),
-                                            newData.getPm10()), Toast.LENGTH_LONG).show();
-                            while (mQueueMapData.size() > MAX_DISPLAYED_DATA) {
-                                mQueueMapData.removeFirst();
-                            }
-                            updateMarkers();
+                        AirspeckData allData = (AirspeckData) intent.getSerializableExtra(Constants.AIRSPECK_DATA);
+                        LatLng dataLatLng = new LatLng(allData.getLocation().getLatitude(),
+                                allData.getLocation().getLongitude());
+                        AirspeckMapData newData = new AirspeckMapData(dataLatLng, allData.getPm1(),
+                                allData.getPm2_5(), allData.getPm10());
+                        mQueueMapData.addLast(newData);
+                        Toast.makeText(getApplicationContext(),
+                                String.format(Locale.UK, "PM 2.5: %f, PM 10: %f", newData.getPm2_5(),
+                                        newData.getPm10()), Toast.LENGTH_LONG).show();
+                        while (mQueueMapData.size() > MAX_DISPLAYED_DATA) {
+                            mQueueMapData.removeFirst();
                         }
+                        updateMarkers();
                         break;
                     case Constants.ACTION_PHONE_LOCATION_BROADCAST:
                         LocationData loc = (LocationData) intent.getSerializableExtra(Constants.PHONE_LOCATION);
@@ -165,8 +163,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                             CameraUpdate zoom = CameraUpdateFactory.zoomTo(18);
                             mMap.moveCamera(center);
                             mMap.animateCamera(zoom);
-                        } else {
-                            mLastLatLng = newLatLng;
                         }
                         break;
                 }
@@ -260,7 +256,13 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                         if (tsFile >= dayFrom && tsFile <= dayTo) {
                             BufferedReader reader = new BufferedReader(new FileReader(file));
                             // Skip first line as that's the header
-                            reader.readLine();
+                            String firstLine = reader.readLine();
+                            if (firstLine.equals("Encrypted")) {
+                                Toast.makeText(MapsAQActivity.this,
+                                        "Cannot load historical data, as file data is encrypted",
+                                        Toast.LENGTH_LONG).show();
+                                return null;
+                            }
                             String currentLine;
                             while ((currentLine = reader.readLine()) != null) {
                                 String[] row = currentLine.split(",");
@@ -291,6 +293,9 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
                         e.printStackTrace();
                     } catch (ArrayIndexOutOfBoundsException e) {
                         Log.i("AirspeckMap", "Incomplete Airspeck data row (might be because location is missing)");
+                    } catch (RuntimeException e) {
+                        Log.i("AirspeckMap",
+                                "Loading historical data failed, possibly because some lines were encrypted");
                     }
                 }
             }
