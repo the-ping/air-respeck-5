@@ -237,7 +237,7 @@
 
     <!-- Map -->
     <string name="title_activity_maps_aq">Map</string>
-    <string name="maps_loader_live_button">Show live data and recent historical data on map</string>
+    <string name="maps_loader_live_button">Show live data on map</string>
     <string name="maps_loader_historical_button">Show historical data on map</string>
     <string name="maps_loader_historical_data_title">Choose timeframe for historical data</string>
     <string name="maps_loader_invalid_timestamps_to_before_from">Selected end of time period must lie after selected beginning.</string>

@@ -234,6 +234,7 @@ public class AirspeckPacketHandler {
             Log.i("AirspeckPacketHandler", "Airspeck didn't receive GPS, fallback to phone GPS");
             location = mLastPhoneLocation;
         } else {
+            Log.i("AirspeckPacketHandler", "Airspeck GPS received: " + latitude + ", " + longitude);
             location = new LocationData(latitude, longitude, altitude, Float.NaN);
         }
 

@@ -17,6 +17,7 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MapsAQActivity;
 import com.specknet.airrespeck.dialogs.DatePickerFragment;
 import com.specknet.airrespeck.dialogs.TimePickerFragment;
+import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.Serializable;
@@ -101,89 +102,98 @@ public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements
             }
         });
 
-        // Load date and time pickers for when custom view is selected
-        mFromDateButton = (Button) view.findViewById(R.id.date_from);
-        mFromTimeButton = (Button) view.findViewById(R.id.time_from);
-        mToDateButton = (Button) view.findViewById(R.id.date_to);
-        mToTimeButton = (Button) view.findViewById(R.id.time_to);
 
-        mFromTimeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showTimePicker(TYPE_FROM);
-            }
-        });
+        Utils utils = Utils.getInstance();
+        boolean isEncryptionOn = Boolean.parseBoolean(
+                utils.getConfig(getActivity()).get(Constants.Config.ENCRYPT_LOCAL_DATA));
+        if (isEncryptionOn) {
+            LinearLayout historicalContainer = (LinearLayout) view.findViewById(R.id.historical_data_container);
+            historicalContainer.setVisibility(View.GONE);
+        } else {
+            // Load date and time pickers for when custom view is selected
+            mFromDateButton = (Button) view.findViewById(R.id.date_from);
+            mFromTimeButton = (Button) view.findViewById(R.id.time_from);
+            mToDateButton = (Button) view.findViewById(R.id.date_to);
+            mToTimeButton = (Button) view.findViewById(R.id.time_to);
 
-        mToTimeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showTimePicker(TYPE_TO);
-            }
-        });
+            mFromTimeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showTimePicker(TYPE_FROM);
+                }
+            });
 
-        mFromDateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker(TYPE_FROM);
-            }
-        });
+            mToTimeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showTimePicker(TYPE_TO);
+                }
+            });
 
-        mToDateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker(TYPE_TO);
-            }
-        });
+            mFromDateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showDatePicker(TYPE_FROM);
+                }
+            });
 
-        // Open historical map when buttton is pressed
-        Button historicalMapButton = (Button) view.findViewById(R.id.historical_loader_button);
-        historicalMapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                long tsFrom;
-                long tsTo;
+            mToDateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showDatePicker(TYPE_TO);
+                }
+            });
 
-                if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_HOUR)) {
-                    tsTo = new Date().getTime();
-                    // Subtract day
-                    tsFrom = tsTo - 1000 * 60 * 60;
-                } else if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_THREE_HOURS)) {
-                    tsTo = new Date().getTime();
-                    // Subtract week
-                    tsFrom = tsTo - 1000 * 60 * 60 * 3;
-                } else {
-                    // Custom selection
-                    String tsFromString = mFromDateButton.getText() + " " + mFromTimeButton.getText();
-                    String tsToString = mToDateButton.getText() + " " + mToTimeButton.getText();
+            // Open historical map when buttton is pressed
+            Button historicalMapButton = (Button) view.findViewById(R.id.historical_loader_button);
+            historicalMapButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    long tsFrom;
+                    long tsTo;
 
-                    try {
-                        tsFrom = Utils.timestampFromString(tsFromString, "dd-MM-yyyy HH:mm");
-                        tsTo = Utils.timestampFromString(tsToString, "dd-MM-yyyy HH:mm");
-                    } catch (ParseException e) {
-                        Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps),
+                    if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_HOUR)) {
+                        tsTo = new Date().getTime();
+                        // Subtract day
+                        tsFrom = tsTo - 1000 * 60 * 60;
+                    } else if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_THREE_HOURS)) {
+                        tsTo = new Date().getTime();
+                        // Subtract week
+                        tsFrom = tsTo - 1000 * 60 * 60 * 3;
+                    } else {
+                        // Custom selection
+                        String tsFromString = mFromDateButton.getText() + " " + mFromTimeButton.getText();
+                        String tsToString = mToDateButton.getText() + " " + mToTimeButton.getText();
+
+                        try {
+                            tsFrom = Utils.timestampFromString(tsFromString, "dd-MM-yyyy HH:mm");
+                            tsTo = Utils.timestampFromString(tsToString, "dd-MM-yyyy HH:mm");
+                        } catch (ParseException e) {
+                            Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+
+                    if (tsTo < tsFrom) {
+                        Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps_to_before_from),
                                 Toast.LENGTH_LONG).show();
-                        return;
+                    } else if (tsTo > new Date().getTime()) {
+                        Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamp_in_future),
+                                Toast.LENGTH_LONG).show();
+                    } else if (tsTo - tsFrom > 1000 * 60 * 60 * 3 + 1) { // +1 so that full new hour can be specified
+                        Toast.makeText(getContext(), getString(R.string.maps_loader_period_too_long),
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Intent mapIntent = new Intent(getActivity(), MapsAQActivity.class);
+                        mapIntent.putExtra(MapsAQActivity.MAP_TYPE, MapsAQActivity.MAP_TYPE_HISTORICAL);
+                        mapIntent.putExtra(MapsAQActivity.TIMESTAMP_FROM, tsFrom);
+                        mapIntent.putExtra(MapsAQActivity.TIMESTAMP_TO, tsTo);
+                        startActivity(mapIntent);
                     }
                 }
-
-                if (tsTo < tsFrom) {
-                    Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamps_to_before_from),
-                            Toast.LENGTH_LONG).show();
-                } else if (tsTo > new Date().getTime()) {
-                    Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamp_in_future),
-                            Toast.LENGTH_LONG).show();
-                } else if (tsTo - tsFrom > 1000*60*60*3+1) { // +1 so that full new hour can be specified
-                    Toast.makeText(getContext(), getString(R.string.maps_loader_period_too_long),
-                            Toast.LENGTH_LONG).show();
-                }else{
-                    Intent mapIntent = new Intent(getActivity(), MapsAQActivity.class);
-                    mapIntent.putExtra(MapsAQActivity.MAP_TYPE, MapsAQActivity.MAP_TYPE_HISTORICAL);
-                    mapIntent.putExtra(MapsAQActivity.TIMESTAMP_FROM, tsFrom);
-                    mapIntent.putExtra(MapsAQActivity.TIMESTAMP_TO, tsTo);
-                    startActivity(mapIntent);
-                }
-            }
-        });
+            });
+        }
         return view;
     }
 
