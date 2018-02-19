@@ -230,7 +230,7 @@ public class AirspeckPacketHandler {
         short altitude = buffer.getShort();
 
         // Fallback to phone location if Airspeck GPS is sending zero data.
-        if (latitude == 0f && longitude == 0f) {
+        if ((latitude == 0f || Float.isNaN(latitude)) && (longitude == 0f || Float.isNaN(longitude))) {
             Log.i("AirspeckPacketHandler", "Airspeck didn't receive GPS, fallback to phone GPS");
             location = mLastPhoneLocation;
         } else {

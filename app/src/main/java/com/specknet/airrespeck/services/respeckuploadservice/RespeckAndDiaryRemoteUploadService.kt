@@ -221,9 +221,10 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                     mySubject.onNext(Gson().fromJson(jsonAverageData.toString(), JsonElement::class.java).asJsonObject)
                 }
                 Constants.ACTION_RESPECK_AVG_STORED_BROADCAST -> {
+                    /*
                     val jsonAverageStoredData = JSONObject()
                     try {
-                        /*
+
                         TODO: Modify when stored mode works
                         jsonAverageStoredData.put("messagetype", "respeck_processed")
                         jsonAverageStoredData.put("timestamp",
@@ -238,13 +239,13 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                         jsonAverageStoredData.put(Constants.RESPECK_ACTIVITY_LEVEL, null)
                         jsonAverageStoredData.put(Constants.RESPECK_IS_DISCONNECTED_MODE, 1)
                         jsonAverageStoredData.put(Constants.RESPECK_IS_VALID_BREATHING_RATE, 0)
-                        */
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
 
                     Log.i("Upload", "Respeck upload averaged stored broadcast data")
                     //mySubject.onNext(Gson().fromJson(jsonAverageStoredData.toString(), JsonElement::class.java).asJsonObject)
+                    */
                 }
                 Constants.ACTION_DIARY_BROADCAST -> {
                     val recordString = intent.getSerializableExtra(Constants.DIARY_FILE_STRING) as String

@@ -243,6 +243,7 @@
     <string name="maps_loader_invalid_timestamps_to_before_from">Selected end of time period must lie after selected beginning.</string>
     <string name="maps_loader_invalid_timestamps">Please specify the time and date of beginning and end of time period</string>
     <string name="maps_loader_invalid_timestamp_in_future">Time period cannot lie in future</string>
+    <string name="maps_loader_period_too_long">You can only display three hours of data at a time</string>
     <string name="low_pollution_legend">Low pollution</string>
     <string name="high_pollution_legend">High pollution</string>
 

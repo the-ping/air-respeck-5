@@ -35,8 +35,8 @@ public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements
     public static final String TYPE_TO = "to";
     public static final String TYPE_FROM = "from";
 
-    private final String TIMEPERIOD_LAST_DAY = "Last day";
-    private final String TIMEPERIOD_LAST_WEEK = "Last week";
+    private final String TIMEPERIOD_LAST_HOUR = "Previous hour";
+    private final String TIMEPERIOD_LAST_THREE_HOURS = "Previous three hours";
     private final String TIMEPERIOD_CUSTOM = "Custom time period";
 
     private Button mFromDateButton;
@@ -79,7 +79,7 @@ public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements
         // Load and fill timeframe selection spinner
         final Spinner timeframeSpinner = (Spinner) view.findViewById(R.id.spinner_timeframe);
 
-        String[] activitySpinnerElements = new String[]{TIMEPERIOD_LAST_DAY, TIMEPERIOD_LAST_WEEK, TIMEPERIOD_CUSTOM};
+        String[] activitySpinnerElements = new String[]{TIMEPERIOD_LAST_HOUR, TIMEPERIOD_LAST_THREE_HOURS, TIMEPERIOD_CUSTOM};
         ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
         timeframeSpinner.setAdapter(activityAdapter);
@@ -143,14 +143,14 @@ public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements
                 long tsFrom;
                 long tsTo;
 
-                if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_DAY)) {
+                if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_HOUR)) {
                     tsTo = new Date().getTime();
                     // Subtract day
-                    tsFrom = tsTo - 1000 * 60 * 60 * 24;
-                } else if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_WEEK)) {
+                    tsFrom = tsTo - 1000 * 60 * 60;
+                } else if (timeframeSpinner.getSelectedItem().equals(TIMEPERIOD_LAST_THREE_HOURS)) {
                     tsTo = new Date().getTime();
                     // Subtract week
-                    tsFrom = tsTo - 1000 * 60 * 60 * 24 * 7;
+                    tsFrom = tsTo - 1000 * 60 * 60 * 3;
                 } else {
                     // Custom selection
                     String tsFromString = mFromDateButton.getText() + " " + mFromTimeButton.getText();
@@ -172,7 +172,10 @@ public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements
                 } else if (tsTo > new Date().getTime()) {
                     Toast.makeText(getContext(), getString(R.string.maps_loader_invalid_timestamp_in_future),
                             Toast.LENGTH_LONG).show();
-                } else {
+                } else if (tsTo - tsFrom > 1000*60*60*3+1) { // +1 so that full new hour can be specified
+                    Toast.makeText(getContext(), getString(R.string.maps_loader_period_too_long),
+                            Toast.LENGTH_LONG).show();
+                }else{
                     Intent mapIntent = new Intent(getActivity(), MapsAQActivity.class);
                     mapIntent.putExtra(MapsAQActivity.MAP_TYPE, MapsAQActivity.MAP_TYPE_HISTORICAL);
                     mapIntent.putExtra(MapsAQActivity.TIMESTAMP_FROM, tsFrom);

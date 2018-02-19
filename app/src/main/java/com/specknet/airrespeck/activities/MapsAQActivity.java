@@ -87,11 +87,6 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
             if (locationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 zoomToLastKnownLocation();
-
-                // Load last 6 hours of data
-                long tsTo = new Date().getTime();
-                long tsFrom = (long) (tsTo - 1000. * 60 * 60 * 6);
-                loadStoredData(tsFrom, tsTo);
                 startLiveAQUpdate();
             }
         } else if (mapType == MAP_TYPE_HISTORICAL) {
@@ -216,7 +211,7 @@ public class MapsAQActivity extends FragmentActivity implements OnMapReadyCallba
         int circleColor = getMobileCircleColor(airspeckDataItem);
         mMap.addCircle(new CircleOptions().center(airspeckDataItem.getLocation()).radius(10)
                 .fillColor(circleColor).strokeColor(circleColor).strokeWidth(1));
-        // Log.i("AirspeckMap", "Circle painted at location: " + airspeckDataItem.getLocation());
+        Log.i("AirspeckMap", "Circle painted at location: " + airspeckDataItem.getLocation());
     }
 
 
