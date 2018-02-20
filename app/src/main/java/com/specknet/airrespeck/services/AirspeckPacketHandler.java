@@ -224,17 +224,17 @@ public class AirspeckPacketHandler {
         Log.i("AirspeckPacketHandler", "Battery: " + batteryLevel);
 
         // Process location
-        LocationData location;
         float latitude = buffer.getFloat();
         float longitude = buffer.getFloat();
         short altitude = buffer.getShort();
 
-        // Fallback to phone location if Airspeck GPS is sending zero data.
-        if ((latitude == 0f || Float.isNaN(latitude)) && (longitude == 0f || Float.isNaN(longitude))) {
-            Log.i("AirspeckPacketHandler", "Airspeck didn't receive GPS, fallback to phone GPS");
-            location = mLastPhoneLocation;
-        } else {
-            Log.i("AirspeckPacketHandler", "Airspeck GPS received: " + latitude + ", " + longitude);
+        // Use phone location by default
+        LocationData location = mLastPhoneLocation;
+
+        // Use Airspeck GPS if phone location is NaN or 0
+        if ((location.getLatitude() == 0f || Double.isNaN(location.getLatitude())) &&
+                (location.getLongitude() == 0f || Double.isNaN(location.getLongitude()))) {
+            Log.i("AirspeckPacketHandler", "Phone didn't receive GPS, so use GPS sensor data");
             location = new LocationData(latitude, longitude, altitude, Float.NaN);
         }
 

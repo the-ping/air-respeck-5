@@ -55,7 +55,7 @@ public class Constants {
      * updates which are calculated for other apps. This might be Google Maps running in the foreground. As the
      * location is updated less than 5 seconds anyway, we can also use that location!
      */
-    public static final Long GPS_UPDATE_INTERVAL_ACTIVE = 5000L;
+    public static final Long GPS_UPDATE_INTERVAL_ACTIVE = 3000L;
     public static final Long GPS_UPDATE_INTERVAL_PASSIVE = 1000L;
 
 
