@@ -11,6 +11,7 @@ import android.widget.EditText;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.utils.Constants;
 
 /**
  * Created by Darius on 20.03.2017.
@@ -33,8 +34,11 @@ public class SupervisedPasswordDialog extends DialogFragment {
                 .setPositiveButton(R.string.supervised_mode_dialog_enter, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        if (passwordField.getText().toString().equals("daphnedelhi")) {
-                            ((MainActivity) getActivity()).displaySupervisedMode();
+                        for (String p: Constants.passwordsSupervisedMode) {
+                            if (passwordField.getText().toString().equals(p)) {
+                                ((MainActivity) getActivity()).displaySupervisedMode();
+                                break;
+                            }
                         }
                     }
                 })

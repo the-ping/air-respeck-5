@@ -333,7 +333,7 @@ public class AutoUpdateApk extends Observable {
 
 						in = new BufferedInputStream(conn.getInputStream());
 						String fname = result[1].substring(result[1].lastIndexOf('/')+1);
-						FileOutputStream out = context.openFileOutput( fname, Context.MODE_WORLD_READABLE);
+						FileOutputStream out = context.openFileOutput( fname, Context.MODE_PRIVATE);
 						byte[] buffer = new byte[4096];
 						int n;
 						while ((n = in.read(buffer)) > 0) {

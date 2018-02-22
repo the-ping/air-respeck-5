@@ -16,6 +16,9 @@ import java.io.File;
  */
 public class Constants {
 
+
+    public static final String[] passwordsSupervisedMode = new String[] {"daphnedelhi", "supmodepass"};
+
     /**
      * Preferences
      */
