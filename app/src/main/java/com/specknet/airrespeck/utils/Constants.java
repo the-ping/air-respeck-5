@@ -147,6 +147,7 @@ public class Constants {
     public static final String AIRSPECK_BINS_14 = "bins14";
     public static final String AIRSPECK_BINS_15 = "bins15";
     public static final String AIRSPECK_BINS_TOTAL = "bins_total";
+    public static final String AIRSPECK_BATTERY = "battery";
 
     public static final String ACTIVITY_SUMMARY_HOUR = "hour";
     public static final String ACTIVITY_SUMMARY_DAY = "day";

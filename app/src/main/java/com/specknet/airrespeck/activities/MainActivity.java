@@ -236,13 +236,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mIsActivityRunning = true;
 
         mSavedInstanceState = savedInstanceState;
 
         ThemeUtils themeUtils = ThemeUtils.getInstance();
         themeUtils.setTheme(ThemeUtils.NORMAL_FONT_SIZE);
         themeUtils.onActivityCreateSetTheme(this);
-
 
         // Check whether we can load the configuration
         // Load configuration
@@ -253,6 +253,8 @@ public class MainActivity extends AppCompatActivity {
             showDoPairingDialog();
             return;
         }
+
+        startGPSCheckTask();
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
@@ -306,6 +308,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // Check whether GPS is turned on. This is needed for Bluetooth connection.
+        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            return;
+        }
+
         // Create data directories
         mUtils.createDataDirectoriesIfTheyDontExist(this);
 
@@ -313,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initMainActivity() {
-        aua = new AutoUpdateApk(getApplicationContext());
+        aua = new AutoUpdateApk(getApplicationContext(), true);
         AutoUpdateApk.enableMobileUpdates();
 
         // Setup the part of the layout which is the same for both modes
@@ -339,10 +347,8 @@ public class MainActivity extends AppCompatActivity {
             createExternalDirectory();
         }
 
-        // Start GPS tasks
+        // Start GPS phone storage service
         if (mIsStorePhoneGPS) {
-            // Start task to regularly check if GPS is still turned on.
-            startGPSCheckTask();
             startPhoneGPSService();
         }
 
@@ -484,19 +490,27 @@ public class MainActivity extends AppCompatActivity {
         final int delay = 5000; // milliseconds
 
         h.postDelayed(new Runnable() {
-            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
             public void run() {
-                // Check if GPS is turned on
-                if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(
-                        LocationManager.GPS_PROVIDER) && mIsActivityRunning) {
-                    mIsGPSDialogDisplayed = true;
-                    DialogFragment turnGPSOnDialog = new TurnGPSOnDialog();
-                    turnGPSOnDialog.show(getFragmentManager(), "turn_gps_on_dialog");
-                }
+                checkGPSAndShowDialog();
                 h.postDelayed(this, delay);
             }
         }, 0);
+    }
+
+    private boolean checkGPSAndShowDialog() {
+        // Check if GPS is turned on
+        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!mIsGPSDialogDisplayed && !manager.isProviderEnabled(
+                LocationManager.GPS_PROVIDER)) {
+            if (mIsActivityRunning) {
+                mIsGPSDialogDisplayed = true;
+                DialogFragment turnGPSOnDialog = new TurnGPSOnDialog();
+                turnGPSOnDialog.show(getFragmentManager(), "turn_gps_on_dialog");
+            }
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private void startBluetoothCheckTask() {
