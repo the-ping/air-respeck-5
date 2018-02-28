@@ -57,6 +57,7 @@ import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.services.airspeckuploadservice.AirspeckRemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckAndDiaryRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
@@ -321,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initMainActivity() {
+        FileLogger.logToFile(this, "App started and initialised");
         aua = new AutoUpdateApk(getApplicationContext(), true);
         AutoUpdateApk.enableMobileUpdates();
 
@@ -476,6 +478,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        FileLogger.logToFile(this, "App was brought into foreground (Main Activity) resumed)");
         mIsActivityRunning = true;
     }
 
@@ -835,6 +838,7 @@ public class MainActivity extends AppCompatActivity {
             // Intent receivers have not been registered yet. Skip unregistration in this case.
         }
         Log.i("DF", "App is being destroyed");
+        FileLogger.logToFile(this, "App destroyed (stopped)");
         super.onDestroy();
     }
 

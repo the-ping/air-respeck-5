@@ -23,6 +23,7 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.Map;
@@ -132,6 +133,7 @@ public class SubjectHomeFragment extends BaseFragment {
                         progressBarAirspeck.setVisibility(View.VISIBLE);
                         Intent i = new Intent(Constants.AIRSPECK_OFF_ACTION);
                         getActivity().sendBroadcast(i);
+                        FileLogger.logToFile(getActivity(), "Airspeck power off button pressed");
                     }
                 })
                 .setCancelable(true)

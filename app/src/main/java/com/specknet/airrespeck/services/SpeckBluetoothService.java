@@ -330,7 +330,7 @@ public class SpeckBluetoothService extends Service {
 
                                 // An error with autoConnect means that we are disconnected
                                 Log.e("SpeckService", "Airspeck turned off: " + throwable.toString());
-
+                                FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck turned off");
                                 Intent airspeckDisconnectedIntent = new Intent(
                                         Constants.ACTION_AIRSPECK_DISCONNECTED);
                                 sendBroadcast(airspeckDisconnectedIntent);
