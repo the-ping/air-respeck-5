@@ -357,5 +357,8 @@ public class AirspeckPacketHandler {
             Log.i("AirspeckPacketHandler", "Respeck writer was closed");
             mAirspeckWriter.close();
         }
+        if (mLocationReceiver != null) {
+            mSpeckService.unregisterReceiver(mLocationReceiver);
+        }
     }
 }
