@@ -314,12 +314,10 @@ public class MainActivity extends AppCompatActivity {
         // Start task checking whether GPS is on every 5 seconds. Only needed on non-Redmi devices, as Redmi can turn
         // on GPS automatically
         // Also check whether GPS is turned on now. This is needed for Bluetooth connection.
-        if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.M) {
-            startGPSCheckTask();
-            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                return;
-            }
+        startGPSCheckTask();
+        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            return;
         }
 
         initMainActivity();
