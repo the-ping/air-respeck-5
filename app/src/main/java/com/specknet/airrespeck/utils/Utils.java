@@ -125,72 +125,74 @@ public final class Utils {
 
         // If this is the first time the app is started, or the directory doesn't exist, or the subject ID has changed,
         // create a new directory
-        if (dataDirectoryPath.equals("") || !new File(dataDirectoryPath).exists() || !previousId.equals(currentId)) {
+        if (dataDirectoryPath.equals("") || !previousId.equals(currentId)) {
+            Log.i("Utils", "Creating new directories");
             dataDirectoryPath = Constants.EXTERNAL_DIRECTORY_STORAGE_PATH +
                     currentId + " " +
                     Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID) + " " +
                     new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date());
 
             prefs.edit().putString(dataDirectoryKey, dataDirectoryPath).apply();
+        }
 
-            File directory;
-            // Create other directories
-            if (!loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty()) {
-                directory = new File(dataDirectoryPath + Constants.RESPECK_DATA_DIRECTORY_NAME);
-                if (!directory.exists()) {
-                    boolean created = directory.mkdirs();
-                    if (created) {
-                        Log.i("DF", "Directory created: " + directory);
-                    } else {
-                        Log.e("DF", "Directory creation failed: " + directory);
-                        throw new RuntimeException("Couldn't create RESpeck folder on external storage");
-                    }
-                }
-            }
-            if (!loadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty()) {
-                directory = new File(dataDirectoryPath + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
-                if (!directory.exists()) {
-                    boolean created = directory.mkdirs();
-                    if (created) {
-                        Log.i("DF", "Directory created: " + directory);
-                    } else {
-                        throw new RuntimeException("Couldn't create Airspeck folder on external storage");
-                    }
-                }
-            }
-
-            if (Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE))) {
-                directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
-                if (!directory.exists()) {
-                    boolean created = directory.mkdirs();
-                    if (created) {
-                        Log.i("DF", "Directory created: " + directory);
-                    } else {
-                        throw new RuntimeException("Couldn't create phone directory on external storage");
-                    }
-                }
-            }
-
-            // Create diary folder in any case for now
-            directory = new File(dataDirectoryPath + Constants.DIARY_DATA_DIRECTORY_NAME);
+        // Create other directories if they don't exist yet
+        File directory;
+        if (!loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty()) {
+            directory = new File(dataDirectoryPath + Constants.RESPECK_DATA_DIRECTORY_NAME);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
                 if (created) {
                     Log.i("DF", "Directory created: " + directory);
                 } else {
-                    throw new RuntimeException("Couldn't create diary directory on external storage");
+                    Log.e("DF", "Directory creation failed: " + directory);
+                    throw new RuntimeException("Couldn't create RESpeck folder on external storage");
                 }
             }
+        }
 
-            // Create logging folder
-            directory = new File(dataDirectoryPath + Constants.LOGGING_DIRECTORY_NAME);
+        if (!loadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty()) {
+            directory = new File(dataDirectoryPath + Constants.AIRSPECK_DATA_DIRECTORY_NAME);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
                 if (created) {
                     Log.i("DF", "Directory created: " + directory);
                 } else {
-                    throw new RuntimeException("Couldn't create logging directory on external storage");
+                    throw new RuntimeException("Couldn't create Airspeck folder on external storage");
                 }
+            }
+        }
+
+        if (Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE))) {
+            directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create phone directory on external storage");
+                }
+            }
+        }
+
+        // Create diary folder in any case for now
+        directory = new File(dataDirectoryPath + Constants.DIARY_DATA_DIRECTORY_NAME);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create diary directory on external storage");
+            }
+        }
+
+        // Create logging folder
+        directory = new File(dataDirectoryPath + Constants.LOGGING_DIRECTORY_NAME);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create logging directory on external storage");
             }
         }
     }
