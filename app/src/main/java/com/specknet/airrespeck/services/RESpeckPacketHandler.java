@@ -231,8 +231,6 @@ public class RESpeckPacketHandler {
                     final float breathingRate = getBreathingRate();
                     resetBreathingRate();
 
-                    Log.i("RESpeckPacketHandler", "Act level: " + activityLevel);
-
                     // Store activity level and type for minute average
                     lastMinuteActivityLevel.add(activityLevel);
                     lastMinuteActivityType.add(activityType);

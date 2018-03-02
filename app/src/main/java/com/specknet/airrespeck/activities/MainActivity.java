@@ -222,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsBluetoothRequestDialogDisplayed = false;
 
     private boolean mIsActivityRunning = false;
+    private boolean mIsActivityInitialised = false;
 
     private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
     private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
@@ -254,8 +255,6 @@ public class MainActivity extends AppCompatActivity {
             showDoPairingDialog();
             return;
         }
-
-        startGPSCheckTask();
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
@@ -309,19 +308,22 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Check whether GPS is turned on. This is needed for Bluetooth connection.
+        // Create data directories
+        mUtils.createDataDirectoriesIfTheyDontExist(this);
+
+        // Start task checking whether GPS is on every 5 seconds.
+        // Also check whether GPS is turned on now. This is needed for Bluetooth connection.
+        startGPSCheckTask();
         LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             return;
         }
 
-        // Create data directories
-        mUtils.createDataDirectoriesIfTheyDontExist(this);
-
         initMainActivity();
     }
 
     public void initMainActivity() {
+        mIsActivityInitialised = true;
         FileLogger.logToFile(this, "App started and initialised");
         aua = new AutoUpdateApk(getApplicationContext(), true);
         AutoUpdateApk.enableMobileUpdates();
@@ -494,7 +496,9 @@ public class MainActivity extends AppCompatActivity {
 
         h.postDelayed(new Runnable() {
             public void run() {
-                checkGPSAndShowDialog();
+                if (checkGPSAndShowDialog() && !mIsActivityInitialised) {
+                    initMainActivity();
+                }
                 h.postDelayed(this, delay);
             }
         }, 0);
