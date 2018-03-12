@@ -120,10 +120,15 @@ public class AirspeckPacketHandler {
             } else if (packetData.position() == 106) {
                 // Set to beginning of CRC value
                 packetData.position(104);
-                int transmittedCRC = packetData.getInt();
-                int calculatedCRC = calculateCRC16(packetData.array());
+                short transmittedCRC = packetData.getShort();
+                int ucrc = transmittedCRC & 0xffff;
 
-                if (calculatedCRC == transmittedCRC) {
+                byte[] packet_without_crc = Arrays.copyOfRange(packetData.array(), 0, 104);
+                int calculatedCRC = calculateCRC16(packet_without_crc);
+                Log.i("AirSpeckPacketHandler",
+                        "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
+
+                if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
                     Log.i("AirSpeckPacketHandler",
                             "Full length packet received from new firmware with CRC byte: " + packetData.position());
                     processDataFromPacket(packetData);
@@ -139,6 +144,7 @@ public class AirspeckPacketHandler {
                      The correct beginning must be after the 6 byte packet. We can therefore find the real start by
                      first looking at position 6 and then incrementing by 20.
                      */
+
                     int curPos = 6;
                     while (((ByteBuffer) packetData.position(curPos)).get() != 0x03 && curPos < 106) {
                         curPos += 20;
@@ -153,6 +159,7 @@ public class AirspeckPacketHandler {
                         Log.i("AirSpeckPacketHandler", logMessage);
                         FileLogger.logToFile(mSpeckService, logMessage);
                     } else {
+
                         // A bad packet was received. Clear buffer and start receiving new packet.
                         packetData.clear();
                         Log.i("AirSpeckPacketHandler", "CRC check failed. Starting new packet.");
