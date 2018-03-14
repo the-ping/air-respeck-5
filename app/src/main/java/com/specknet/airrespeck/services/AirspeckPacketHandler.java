@@ -103,6 +103,7 @@ public class AirspeckPacketHandler {
     }
 
     synchronized void processAirspeckPacket(byte[] bytes) {
+        Log.i("AirSpeckPacketHandler", "Processing Airspeck sub-packet. Full packet position=" + packetData.position());
         int packetLength = bytes.length;
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -170,8 +171,9 @@ public class AirspeckPacketHandler {
             }
         } else if (bytes[0] == 0x03) {
             packetData.put(bytes);
+            Log.i("AirSpeckPacketHandler", "Received packet ID 3");
         } else {
-            Log.i("AirspeckPacketHandler", "Unknown packet received");
+            Log.e("AirspeckPacketHandler", "Unknown packet received");
         }
     }
 
