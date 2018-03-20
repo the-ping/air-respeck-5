@@ -69,6 +69,7 @@
     <string name="action_subject_mode">Subject mode</string>
     <string name="action_volume_recording">Volume recording</string>
     <string name="action_close_app">Close app</string>
+    <string name="action_check_for_updates">Check for updates</string>
     <string name="action_view_config">Pairing info</string>
 
     <!-- Volume recording -->

@@ -932,6 +932,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
         } else if (id == R.id.action_view_config) {
             startActivity(new Intent(this, ConfigViewActivity.class));
+        } else if (id == R.id.action_check_for_updates) {
+            aua.checkUpdatesManually();
         }
         return super.onOptionsItemSelected(item);
     }

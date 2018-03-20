@@ -36,6 +36,7 @@ import android.os.Handler;
 import android.provider.Settings.Secure;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.FileProvider;
+import android.util.Log;
 
 import com.specknet.airrespeck.BuildConfig;
 
@@ -52,6 +53,7 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Observable;
@@ -154,7 +156,7 @@ public class AutoUpdateApk extends Observable {
 
     private final static String ANDROID_PACKAGE = "application/vnd.android.package-archive";
     //	private final static String API_URL = "http://auto-update-apk.appspot.com/check";
-    private final static String API_URL = "http://www.auto-update-apk.com/check";
+    private final static String API_URL = "https://specknet-pyramid-test.appspot.com/check_for_updates";
 
     protected static Context context = null;
     protected static SharedPreferences preferences;
@@ -162,7 +164,7 @@ public class AutoUpdateApk extends Observable {
     private static long last_update = 0;
 
     private static int appIcon = android.R.drawable.ic_popup_reminder;
-    private static int versionCode = 0;        // as low as it gets
+    private static int versionCode = 0;
     private static String packageName;
     private static String appName;
     private static int device_id;
@@ -295,6 +297,7 @@ public class AutoUpdateApk extends Observable {
     private class checkUpdateTask extends AsyncTask<Void, Void, String[]> {
 
         protected String[] doInBackground(Void... v) {
+            Log_v(TAG, "Start update task");
             long start = System.currentTimeMillis();
 
             disableConnectionReuseIfNecessary();
@@ -313,10 +316,10 @@ public class AutoUpdateApk extends Observable {
 
                 // set the timeout in milliseconds until a connection is established
                 // the default value is zero, that means the timeout is not used
-                conn.setConnectTimeout(3000);
+                conn.setConnectTimeout(20000);
                 // set the default socket timeout (SO_TIMEOUT) in milliseconds
                 // which is the timeout for waiting for data
-                conn.setReadTimeout(3000);
+                conn.setReadTimeout(20000);
                 conn.setRequestMethod("POST");
                 conn.setFixedLengthStreamingMode(postParameters.getBytes().length);
                 conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -330,35 +333,37 @@ public class AutoUpdateApk extends Observable {
 
                 conn.connect();
 
+                Log_v(TAG, "Before reading input stream");
                 InputStream in = new BufferedInputStream(conn.getInputStream());
                 final String result[] = getResponseText(in).split("\n");
                 in.close();
 
+                Log_v(TAG, "Input stream: " + Arrays.toString(result));
+
                 conn.disconnect();
 
-                if (result.length > 1 && result[0].equalsIgnoreCase("have update")) {
+                if (result.length == 3 && result[0].equalsIgnoreCase("have update")) {
                     url = new URL(result[1]);
                     conn = (HttpURLConnection) url.openConnection();
                     // set the timeout in milliseconds until a connection is established
                     // the default value is zero, that means the timeout is not used
-                    conn.setConnectTimeout(3000);
+                    conn.setConnectTimeout(20000);
                     // set the default socket timeout (SO_TIMEOUT) in milliseconds
                     // which is the timeout for waiting for data
-                    conn.setReadTimeout(3000);
+                    conn.setReadTimeout(30000);
                     conn.setDoInput(true);
                     conn.connect();
+                    Log_v(TAG, "Content type: " + conn.getContentType());
 
                     if (conn.getResponseCode() == HttpURLConnection.HTTP_OK &&
-                            conn.getContentType().equalsIgnoreCase(ANDROID_PACKAGE)) {
+                            conn.getContentType().equalsIgnoreCase("application/download")) {
 
                         in = new BufferedInputStream(conn.getInputStream());
-                        String fname = result[1].substring(result[1].lastIndexOf('/') + 1);
-                        FileOutputStream out = null;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            out = context.openFileOutput(fname, Context.MODE_PRIVATE);
-                        } else {
-                            out = context.openFileOutput(fname, Context.MODE_WORLD_READABLE);
-                        }
+                        String fname = result[2];
+                        FileOutputStream out = context.openFileOutput(fname, Context.MODE_PRIVATE);
+
+                        Log_v(TAG, "Write to file in bits of 4096 bytes");
+
                         byte[] buffer = new byte[4096];
                         int n;
                         while ((n = in.read(buffer)) > 0) {
@@ -366,8 +371,9 @@ public class AutoUpdateApk extends Observable {
                         }
                         in.close();
                         out.close();
-                        result[1] = fname;
+
                     } else {
+                        Log_e(TAG, "Bad HTTP response");
                         return null;    // bad HTTP response or invalid content type
                     }
                     conn.disconnect();
@@ -383,10 +389,13 @@ public class AutoUpdateApk extends Observable {
 
             } catch (MalformedURLException e) {
                 // handle invalid URL
+                Log_e(TAG, "Malformed URL", e);
             } catch (SocketTimeoutException e) {
                 // handle timeout
+                Log_e(TAG, "Request timeout", e);
             } catch (IOException e) {
                 // handle I/0 errors
+                Log_e(TAG, "IO exception", e);
             } finally {
                 long elapsed = System.currentTimeMillis() - start;
                 Log_v(TAG, "update check finished in " + elapsed + "ms");
@@ -403,9 +412,8 @@ public class AutoUpdateApk extends Observable {
             // kill progress bar here
             if (result != null) {
                 if (result[0].equalsIgnoreCase("have update")) {
-                    preferences.edit().putString(UPDATE_FILE, result[1]).apply();
-
-                    String update_file_path = context.getFilesDir().getAbsolutePath() + "/" + result[1];
+                    preferences.edit().putString(UPDATE_FILE, result[2]).apply();
+                    String update_file_path = context.getFilesDir().getAbsolutePath() + "/" + result[2];
                     preferences.edit().putString(MD5_KEY, MD5Hex(update_file_path)).apply();
                     preferences.edit().putLong(MD5_TIME, System.currentTimeMillis()).apply();
                 }
@@ -437,10 +445,16 @@ public class AutoUpdateApk extends Observable {
             setChanged();
             notifyObservers(AUTOUPDATE_HAVE_UPDATE);
 
+            Log_i(TAG, "Raised notification. Update available");
+
             // raise the notification
             CharSequence contentTitle = appName + " update available";
             CharSequence contentText = "Select to install";
-            File update_apk = new File(context.getFilesDir(), update_file);
+            File updateApk = new File(context.getFilesDir(), update_file);
+
+
+            Log_i(TAG, "File exists? " + updateApk.getAbsolutePath() + " " + updateApk.exists());
+            Log_i(TAG, "File size: " + updateApk.length());
 
             // Bugfix for Android 7 (Nougat)
             // Only Android 7's PackageManager can install from FileProvider content://
@@ -451,20 +465,22 @@ public class AutoUpdateApk extends Observable {
                 notificationIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                 notificationIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 notificationIntent.setDataAndType(
-                        FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", update_apk),
+                        FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", updateApk),
                         ANDROID_PACKAGE);
             } else {
                 notificationIntent = new Intent(Intent.ACTION_VIEW);
                 notificationIntent.setDataAndType(
-                        Uri.parse("file://" + update_apk.getAbsolutePath()),
+                        Uri.parse("file://" + updateApk.getAbsolutePath()),
                         ANDROID_PACKAGE);
             }
 
             PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+            Log_i(TAG, "Created notification for update");
 
             if (showUpdateAsPopup) {
                 try {
                     contentIntent.send();
+                    Log_i(TAG, "Popup sent");
                 } catch (PendingIntent.CanceledException e) {
                     e.printStackTrace();
                 }
@@ -611,7 +627,7 @@ public class AutoUpdateApk extends Observable {
             else android.util.Log.w(tag, message, e);
         } else {
             if (e == null) android.util.Log.e(tag, message);
-            else android.util.Log.e(tag, message, e);
+            else android.util.Log.e(tag, message + ": " + e.getMessage() + Arrays.toString(e.getStackTrace()));
         }
     }
 
