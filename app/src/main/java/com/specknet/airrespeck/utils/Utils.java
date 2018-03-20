@@ -45,7 +45,7 @@ import javax.crypto.spec.SecretKeySpec;
 public final class Utils {
 
     private static Utils mUtils;
-    private Map<String, String> loadedConfig;
+    private static Map<String, String> loadedConfig;
 
     private Utils() {
     }
