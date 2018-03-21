@@ -38,7 +38,7 @@ public class ConfigViewActivity extends AppCompatActivity {
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(getBaseContext(),
                 R.layout.list_item_config_view,
                 cursor,
-                new String[]{"_ID", "Value"},
+                new String[]{"Name", "Value"},
                 new int[]{R.id.key, R.id.value}, 0);
 
         configList.setAdapter(adapter);

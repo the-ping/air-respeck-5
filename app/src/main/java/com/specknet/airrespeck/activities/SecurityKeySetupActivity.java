@@ -20,6 +20,7 @@ import com.specknet.airrespeck.models.KeyHolder;
 import com.specknet.airrespeck.remote.SpecknetClient;
 import com.specknet.airrespeck.remote.SpecknetService;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.Map;

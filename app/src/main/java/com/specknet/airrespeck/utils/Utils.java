@@ -207,7 +207,7 @@ public final class Utils {
             cursor.moveToNext();
             // Save each row as key-value pair in HashMap
             while (!cursor.isAfterLast()) {
-                loadedConfig.put(cursor.getString(0), cursor.getString(1));
+                loadedConfig.put(cursor.getString(1), cursor.getString(2));
                 cursor.moveToNext();
             }
             cursor.close();
