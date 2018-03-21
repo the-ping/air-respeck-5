@@ -31,6 +31,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 //import com.crashlytics.android.ndk.CrashlyticsNdk;
 //import com.crashlytics.android.Crashlytics;
@@ -933,6 +934,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_view_config) {
             startActivity(new Intent(this, ConfigViewActivity.class));
         } else if (id == R.id.action_check_for_updates) {
+            Toast.makeText(this,
+                    "Checking for updates in background. You will be notified when an update is available in about a minute.",
+                    Toast.LENGTH_LONG).show();
             aua.checkUpdatesManually();
         }
         return super.onOptionsItemSelected(item);
