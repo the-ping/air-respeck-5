@@ -71,6 +71,11 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.content.Intent.ACTION_BATTERY_LOW;
+import static android.content.Intent.ACTION_BATTERY_OKAY;
+import static android.content.Intent.ACTION_POWER_CONNECTED;
+import static android.content.Intent.ACTION_POWER_DISCONNECTED;
+
 //import io.fabric.sdk.android.Fabric;
 
 
@@ -417,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Initialise broadcast receiver which receives data from the speck service
-        initSpeckServiceReceiver();
+        initBroadcastReceiver();
 
         startActivitySummaryUpdaterTask();
     }
@@ -483,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        FileLogger.logToFile(this, "App was brought into foreground (Main Activity) resumed)");
+        FileLogger.logToFile(this, "App was brought into foreground (Main Activity) resumed");
         mIsActivityRunning = true;
     }
 
@@ -566,7 +571,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initSpeckServiceReceiver() {
+    private void initBroadcastReceiver() {
         mSpeckServiceReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -594,6 +599,18 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
                         sendMessageToHandler(SHOW_AIRSPECK_DISCONNECTED, null);
+                        break;
+                    case ACTION_BATTERY_LOW:
+                        FileLogger.logToFile(MainActivity.this, "Battery level low");
+                        break;
+                    case ACTION_BATTERY_OKAY:
+                        FileLogger.logToFile(MainActivity.this, "Battery level ok again");
+                        break;
+                    case ACTION_POWER_CONNECTED:
+                        FileLogger.logToFile(MainActivity.this, "Phone is being charged");
+                        break;
+                    case ACTION_POWER_DISCONNECTED:
+                        FileLogger.logToFile(MainActivity.this, "Phone was removed from charger");
                         break;
                 }
             }
