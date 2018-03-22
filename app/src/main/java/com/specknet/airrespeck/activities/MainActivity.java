@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Speck service
     final int REQUEST_ENABLE_BLUETOOTH = 0;
-    private BroadcastReceiver mSpeckServiceReceiver;
+    private BroadcastReceiver mBroadcastReceiver;
     private boolean mIsRESpeckConnected;
     private boolean mIsAirspeckConnected;
 
@@ -572,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initBroadcastReceiver() {
-        mSpeckServiceReceiver = new BroadcastReceiver() {
+        mBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 switch (intent.getAction()) {
@@ -604,7 +604,7 @@ public class MainActivity extends AppCompatActivity {
                         FileLogger.logToFile(MainActivity.this, "Battery level low");
                         break;
                     case ACTION_BATTERY_OKAY:
-                        FileLogger.logToFile(MainActivity.this, "Battery level ok again");
+                        FileLogger.logToFile(MainActivity.this, "Battery level ok");
                         break;
                     case ACTION_POWER_CONNECTED:
                         FileLogger.logToFile(MainActivity.this, "Phone is being charged");
@@ -618,21 +618,25 @@ public class MainActivity extends AppCompatActivity {
 
         // Register receivers
         if (mIsRESpeckEnabled) {
-            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_RESPECK_LIVE_BROADCAST));
-            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_RESPECK_CONNECTED));
-            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_RESPECK_DISCONNECTED));
         }
         if (mIsAirspeckEnabled) {
-            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_AIRSPECK_LIVE_BROADCAST));
-            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_AIRSPECK_CONNECTED));
-            registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_AIRSPECK_DISCONNECTED));
         }
+        registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_LOW));
+        registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_OKAY));
+        registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_POWER_CONNECTED));
+        registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_POWER_DISCONNECTED));
     }
 
     private void sendMessageToHandler(int what, Object obj) {
@@ -857,7 +861,7 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         // Unregister receivers
         try {
-            unregisterReceiver(mSpeckServiceReceiver);
+            unregisterReceiver(mBroadcastReceiver);
         } catch (IllegalArgumentException e) {
             // Intent receivers have not been registered yet. Skip unregistration in this case.
         }
