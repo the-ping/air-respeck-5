@@ -32,6 +32,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings.Secure;
 import android.support.v4.app.NotificationCompat;
@@ -258,7 +259,7 @@ public class AutoUpdateApk extends Observable {
 
             String update_file = preferences.getString(UPDATE_FILE, "");
             if (update_file.length() > 0) {
-                if (new File(context.getFilesDir().getAbsolutePath() + "/" + update_file).delete()) {
+                if (new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + update_file).delete()) {
                     preferences.edit().remove(UPDATE_FILE).remove(SILENT_FAILED).apply();
                 }
             }
@@ -413,7 +414,7 @@ public class AutoUpdateApk extends Observable {
             if (result != null) {
                 if (result[0].equalsIgnoreCase("have update")) {
                     preferences.edit().putString(UPDATE_FILE, result[2]).apply();
-                    String update_file_path = context.getFilesDir().getAbsolutePath() + "/" + result[2];
+                    String update_file_path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + result[2];
                     preferences.edit().putString(MD5_KEY, MD5Hex(update_file_path)).apply();
                     preferences.edit().putLong(MD5_TIME, System.currentTimeMillis()).apply();
                 }
@@ -450,7 +451,7 @@ public class AutoUpdateApk extends Observable {
             // raise the notification
             CharSequence contentTitle = appName + " update available";
             CharSequence contentText = "Select to install";
-            File updateApk = new File(context.getFilesDir(), update_file);
+            File updateApk = new File(Environment.getExternalStorageDirectory(), update_file);
 
 
             Log_i(TAG, "File exists? " + updateApk.getAbsolutePath() + " " + updateApk.exists());
