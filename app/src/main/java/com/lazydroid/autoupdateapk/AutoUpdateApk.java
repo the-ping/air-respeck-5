@@ -361,7 +361,7 @@ public class AutoUpdateApk extends Observable {
 
                         in = new BufferedInputStream(conn.getInputStream());
                         String fname = result[2];
-                        FileOutputStream out = context.openFileOutput(fname, Context.MODE_PRIVATE);
+                        FileOutputStream out = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fname);
 
                         Log_v(TAG, "Write to file in bits of 4096 bytes");
 
