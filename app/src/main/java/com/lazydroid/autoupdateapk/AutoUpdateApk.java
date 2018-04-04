@@ -37,7 +37,6 @@ import android.os.Handler;
 import android.provider.Settings.Secure;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.FileProvider;
-import android.util.Log;
 
 import com.specknet.airrespeck.BuildConfig;
 
@@ -259,7 +258,8 @@ public class AutoUpdateApk extends Observable {
 
             String update_file = preferences.getString(UPDATE_FILE, "");
             if (update_file.length() > 0) {
-                if (new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + update_file).delete()) {
+                if (new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS) + "/" + update_file).delete()) {
                     preferences.edit().remove(UPDATE_FILE).remove(SILENT_FAILED).apply();
                 }
             }
@@ -361,7 +361,9 @@ public class AutoUpdateApk extends Observable {
 
                         in = new BufferedInputStream(conn.getInputStream());
                         String fname = result[2];
-                        FileOutputStream out = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fname);
+                        FileOutputStream out = new FileOutputStream(
+                                Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_DOWNLOADS) + "/" + fname);
 
                         Log_v(TAG, "Write to file in bits of 4096 bytes");
 
@@ -414,8 +416,9 @@ public class AutoUpdateApk extends Observable {
             if (result != null) {
                 if (result[0].equalsIgnoreCase("have update")) {
                     preferences.edit().putString(UPDATE_FILE, result[2]).apply();
-                    String update_file_path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + result[2];
-                    preferences.edit().putString(MD5_KEY, MD5Hex(update_file_path)).apply();
+                    String updateFilePath = Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS) + "/" + result[2];
+                    preferences.edit().putString(MD5_KEY, MD5Hex(updateFilePath)).apply();
                     preferences.edit().putLong(MD5_TIME, System.currentTimeMillis()).apply();
                 }
                 raiseNotification();
@@ -451,7 +454,8 @@ public class AutoUpdateApk extends Observable {
             // raise the notification
             CharSequence contentTitle = appName + " update available";
             CharSequence contentText = "Select to install";
-            File updateApk = new File(Environment.getExternalStorageDirectory(), update_file);
+            File updateApk = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS), update_file);
 
 
             Log_i(TAG, "File exists? " + updateApk.getAbsolutePath() + " " + updateApk.exists());
@@ -465,6 +469,7 @@ public class AutoUpdateApk extends Observable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 notificationIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                 notificationIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
                 notificationIntent.setDataAndType(
                         FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", updateApk),
                         ANDROID_PACKAGE);
