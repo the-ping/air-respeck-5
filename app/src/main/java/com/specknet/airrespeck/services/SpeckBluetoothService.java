@@ -25,6 +25,7 @@ import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,6 +35,8 @@ import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
+
+import static com.specknet.airrespeck.utils.Utils.bytesToHex;
 
 /**
  * Service for connecting to RESpeck and Airspeck sensors, converting the data into a readable format and
@@ -55,6 +58,10 @@ public class SpeckBluetoothService extends Service {
     // The UUIDs will be loaded from Config
     private static String RESPECK_UUID;
     private static String AIRSPECK_UUID;
+
+    // The BLE addresses will be used to connect
+    private static String RESPECK_BLE_ADDRESS;
+    private static String AIRSPECK_BLE_ADDRESS;
 
     // Classes to handle received packets
     private RESpeckPacketHandler respeckHandler;
@@ -213,17 +220,56 @@ public class SpeckBluetoothService extends Service {
 
                                 if (mIsAirspeckEnabled && !mIsAirspeckFound) {
                                     // Process scan result here.
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
-                                            AIRSPECK_UUID)) {
-                                        mIsAirspeckFound = true;
-                                        SpeckBluetoothService.this.connectToAirspeck();
+                                    if (AIRSPECK_UUID.contains(":")) {
+                                        // Old BLE address
+                                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
+                                                AIRSPECK_UUID)) {
+                                            AIRSPECK_BLE_ADDRESS = AIRSPECK_UUID;
+                                            mIsAirspeckFound = true;
+                                            SpeckBluetoothService.this.connectToAirspeck();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // New UUID
+                                        byte[] ba = rxBleScanResult.getScanRecord();
+                                        if (ba != null && ba.length == 62) {
+                                            byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
+                                            Log.i("SpeckService", "uuid from airspeck: " + bytesToHex(uuid));
+                                            Log.i("SpeckService", "uuid from config: " + AIRSPECK_UUID.substring(5));
+                                            if (bytesToHex(uuid).equalsIgnoreCase(AIRSPECK_UUID.substring(5))) {
+                                                mIsAirspeckFound = true;
+                                                AIRSPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
+                                                Log.i("SpeckService", "Connecting after scanning to: " + AIRSPECK_BLE_ADDRESS);
+                                                SpeckBluetoothService.this.connectToAirspeck();
+                                            }
+                                        }
                                     }
                                 }
                                 if (mIsRESpeckEnabled && !mIsRESpeckFound) {
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(RESPECK_UUID)) {
-                                        mIsRESpeckFound = true;
-                                        Log.i("SpeckService", "Connecting after scanning");
-                                        SpeckBluetoothService.this.connectToRESpeck();
+                                    if (RESPECK_UUID.contains(":")) {
+                                        // Old BLE address
+                                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(RESPECK_UUID)) {
+                                            RESPECK_BLE_ADDRESS = RESPECK_UUID;
+                                            mIsRESpeckFound = true;
+                                            Log.i("SpeckService", "Connecting after scanning");
+                                            SpeckBluetoothService.this.connectToRESpeck();
+                                        }
+                                    }
+                                    else {
+                                        // New UUID
+                                        byte[] ba = rxBleScanResult.getScanRecord();
+                                        if (ba != null && ba.length == 62) {
+                                            byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
+                                            Log.i("SpeckService", "uuid from respeck: " + bytesToHex(uuid));
+                                            Log.i("SpeckService", "uuid from config: " + RESPECK_UUID.substring(5));
+                                            if (bytesToHex(uuid).equalsIgnoreCase(RESPECK_UUID.substring(5))) {
+                                                mIsRESpeckFound = true;
+                                                RESPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
+                                                Log.i("SpeckService", "Connecting after scanning to: " + RESPECK_BLE_ADDRESS);
+                                                SpeckBluetoothService.this.connectToRESpeck();
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -239,7 +285,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void connectToAirspeck() {
-        mAirspeckDevice = rxBleClient.getBleDevice(AIRSPECK_UUID);
+        mAirspeckDevice = rxBleClient.getBleDevice(AIRSPECK_BLE_ADDRESS);
         establishAirspeckConnection();
     }
 
@@ -346,7 +392,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void connectToRESpeck() {
-        mRESpeckDevice = rxBleClient.getBleDevice(RESPECK_UUID);
+        mRESpeckDevice = rxBleClient.getBleDevice(RESPECK_BLE_ADDRESS);
         mRESpeckDevice.observeConnectionStateChanges()
                 .subscribe(
                         new Action1<RxBleConnection.RxBleConnectionState>() {

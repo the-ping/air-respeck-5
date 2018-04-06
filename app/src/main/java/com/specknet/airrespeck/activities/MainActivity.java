@@ -140,8 +140,8 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = "Respeck "
+                                + msg.obj + " "
                                 + service.getString(R.string.device_found)
-                                + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
                         service.updateRESpeckConnection(true);
