@@ -426,9 +426,12 @@ public class RESpeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
+        String fw_version = mSpeckService.getFwVersion();
+
         String filenameRESpeck = Utils.getInstance().getDataDirectory(mSpeckService) +
                 Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +
-                patientID + " " + androidID + " " + RESPECK_UUID.replace(":", "") + " " +
+                patientID + " " + androidID + " " + RESPECK_UUID.replace(":", "") +
+                "(" + fw_version + ") " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 

@@ -73,6 +73,8 @@ public class SpeckBluetoothService extends Service {
     private boolean mIsAirspeckFound;
     private boolean mIsRESpeckFound;
 
+    private String mRESpeckName;
+
     private Subscription scanSubscription;
 
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
@@ -393,6 +395,7 @@ public class SpeckBluetoothService extends Service {
 
     private void connectToRESpeck() {
         mRESpeckDevice = rxBleClient.getBleDevice(RESPECK_BLE_ADDRESS);
+        mRESpeckName = mRESpeckDevice.getName();
         mRESpeckDevice.observeConnectionStateChanges()
                 .subscribe(
                         new Action1<RxBleConnection.RxBleConnectionState>() {
@@ -488,6 +491,10 @@ public class SpeckBluetoothService extends Service {
                             }
                         }
                 );
+    }
+
+    public String getFwVersion() {
+        return mRESpeckName.substring(4);
     }
 
 
