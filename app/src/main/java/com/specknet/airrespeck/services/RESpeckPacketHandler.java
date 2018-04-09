@@ -289,7 +289,7 @@ public class RESpeckPacketHandler {
 
                         RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
                                 mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
-                                modeActivityType, stepCountC);
+                                modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion());
 
                         // Send average broadcast intent
                         Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
@@ -426,7 +426,7 @@ public class RESpeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
-        String fw_version = mSpeckService.getFwVersion();
+        String fw_version = mSpeckService.getRESpeckFwVersion();
 
         String filenameRESpeck = Utils.getInstance().getDataDirectory(mSpeckService) +
                 Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +

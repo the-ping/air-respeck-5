@@ -8,4 +8,4 @@ import java.io.Serializable
 
 data class RESpeckAveragedData(val timestamp: Long, val avgBreathingRate: Float, val stdBreathingRate: Float,
                                val numberOfBreaths: Int, val activityLevel: Float, val activityType: Int,
-                               val minuteStepCount: Int) : Serializable
+                               val minuteStepCount: Int, val fwVersion: String) : Serializable

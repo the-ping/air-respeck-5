@@ -213,6 +213,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                         jsonAverageData.put("step_count", data.minuteStepCount)
                         jsonAverageData.put("stored", 0)
                         jsonAverageData.put("valid", 1)
+                        jsonAverageData.put("fw", data.fwVersion)
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }

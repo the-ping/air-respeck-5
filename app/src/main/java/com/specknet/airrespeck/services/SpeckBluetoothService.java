@@ -493,7 +493,7 @@ public class SpeckBluetoothService extends Service {
                 );
     }
 
-    public String getFwVersion() {
+    public String getRESpeckFwVersion() {
         return mRESpeckName.substring(4);
     }
 
