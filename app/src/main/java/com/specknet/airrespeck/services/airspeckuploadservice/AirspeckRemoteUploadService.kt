@@ -187,6 +187,7 @@ class AirspeckRemoteUploadService : Service() {
                         json.put(Constants.LOC_ALTITUDE, data.location.altitude)
                         json.put(Constants.LOC_ACCURACY, data.location.accuracy)
                         json.put(Constants.AIRSPECK_BATTERY, data.battery)
+                        json.put("fw", data.fwVersion);
 
                     } catch (e: JSONException) {
                         e.printStackTrace()

@@ -258,7 +258,7 @@ public class AirspeckPacketHandler {
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10,
-                temperature, humidity, mBins, location, lux, motion, batteryLevel);
+                temperature, humidity, mBins, location, lux, motion, batteryLevel, mSpeckService.getAirspeckFwVersion());
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
 
@@ -308,9 +308,12 @@ public class AirspeckPacketHandler {
         long previousWriteDay = DateUtils.truncate(mDateOfLastAirspeckWrite, Calendar.DAY_OF_MONTH).getTime();
         long numberOfMillisInDay = 1000 * 60 * 60 * 24;
 
+        String fw_version = mSpeckService.getAirspeckFwVersion();
+
         String filenameAirspeck = Utils.getInstance().getDataDirectory(
                 mSpeckService) + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
-                subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") + " " +
+                subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") +
+                "(" + fw_version + ") " +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
