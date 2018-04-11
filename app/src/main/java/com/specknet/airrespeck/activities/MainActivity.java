@@ -127,9 +127,9 @@ public class MainActivity extends AppCompatActivity {
                         service.showSnackbarFromHandler((String) msg.obj);
                         break;
                     case SHOW_AIRSPECK_CONNECTED:
-                        String messageAir = "QOE "
+                        String messageAir = "AIRspeck "
+                                + msg.obj + " "
                                 + service.getString(R.string.device_found)
-                                + " UUID: " + msg.obj
                                 + ". " + service.getString(R.string.waiting_for_data)
                                 + ".";
                         service.updateAirspeckConnection(true);
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                         service.updateAirspeckConnection(false);
                         break;
                     case SHOW_RESPECK_CONNECTED:
-                        String messageRE = "Respeck "
+                        String messageRE = "RESpeck "
                                 + msg.obj + " "
                                 + service.getString(R.string.device_found)
                                 + ". " + service.getString(R.string.waiting_for_data)
