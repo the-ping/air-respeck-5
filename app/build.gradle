@@ -11,8 +11,8 @@ android {
         applicationId "com.specknet.airrespeck"
         minSdkVersion 22
         targetSdkVersion 25
-        versionCode 54
-        versionName "2.0.4"
+        versionCode 55
+        versionName "2.0.5"
 
         // Enabling multidex support.
         // multiDexEnabled true

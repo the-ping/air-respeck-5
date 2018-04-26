@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
     public final static int SHOW_AIRSPECK_CONNECTED = 5;
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
+    private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
+
 
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
@@ -101,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
         UIHandler(MainActivity service) {
             mService = new WeakReference<>(service);
         }
+
+        private boolean mAirspeckConnected = false;
+        private long mLastAirspeckNotificationTime = System.currentTimeMillis();
 
         @Override
         public void handleMessage(Message msg) {
@@ -119,6 +124,8 @@ public class MainActivity extends AppCompatActivity {
                     case UPDATE_AIRSPECK_READINGS:
                         service.updateAirspeckReadings((AirspeckData) msg.obj);
                         service.updateAirspeckConnection(true);
+                        mAirspeckConnected = true;
+                        mLastAirspeckNotificationTime = System.currentTimeMillis();
                         break;
                     case ACTIVITY_SUMMARY_UPDATE:
                         service.updateActivitySummary();
@@ -134,9 +141,12 @@ public class MainActivity extends AppCompatActivity {
                                 + ".";
                         service.updateAirspeckConnection(true);
                         service.showSnackbarFromHandler(messageAir);
+                        mAirspeckConnected = true;
+                        mLastAirspeckNotificationTime = System.currentTimeMillis();
                         break;
                     case SHOW_AIRSPECK_DISCONNECTED:
                         service.updateAirspeckConnection(false);
+                        mAirspeckConnected = false;
                         break;
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = "RESpeck "
@@ -149,6 +159,16 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case SHOW_RESPECK_DISCONNECTED:
                         service.updateRESpeckConnection(false);
+                        break;
+                    case AIRSPECK_NOTIFICATION_WATCHDOG:
+
+                        if (mAirspeckConnected) {
+                            long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
+                            //service.showSnackbarFromHandler(Long.toString(t));
+                            if (t > 15 * 1000) {
+                                service.showSnackbarFromHandler("Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
+                            }
+                        }
                         break;
                 }
             }
@@ -425,6 +445,7 @@ public class MainActivity extends AppCompatActivity {
         initBroadcastReceiver();
 
         startActivitySummaryUpdaterTask();
+        startAirspeckWatchdogUpdaterTask();
     }
 
     private void startPhoneGPSService() {
@@ -808,6 +829,20 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 Message msg = new Message();
                 msg.what = ACTIVITY_SUMMARY_UPDATE;
+                msg.setTarget(mUIHandler);
+                msg.sendToTarget();
+            }
+        }, 0, delay);
+    }
+
+    private void startAirspeckWatchdogUpdaterTask() {
+        final int delay = 15 * 1000;
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Message msg = new Message();
+                msg.what = AIRSPECK_NOTIFICATION_WATCHDOG;
                 msg.setTarget(mUIHandler);
                 msg.sendToTarget();
             }
