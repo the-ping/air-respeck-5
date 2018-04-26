@@ -32,6 +32,7 @@ import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import static com.specknet.airrespeck.utils.Utils.onlyKeepTimeInHour;
 
@@ -67,7 +68,9 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment implements Ai
         if (savedInstanceState != null) {
             Log.i("AQ graphs", "bundle: " + savedInstanceState);
             if (savedInstanceState.containsKey(LAST_VALUES)) {
-                dataBuffer = (LinkedList<AirspeckData>) savedInstanceState.getSerializable(LAST_VALUES);
+                // ON MIUI 9 at least, an ArrayList is returned and trying to cast to LinkedList causes a crash
+                //dataBuffer = (LinkedList<AirspeckData>) savedInstanceState.getSerializable(LAST_VALUES);
+                dataBuffer = new LinkedList<>((List<AirspeckData>) savedInstanceState.getSerializable(LAST_VALUES));
                 if (dataBuffer.size() > 0) {
                     long currentTimestamp = com.specknet.airrespeck.utils.Utils.getUnixTimestamp();
                     if (dataBuffer.getLast().getPhoneTimestamp() < currentTimestamp - 60000) {
