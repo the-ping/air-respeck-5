@@ -902,10 +902,6 @@ public class MainActivity extends AppCompatActivity {
         Log.i("DF", "Services are being stopped");
         Intent intentStopSpeckService = new Intent(this, SpeckBluetoothService.class);
         stopService(intentStopSpeckService);
-        Intent intentStopUploadRespeck = new Intent(this, RespeckAndDiaryRemoteUploadService.class);
-        stopService(intentStopUploadRespeck);
-        Intent intentStopUploadAirspeck = new Intent(this, AirspeckRemoteUploadService.class);
-        stopService(intentStopUploadAirspeck);
         Intent intentStopGPSService = new Intent(this, PhoneGPSService.class);
         stopService(intentStopGPSService);
     }

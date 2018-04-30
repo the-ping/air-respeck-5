@@ -40,10 +40,10 @@ class AirspeckRemoteUploadService(bluetoothSpeckService: Service) {
 
     }
 
-    internal val airspeckReceiver = AirspeckReceiver()
+    private val airspeckReceiver = AirspeckReceiver()
     var speckService: Service
 
-    internal fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
+    private fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
         val jsonArray = JsonArray().asJsonArray
         for (item in list) {
             jsonArray.add(item)
@@ -51,7 +51,7 @@ class AirspeckRemoteUploadService(bluetoothSpeckService: Service) {
         return jsonArray
     }
 
-    internal fun jsonPacketFrom(it: String): JsonObject {
+    private fun jsonPacketFrom(it: String): JsonObject {
         val jsonData = jsonHeaders
         jsonData.add("data", Gson().fromJson(it, JsonArray::class.java))
         return jsonData
