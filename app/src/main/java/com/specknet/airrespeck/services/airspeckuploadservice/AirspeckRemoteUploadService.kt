@@ -1,24 +1,19 @@
 package com.specknet.airrespeck.services.airspeckuploadservice
 
-import android.app.Notification
-import android.app.PendingIntent
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import com.specknet.airrespeck.R
-import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.AirspeckData
 import com.specknet.airrespeck.utils.Constants
-import com.specknet.airrespeck.utils.FileLogger
 import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
 import com.squareup.tape.SerializedConverter
@@ -30,20 +25,23 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class AirspeckRemoteUploadService : Service() {
-    companion object {
-        const val FILENAME = "qoe_upload_queue6"
+const val FILENAME = "qoe_upload_queue6"
 
+@SuppressLint("HardwareIds")
+class AirspeckRemoteUploadService(bluetoothSpeckService: Service) {
+    companion object {
         internal lateinit var filequeue: FileObjectQueue<String>
         private lateinit var jsonHeaders: JsonObject
         private var configUrl = ""
         private var configPath = ""
 
-        internal var mySubject = PublishSubject.create<JsonObject>()
+        protected var mySubject = PublishSubject.create<JsonObject>()
         internal lateinit var airspeckServer: AirspeckServer
 
-        internal val qoeReceiver = QOEReceiver()
     }
+
+    internal val airspeckReceiver = AirspeckReceiver()
+    var speckService: Service
 
     internal fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
         val jsonArray = JsonArray().asJsonArray
@@ -59,51 +57,21 @@ class AirspeckRemoteUploadService : Service() {
         return jsonData
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        object : Thread() {
-            override fun run() {
-                Log.i("Upload", "Starting Airspeck upload...")
-                FileLogger.logToFile(this@AirspeckRemoteUploadService,
-                        "Airspeck upload service started")
-                startInForeground()
-                initQOEUploadService()
-            }
-        }.start()
-        return Service.START_STICKY
+    fun stopUploading() {
+        speckService.unregisterReceiver(airspeckReceiver)
+        Log.i("AirspeckUpload", "Airspeck upload has been stopped")
     }
 
-    private fun startInForeground() {
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
-        val notification = Notification.Builder(this)
-                .setContentTitle(getText(R.string.notification_airspeck_upload_title))
-                .setContentText(getText(R.string.notification_airspeck_upload_text))
-                .setSmallIcon(R.drawable.vec_wireless)
-                .setContentIntent(pendingIntent)
-                .build()
-
-        // Just use a "random" service ID
-        val SERVICE_NOTIFICATION_ID = 89247238
-        startForeground(SERVICE_NOTIFICATION_ID, notification)
-    }
-
-    override fun onDestroy() {
-        unregisterReceiver(qoeReceiver)
-        super.onDestroy()
-        Log.i("Upload", "QOE upload has been stopped")
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    private fun initQOEUploadService() {
+    init {
         val utils = Utils.getInstance()
-        val loadedConfig = utils.getConfig(this)
+        val loadedConfig = utils.getConfig(bluetoothSpeckService)
+        speckService = bluetoothSpeckService
 
         // Create header json object
         val json = JSONObject()
         try {
-            json.put("android_id", Settings.Secure.getString(contentResolver,
+            json.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
             json.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
             var qoeuuid = loadedConfig.get(Constants.Config.AIRSPECKP_UUID)
@@ -111,7 +79,7 @@ class AirspeckRemoteUploadService : Service() {
                 qoeuuid = ""
             }
             json.put("qoe_uuid", qoeuuid)
-            json.put("security_key", Utils.getSecurityKey(this))
+            json.put("security_key", Utils.getSecurityKey(speckService))
             json.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
@@ -123,15 +91,15 @@ class AirspeckRemoteUploadService : Service() {
         configPath = Constants.UPLOAD_SERVER_PATH
         airspeckServer = AirspeckServer.create(configUrl)
 
-        registerReceiver(qoeReceiver, IntentFilter(Constants.ACTION_AIRSPECK_LIVE_BROADCAST))
+        speckService.registerReceiver(airspeckReceiver, IntentFilter(Constants.ACTION_AIRSPECK_LIVE_BROADCAST))
 
         // Setup upload queue which stores data until it can be uploaded
-        val queueFile = File(filesDir, FILENAME)
+        val queueFile = File(speckService.filesDir, FILENAME)
 
         try {
             filequeue = FileObjectQueue(queueFile, SerializedConverter<String>())
         } catch (ex: IOException) {
-            Log.d("Upload", "Airspeck IOException" + ex.toString())
+            Log.d("AirspeckUpload", "Airspeck IOException" + ex.toString())
         }
 
         mySubject.buffer(10, TimeUnit.SECONDS, 500)
@@ -143,14 +111,14 @@ class AirspeckRemoteUploadService : Service() {
                 .concatMap { Observable.range(0, filequeue.size()) }
                 .map { jsonPacketFrom(filequeue.peek()) }
                 .concatMap { airspeckServer.submitData(it, configPath) }
-                .doOnError { Log.e("Upload", "Error on upload Airspeck") }
+                .doOnError { Log.e("AirspeckUpload", "Error on upload Airspeck") }
                 .retry()
                 .doOnCompleted { }
-                .subscribe { Log.d("Upload", "Airspeck done: " + it.toString()); filequeue.remove() }
-        Log.i("Upload", "Airspeck upload service started.")
+                .subscribe { Log.d("AirspeckUpload", "Airspeck done: " + it.toString()); filequeue.remove() }
+        Log.i("AirspeckUpload", "Airspeck upload service started.")
     }
 
-    class QOEReceiver : BroadcastReceiver() {
+    class AirspeckReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Constants.ACTION_AIRSPECK_LIVE_BROADCAST -> {
@@ -185,20 +153,20 @@ class AirspeckRemoteUploadService : Service() {
                         json.put(Constants.LOC_LATITUDE, data.location.latitude)
                         json.put(Constants.LOC_LONGITUDE, data.location.longitude)
                         json.put(Constants.LOC_ALTITUDE, data.location.altitude)
-                        json.put(Constants.LOC_ACCURACY, data.location.accuracy)
+                        json.put(Constants.LOC_ACCURACY, nanToNull(data.location.accuracy))
                         json.put(Constants.AIRSPECK_BATTERY, data.battery)
-                        json.put("fw", data.fwVersion);
+                        json.put("fw", data.fwVersion)
 
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
 
-                    Log.d("Upload", "Airspeck upload live data: " + json.toString())
+                    Log.d("AirspeckUpload", "Airspeck upload live data: " + json.toString())
                     mySubject.onNext(Gson().fromJson(json.toString(), JsonElement::class.java).asJsonObject)
                 }
 
                 else -> {
-                    Log.i("Upload", "Airspeck invalid message received")
+                    Log.i("AirspeckUpload", "Airspeck invalid message received")
                 }
             }
         }
@@ -213,10 +181,5 @@ class AirspeckRemoteUploadService : Service() {
             }
         }
 
-    }
-
-    override fun onUnbind(intent: Intent?): Boolean {
-        FileLogger.logToFile(this, "Airspeck upload service stopped by Android")
-        return super.onUnbind(intent)
     }
 }

@@ -1,41 +1,29 @@
 package com.specknet.airrespeck.services.respeckuploadservice
 
 
-import android.app.Notification
-import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
-
 import com.google.gson.*
-import com.specknet.airrespeck.R
-import com.specknet.airrespeck.activities.MainActivity
 import com.specknet.airrespeck.models.RESpeckAveragedData
 import com.specknet.airrespeck.utils.Constants
-import com.specknet.airrespeck.utils.FileLogger
 import com.specknet.airrespeck.utils.Utils
 import com.squareup.tape.FileObjectQueue
 import com.squareup.tape.SerializedConverter
 import org.json.JSONException
 import org.json.JSONObject
-import rx.subjects.PublishSubject
 import rx.Observable
-
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStreamWriter
-import java.io.Serializable
+import rx.subjects.PublishSubject
+import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class RespeckAndDiaryRemoteUploadService : Service() {
+class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
     companion object {
         const val FILENAME = "respeck_upload_queue6"
 
@@ -48,7 +36,8 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         internal lateinit var respeckServer: RespeckServer
     }
 
-    lateinit var respeckReceiver: RespeckReceiver
+    var respeckReceiver: RespeckReceiver
+    protected var speckService: Service
 
     internal fun jsonArrayFrom(list: List<JsonObject>): JsonArray {
         val jsonArray = JsonArray().asJsonArray
@@ -64,55 +53,22 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         return jsonData
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        object : Thread() {
-            override fun run() {
-                Log.i("Upload", "Starting RESpeck upload...")
-                FileLogger.logToFile(this@RespeckAndDiaryRemoteUploadService,
-                        "RESpeck and Diary upload service started")
-                startInForeground()
-                initRespeckUploadService()
-            }
-        }.start()
-        return Service.START_STICKY
-    }
-
-    private fun startInForeground() {
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-
-        val notification = Notification.Builder(this)
-                .setContentTitle(getText(R.string.notification_respeck_upload_title))
-                .setContentText(getText(R.string.notification_respeck_upload_text))
-                .setSmallIcon(R.drawable.vec_wireless)
-                .setContentIntent(pendingIntent)
-                .build()
-
-        // Just use a "random" service ID
-        val SERVICE_NOTIFICATION_ID = 89347238
-        startForeground(SERVICE_NOTIFICATION_ID, notification)
-    }
-
-    override fun onDestroy() {
-        unregisterReceiver(respeckReceiver)
-        super.onDestroy()
+    fun stopUploading() {
+        speckService.unregisterReceiver(respeckReceiver)
         Log.i("Upload", "RESpeck upload has been stopped")
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
-
-    private fun initRespeckUploadService() {
+    init {
         val utils = Utils.getInstance()
-        val loadedConfig = utils.getConfig(this)
+        speckService = bluetoothSpeckService
+        val loadedConfig = utils.getConfig(speckService)
 
-        respeckReceiver = RespeckReceiver(this)
+        respeckReceiver = RespeckReceiver(speckService)
 
         // Create header json object
         val jsonHeader = JSONObject()
         try {
-            jsonHeader.put("android_id", Settings.Secure.getString(contentResolver,
+            jsonHeader.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
             jsonHeader.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
             var airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID)
@@ -120,7 +76,7 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                 airspeckUUID = ""
             }
             jsonHeader.put("qoe_uuid", airspeckUUID)
-            jsonHeader.put("security_key", Utils.getSecurityKey(this));
+            jsonHeader.put("security_key", Utils.getSecurityKey(speckService));
             jsonHeader.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
         } catch (e: Exception) {
@@ -132,13 +88,13 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         // Set server parameters
         jsonHeaders = Gson().fromJson(jsonHeader.toString(), JsonElement::class.java).asJsonObject
 
-        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST))
-        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_BROADCAST))
-        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST))
-        registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_DIARY_BROADCAST))
+        speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST))
+        speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_BROADCAST))
+        speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST))
+        speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_DIARY_BROADCAST))
 
         // Setup upload queue which stores data until it can be uploaded
-        val queueFile = File(filesDir, FILENAME)
+        val queueFile = File(speckService.filesDir, FILENAME)
 
         try {
             filequeue = FileObjectQueue(queueFile, SerializedConverter<String>())
@@ -168,7 +124,12 @@ class RespeckAndDiaryRemoteUploadService : Service() {
         Log.i("Upload", "Respeck upload service started.")
     }
 
-    class RespeckReceiver(var service: RespeckAndDiaryRemoteUploadService) : BroadcastReceiver() {
+    class RespeckReceiver(speckService: Service) : BroadcastReceiver() {
+        var service: Service
+
+        init {
+            service = speckService
+        }
 
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -307,10 +268,5 @@ class RespeckAndDiaryRemoteUploadService : Service() {
                         "," + pef + "," + fev1 + "," + fev6 + "," + fvc + "," + fef2575
             }
         }
-    }
-
-    override fun onUnbind(intent: Intent?): Boolean {
-        FileLogger.logToFile(this, "RESpeck and Diary upload service stopped by Android")
-        return super.onUnbind(intent)
     }
 }

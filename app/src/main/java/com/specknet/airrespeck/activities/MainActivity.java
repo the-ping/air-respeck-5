@@ -408,19 +408,6 @@ public class MainActivity extends AppCompatActivity {
 
         startSpeckService();
 
-        // Initialise upload services if desired
-        if (mIsUploadDataToServer) {
-            if (mIsRESpeckEnabled) {
-                Intent startUploadRESpeckIntent = new Intent(this, RespeckAndDiaryRemoteUploadService.class);
-                startService(startUploadRESpeckIntent);
-            }
-
-            if (mIsAirspeckEnabled) {
-                Intent startUploadAirspeckIntent = new Intent(this, AirspeckRemoteUploadService.class);
-                startService(startUploadAirspeckIntent);
-            }
-        }
-
         // Initialise broadcast receiver which receives data from the speck service
         initBroadcastReceiver();
 
@@ -554,8 +541,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startSpeckService() {
-        Intent intentStartService = new Intent(this, SpeckBluetoothService.class);
-        startService(intentStartService);
+        // Only start service if it is not already running.
+        if (!Utils.isServiceRunning(SpeckBluetoothService.class, this)) {
+            FileLogger.logToFile(this, "Started Speck Bluetooth service");
+            Intent intentStartService = new Intent(this, SpeckBluetoothService.class);
+            startService(intentStartService);
+        } else {
+            FileLogger.logToFile(this, "Speck Bluetooth service already running. Don't start it again.");
+        }
     }
 
     @Override

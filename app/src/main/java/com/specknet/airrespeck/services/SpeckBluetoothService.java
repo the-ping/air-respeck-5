@@ -20,11 +20,12 @@ import com.polidea.rxandroidble.RxBleDevice;
 import com.polidea.rxandroidble.RxBleScanResult;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.services.airspeckuploadservice.AirspeckRemoteUploadService;
+import com.specknet.airrespeck.services.respeckuploadservice.RespeckAndDiaryRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Timer;
@@ -54,6 +55,7 @@ public class SpeckBluetoothService extends Service {
     // Config settings
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
+    private boolean mIsUploadData;
 
     // The UUIDs will be loaded from Config
     private static String RESPECK_UUID;
@@ -77,12 +79,13 @@ public class SpeckBluetoothService extends Service {
     private String mAirspeckName;
 
     private Subscription scanSubscription;
-
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
-
     private boolean mIsServiceRunning = false;
-
     private BroadcastReceiver airspeckOffSignalReceiver;
+
+    // Upload classes
+    private AirspeckRemoteUploadService mAirspeckUploadService;
+    private RespeckAndDiaryRemoteUploadService mRespeckUploadService;
 
     public SpeckBluetoothService() {
 
@@ -151,6 +154,16 @@ public class SpeckBluetoothService extends Service {
         respeckHandler = new RESpeckPacketHandler(this);
         airspeckHandler = new AirspeckPacketHandler(this);
 
+        // Create data uploading classes if desired
+        if (mIsUploadData) {
+            if (mIsRESpeckEnabled) {
+               mRespeckUploadService = new RespeckAndDiaryRemoteUploadService(this);
+            }
+            if (mIsAirspeckEnabled) {
+                mAirspeckUploadService = new AirspeckRemoteUploadService(this);
+            }
+        }
+
         // Register broadcast receiver to receive airspeck off signal
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Constants.AIRSPECK_OFF_ACTION);
@@ -181,6 +194,9 @@ public class SpeckBluetoothService extends Service {
 
         // Is RESpeck enabled?
         mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
+
+        // Do we want to upload the data?
+        mIsUploadData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
 
         // Get Bluetooth address
         AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
@@ -529,6 +545,15 @@ public class SpeckBluetoothService extends Service {
         }
 
         this.unregisterReceiver(this.airspeckOffSignalReceiver);
+
+        // End uploading
+        if (mAirspeckUploadService != null) {
+            mAirspeckUploadService.stopUploading();
+        }
+        if (mRespeckUploadService != null) {
+            mRespeckUploadService.stopUploading();
+        }
+
     }
 
     @Override

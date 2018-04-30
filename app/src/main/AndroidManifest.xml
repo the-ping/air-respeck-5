@@ -132,12 +132,6 @@
             <intent-filter>
                 <action android:name="com.specknet.airrespeck.PHONE_LOCATION"/>
             </intent-filter>
-        </service>
-        <service
-            android:name=".services.respeckuploadservice.RespeckAndDiaryRemoteUploadService"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":upload_process_respeck">
             <intent-filter>
                 <action android:name="com.specknet.respeck.RESPECK_LIVE_BROADCAST"/>
             </intent-filter>
@@ -150,16 +144,11 @@
             <intent-filter>
                 <action android:name="com.specknet.diarydaphne.DIARY_BROADCAST"/>
             </intent-filter>
-        </service>
-        <service
-            android:name=".services.airspeckuploadservice.AirspeckRemoteUploadService"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":upload_process_airspeck">
             <intent-filter>
                 <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
             </intent-filter>
         </service>
+
         <service
             android:name=".services.PhoneGPSService"
             android:enabled="true"
