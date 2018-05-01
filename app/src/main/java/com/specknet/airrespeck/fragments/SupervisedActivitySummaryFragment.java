@@ -123,68 +123,36 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
                         // If file lies in specified time period, open it and read content
                         long tsFile = Utils.timestampFromString(fileDate, "yyyy-MM-dd");
 
-                        if (tsFile >= Utils.roundToDay(oneHourBefore) && tsFile <= now) {
-                            BufferedReader reader = new BufferedReader(new FileReader(file));
-                            // Skip first line as that's the header
-                            reader.readLine();
-                            String currentLine;
-                            while ((currentLine = reader.readLine()) != null) {
-                                String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[0]);
-                                // Only if the timestamp of the currently read line is in specified time period,
-                                // do we draw a circle on the map corresponding to the measurements
+                        BufferedReader reader = new BufferedReader(new FileReader(file));
+                        // Skip first line as that's the header
+                        reader.readLine();
+                        String currentLine;
+                        while ((currentLine = reader.readLine()) != null) {
+                            String[] row = currentLine.split(",");
+                            long tsRow = Long.parseLong(row[0]);
+                            // Only if the timestamp of the currently read line is in specified time period,
+                            // do we draw a circle on the map corresponding to the measurements
+                            try {
                                 if (tsRow >= oneHourBefore && tsRow <= now) {
                                     int activityType = Integer.parseInt(row[9]);
                                     if (activityType != -1) {
-                                        hourStats[activityType]++;
-                                        dayStats[activityType]++;
-                                        weekStats[activityType]++;
+                                        if (tsFile >= Utils.roundToDay(oneWeekBefore) && tsFile <= now) {
+                                            weekStats[activityType]++;
+                                            if (tsFile >= Utils.roundToDay(oneDayBefore) && tsFile <= now) {
+                                                dayStats[activityType]++;
+                                                if (tsFile >= Utils.roundToDay(oneHourBefore) && tsFile <= now) {
+                                                    hourStats[activityType]++;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+                            } catch (ArrayIndexOutOfBoundsException e) {
+                                Log.i("ActivitySummary", "Incomplete RESpeck data row: " + e.getMessage());
                             }
-                            reader.close();
-                        } else if (tsFile >= Utils.roundToDay(oneDayBefore) && tsFile <= now) {
-                            BufferedReader reader = new BufferedReader(new FileReader(file));
-                            // Skip first line as that's the header
-                            reader.readLine();
-                            String currentLine;
-                            while ((currentLine = reader.readLine()) != null) {
-                                String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[0]);
-                                // Only if the timestamp of the currently read line is in specified time period,
-                                // do we draw a circle on the map corresponding to the measurements
-                                if (tsRow >= oneDayBefore && tsRow <= now) {
-                                    int activityType = Integer.parseInt(row[9]);
-                                    if (activityType != -1) {
-                                        dayStats[activityType]++;
-                                        weekStats[activityType]++;
-                                    }
-                                }
-                            }
-                            reader.close();
-                        } else if (tsFile >= Utils.roundToDay(oneWeekBefore) && tsFile <= now) {
-                            BufferedReader reader = new BufferedReader(new FileReader(file));
-                            // Skip first line as that's the header
-                            reader.readLine();
-                            String currentLine;
-                            while ((currentLine = reader.readLine()) != null) {
-                                String[] row = currentLine.split(",");
-                                long tsRow = Long.parseLong(row[0]);
-                                // Only if the timestamp of the currently read line is in specified time period,
-                                // do we draw a circle on the map corresponding to the measurements
-                                if (tsRow >= oneWeekBefore && tsRow <= now) {
-                                    int activityType = Integer.parseInt(row[9]);
-                                    if (activityType != -1) {
-                                        weekStats[activityType]++;
-                                    }
-                                }
-                            }
-                            reader.close();
                         }
                     } catch (IOException | ParseException e) {
                         Log.i("ActivitySummary", "Error parsing RESpeck files: " + e.getMessage());
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        Log.i("ActivitySummary", "Incomplete RESpeck data row: " + e.getMessage());
                     }
                 }
             }
@@ -215,6 +183,7 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
         protected void onPostExecute(Void nothing) {
             updateReadings();
         }
+
     }
 
     private void updateReadings() {
