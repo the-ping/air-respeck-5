@@ -13,7 +13,10 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class to allow logging to file for debugging purposes
@@ -24,37 +27,31 @@ public class FileLogger {
     private static OutputStreamWriter outputWriter;
 
     public static void logToFile(Context context, String log) {
-        Date now = new Date();
-        long currentWriteDay = DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime();
-        long previousWriteDay = DateUtils.truncate(dateOfLastWrite, Calendar.DAY_OF_MONTH).getTime();
-        long numberOfMillisInDay = 1000 * 60 * 60 * 24;
+        logToFile(context, log, "Logs");
+    }
+
+    public static void logToFile(Context context, String log, String filenameDescriptor) {
+        Date now = new Date(Utils.getUnixTimestamp());
 
         String filename = Utils.getInstance().getDataDirectory(context) + Constants.LOGGING_DIRECTORY_NAME +
-                "Logs " + new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) + ".csv";
-
-        // If we are in a new day, create a new file if necessary
-        if (!new File(filename).exists() || currentWriteDay != previousWriteDay ||
-                now.getTime() - dateOfLastWrite.getTime() > numberOfMillisInDay) {
-            try {
-                // Close old connection if there was one
-                if (outputWriter != null) {
-                    outputWriter.close();
-                }
-
-                // Open new connection to new file
+                filenameDescriptor + " " + new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) + ".csv";
+        try {
+            if (!new File(filename).exists()) {
                 outputWriter = new OutputStreamWriter(
                         new FileOutputStream(filename, true));
 
-            } catch (IOException e) {
-                e.printStackTrace();
+                long offset = new GregorianCalendar().getTimeZone().getOffset(new Date().getTime());
+                outputWriter.append(
+                        "Timestamps in local time for easy debugging! Timezone offset to UTC (millis): " + offset + "\n");
+                outputWriter.close();
             }
-        }
 
-        try {
+            outputWriter = new OutputStreamWriter(
+                    new FileOutputStream(filename, true));
             outputWriter.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK).format(now)).
                     append(": ").append(log).append("\n");
-            outputWriter.flush();
-        } catch (NullPointerException | IOException e) {
+            outputWriter.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

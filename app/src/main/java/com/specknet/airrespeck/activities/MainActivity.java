@@ -33,8 +33,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-//import com.crashlytics.android.ndk.CrashlyticsNdk;
-//import com.crashlytics.android.Crashlytics;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
@@ -45,6 +43,7 @@ import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
+import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
@@ -55,8 +54,6 @@ import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
-import com.specknet.airrespeck.services.airspeckuploadservice.AirspeckRemoteUploadService;
-import com.specknet.airrespeck.services.respeckuploadservice.RespeckAndDiaryRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.ThemeUtils;
@@ -75,6 +72,9 @@ import static android.content.Intent.ACTION_BATTERY_LOW;
 import static android.content.Intent.ACTION_BATTERY_OKAY;
 import static android.content.Intent.ACTION_POWER_CONNECTED;
 import static android.content.Intent.ACTION_POWER_DISCONNECTED;
+
+//import com.crashlytics.android.ndk.CrashlyticsNdk;
+//import com.crashlytics.android.Crashlytics;
 
 //import io.fabric.sdk.android.Fabric;
 
@@ -184,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_SUBJECT_VALUES_FRAGMENT = "SUBJECT_VALUES_FRAGMENT";
     private static final String TAG_SUBJECT_WINDMILL_FRAGMENT = "SUBJECT_WINDMILL_FRAGMENT";
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
+    private static final String TAG_ACTIVITY_LOGGING_FRAGMENT = "ACTIVITY_LOGGING_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
     private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
     private static final String TAG_STEPCOUNT_FRAGMENT = "STEPCOUNT_FRAGMENT";
@@ -194,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
     private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
     private SupervisedAirspeckGraphsFragment mSupervisedAirspeckGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
+    private SupervisedActivityLoggingFragment mSupervisedActivityLoggingFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
     private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
     private SupervisedStepCounterFragment mSupervisedStepCounterFragment;
@@ -345,7 +347,6 @@ public class MainActivity extends AppCompatActivity {
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             return;
         }
-
         initMainActivity();
     }
 
@@ -736,6 +737,12 @@ public class MainActivity extends AppCompatActivity {
             supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
             supervisedTitles.add(getString(R.string.menu_aq_map));
         }
+        if (mIsAirspeckEnabled && mIsRESpeckEnabled) {
+            // Only if we have data from both sensors does activity logging make sense as we need all data to make any
+            // judgement about indoor/outdoor
+            supervisedFragments.add(mSupervisedActivityLoggingFragment);
+            supervisedTitles.add(getString(R.string.menu_act_logging));
+        }
 
         // Setup subject mode arrays
         subjectFragments.clear();
@@ -782,6 +789,8 @@ public class MainActivity extends AppCompatActivity {
                     TAG_SUBJECT_WINDMILL_FRAGMENT);
             mSupervisedStepCounterFragment = (SupervisedStepCounterFragment) fm.getFragment(mSavedInstanceState,
                     TAG_STEPCOUNT_FRAGMENT);
+            mSupervisedActivityLoggingFragment = (SupervisedActivityLoggingFragment) fm.getFragment(mSavedInstanceState,
+                    TAG_ACTIVITY_LOGGING_FRAGMENT);
         }
         // If there is no saved instance state, or if the fragments haven't been created during the last activity
         // startup, create them now
@@ -811,6 +820,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedStepCounterFragment == null) {
             mSupervisedStepCounterFragment = new SupervisedStepCounterFragment();
+        }
+        if (mSupervisedActivityLoggingFragment == null) {
+            mSupervisedActivityLoggingFragment = new SupervisedActivityLoggingFragment();
         }
     }
 
@@ -932,6 +944,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSubjectWindmillFragment != null && mSubjectWindmillFragment.isAdded()) {
             fm.putFragment(outState, TAG_SUBJECT_WINDMILL_FRAGMENT, mSubjectWindmillFragment);
+        }
+        if (mSupervisedActivityLoggingFragment != null && mSupervisedActivityLoggingFragment.isAdded()) {
+            fm.putFragment(outState, TAG_ACTIVITY_LOGGING_FRAGMENT, mSupervisedActivityLoggingFragment);
         }
 
         // Save connection state

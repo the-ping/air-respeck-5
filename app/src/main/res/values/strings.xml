@@ -63,6 +63,7 @@
     <string name="menu_activity_summary">Activity</string>
     <string name="menu_breathing_graph">Breathing</string>
     <string name="menu_aq_map">AQ Map</string>
+    <string name="menu_act_logging">Act logging</string>
 
     <!-- Action Bar menu -->
     <string name="action_supervised_mode">Supervised mode</string>
