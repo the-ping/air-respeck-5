@@ -627,10 +627,15 @@ public class SpeckBluetoothService extends Service {
             airspeckSubscription.unsubscribe();
         }
 
+        if (pulseoxSubscription != null) {
+            pulseoxSubscription.unsubscribe();
+        }
+
         // Close the handlers
         try {
             respeckHandler.closeHandler();
             airspeckHandler.closeHandler();
+            pulseoxHandler.closeHandler();
         } catch (Exception e) {
             Log.e("SpeckService", "Error while closing handlers: " + e.getMessage());
         }
@@ -644,6 +649,10 @@ public class SpeckBluetoothService extends Service {
         if (mRespeckUploadService != null) {
             mRespeckUploadService.stopUploading();
         }
+
+        /*if (mPulseoxUploadService != null) {
+        mPulseoxUploadService.stopUploading();
+        }*/
 
     }
 

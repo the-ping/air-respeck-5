@@ -100,6 +100,8 @@ public class Constants {
             "com.specknet.airspeck.PULSEOX_CONNECTED";
     public static final String ACTION_PULSEOX_DISCONNECTED =
             "com.specknet.airspeck.PULSEOX_DISCONNECTED";
+    public static final String ACTION_PULSEOX_BROADCAST =
+            "com.specknet.airspeck.PULSEOX_BROADCAST";
     
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
 
@@ -159,6 +161,8 @@ public class Constants {
     public static final String ACTIVITY_SUMMARY_WEEK = "week";
 
     public static final String PHONE_LOCATION = "phone_location";
+
+    public static final String PULSEOX_DATA = "pulseox_data";
 
     /**
      * Additional data for uploading to the server
