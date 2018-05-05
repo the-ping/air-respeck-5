@@ -51,10 +51,12 @@ public class SpeckBluetoothService extends Service {
     public static RxBleClient rxBleClient;
     private Subscription airspeckSubscription;
     private Subscription respeckLiveSubscription;
+    private Subscription pulseoxSubscription;
 
     // Config settings
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
+    private boolean mIsPulseoxEnabled;
     private boolean mIsUploadData;
 
     // The UUIDs will be loaded from Config
@@ -64,19 +66,24 @@ public class SpeckBluetoothService extends Service {
     // The BLE addresses will be used to connect
     private static String RESPECK_BLE_ADDRESS;
     private static String AIRSPECK_BLE_ADDRESS;
+    private static String PULSEOX_BLE_ADDRESS = "00:11:22:33:44:55:66";
 
     // Classes to handle received packets
     private RESpeckPacketHandler respeckHandler;
     private AirspeckPacketHandler airspeckHandler;
+    private PulseoxPacketHandler pulseoxHandler;
 
     private RxBleDevice mAirspeckDevice;
     private RxBleDevice mRESpeckDevice;
+    private RxBleDevice mPulseoxDevice;
 
     private boolean mIsAirspeckFound;
     private boolean mIsRESpeckFound;
+    private boolean mIsPulseoxFound;
 
     private String mRESpeckName;
     private String mAirspeckName;
+    private String mPulseoxName;
 
     private Subscription scanSubscription;
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
@@ -86,6 +93,7 @@ public class SpeckBluetoothService extends Service {
     // Upload classes
     private AirspeckRemoteUploadService mAirspeckUploadService;
     private RespeckAndDiaryRemoteUploadService mRespeckUploadService;
+    //private PulseoxRemoteUploadService mPulseoxUploadService;
 
     public SpeckBluetoothService() {
 
@@ -162,6 +170,9 @@ public class SpeckBluetoothService extends Service {
             if (mIsAirspeckEnabled) {
                 mAirspeckUploadService = new AirspeckRemoteUploadService(this);
             }
+            if (mIsPulseoxEnabled) {
+                //mPulseOxUploadService = new PulseoxRemoteUploadService(this);
+            }
         }
 
         // Register broadcast receiver to receive airspeck off signal
@@ -195,6 +206,9 @@ public class SpeckBluetoothService extends Service {
         // Is RESpeck enabled?
         mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
 
+        // Is Pulseox enabled?
+        mIsPulseoxEnabled = true;
+
         // Do we want to upload the data?
         mIsUploadData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
 
@@ -218,6 +232,7 @@ public class SpeckBluetoothService extends Service {
 
         mIsAirspeckFound = false;
         mIsRESpeckFound = false;
+        mIsPulseoxFound = false;
 
         rxBleClient = RxBleClient.create(this);
 
@@ -233,7 +248,8 @@ public class SpeckBluetoothService extends Service {
                                                 rxBleScanResult.getBleDevice().getMacAddress());
 
                                 if ((mIsAirspeckFound || !mIsAirspeckEnabled) &&
-                                        (mIsRESpeckFound || !mIsRESpeckEnabled)) {
+                                        (mIsRESpeckFound || !mIsRESpeckEnabled) &&
+                                        (mIsPulseoxFound || !mIsPulseoxEnabled)){
                                     scanSubscription.unsubscribe();
                                 }
 
@@ -290,6 +306,14 @@ public class SpeckBluetoothService extends Service {
                                             }
                                         }
                                     }
+                                }
+                                if (mIsPulseoxEnabled && !mIsPulseoxFound) {
+                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(PULSEOX_BLE_ADDRESS)) {
+                                        mIsPulseoxFound = true;
+                                        Log.i("SpeckService", "Pulseox: Connecting after scanning");
+                                        SpeckBluetoothService.this.connectToPulseox();
+                                    }
+
                                 }
                             }
                         },
@@ -409,6 +433,73 @@ public class SpeckBluetoothService extends Service {
                                 }, 2000);
                             }
                         });
+    }
+
+    private void connectToPulseox() {
+        mPulseoxDevice = rxBleClient.getBleDevice(PULSEOX_BLE_ADDRESS);
+        mPulseoxName = mPulseoxDevice.getName();
+        establishPulseoxConnection();
+    }
+
+    private void establishPulseoxConnection() {
+        Log.i("SpeckService", "Connecting to Pulseox...");
+        FileLogger.logToFile(this, "Connecting to Pulseox");
+
+        pulseoxSubscription = mPulseoxDevice.establishConnection(true)
+                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
+                    @Override
+                    public Observable<?> call(RxBleConnection rxBleConnection) {
+                        return rxBleConnection.setupNotification(UUID.fromString(
+                                Constants.PULSEOX_CHARACTERISTIC));
+                    }
+                })
+                .doOnNext(new Action1<Object>() {
+                    @Override
+                    public void call(Object notificationObservable) {
+                        // Notification has been set up
+                        Log.i("SpeckService", "Subscribed to Pulseox");
+                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Pulseox");
+                        Intent pulseoxFoundIntent = new Intent(Constants.ACTION_PULSEOX_CONNECTED);
+                        pulseoxFoundIntent.putExtra(Constants.Config.PULSEOX_UUID, PULSEOX_BLE_ADDRESS);
+                        sendBroadcast(pulseoxFoundIntent);
+                    }
+                })
+                .flatMap(
+                        new Func1<Object, Observable<?>>() {
+                            @Override
+                            public Observable<?> call(Object notificationObservable) {
+                                return (Observable) notificationObservable;
+                            }
+                        }) // <-- Notification has been set up, now observe value changes.
+                .subscribe(
+                        new Action1<Object>() {
+                            @Override
+                            public void call(Object bytes) {
+                                pulseoxHandler.processPulseoxPacket((byte[]) bytes);
+                                //Log.i("SpeckService", "turnOff: " + turn_off);
+                            }
+                        },
+                        new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                // An error with autoConnect means that we are disconnected
+                                Log.e("SpeckService", "Pulseox disconnected: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this, "Pulseox disconnected");
+
+                                Intent pulseoxDisconnectedIntent = new Intent(
+                                        Constants.ACTION_PULSEOX_DISCONNECTED);
+                                sendBroadcast(pulseoxDisconnectedIntent);
+
+                                pulseoxSubscription.unsubscribe();
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        establishPulseoxConnection();
+                                    }
+                                }, 2000);
+                            }
+                        }
+                );
     }
 
     private void connectToRESpeck() {

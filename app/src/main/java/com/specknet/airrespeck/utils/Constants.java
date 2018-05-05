@@ -96,6 +96,11 @@ public class Constants {
             "com.specknet.airspeck.AIRSPECK_CONNECTED";
     public static final String ACTION_AIRSPECK_DISCONNECTED =
             "com.specknet.airspeck.AIRSPECK_DISCONNECTED";
+    public static final String ACTION_PULSEOX_CONNECTED =
+            "com.specknet.airspeck.PULSEOX_CONNECTED";
+    public static final String ACTION_PULSEOX_DISCONNECTED =
+            "com.specknet.airspeck.PULSEOX_DISCONNECTED";
+    
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
 
     /**
@@ -268,6 +273,7 @@ public class Constants {
         public static final String SUBJECT_ID = "SubjectID";
         public static final String RESPECK_UUID = "RESpeckUUID";
         public static final String AIRSPECKP_UUID = "AirspeckPUUID";
+        public static final String PULSEOX_UUID = "PulseoxUUID";
         public static final String SPIROMETER_UUID = "SpirometerUUID";
         public static final String UPLOAD_TO_SERVER = "UploadToServer";
         public static final String STORE_DATA_LOCALLY = "StoreDataLocally";
