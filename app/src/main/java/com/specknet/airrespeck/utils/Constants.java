@@ -224,6 +224,7 @@ public class Constants {
     public static final String RESPECK_DATA_DIRECTORY_NAME = "/RESpeck/";
     public static final String VOLUME_DATA_DIRECTORY_NAME = "/Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_NAME = "/Airspeck/";
+    public static final String PULSEOX_DATA_DIRECTORY_NAME = "/Pulseox/";
     public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
     public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
@@ -237,6 +238,8 @@ public class Constants {
     public static final String AIRSPECK_DATA_HEADER = "phoneTimestamp,pm1,pm2_5,pm10,temperature,humidity," +
             "bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7,bin8,bin9,bin10,bin11,bin12,bin13,bin14,bin15,total," +
             "gpsLongitude,gpsLatitude,gpsAltitude,gpsAccuracy,luxLevel,motion,battery";
+
+    public static final String PULSEOX_DATA_HEADER = "phoneTimestamp,pulse,spo2";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 
@@ -262,6 +265,9 @@ public class Constants {
     public final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
     public final static String RESPECK_STORED_DATA_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
     public final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
+
+    // Characteristics for Pulseox
+    public final static String PULSEOX_CHARACTERISTIC = "0AAD7EA0-0D60-11E2-8E3C-0002A5D5C51B";
 
     // Breathing signal calculation constants
     public static final int THRESHOLD_FILTER_SIZE = 60;
