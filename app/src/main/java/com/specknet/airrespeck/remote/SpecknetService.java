@@ -15,5 +15,4 @@ public interface SpecknetService {
                                   @Field("password") String password,
                                   @Field("project_id") String project_id,
                                   @Field("android_id") String android_id);
-
 }

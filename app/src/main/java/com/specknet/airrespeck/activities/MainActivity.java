@@ -1,6 +1,8 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
@@ -18,10 +20,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
@@ -33,6 +37,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.PlaceDetectionClient;
+import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
@@ -51,7 +63,13 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedStepCounterFragment;
 import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.KeyHolder;
 import com.specknet.airrespeck.models.RESpeckLiveData;
+import com.specknet.airrespeck.remote.OpenWeatherAPIClient;
+import com.specknet.airrespeck.remote.OpenWeatherAPIService;
+import com.specknet.airrespeck.remote.OpenWeatherData;
+import com.specknet.airrespeck.remote.SpecknetClient;
+import com.specknet.airrespeck.remote.SpecknetService;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
@@ -63,10 +81,15 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.Intent.ACTION_BATTERY_LOW;
 import static android.content.Intent.ACTION_BATTERY_OKAY;
@@ -166,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
                             long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
                             //service.showSnackbarFromHandler(Long.toString(t));
                             if (t > 15 * 1000) {
-                                service.showSnackbarFromHandler("Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
+                                service.showSnackbarFromHandler(
+                                        "Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
                             }
                         }
                         break;
