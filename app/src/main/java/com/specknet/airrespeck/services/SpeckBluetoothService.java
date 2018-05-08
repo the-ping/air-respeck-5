@@ -66,7 +66,7 @@ public class SpeckBluetoothService extends Service {
     // The BLE addresses will be used to connect
     private static String RESPECK_BLE_ADDRESS;
     private static String AIRSPECK_BLE_ADDRESS;
-    private static String PULSEOX_BLE_ADDRESS = "00:11:22:33:44:55:66";
+    private static String PULSEOX_BLE_ADDRESS = "00:1C:05:FF:F0:0F";
 
     // Classes to handle received packets
     private RESpeckPacketHandler respeckHandler;
@@ -161,6 +161,7 @@ public class SpeckBluetoothService extends Service {
         // Get singleton instances of packet handler classes
         respeckHandler = new RESpeckPacketHandler(this);
         airspeckHandler = new AirspeckPacketHandler(this);
+        pulseoxHandler = new PulseoxPacketHandler(this);
 
         // Create data uploading classes if desired
         if (mIsUploadData) {
@@ -476,7 +477,7 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(Object bytes) {
                                 pulseoxHandler.processPulseoxPacket((byte[]) bytes);
-                                //Log.i("SpeckService", "turnOff: " + turn_off);
+                                Log.i("SpeckService", "Pulseoxdata: " + ((byte[]) bytes).length);
                             }
                         },
                         new Action1<Throwable>() {

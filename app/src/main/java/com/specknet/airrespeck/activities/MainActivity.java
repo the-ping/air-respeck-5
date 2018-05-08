@@ -51,6 +51,7 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedStepCounterFragment;
 import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
@@ -210,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mShowSupervisedAQMap;
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
+    private boolean mIsPulseoxEnabled;
     private boolean mShowSubjectHome;
     private boolean mShowSubjectValues;
     private boolean mShowSubjectWindmill;
@@ -615,6 +617,12 @@ public class MainActivity extends AppCompatActivity {
                     case Constants.ACTION_AIRSPECK_DISCONNECTED:
                         sendMessageToHandler(SHOW_AIRSPECK_DISCONNECTED, null);
                         break;
+                    case Constants.ACTION_PULSEOX_BROADCAST:
+                        PulseoxData pd = (PulseoxData)intent.getSerializableExtra(Constants.PULSEOX_DATA);
+                        pd.toStringForFile();
+                        Toast.makeText(context,
+                                "Pulseox: " + pd.toStringForFile(),
+                                Toast.LENGTH_LONG).show();
                     case ACTION_BATTERY_LOW:
                         FileLogger.logToFile(MainActivity.this, "Battery level low");
                         break;
@@ -648,6 +656,9 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_AIRSPECK_DISCONNECTED));
         }
+        if (mIsPulseoxEnabled) {
+            registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.ACTION_PULSEOX_BROADCAST));
+        }
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_LOW));
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_OKAY));
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_POWER_CONNECTED));
@@ -666,6 +677,7 @@ public class MainActivity extends AppCompatActivity {
         // Check whether RESpeck and/or Airspeck have been paired
         mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
         mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
+        mIsPulseoxEnabled = true;
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;
