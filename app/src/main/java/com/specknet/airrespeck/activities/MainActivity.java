@@ -1,8 +1,6 @@
 package com.specknet.airrespeck.activities;
 
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
@@ -20,12 +18,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
@@ -37,14 +33,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
-import com.google.android.gms.location.places.Places;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
@@ -56,6 +44,7 @@ import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
+import com.specknet.airrespeck.fragments.SupervisedActivityPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
@@ -63,13 +52,7 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedStepCounterFragment;
 import com.specknet.airrespeck.models.AirspeckData;
-import com.specknet.airrespeck.models.KeyHolder;
 import com.specknet.airrespeck.models.RESpeckLiveData;
-import com.specknet.airrespeck.remote.OpenWeatherAPIClient;
-import com.specknet.airrespeck.remote.OpenWeatherAPIService;
-import com.specknet.airrespeck.remote.OpenWeatherData;
-import com.specknet.airrespeck.remote.SpecknetClient;
-import com.specknet.airrespeck.remote.SpecknetService;
 import com.specknet.airrespeck.services.PhoneGPSService;
 import com.specknet.airrespeck.services.SpeckBluetoothService;
 import com.specknet.airrespeck.utils.Constants;
@@ -81,15 +64,10 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static android.content.Intent.ACTION_BATTERY_LOW;
 import static android.content.Intent.ACTION_BATTERY_OKAY;
@@ -209,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_SUBJECT_WINDMILL_FRAGMENT = "SUBJECT_WINDMILL_FRAGMENT";
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_ACTIVITY_LOGGING_FRAGMENT = "ACTIVITY_LOGGING_FRAGMENT";
+    private static final String TAG_ACTIVITY_PREDICTION_FRAGMENT = "ACTIVITY_PREDICTION_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
     private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
     private static final String TAG_STEPCOUNT_FRAGMENT = "STEPCOUNT_FRAGMENT";
@@ -220,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
     private SupervisedAirspeckGraphsFragment mSupervisedAirspeckGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedActivityLoggingFragment mSupervisedActivityLoggingFragment;
+    private SupervisedActivityPredictionFragment mSupervisedActivityPredictionFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
     private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
     private SupervisedStepCounterFragment mSupervisedStepCounterFragment;
@@ -767,6 +747,10 @@ public class MainActivity extends AppCompatActivity {
             supervisedFragments.add(mSupervisedActivityLoggingFragment);
             supervisedTitles.add(getString(R.string.menu_act_logging));
         }
+        if (mIsAirspeckEnabled) {
+            supervisedFragments.add(mSupervisedActivityPredictionFragment);
+            supervisedTitles.add(getString(R.string.menu_act_prediction));
+        }
 
         // Setup subject mode arrays
         subjectFragments.clear();
@@ -806,6 +790,8 @@ public class MainActivity extends AppCompatActivity {
             mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(
                     mSavedInstanceState,
                     TAG_AQ_MAP_FRAGMENT);
+            mSupervisedActivityPredictionFragment = (SupervisedActivityPredictionFragment) fm.getFragment(
+                    mSavedInstanceState, TAG_ACTIVITY_PREDICTION_FRAGMENT);
             mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(mSavedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
             mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(mSavedInstanceState,
                     TAG_SUBJECT_VALUES_FRAGMENT);
@@ -847,6 +833,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedActivityLoggingFragment == null) {
             mSupervisedActivityLoggingFragment = new SupervisedActivityLoggingFragment();
+        }
+        if (mSupervisedActivityPredictionFragment == null) {
+            mSupervisedActivityPredictionFragment = new SupervisedActivityPredictionFragment();
         }
     }
 
@@ -971,6 +960,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedActivityLoggingFragment != null && mSupervisedActivityLoggingFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_LOGGING_FRAGMENT, mSupervisedActivityLoggingFragment);
+        }
+        if (mSupervisedActivityPredictionFragment != null && mSupervisedActivityPredictionFragment.isAdded()) {
+            fm.putFragment(outState, TAG_ACTIVITY_PREDICTION_FRAGMENT, mSupervisedActivityPredictionFragment);
         }
 
         // Save connection state

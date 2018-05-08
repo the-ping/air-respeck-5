@@ -1,7 +1,12 @@
 package com.specknet.airrespeck.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +16,13 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.AirspeckDataObserver;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.LocationData;
+import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 
 import java.util.Locale;
 
-public class ActivityPredictionFragment extends BaseFragment implements AirspeckDataObserver {
+public class SupervisedActivityPredictionFragment extends BaseFragment {
 
     private IndoorOutdoorPredictor indoorOutdoorPredictor;
     private TextView indoorLikelihoodText;
@@ -23,11 +30,6 @@ public class ActivityPredictionFragment extends BaseFragment implements Airspeck
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Register observer for getting Airspeck data
-        ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
-
-        indoorOutdoorPredictor = new IndoorOutdoorPredictor();
     }
 
     @Nullable
@@ -37,13 +39,15 @@ public class ActivityPredictionFragment extends BaseFragment implements Airspeck
 
         indoorLikelihoodText = (TextView) view.findViewById(R.id.indoor_likelihood);
 
+        BroadcastReceiver predictionReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                indoorLikelihoodText.setText(intent.getStringExtra(Constants.INDOOR_PREDICTION_STRING));
+            }
+        };
+        getActivity().registerReceiver(predictionReceiver,
+                new IntentFilter(Constants.ACTION_INDOOR_PREDICTION_BROADCAST));
+
         return view;
-    }
-
-
-    @Override
-    public void updateAirspeckData(AirspeckData data) {
-        float indoorLikelihood = indoorOutdoorPredictor.getIndoorLikelihood(data);
-        indoorLikelihoodText.setText(String.format(Locale.UK, "Indoor Likelihood: %.2f", indoorLikelihood));
     }
 }

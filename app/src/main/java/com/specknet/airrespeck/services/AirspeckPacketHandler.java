@@ -13,6 +13,7 @@ import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
+import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -71,6 +72,8 @@ public class AirspeckPacketHandler {
     private String subjectID;
     private String androidID;
 
+    private IndoorOutdoorPredictor indoorOutdoorPredictor;
+
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
@@ -100,6 +103,8 @@ public class AirspeckPacketHandler {
             }
         };
         speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
+
+        indoorOutdoorPredictor = new IndoorOutdoorPredictor(speckService);
     }
 
     synchronized void processAirspeckPacket(byte[] bytes) {
@@ -261,6 +266,14 @@ public class AirspeckPacketHandler {
                 temperature, humidity, mBins, location, lux, motion, batteryLevel, mSpeckService.getAirspeckFwVersion());
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
+
+        // Update indoor/outdoor predictor
+        indoorOutdoorPredictor.updateScores(newAirspeckData);
+
+        // Broadcast predictor String for now:
+        Intent broadCastPredictorString = new Intent(Constants.ACTION_INDOOR_PREDICTION_BROADCAST);
+        broadCastPredictorString.putExtra(Constants.INDOOR_PREDICTION_STRING, indoorOutdoorPredictor.toString());
+        mSpeckService.sendBroadcast(broadCastPredictorString);
 
         // Send data to upload
         Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);

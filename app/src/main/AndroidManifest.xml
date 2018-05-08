@@ -83,6 +83,9 @@
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST"/>
+            </intent-filter>
         </activity>
 
         <activity

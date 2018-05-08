@@ -96,7 +96,9 @@ public class Constants {
             "com.specknet.airspeck.AIRSPECK_CONNECTED";
     public static final String ACTION_AIRSPECK_DISCONNECTED =
             "com.specknet.airspeck.AIRSPECK_DISCONNECTED";
+
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
+    public static final String ACTION_INDOOR_PREDICTION_BROADCAST = "com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST";
 
     /**
      * Readings
@@ -289,4 +291,6 @@ public class Constants {
 
     public static final String IS_RESPECK_CONNECTED = "IsRespeckConnected";
     public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
+
+    public static final String INDOOR_PREDICTION_STRING = "IndoorPredictionString";
 }
