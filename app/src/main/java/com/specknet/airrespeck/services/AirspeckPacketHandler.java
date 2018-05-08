@@ -4,9 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.provider.Settings;
-import android.util.Base64;
 import android.util.Log;
 
 import com.specknet.airrespeck.models.AirspeckData;
@@ -19,25 +17,18 @@ import com.specknet.airrespeck.utils.Utils;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.zip.CRC32;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * This class processes new Airspeck packets which are passed from the SpeckBluetoothService.
@@ -59,13 +50,16 @@ public class AirspeckPacketHandler {
     private Date mDateOfLastAirspeckWrite = new Date(0);
 
     private OutputStreamWriter mAirspeckWriter;
+    private OutputStreamWriter mPredictionWriter;
 
     private static String airspeckUUID;
 
     private SpeckBluetoothService mSpeckService;
 
     private BroadcastReceiver mLocationReceiver;
+    private BroadcastReceiver mIsIndoorReceiver;
     private LocationData mLastPhoneLocation;
+    private String isActuallyIndoor = "";
 
     private boolean mIsStoreDataLocally;
     private boolean mIsEncryptData;
@@ -103,6 +97,14 @@ public class AirspeckPacketHandler {
             }
         };
         speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
+
+        mIsIndoorReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                isActuallyIndoor = Boolean.toString(intent.getBooleanExtra(Constants.IS_INDOOR, true));
+            }
+        };
+        speckService.registerReceiver(mIsIndoorReceiver, new IntentFilter(Constants.ACTION_IS_INDOOR_BROADCAST));
 
         indoorOutdoorPredictor = new IndoorOutdoorPredictor(speckService);
     }
@@ -263,17 +265,20 @@ public class AirspeckPacketHandler {
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
         AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10,
-                temperature, humidity, mBins, location, lux, motion, batteryLevel, mSpeckService.getAirspeckFwVersion());
+                temperature, humidity, mBins, location, lux, motion, batteryLevel,
+                mSpeckService.getAirspeckFwVersion());
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
 
         // Update indoor/outdoor predictor
-        indoorOutdoorPredictor.updateScores(newAirspeckData);
+        indoorOutdoorPredictor.updateScores(newAirspeckData, mSpeckService);
+        writeToIndoorPredictionFile();
 
         // Broadcast predictor String for now:
         Intent broadCastPredictorString = new Intent(Constants.ACTION_INDOOR_PREDICTION_BROADCAST);
         broadCastPredictorString.putExtra(Constants.INDOOR_PREDICTION_STRING, indoorOutdoorPredictor.toString());
         mSpeckService.sendBroadcast(broadCastPredictorString);
+
 
         // Send data to upload
         Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
@@ -374,6 +379,53 @@ public class AirspeckPacketHandler {
             mAirspeckWriter.flush();
         } catch (IOException e) {
             Log.e("AirspeckPacketHandler", "Error while writing to airspeck file: " + e.getMessage());
+        }
+    }
+
+    private void writeToIndoorPredictionFile() {
+        String filenamePrediction = Utils.getInstance().getDataDirectory(
+                mSpeckService) + Constants.LOGGING_DIRECTORY_NAME + "IndoorPrediction " +
+                subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") +
+                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
+                ".csv";
+
+        // If file doesn't exist, create a new one and add header
+        if (!new File(filenamePrediction).exists()) {
+            try {
+                // Close old connection if there was one
+                if (mPredictionWriter != null) {
+                    mPredictionWriter.close();
+                }
+
+                Log.i("AirspeckPacketHandler", "Indoor prediction data file created with header");
+                // Open new connection to new file
+                mPredictionWriter = new OutputStreamWriter(
+                        new FileOutputStream(filenamePrediction, true));
+                mPredictionWriter.append(Constants.INDOOR_PREDICTION_HEADER).append("\n");
+                mPredictionWriter.flush();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (mPredictionWriter == null) {
+            try {
+                mPredictionWriter = new OutputStreamWriter(
+                        new FileOutputStream(filenamePrediction, true));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Write new line to file
+        try {
+            mPredictionWriter.append(indoorOutdoorPredictor.toFileString()).append(";").append(
+                    isActuallyIndoor).append("\n");
+            mPredictionWriter.flush();
+        } catch (IOException e) {
+            Log.e("AirspeckPacketHandler", "Error while writing to indoor prediction file: " +
+                    e.getMessage());
         }
     }
 

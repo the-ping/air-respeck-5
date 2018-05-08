@@ -1,6 +1,7 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
@@ -11,6 +12,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -354,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
         initMainActivity();
     }
 
+    @SuppressLint("MissingPermission")
     public void initMainActivity() {
         mIsActivityInitialised = true;
         FileLogger.logToFile(this, "App started and initialised");
@@ -741,12 +745,12 @@ public class MainActivity extends AppCompatActivity {
             supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
             supervisedTitles.add(getString(R.string.menu_aq_map));
         }
-        if (mIsAirspeckEnabled && mIsRESpeckEnabled) {
-            // Only if we have data from both sensors does activity logging make sense as we need all data to make any
-            // judgement about indoor/outdoor
-            supervisedFragments.add(mSupervisedActivityLoggingFragment);
-            supervisedTitles.add(getString(R.string.menu_act_logging));
-        }
+        //if (mIsAirspeckEnabled && mIsRESpeckEnabled) {
+        // Only if we have data from both sensors does activity logging make sense as we need all data to make any
+        // judgement about indoor/outdoor
+        supervisedFragments.add(mSupervisedActivityLoggingFragment);
+        supervisedTitles.add(getString(R.string.menu_act_logging));
+        //}
         if (mIsAirspeckEnabled) {
             supervisedFragments.add(mSupervisedActivityPredictionFragment);
             supervisedTitles.add(getString(R.string.menu_act_prediction));

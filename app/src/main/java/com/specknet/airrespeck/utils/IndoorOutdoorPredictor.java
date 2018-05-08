@@ -2,6 +2,10 @@ package com.specknet.airrespeck.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
+import android.location.LocationManager;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -35,10 +39,14 @@ public class IndoorOutdoorPredictor {
     private float avgSpeed = Float.NaN;
     private float varPM25 = Float.NaN;
     private float currentPlaceLikelihood = Float.NaN;
+    private String currentPlaceIDs = "";
+    private float gpsMaxSignalNoiseRatio = Float.NaN;
+    private int gpsCountAbove30Snr = -1;
     private OpenWeatherData currentWeather;
 
     // Store the individual scores here. At the beginning, we are indifferent about each.
     private float previousIndoorLikelihood = 0.5f;
+    private float gpsSignalStrengthScore = 0.5f;
     private float gpsAccuracyScore = 0.5f;
     private float gpsSpeedScore = 0.5f;
     private float gpsGooglePlacesScore = 0.5f;
@@ -58,14 +66,16 @@ public class IndoorOutdoorPredictor {
 
     // Weights of all the features. Has to sum up to 1
     private final float WEIGHT_PREVIOUS_LIKELIHOOD = 0.2f;
-    private final float WEIGHT_GPS_ACCURACY = 0.28f;
-    private final float WEIGHT_GPS_SPEED = 0.08f;
+    private final float WEIGHT_GPS_SIGNAL_STRENGTH = 0.23f;
+    private final float WEIGHT_GPS_ACCURACY = 0.05f;
+    private final float WEIGHT_GPS_SPEED = 0.1f;
     private final float WEIGHT_GPS_PLACES = 0.08f;
-    private final float WEIGHT_LUX_LEVEL = 0.16f;
-    private final float WEIGHT_TEMPERATURE = 0.1f;
-    private final float WEIGHT_HUMIDITY = 0.06f;
-    private final float WEIGHT_PM = 0.04f;
+    private final float WEIGHT_LUX_LEVEL = 0.19f;
+    private final float WEIGHT_TEMPERATURE = 0.15f;
+    private final float WEIGHT_HUMIDITY = 0.0f;
+    private final float WEIGHT_PM = 0.0f;
 
+    @SuppressLint("MissingPermission")
     public IndoorOutdoorPredictor(final Context context) {
         // Start tasks updating weather and place data
         Timer timer = new Timer();
@@ -84,9 +94,48 @@ public class IndoorOutdoorPredictor {
             }
         }, 0, UPDATE_INTERVAL_WEATHER);
 
+
+        // GPS signal strength updates
+        final LocationManager locationManager =
+                (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        new Thread() {
+            @Override
+            public void run() {
+                // The thread running here does not have a message queue by default. This message queue is needed,
+                // however, to receive GpsStatus listening events. Therefore, create a message queue by calling Looper.prepare()
+                // and later Looper.loop() to start looking for events.
+                Looper.prepare();
+                if (locationManager != null) {
+                    locationManager.addGpsStatusListener(new GpsStatus.Listener() {
+                        @Override
+                        public void onGpsStatusChanged(int event) {
+                            if (event == GpsStatus.GPS_EVENT_SATELLITE_STATUS) {
+                                GpsStatus status = locationManager.getGpsStatus(null);
+                                if (status != null) {
+                                    float maxSnr = 0.0f;
+                                    int countAbove30 = 0;
+                                    for (GpsSatellite satellite : status.getSatellites()) {
+                                        maxSnr = Math.max(satellite.getSnr(), maxSnr);
+                                        if (satellite.getSnr() > 30) {
+                                            countAbove30 += 1;
+                                        }
+                                    }
+                                    // Log.i("Satellite", "Max snr: " + maxSnr);
+                                    // Log.i("Satellite", "Count > 30: " + countAbove30);
+                                    gpsMaxSignalNoiseRatio = maxSnr;
+                                    gpsCountAbove30Snr = countAbove30;
+                                }
+                            }
+                        }
+                    });
+                }
+                Looper.loop();
+            }
+        }.start();
     }
 
-    public void updateScores(AirspeckData currentSensorReadings) {
+    public void updateScores(AirspeckData currentSensorReadings, Context context) {
         // Before updating the scores, save the current combined score
         previousIndoorLikelihood = getIndoorLikelihood();
 
@@ -104,6 +153,12 @@ public class IndoorOutdoorPredictor {
             updateAvgSpeed(currentSensorReadings);
             updateVarPM25(currentSensorReadings);
         }
+        // GPS signal strength
+        if (gpsMaxSignalNoiseRatio <= 35 || gpsCountAbove30Snr < 3) {
+            gpsSignalStrengthScore = 1.0f;
+        } else {
+            gpsSignalStrengthScore = 0.0f;
+        }
 
         // GPS accuracy
         if (currentSensorReadings.getLocation().getAccuracy() > 20) {
@@ -113,15 +168,20 @@ public class IndoorOutdoorPredictor {
             // We are more likely indoor than outdoor. Add 60% of weight.
             gpsAccuracyScore = 0.6f;
         } else {
-            gpsAccuracyScore = 0.0f;
+            // We can still be indoors with a good accuracy when standing near window
+            gpsAccuracyScore = 0.2f;
         }
 
         // GPS speed
-        if (!Float.isNaN(avgSpeed) && avgSpeed > 5) {
-            gpsSpeedScore = 1.0f;
-        } else {
-            // If avg speed is nan or too low, we are indifferent
+        if (Float.isNaN(avgSpeed)) {
             gpsSpeedScore = 0.5f;
+        } else if (avgSpeed <= 3) {
+            gpsSpeedScore = 0.6f;
+        } else if (avgSpeed <= 5) {
+            // We are moving. Probably outdoor!
+            gpsSpeedScore = 0.3f;
+        } else {
+            gpsSpeedScore = 0.0f;
         }
 
         // GPS Google Places
@@ -138,51 +198,57 @@ public class IndoorOutdoorPredictor {
             if (isDayMeasuredBySunset()) {
                 if (currentSensorReadings.getLux() < 40) {
                     // It's day but not bright -> probably indoor
-                    luxLevelScore = 1.0f;
+                    luxLevelScore = 0.75f;
                 } else {
+                    // Brighter than 40 means most certainly sunlight
                     luxLevelScore = 0.0f;
                 }
             } else {
                 if (currentSensorReadings.getLux() > 5) {
                     // It's night but bright -> probably indoor
-                    luxLevelScore = 1.0f;
+                    luxLevelScore = 0.95f;
                 } else {
-                    luxLevelScore = 0.0f;
+                    // If it's dark, that can be either indoor (sleeping) or outdoor
+                    luxLevelScore = 0.5f;
                 }
             }
         } else {
+            // Indifferent, as we don't have sunset data to compare against
             luxLevelScore = 0.5f;
         }
 
         // Temperature
-        if (currentWeather != null) {
-            if (currentSensorReadings.getTemperature() >= 17 && currentSensorReadings.getTemperature() <= 23 &&
-                    (currentWeather.getTemperature() < 17 || currentWeather.getTemperature() > 23)) {
+        // When starting up, temperature and humidity are 0. Only humidity will never reach 0 with real values.
+        if (currentWeather != null && currentSensorReadings.getHumidity() != 0.0f) {
+            if (currentSensorReadings.getTemperature() >= 17 && currentSensorReadings.getTemperature() <= 24
+                    && (currentSensorReadings.getTemperature() - currentWeather.getTemperature() > 5)) {
                 // Sensor reports temperature in range 17-23°, but outside temperature is not in this range -> indoor!
                 temperatureScore = 1.0f;
-            } else if (currentSensorReadings.getTemperature() - currentWeather.getTemperature() > 5) {
-                // Temperature from sensor disagrees with outside temperature by more than 5 -> indoor!
-                temperatureScore = 1.0f;
             } else {
-                temperatureScore = 0.0f;
+                temperatureScore = 0.5f;
             }
         } else {
+            // Indifferent, as we don't have outside temperature data to compare against
             temperatureScore = 0.5f;
         }
 
         // Humidity
-        if (currentSensorReadings.getHumidity() - currentWeather.getHumidity() > 8) {
-            // Humidity reported by sensor is more than 8% apart from humidity reported by weather API
-            humidityScore = 1.0f;
+        if (currentWeather != null && currentSensorReadings.getHumidity() != 0.0f) {
+            if (currentSensorReadings.getHumidity() - currentWeather.getHumidity() > 8) {
+                // Humidity reported by sensor is more than 8% apart from humidity reported by weather API
+                humidityScore = 1.0f;
+            } else {
+                // We can't be sure
+                humidityScore = 0.5f;
+            }
         } else {
-            // We can't be sure
             humidityScore = 0.5f;
         }
 
         // PM 2.5
         Log.i("Predictor", "Variance PM 2.5: " + varPM25);
         if (!Float.isNaN(varPM25) && varPM25 < 15) {
-            pmScore = 1.0f;
+            pmScore = 0.8f;
         } else {
             pmScore = 0.5f;
         }
@@ -196,6 +262,7 @@ public class IndoorOutdoorPredictor {
         float combinedScore = 0;
 
         combinedScore += previousIndoorLikelihood * WEIGHT_PREVIOUS_LIKELIHOOD;
+        combinedScore += gpsSignalStrengthScore * WEIGHT_GPS_SIGNAL_STRENGTH;
         combinedScore += gpsAccuracyScore * WEIGHT_GPS_ACCURACY;
         combinedScore += gpsSpeedScore * WEIGHT_GPS_SPEED;
         combinedScore += gpsGooglePlacesScore * WEIGHT_GPS_PLACES;
@@ -210,7 +277,7 @@ public class IndoorOutdoorPredictor {
     private boolean isDayMeasuredBySunset() {
         long now = Utils.getUnixTimestamp() / 1000;
         // Are we currently between sunrise and sunset?
-        return (currentWeather.getSun().getSunrise() < now && now < currentWeather.getSun().getSunset());
+        return (currentWeather.getSunrise() < now && now < currentWeather.getSunset());
     }
 
     private void updateAvgSpeed(AirspeckData currentSensorReadings) {
@@ -303,34 +370,83 @@ public class IndoorOutdoorPredictor {
         placeResult.addOnCompleteListener(new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlaceLikelihoodBufferResponse> task) {
-                PlaceLikelihoodBufferResponse likelyPlaces = task.getResult();
-                currentPlaceLikelihood = likelyPlaces.iterator().next().getLikelihood();
+                if (task.isSuccessful()) {
 
-                /* Iterate through all likely places
-                for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                    Log.i("Places",
-                            String.format(Locale.UK, "Place '%s' has likelihood: %g",
-                                    placeLikelihood.getPlace().getPlaceTypes(),
-                                    placeLikelihood.getLikelihood()));
+                    PlaceLikelihoodBufferResponse likelyPlaces = task.getResult();
+                    PlaceLikelihood place = likelyPlaces.iterator().next();
+                    currentPlaceLikelihood = place.getLikelihood();
+                    currentPlaceIDs = place.getPlace().getPlaceTypes().toString();
 
-                }*/
-
-                likelyPlaces.release();
+                    likelyPlaces.release();
+                }
             }
         });
     }
 
     @Override
     public String toString() {
-        return String.format(Locale.UK, "Current indoor likelihood: %.1f\nPrevious indoor likelihood: " +
-                        "%.1f\nGPS Accuracy: %.1f\nGPS Speed: %.1f\nGoogle places: %.1f\nLux level: %.1f\nTemperature: " +
-                        "%.1f\nHumidity: %.1f\nPM 2.5: %.1f", getIndoorLikelihood(), getPreviousIndoorLikelihood(),
-                getGpsAccuracyScore(), getGpsSpeedScore(), getGpsGooglePlacesScore(), getLuxLevelScore(),
-                getTemperatureScore(), getHumidityScore(), getPmScore());
+        String out = "";
+        if (previousSensorReadings != null && currentWeather != null) {
+            out = String.format(Locale.UK, "Current indoor likelihood: %.1f\nPrevious indoor likelihood: " +
+                            "%.1f\nGPS signal strength: %.1f \n(max snr: %.1f, #>30: %d)\nGPS Accuracy: %.1f\nGPS Speed: " +
+                            "%.1f (%.1f)\nGoogle places: " +
+                            "%.1f\nLux level: %.1f (lux %d)\nTemperature: " +
+                            "%.1f (s: %.1f, a: %.1f)\nHumidity: %.1f (s: %.1f, a: %.1f) \nPM 2.5: %.1f (var %.1f)",
+                    getIndoorLikelihood(),
+                    getPreviousIndoorLikelihood(),
+                    getGpsSignalStrengthScore(), gpsMaxSignalNoiseRatio, gpsCountAbove30Snr,
+                    getGpsAccuracyScore(), getGpsSpeedScore(), avgSpeed, getGpsGooglePlacesScore(), getLuxLevelScore(),
+                    previousSensorReadings.getLux(), getTemperatureScore(), previousSensorReadings.getTemperature(),
+                    currentWeather.getTemperature(), getHumidityScore(), previousSensorReadings.getHumidity(),
+                    currentWeather.getHumidity(), getPmScore(), varPM25);
+        } else if (previousSensorReadings != null) {
+            out = String.format(Locale.UK, "Current indoor likelihood: %.1f\nPrevious indoor likelihood: " +
+                            "%.1f\nGPS signal strength: %.1f \n(max snr: %.1f, #>30: %d)\nGPS Accuracy: %.1f\nGPS Speed: " +
+                            "%.1f (%.1f)\nGoogle places: " +
+                            "%.1f\nLux level: %.1f (lux %d)\nTemperature: " +
+                            "%.1f (s: %.1f, a: %.1f)\nHumidity: %.1f (s: %.1f, a: %.1f) \nPM 2.5: %.1f (var %.1f)",
+                    getIndoorLikelihood(),
+                    getPreviousIndoorLikelihood(),
+                    getGpsSignalStrengthScore(), gpsMaxSignalNoiseRatio, gpsCountAbove30Snr,
+                    getGpsAccuracyScore(), getGpsSpeedScore(), avgSpeed, getGpsGooglePlacesScore(), getLuxLevelScore(),
+                    previousSensorReadings.getLux(), getTemperatureScore(), previousSensorReadings.getTemperature(),
+                    Float.NaN, getHumidityScore(), previousSensorReadings.getHumidity(),
+                    Float.NaN, getPmScore(), varPM25);
+        }
+        return out;
+    }
+
+    public String toFileString() {
+        if (previousSensorReadings != null && currentWeather != null) {
+            return String.format(Locale.UK, "%.1f;%d;%.1f;%.1f;%.2f;%s;%d;%d;%d;%.1f;%.1f;%.1f;%.1f;%.1f;%.2f",
+                    gpsMaxSignalNoiseRatio, gpsCountAbove30Snr, previousSensorReadings.getLocation().getAccuracy(),
+                    avgSpeed, currentPlaceLikelihood, currentPlaceIDs, previousSensorReadings.getLux(),
+                    currentWeather.getSunrise(), currentWeather.getSunset(), previousSensorReadings.getTemperature(),
+                    currentWeather.getTemperature(), previousSensorReadings.getHumidity(),
+                    currentWeather.getHumidity(), varPM25, getIndoorLikelihood());
+        } else if (previousSensorReadings != null) {
+            return String.format(Locale.UK, "%.1f;%d;%.1f;%.1f;%.2f;%s;%d;%s;%s;%.1f;%s;%.1f;%s;%.1f;%.2f",
+                    gpsMaxSignalNoiseRatio, gpsCountAbove30Snr, previousSensorReadings.getLocation().getAccuracy(),
+                    avgSpeed, currentPlaceLikelihood, currentPlaceIDs, previousSensorReadings.getLux(),
+                    "", "", previousSensorReadings.getTemperature(),
+                    "", previousSensorReadings.getHumidity(),
+                    "", varPM25, getIndoorLikelihood());
+        } else {
+            return String.format(Locale.UK, "%.1f;%d;%s;%.1f;%.2f;%s;%s;%d;%d;%s;%.1f;%s;%.1f;%.1f;%.2f",
+                    gpsMaxSignalNoiseRatio, gpsCountAbove30Snr, "",
+                    avgSpeed, currentPlaceLikelihood, currentPlaceIDs, "",
+                    currentWeather.getSunrise(), currentWeather.getSunset(), "",
+                    currentWeather.getTemperature(), "",
+                    currentWeather.getHumidity(), varPM25, getIndoorLikelihood());
+        }
     }
 
     public float getPreviousIndoorLikelihood() {
         return previousIndoorLikelihood;
+    }
+
+    public float getGpsSignalStrengthScore() {
+        return gpsSignalStrengthScore;
     }
 
     public float getGpsAccuracyScore() {

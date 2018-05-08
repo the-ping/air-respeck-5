@@ -233,6 +233,10 @@ public class Constants {
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 
+    public static final String INDOOR_PREDICTION_HEADER = "MaxSnr;CountSnr>30;GPSAccuracy;GPSSpeed;GooglePlaceMaxLikelihood;GooglePlaceID;LuxLevel;SunriseTime;" +
+            "SunsetTime;SensorTemperature;AmbientTemperature;SensorHumidity;AmbientHumidity;VariancePM2.5;" +
+            "PredictedIndoor;ActuallyIndoor";
+
     public static final String DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6," +
             "answer7,answer8,pef,fev1,fev6,fvc,fef2575";
 
@@ -293,4 +297,6 @@ public class Constants {
     public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
 
     public static final String INDOOR_PREDICTION_STRING = "IndoorPredictionString";
+    public static final String IS_INDOOR = "IsIndoor";
+    public static final String ACTION_IS_INDOOR_BROADCAST = "com.specknet.airrespeck.IS_INDOOR_BROADCAST";
 }

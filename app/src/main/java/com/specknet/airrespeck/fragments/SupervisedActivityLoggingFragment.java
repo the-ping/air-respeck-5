@@ -1,5 +1,6 @@
 package com.specknet.airrespeck.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -13,6 +14,8 @@ import android.widget.TableLayout;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.models.LocationData;
+import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 
 public class SupervisedActivityLoggingFragment extends BaseFragment {
@@ -83,12 +86,15 @@ public class SupervisedActivityLoggingFragment extends BaseFragment {
                     Toast.makeText(getActivity(), "Activity stored", Toast.LENGTH_SHORT).show();
                     FileLogger.logToFile(getActivity(), textInOut + ", " + transitText, "Activity");
 
+                    // Send broadcast
+                    Intent broadcastIntent = new Intent(Constants.ACTION_IS_INDOOR_BROADCAST);
+                    broadcastIntent.putExtra(Constants.IS_INDOOR, textInOut.equals("Indoor"));
+                    getActivity().sendBroadcast(broadcastIntent);
                 } else {
                     Toast.makeText(getActivity(), "Select either Indoor or Outdoor", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
 
         return view;
     }

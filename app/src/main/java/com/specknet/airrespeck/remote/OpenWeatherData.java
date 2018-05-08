@@ -27,8 +27,12 @@ public class OpenWeatherData {
         this.clouds = clouds;
     }
 
-    public Sun getSun() {
-        return sys;
+    public long getSunrise() {
+        return sys.getSunrise();
+    }
+
+    public long getSunset() {
+        return sys.getSunset();
     }
 
     public double getTemperature() {

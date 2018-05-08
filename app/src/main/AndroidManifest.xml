@@ -150,6 +150,9 @@
             <intent-filter>
                 <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.airrespeck.IS_INDOOR_BROADCAST"/>
+            </intent-filter>
         </service>
 
         <service
