@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
     private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
+    public final static int UPDATE_PULSEOX_READINGS = 9;
 
 
     /**
@@ -127,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
                         service.updateAirspeckConnection(true);
                         mAirspeckConnected = true;
                         mLastAirspeckNotificationTime = System.currentTimeMillis();
+                        break;
+                    case UPDATE_PULSEOX_READINGS:
+                        service.updatePulseoxReadings((PulseoxData) msg.obj);
+                        service.updatePulseoxConnection(true);
                         break;
                     case ACTIVITY_SUMMARY_UPDATE:
                         service.updateActivitySummary();
@@ -234,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mBroadcastReceiver;
     private boolean mIsRESpeckConnected;
     private boolean mIsAirspeckConnected;
+    private boolean mIsPulseoxConnected;
 
     // Variable to switch modes: subject mode or supervised mode
     private static final String SAVED_STATE_IS_SUPERVISED_MODE = "supervised_mode";
@@ -256,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
     private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
+    private Set<PulseoxDataObserver> pulseoxDataObservers = new HashSet<>();
 
     private AutoUpdateApk aua;
 
@@ -623,6 +630,8 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(context,
                                 "Pulseox: " + pd.toStringForFile(),
                                 Toast.LENGTH_LONG).show();
+                        sendMessageToHandler(UPDATE_PULSEOX_READINGS, pd);
+                        break;
                     case ACTION_BATTERY_LOW:
                         FileLogger.logToFile(MainActivity.this, "Battery level low");
                         break;
@@ -1072,6 +1081,20 @@ public class MainActivity extends AppCompatActivity {
         airspeckDataObservers.add(observer);
     }
 
+    private void updatePulseoxReadings(PulseoxData newValues) {
+        notifyNewPulseoxReading(newValues);
+    }
+
+    private void notifyNewPulseoxReading(PulseoxData newData) {
+        for (PulseoxDataObserver observer : pulseoxDataObservers) {
+            observer.updatePulseoxData(newData);
+        }
+    }
+
+    public void registerPulseoxDataObserver(PulseoxDataObserver observer) {
+        pulseoxDataObservers.add(observer);
+    }
+
 
     public void setWrongOrientationDialogDisplayed(boolean isDisplayed) {
         if (!isDisplayed) {
@@ -1103,6 +1126,14 @@ public class MainActivity extends AppCompatActivity {
         mIsAirspeckConnected = isConnected;
         if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
             mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
+        }
+        updateConnectionLoadingLayout();
+    }
+
+    private void updatePulseoxConnection(boolean isConnected) {
+        mIsPulseoxConnected = isConnected;
+        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
+            //mSubjectHomeFragment.updatePulseoxConnectionSymbol(isConnected);
         }
         updateConnectionLoadingLayout();
     }
