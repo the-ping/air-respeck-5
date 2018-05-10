@@ -40,11 +40,17 @@
     <string name="reading_avg_breathing_rate">Minute average breathing rate</string>
     <string name="readings_step_count">Step count in minute</string>
 
+    <string name="readings_pulseox_title">Pulseox readings</string>
+    <string name="reading_pulse">Pulse</string>
+    <string name="reading_spo2">SpO2</string>
+
     <!-- Reading unit -->
     <string name="reading_unit_bpm">BrPM</string>
     <string name="reading_unit_ug_m3" translatable="false">µg/m³</string>
     <string name="reading_unit_c" translatable="false">°C</string>
     <string name="reading_unit_percent" translatable="false">%</string>
+
+    <string name="reading_unit_beats_pm">BPM</string>
 
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
@@ -59,6 +65,7 @@
     <!-- Button/tabs menu -->
     <string name="menu_home">Overview</string>
     <string name="menu_air_quality">Air quality</string>
+    <string name="menu_pulseox">Pulseox</string>
     <string name="menu_aq_graphs">AQ Graphs</string>
     <string name="menu_activity_summary">Activity</string>
     <string name="menu_breathing_graph">Breathing</string>

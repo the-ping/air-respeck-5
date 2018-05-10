@@ -48,6 +48,7 @@ import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedStepCounterFragment;
 import com.specknet.airrespeck.models.AirspeckData;
@@ -192,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_ACTIVITY_LOGGING_FRAGMENT = "ACTIVITY_LOGGING_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
+    private static final String TAG_PULSEOX_FRAGMENT = "PULSEOX_FRAGMENT";
     private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
     private static final String TAG_STEPCOUNT_FRAGMENT = "STEPCOUNT_FRAGMENT";
 
@@ -203,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedActivityLoggingFragment mSupervisedActivityLoggingFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
+    private SupervisedPulseoxReadingsFragment mSupervisedPulseoxReadingsFragment;
     private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
     private SupervisedStepCounterFragment mSupervisedStepCounterFragment;
 
@@ -211,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mShowSupervisedAQGraphs;
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
+    private boolean mShowSupervisedPulseoxReadings;
     private boolean mShowSupervisedRESpeckReadings;
     private boolean mShowStepCount;
     private boolean mShowSupervisedAQMap;
@@ -709,6 +713,12 @@ public class MainActivity extends AppCompatActivity {
             mShowSupervisedAQMap = false;
         }
 
+        if (mIsPulseoxEnabled) {
+            mShowSupervisedPulseoxReadings = true;
+        } else {
+            mShowSupervisedPulseoxReadings = false;
+        }
+
         mShowStepCount = false;
         mShowSubjectHome = true;
         mShowSubjectWindmill = false;
@@ -745,6 +755,10 @@ public class MainActivity extends AppCompatActivity {
         if (mShowSupervisedAirspeckReadings) {
             supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
             supervisedTitles.add(getString(R.string.menu_air_quality));
+        }
+        if (mShowSupervisedPulseoxReadings) {
+            supervisedFragments.add(mSupervisedPulseoxReadingsFragment);
+            supervisedTitles.add(getString(R.string.menu_pulseox));
         }
         if (mShowSupervisedAQGraphs) {
             supervisedFragments.add(mSupervisedAirspeckGraphsFragment);
@@ -800,6 +814,8 @@ public class MainActivity extends AppCompatActivity {
                     TAG_ACTIVITY_SUMMARY_FRAGMENT);
             mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(mSavedInstanceState,
                     TAG_BREATHING_GRAPH_FRAGMENT);
+            mSupervisedPulseoxReadingsFragment = (SupervisedPulseoxReadingsFragment) fm.getFragment(mSavedInstanceState,
+                    TAG_PULSEOX_FRAGMENT);
             mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(
                     mSavedInstanceState,
                     TAG_AQ_MAP_FRAGMENT);
@@ -826,6 +842,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedRESpeckReadingsFragment == null) {
             mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
+        }
+        if (mSupervisedPulseoxReadingsFragment == null) {
+            mSupervisedPulseoxReadingsFragment = new SupervisedPulseoxReadingsFragment();
         }
         if (mSupervisedAirspeckMapLoaderFragment == null) {
             mSupervisedAirspeckMapLoaderFragment = new SupervisedAirspeckMapLoaderFragment();
@@ -956,6 +975,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedRESpeckReadingsFragment != null && mSupervisedRESpeckReadingsFragment.isAdded()) {
             fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mSupervisedRESpeckReadingsFragment);
+        }
+        if (mSupervisedPulseoxReadingsFragment != null && mSupervisedPulseoxReadingsFragment.isAdded()) {
+            fm.putFragment(outState, TAG_PULSEOX_FRAGMENT, mSupervisedPulseoxReadingsFragment);
         }
         if (mSubjectHomeFragment != null && mSubjectHomeFragment.isAdded()) {
             fm.putFragment(outState, TAG_SUBJECT_HOME_FRAGMENT, mSubjectHomeFragment);
@@ -1164,5 +1186,9 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean getIsAirspeckConnected() {
         return mIsAirspeckConnected;
+    }
+
+    public boolean getIsPulseoxConnected() {
+        return mIsPulseoxConnected;
     }
 }
