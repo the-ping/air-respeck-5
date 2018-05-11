@@ -717,7 +717,7 @@ public class MainActivity extends AppCompatActivity {
         // Check whether RESpeck and/or Airspeck have been paired
         mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
         mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
-        mIsPulseoxEnabled = true;
+        mIsPulseoxEnabled = false;
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;

@@ -208,7 +208,7 @@ public class SpeckBluetoothService extends Service {
         mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
 
         // Is Pulseox enabled?
-        mIsPulseoxEnabled = true;
+        mIsPulseoxEnabled = false;
 
         // Do we want to upload the data?
         mIsUploadData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
