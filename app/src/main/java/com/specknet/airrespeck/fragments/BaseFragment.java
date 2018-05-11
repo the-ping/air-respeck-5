@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -93,18 +94,28 @@ public class BaseFragment extends Fragment {
      * CONNECTING LAYOUT (for Bluetooth connection only)
      **********************************************************************************************/
     public void showConnecting(final boolean showAirspeckConnecting, final boolean showRESpeckConnecting, final boolean showPulseoxConnecting) {
+        int n = 0;
+        if (showAirspeckConnecting) n += 1;
+        if (showRESpeckConnecting) n += 1;
+        if (showPulseoxConnecting) n += 1;
+
+        Log.d("RAT", new Integer(n).toString() + ": " + showAirspeckConnecting + "," + showRESpeckConnecting + ", " + showPulseoxConnecting);
+
         if (isAdded() && mConnectingLayout != null && mTextConnectionLayout != null) {
-            if (showAirspeckConnecting && showRESpeckConnecting) {
-                mTextConnectionLayout.setText(getString(R.string.connection_text_both_devices));
-                mConnectingLayout.setVisibility(View.VISIBLE);
-            } else if (showAirspeckConnecting) {
+            if (n == 0) {
+                mConnectingLayout.setVisibility(View.INVISIBLE);
+            } else if (showAirspeckConnecting && n == 1) {
                 mTextConnectionLayout.setText(getString(R.string.connection_text_airspeck_only));
                 mConnectingLayout.setVisibility(View.VISIBLE);
-            } else if (showRESpeckConnecting) {
+            } else if (showRESpeckConnecting && n == 1) {
                 mTextConnectionLayout.setText(getString(R.string.connection_text_respeck_only));
                 mConnectingLayout.setVisibility(View.VISIBLE);
+            } else if (showPulseoxConnecting && n == 1) {
+                mTextConnectionLayout.setText(getString(R.string.connection_text_pulseox_only));
+                mConnectingLayout.setVisibility(View.VISIBLE);
             } else {
-                mConnectingLayout.setVisibility(View.INVISIBLE);
+                mTextConnectionLayout.setText(getString(R.string.connection_text_both_devices));
+                mConnectingLayout.setVisibility(View.VISIBLE);
             }
         }
     }

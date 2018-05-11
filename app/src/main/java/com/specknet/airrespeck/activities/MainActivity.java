@@ -94,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int ACTIVITY_SUMMARY_UPDATE = 7;
     private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
     public final static int UPDATE_PULSEOX_READINGS = 9;
+    public final static int SHOW_PULSEOX_CONNECTED = 10;
+    public final static int SHOW_PULSEOX_DISCONNECTED = 11;
 
 
     /**
@@ -154,6 +156,18 @@ public class MainActivity extends AppCompatActivity {
                     case SHOW_AIRSPECK_DISCONNECTED:
                         service.updateAirspeckConnection(false);
                         mAirspeckConnected = false;
+                        break;
+                    case SHOW_PULSEOX_CONNECTED:
+                        String messagePulse = "Pulseox "
+                                + msg.obj + " "
+                                + service.getString(R.string.device_found)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".";
+                        service.updatePulseoxConnection(true);
+                        service.showSnackbarFromHandler(messagePulse);
+                        break;
+                    case SHOW_PULSEOX_DISCONNECTED:
+                        service.updatePulseoxConnection(false);
                         break;
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = "RESpeck "
@@ -424,8 +438,10 @@ public class MainActivity extends AppCompatActivity {
         if (mSavedInstanceState != null) {
             mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
             mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
+            mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
             updateRESpeckConnection(mIsRESpeckConnected);
             updateAirspeckConnection(mIsAirspeckConnected);
+            updatePulseoxConnection(mIsPulseoxConnected);
         }
 
         // Add the toolbar
@@ -631,10 +647,17 @@ public class MainActivity extends AppCompatActivity {
                     case Constants.ACTION_PULSEOX_BROADCAST:
                         PulseoxData pd = (PulseoxData)intent.getSerializableExtra(Constants.PULSEOX_DATA);
                         pd.toStringForFile();
-                        Toast.makeText(context,
-                                "Pulseox: " + pd.toStringForFile(),
-                                Toast.LENGTH_LONG).show();
+                        //Toast.makeText(context,
+                        //        "Pulseox: " + pd.toStringForFile(),
+                        //        Toast.LENGTH_LONG).show();
                         sendMessageToHandler(UPDATE_PULSEOX_READINGS, pd);
+                        break;
+                    case Constants.ACTION_PULSEOX_CONNECTED:
+                        String pulseoxUUID = "00:1C:05:FF:F0:0F";
+                        sendMessageToHandler(SHOW_PULSEOX_CONNECTED, pulseoxUUID);
+                        break;
+                    case Constants.ACTION_PULSEOX_DISCONNECTED:
+                        sendMessageToHandler(SHOW_PULSEOX_DISCONNECTED, null);
                         break;
                     case ACTION_BATTERY_LOW:
                         FileLogger.logToFile(MainActivity.this, "Battery level low");
@@ -671,6 +694,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mIsPulseoxEnabled) {
             registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.ACTION_PULSEOX_BROADCAST));
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
+                    Constants.ACTION_PULSEOX_CONNECTED));
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
+                    Constants.ACTION_PULSEOX_DISCONNECTED));
         }
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_LOW));
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_OKAY));
@@ -1055,6 +1082,7 @@ public class MainActivity extends AppCompatActivity {
             mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
             mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
             mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
+            mSupervisedPulseoxReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
         }
     }
 

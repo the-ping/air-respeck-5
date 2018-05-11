@@ -214,6 +214,7 @@
     <string name="connection_text_both_devices">Connecting to devices</string>
     <string name="connection_text_respeck_only">Connecting to RESpeck</string>
     <string name="connection_text_airspeck_only">Connecting to Airspeck</string>
+    <string name="connection_text_pulseox_only">Connecting to Pulseox</string>
 
     <!-- Strings related to foreground bluetooth service -->
 

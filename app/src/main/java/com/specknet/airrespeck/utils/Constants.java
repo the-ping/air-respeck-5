@@ -305,4 +305,5 @@ public class Constants {
 
     public static final String IS_RESPECK_CONNECTED = "IsRespeckConnected";
     public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
+    public static final String IS_PULSEOX_CONNECTED = "IsPulseoxConnected";
 }
