@@ -1048,11 +1048,13 @@ public class MainActivity extends AppCompatActivity {
     public void updateConnectionLoadingLayout() {
         boolean showAirspeckConnecting = mIsAirspeckEnabled && !mIsAirspeckConnected;
         boolean showRESpeckConnecting = mIsRESpeckEnabled && !mIsRESpeckConnected;
+        boolean showPulseoxConnecting = mIsPulseoxEnabled && !mIsPulseoxConnected;
+
 
         if (mIsSupervisedModeCurrentlyShown) {
-            mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
-            mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
-            mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting);
+            mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
+            mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
+            mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
         }
     }
 
