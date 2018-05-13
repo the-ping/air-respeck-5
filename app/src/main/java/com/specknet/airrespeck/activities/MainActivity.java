@@ -717,7 +717,7 @@ public class MainActivity extends AppCompatActivity {
         // Check whether RESpeck and/or Airspeck have been paired
         mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
         mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
-        mIsPulseoxEnabled = false;
+        mIsPulseoxEnabled = !mLoadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty();
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;
@@ -1022,6 +1022,7 @@ public class MainActivity extends AppCompatActivity {
         // Save connection state
         outState.putBoolean(Constants.IS_RESPECK_CONNECTED, mIsRESpeckConnected);
         outState.putBoolean(Constants.IS_AIRSPECK_CONNECTED, mIsAirspeckConnected);
+        outState.putBoolean(Constants.IS_PULSEOX_CONNECTED, mIsPulseoxConnected);
     }
 
     @Override

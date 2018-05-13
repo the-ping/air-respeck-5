@@ -62,11 +62,12 @@ public class SpeckBluetoothService extends Service {
     // The UUIDs will be loaded from Config
     private static String RESPECK_UUID;
     private static String AIRSPECK_UUID;
+    private static String PULSEOX_UUID;
 
     // The BLE addresses will be used to connect
     private static String RESPECK_BLE_ADDRESS;
     private static String AIRSPECK_BLE_ADDRESS;
-    private static String PULSEOX_BLE_ADDRESS = "00:1C:05:FF:F0:0F";
+    private static String PULSEOX_BLE_ADDRESS;
 
     // Classes to handle received packets
     private RESpeckPacketHandler respeckHandler;
@@ -208,7 +209,7 @@ public class SpeckBluetoothService extends Service {
         mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
 
         // Is Pulseox enabled?
-        mIsPulseoxEnabled = false;
+        mIsPulseoxEnabled = !loadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty();
 
         // Do we want to upload the data?
         mIsUploadData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
@@ -216,6 +217,7 @@ public class SpeckBluetoothService extends Service {
         // Get Bluetooth address
         AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
         RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
+        PULSEOX_UUID = loadedConfig.get(Constants.Config.PULSEOX_UUID);
     }
 
     /**
@@ -309,7 +311,8 @@ public class SpeckBluetoothService extends Service {
                                     }
                                 }
                                 if (mIsPulseoxEnabled && !mIsPulseoxFound) {
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(PULSEOX_BLE_ADDRESS)) {
+                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(PULSEOX_UUID)) {
+                                        PULSEOX_BLE_ADDRESS = PULSEOX_UUID; // use BLE address for UUID
                                         mIsPulseoxFound = true;
                                         Log.i("SpeckService", "Pulseox: Connecting after scanning");
                                         SpeckBluetoothService.this.connectToPulseox();
