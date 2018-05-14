@@ -110,7 +110,7 @@ public class PulseoxPacketHandler {
         String filenamePulseox = Utils.getInstance().getDataDirectory(
                 mSpeckService) + Constants.PULSEOX_DATA_DIRECTORY_NAME + "Pulseox " +
                 subjectID + " " + androidID + " " + pulseoxUUID.replace(":", "")  +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
+                " " + new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
                 ".csv";
 
         // If we are in a new day, create a new file if necessary
