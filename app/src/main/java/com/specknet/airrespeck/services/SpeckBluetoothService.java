@@ -380,7 +380,7 @@ public class SpeckBluetoothService extends Service {
                             public void call(Throwable throwable) {
                                 // An error with autoConnect means that we are disconnected
                                 Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck disconnected");
+                                FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck disconnected: " + throwable.toString());
 
                                 Intent airspeckDisconnectedIntent = new Intent(
                                         Constants.ACTION_AIRSPECK_DISCONNECTED);
@@ -392,7 +392,7 @@ public class SpeckBluetoothService extends Service {
                                     public void run() {
                                         establishAirspeckConnection();
                                     }
-                                }, 2000);
+                                }, 10000);
                             }
                         }
                 );
@@ -528,7 +528,7 @@ public class SpeckBluetoothService extends Service {
                                             public void run() {
                                                 establishRESpeckConnection();
                                             }
-                                        }, 2000);
+                                        }, 10000);
                                     } else if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTING) {
                                         // This means we tried to reconnect, but there was a timeout. In this case we
                                         // wait for x seconds before reconnecting
@@ -554,6 +554,7 @@ public class SpeckBluetoothService extends Service {
                                 Log.e("SpeckService",
                                         "Error occured while listening to RESpeck connection state changes: " +
                                                 throwable.getMessage());
+                                FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck connecting state: " + throwable.toString());
                             }
                         }
                 );
@@ -601,6 +602,7 @@ public class SpeckBluetoothService extends Service {
                             @Override
                             public void call(Throwable throwable) {
                                 Log.e("SpeckService", "RESpeck bluetooth error: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck data handling error: " + throwable.toString());
                             }
                         }
                 );
