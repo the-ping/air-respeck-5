@@ -353,7 +353,7 @@ public class AirspeckPacketHandler {
                     if (mIsEncryptData) {
                         mAirspeckWriter.append("Encrypted").append("\n");
                     }
-                    mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER).append("\n");
+                    mAirspeckWriter.append(Constants.AIRSPECK_DATA_HEADER + "\n");
                     mAirspeckWriter.flush();
                 } else {
                     // Open new connection to new file
@@ -372,9 +372,9 @@ public class AirspeckPacketHandler {
         try {
             // Write Airspeck data together with subjectID. If encryption is enabled, encrypt line
             if (mIsEncryptData) {
-                mAirspeckWriter.append(Utils.encrypt(airspeckData.toStringForFile(), mSpeckService)).append("\n");
+                mAirspeckWriter.append(Utils.encrypt(airspeckData.toStringForFile(), mSpeckService) + "\n");
             } else {
-                mAirspeckWriter.append(airspeckData.toStringForFile()).append("\n");
+                mAirspeckWriter.append(airspeckData.toStringForFile() + "\n");
             }
             mAirspeckWriter.flush();
         } catch (IOException e) {
@@ -401,7 +401,7 @@ public class AirspeckPacketHandler {
                 // Open new connection to new file
                 mPredictionWriter = new OutputStreamWriter(
                         new FileOutputStream(filenamePrediction, true));
-                mPredictionWriter.append(Constants.INDOOR_PREDICTION_HEADER).append("\n");
+                mPredictionWriter.append(Constants.INDOOR_PREDICTION_HEADER + "\n");
                 mPredictionWriter.flush();
 
             } catch (IOException e) {
@@ -420,8 +420,7 @@ public class AirspeckPacketHandler {
 
         // Write new line to file
         try {
-            mPredictionWriter.append(indoorOutdoorPredictor.toFileString()).append(";").append(
-                    isActuallyIndoor).append("\n");
+            mPredictionWriter.append(indoorOutdoorPredictor.toFileString() + ";" + isActuallyIndoor + "\n");
             mPredictionWriter.flush();
         } catch (IOException e) {
             Log.e("AirspeckPacketHandler", "Error while writing to indoor prediction file: " +
