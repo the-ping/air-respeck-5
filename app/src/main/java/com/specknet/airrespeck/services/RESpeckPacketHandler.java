@@ -454,7 +454,7 @@ public class RESpeckPacketHandler {
                     mRespeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameRESpeck, true));
 
-                    mRespeckWriter.append(Constants.RESPECK_DATA_HEADER).append("\n");
+                    mRespeckWriter.append(Constants.RESPECK_DATA_HEADER + "\n");
                 } else {
                     Log.i("RESpeckPacketHandler", "Open existing RESpeck file");
                     mRespeckWriter = new OutputStreamWriter(
@@ -467,8 +467,9 @@ public class RESpeckPacketHandler {
         mDateOfLastRESpeckWrite = now;
 
         try {
-            // Write new line to file
-            mRespeckWriter.append(data.toStringForFile()).append("\n");
+            // Write new line to file. If concatenation is split up with append, the second part might not be written,
+            // meaning that there will be a line without a line break in the file.
+            mRespeckWriter.append(data.toStringForFile() + "\n");
             mRespeckWriter.flush();
 
         } catch (IOException e) {

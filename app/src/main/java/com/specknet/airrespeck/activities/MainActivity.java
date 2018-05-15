@@ -1,6 +1,7 @@
 package com.specknet.airrespeck.activities;
 
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
@@ -11,6 +12,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
 import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -44,6 +47,7 @@ import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SubjectValuesFragment;
 import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
+import com.specknet.airrespeck.fragments.SupervisedActivityPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
@@ -187,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
                             long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
                             //service.showSnackbarFromHandler(Long.toString(t));
                             if (t > 15 * 1000) {
-                                service.showSnackbarFromHandler("Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
+                                service.showSnackbarFromHandler(
+                                        "Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
                             }
                         }
                         break;
@@ -206,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG_SUBJECT_WINDMILL_FRAGMENT = "SUBJECT_WINDMILL_FRAGMENT";
     private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
     private static final String TAG_ACTIVITY_LOGGING_FRAGMENT = "ACTIVITY_LOGGING_FRAGMENT";
+    private static final String TAG_ACTIVITY_PREDICTION_FRAGMENT = "ACTIVITY_PREDICTION_FRAGMENT";
     private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
     private static final String TAG_PULSEOX_FRAGMENT = "PULSEOX_FRAGMENT";
     private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
@@ -218,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
     private SupervisedAirspeckGraphsFragment mSupervisedAirspeckGraphsFragment;
     private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
     private SupervisedActivityLoggingFragment mSupervisedActivityLoggingFragment;
+    private SupervisedActivityPredictionFragment mSupervisedActivityPredictionFragment;
     private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
     private SupervisedPulseoxReadingsFragment mSupervisedPulseoxReadingsFragment;
     private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
@@ -377,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
         initMainActivity();
     }
 
+    @SuppressLint("MissingPermission")
     public void initMainActivity() {
         mIsActivityInitialised = true;
         FileLogger.logToFile(this, "App started and initialised");
@@ -799,11 +807,15 @@ public class MainActivity extends AppCompatActivity {
             supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
             supervisedTitles.add(getString(R.string.menu_aq_map));
         }
-        if (mIsAirspeckEnabled && mIsRESpeckEnabled) {
-            // Only if we have data from both sensors does activity logging make sense as we need all data to make any
-            // judgement about indoor/outdoor
-            supervisedFragments.add(mSupervisedActivityLoggingFragment);
-            supervisedTitles.add(getString(R.string.menu_act_logging));
+        //if (mIsAirspeckEnabled && mIsRESpeckEnabled) {
+        // Only if we have data from both sensors does activity logging make sense as we need all data to make any
+        // judgement about indoor/outdoor
+        supervisedFragments.add(mSupervisedActivityLoggingFragment);
+        supervisedTitles.add(getString(R.string.menu_act_logging));
+        //}
+        if (mIsAirspeckEnabled) {
+            supervisedFragments.add(mSupervisedActivityPredictionFragment);
+            supervisedTitles.add(getString(R.string.menu_act_prediction));
         }
 
         // Setup subject mode arrays
@@ -846,6 +858,8 @@ public class MainActivity extends AppCompatActivity {
             mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(
                     mSavedInstanceState,
                     TAG_AQ_MAP_FRAGMENT);
+            mSupervisedActivityPredictionFragment = (SupervisedActivityPredictionFragment) fm.getFragment(
+                    mSavedInstanceState, TAG_ACTIVITY_PREDICTION_FRAGMENT);
             mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(mSavedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
             mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(mSavedInstanceState,
                     TAG_SUBJECT_VALUES_FRAGMENT);
@@ -890,6 +904,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedActivityLoggingFragment == null) {
             mSupervisedActivityLoggingFragment = new SupervisedActivityLoggingFragment();
+        }
+        if (mSupervisedActivityPredictionFragment == null) {
+            mSupervisedActivityPredictionFragment = new SupervisedActivityPredictionFragment();
         }
     }
 
@@ -1017,6 +1034,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mSupervisedActivityLoggingFragment != null && mSupervisedActivityLoggingFragment.isAdded()) {
             fm.putFragment(outState, TAG_ACTIVITY_LOGGING_FRAGMENT, mSupervisedActivityLoggingFragment);
+        }
+        if (mSupervisedActivityPredictionFragment != null && mSupervisedActivityPredictionFragment.isAdded()) {
+            fm.putFragment(outState, TAG_ACTIVITY_PREDICTION_FRAGMENT, mSupervisedActivityPredictionFragment);
         }
 
         // Save connection state

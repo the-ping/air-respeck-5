@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 
@@ -259,6 +260,15 @@ public final class Utils {
             sum += val;
         }
         return sum;
+    }
+
+    public static float variance(Float[] a) {
+        float mean = mean(a);
+        float temp = 0;
+        for (float f : a) {
+            temp += (f - mean) * (f - mean);
+        }
+        return temp / (a.length - 1);
     }
 
     public static float mean(int[] a) {
@@ -544,9 +554,10 @@ public final class Utils {
     }
 
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
+        for (int j = 0; j < bytes.length; j++) {
             int v = bytes[j] & 0xFF;
             hexChars[j * 2] = hexArray[v >>> 4];
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];

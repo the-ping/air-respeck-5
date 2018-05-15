@@ -104,6 +104,7 @@ public class Constants {
             "com.specknet.airspeck.PULSEOX_BROADCAST";
     
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
+    public static final String ACTION_INDOOR_PREDICTION_BROADCAST = "com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST";
 
     /**
      * Readings
@@ -243,6 +244,10 @@ public class Constants {
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 
+    public static final String INDOOR_PREDICTION_HEADER = "MaxSnr;CountSnr>30;GPSAccuracy;GPSSpeed;GooglePlaceMaxLikelihood;GooglePlaceID;LuxLevel;SunriseTime;" +
+            "SunsetTime;SensorTemperature;AmbientTemperature;SensorHumidity;AmbientHumidity;VariancePM2.5;" +
+            "PredictedIndoor;ActuallyIndoor";
+
     public static final String DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6," +
             "answer7,answer8,pef,fev1,fev6,fvc,fef2575";
 
@@ -306,4 +311,8 @@ public class Constants {
     public static final String IS_RESPECK_CONNECTED = "IsRespeckConnected";
     public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
     public static final String IS_PULSEOX_CONNECTED = "IsPulseoxConnected";
+
+    public static final String INDOOR_PREDICTION_STRING = "IndoorPredictionString";
+    public static final String IS_INDOOR = "IsIndoor";
+    public static final String ACTION_IS_INDOOR_BROADCAST = "com.specknet.airrespeck.IS_INDOOR_BROADCAST";
 }
