@@ -134,25 +134,29 @@ public class RESpeckPacketHandler {
                 long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
                 // Convert the timestamp of the RESpeck to correspond to milliseconds
                 long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
+
                 if (newRESpeckTimestamp == mRESpeckTimestampCurrentPacketReceived) {
                     Log.e("RESpeckPacketHandler", "RESpeck: duplicate live timestamp received");
                     return;
                 }
-                long lastRESpeckTimestamp = mRESpeckTimestampCurrentPacketReceived;
                 mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
 
                 // Log.i("RESpeckPacketHandler", "respeck ts: " + newRESpeckTimestamp);
-                // Log.i("RESpeckPacketHandler", "respeck ts diff: " + (newRESpeckTimestamp - lastRESpeckTimestamp));
 
                 // Independent of the RESpeck timestamp, we use the phone timestamp
                 long actualPhoneTimestamp = Utils.getUnixTimestamp();
 
-                if (mPhoneTimestampCurrentPacketReceived == -1) {
-                    // If this is our first sequence, we use the typical time difference between the
-                    // RESpeck packets for determining the previous timestamp
+                // If this is our first sequence, or the last sequence was more than 2.5 times the average time
+                // difference in the past, we use the typical time difference between the RESpeck packets for
+                // determining the previous timestamp. This only affects the minute calculations. The breathing rate
+                // is calculated based on only the sampling rate.
+                if (mPhoneTimestampCurrentPacketReceived == -1 ||
+                        mPhoneTimestampCurrentPacketReceived + 2.5 * Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS <
+                                actualPhoneTimestamp) {
                     mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
                             Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
                 } else {
+                    // Store the previously used phone timestamp as previous timestamp
                     mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
                 }
 
