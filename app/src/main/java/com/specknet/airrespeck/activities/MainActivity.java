@@ -474,9 +474,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startPhoneGPSService() {
-        // Start the service which will regularly check GPS and store the data
-        Intent startGPSServiceIntent = new Intent(this, PhoneGPSService.class);
-        startService(startGPSServiceIntent);
+        // Start the service (if it's not already running) which will regularly check GPS and store the data
+        if (!Utils.isServiceRunning(PhoneGPSService.class, this)) {
+            Intent startGPSServiceIntent = new Intent(this, PhoneGPSService.class);
+            startService(startGPSServiceIntent);
+        }
     }
 
     public void onRequestPermissionsResult(int requestCode,
