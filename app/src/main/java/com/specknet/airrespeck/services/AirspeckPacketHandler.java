@@ -420,7 +420,8 @@ public class AirspeckPacketHandler {
 
         // Write new line to file
         try {
-            mPredictionWriter.append(indoorOutdoorPredictor.toFileString() + ";" + isActuallyIndoor + "\n");
+            mPredictionWriter.append(
+                    Utils.getUnixTimestamp() + ";" + indoorOutdoorPredictor.toFileString() + ";" + isActuallyIndoor + "\n");
             mPredictionWriter.flush();
         } catch (IOException e) {
             Log.e("AirspeckPacketHandler", "Error while writing to indoor prediction file: " +
