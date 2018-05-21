@@ -244,7 +244,7 @@ public class Constants {
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 
-    public static final String INDOOR_PREDICTION_HEADER = "MaxSnr;CountSnr>30;GPSAccuracy;GPSSpeed;GooglePlaceMaxLikelihood;GooglePlaceID;LuxLevel;SunriseTime;" +
+    public static final String INDOOR_PREDICTION_HEADER = "Timestamp;MaxSnr;CountSnr>30;GPSAccuracy;GPSSpeed;GooglePlaceMaxLikelihood;GooglePlaceID;LuxLevel;SunriseTime;" +
             "SunsetTime;SensorTemperature;AmbientTemperature;SensorHumidity;AmbientHumidity;VariancePM2.5;" +
             "PredictedIndoor;ActuallyIndoor";
 
