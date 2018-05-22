@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -33,8 +34,15 @@ public class FileLogger {
     public static void logToFile(Context context, String log, String filenameDescriptor) {
         Date now = new Date(Utils.getUnixTimestamp());
 
+        Map<String, String> config = Utils.getInstance().getConfig(context);
+        String subjectID = config.get(Constants.Config.SUBJECT_ID);
+
+
         String filename = Utils.getInstance().getDataDirectory(context) + Constants.LOGGING_DIRECTORY_NAME +
-                filenameDescriptor + " " + new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) + ".csv";
+                filenameDescriptor + " " + subjectID + " " +
+                new SimpleDateFormat(" yyyy-MM-dd", Locale.UK).format(new Date()) +
+                ".csv";
+
         try {
             if (!new File(filename).exists()) {
                 outputWriter = new OutputStreamWriter(

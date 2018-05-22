@@ -386,7 +386,7 @@ public class AirspeckPacketHandler {
         String filenamePrediction = Utils.getInstance().getDataDirectory(
                 mSpeckService) + Constants.LOGGING_DIRECTORY_NAME + "IndoorPrediction " +
                 subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
+                new SimpleDateFormat(" yyyy-MM-dd", Locale.UK).format(new Date()) +
                 ".csv";
 
         // If file doesn't exist, create a new one and add header
