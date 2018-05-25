@@ -290,4 +290,11 @@ public class SupervisedAirspeckGraphsFragment extends ConnectionOverlayFragment 
         mPMsLineChart.notifyDataSetChanged();
         mPMsLineChart.invalidate();
     }
+
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterAirspeckDataObserver(this);
+        super.onDestroy();
+    }
 }

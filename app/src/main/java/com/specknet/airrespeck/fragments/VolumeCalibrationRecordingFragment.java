@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +18,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.fragments.ConnectionOverlayFragment;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -61,7 +59,7 @@ public class VolumeCalibrationRecordingFragment extends ConnectionOverlayFragmen
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_volume_calibration_recording, container, false);
+        View view = inflater.inflate(R.layout.fragment_volume_calibration_recording, container, false);
 
         // Setup spinners
         final Spinner activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
@@ -82,7 +80,7 @@ public class VolumeCalibrationRecordingFragment extends ConnectionOverlayFragmen
         bagSizeSpinner.setAdapter(bagSizeAdapter);
 
         // Load buttons
-        mStartStopButton = (Button) getActivity().findViewById(R.id.record_button);
+        mStartStopButton = (Button) view.findViewById(R.id.record_button);
         mStartStopButton.setBackgroundColor(
                 ContextCompat.getColor(getActivity(), R.color.md_grey_300));
         mCancelButton = (Button) view.findViewById(R.id.cancel_button);

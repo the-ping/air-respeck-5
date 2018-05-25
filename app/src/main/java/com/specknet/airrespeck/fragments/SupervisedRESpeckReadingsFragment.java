@@ -99,4 +99,10 @@ public class SupervisedRESpeckReadingsFragment extends ConnectionOverlayFragment
         super.onDetach();
     }
 
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterRESpeckDataObserver(this);
+        super.onDestroy();
+    }
 }

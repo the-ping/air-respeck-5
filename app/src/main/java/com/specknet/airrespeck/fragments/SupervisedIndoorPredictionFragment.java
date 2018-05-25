@@ -17,7 +17,7 @@ import com.specknet.airrespeck.utils.Constants;
 public class SupervisedIndoorPredictionFragment extends ConnectionOverlayFragment {
 
     private TextView indoorLikelihoodText;
-
+    private BroadcastReceiver predictionReceiver;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +30,7 @@ public class SupervisedIndoorPredictionFragment extends ConnectionOverlayFragmen
 
         indoorLikelihoodText = (TextView) view.findViewById(R.id.indoor_likelihood);
 
-        BroadcastReceiver predictionReceiver = new BroadcastReceiver() {
+        predictionReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 indoorLikelihoodText.setText(intent.getStringExtra(Constants.INDOOR_PREDICTION_STRING));
@@ -40,5 +40,11 @@ public class SupervisedIndoorPredictionFragment extends ConnectionOverlayFragmen
                 new IntentFilter(Constants.ACTION_INDOOR_PREDICTION_BROADCAST));
 
         return view;
+    }
+
+    @Override
+    public void onDestroy() {
+        getActivity().unregisterReceiver(predictionReceiver);
+        super.onDestroy();
     }
 }

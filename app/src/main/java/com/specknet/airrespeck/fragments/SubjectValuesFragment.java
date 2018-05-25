@@ -88,4 +88,12 @@ public class SubjectValuesFragment extends Fragment implements RESpeckDataObserv
         pm2_5Text.setText(String.format(Locale.UK, "PM 2.5: %.2f μg/m³", data.getPm2_5()));
         pm10Text.setText(String.format(Locale.UK, "PM 10: %.2f μg/m³", data.getPm10()));
     }
+
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterRESpeckDataObserver(this);
+        ((MainActivity) getActivity()).unregisterAirspeckDataObserver(this);
+        super.onDestroy();
+    }
 }

@@ -17,7 +17,7 @@ import java.io.File;
 public class Constants {
 
 
-    public static final String[] passwordsSupervisedMode = new String[] {"daphnedelhi", "supmodepass"};
+    public static final String[] passwordsSupervisedMode = new String[]{"daphnedelhi", "supmodepass"};
 
     /**
      * Preferences
@@ -102,7 +102,7 @@ public class Constants {
             "com.specknet.airspeck.PULSEOX_DISCONNECTED";
     public static final String ACTION_PULSEOX_BROADCAST =
             "com.specknet.airspeck.PULSEOX_BROADCAST";
-    
+
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
     public static final String ACTION_INDOOR_PREDICTION_BROADCAST = "com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST";
 
@@ -211,7 +211,7 @@ public class Constants {
     // sampling frequency were exactly 12.5, this would be 32/12.5*1000 = 2560. However, on a recording of 14 hours,
     // the average time difference was closer to 2563.
     public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS = 2563;
-            // (int) Math.round(NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
+    // (int) Math.round(NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
 
     public static final int MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP = 400;
 
@@ -250,6 +250,8 @@ public class Constants {
 
     public static final String DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6," +
             "answer7,answer8,pef,fev1,fev6,fvc,fef2575";
+
+    public static final String ACTIVITY_RECORDING_HEADER = "subjectName,timestamp,x,y,z,breathingSignal,loggedActivity,activityLevel,activityType";
 
     // Air quality display on map
     public static final int PM2_5_EUROPEAN_YEARLY_AVERAGE_MAX = 25;

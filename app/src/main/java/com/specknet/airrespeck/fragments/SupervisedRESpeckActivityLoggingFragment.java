@@ -18,6 +18,8 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -34,13 +36,11 @@ import java.util.Locale;
  * Activity for recording volume data with zipper bags and sealing rings.
  */
 
-public class ActivityRecordingFragment extends ConnectionOverlayFragment {
+public class SupervisedRESpeckActivityLoggingFragment extends ConnectionOverlayFragment implements RESpeckDataObserver {
 
     private OutputStreamWriter mWriter;
-    private BroadcastReceiver mSpeckServiceReceiver;
 
     private boolean mIsRecording;
-    private String mBagSize;
     private String mActivity;
     private String mSubjectName;
 
@@ -49,38 +49,36 @@ public class ActivityRecordingFragment extends ConnectionOverlayFragment {
 
     private StringBuilder outputData;
 
-    private final String SITTING_STRAIGHT = "Sitting straight"; // normal straight sitting
-    private final String SITTING_FORWARD = "Sitting forward";
-    private final String SITTING_BACKWARD = "Sitting backward";
+    private final String BUS = "Driving on a bus";
+    private final String BIKE = "Driving bicycle";
+    private final String WALKING = "Walking (without stops)";
+    private final String SITTING_STRAIGHT = "Sitting straight";
+    private final String SITTING_FORWARD = "Sitting bent forward";
+    private final String SITTING_BACKWARD = "Sitting bent backward";
     private final String STANDING = "Standing";
-    private final String LYING_NORMAL = "Lying down normal"; // normal lying
-    private final String LYING_RIGHT = "Lying down right";
-    private final String LYING_LEFT = "Lying down left";
+    private final String LYING_NORMAL = "Lying down normal";
+    private final String LYING_RIGHT = "Lying down to the right";
+    private final String LYING_LEFT = "Lying down to the left";
+
+    private final String LOG_TAG = "RESpeckActivityLogging";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_volume_calibration_recording, container, false);
-
-        // Setup spinners
-        final Spinner activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
-        final Spinner bagSizeSpinner = (Spinner) view.findViewById(R.id.bag_size_spinner);
+        View view = inflater.inflate(R.layout.fragment_activity_logging_respeck, container, false);
 
         final EditText nameTextField = (EditText) view.findViewById(R.id.name_text_field);
 
-        //String[] activitySpinnerElements = new String[]{SITTING_STRAIGHT, STANDING, LYING_NORMAL};
-        String[] activitySpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD, SITTING_BACKWARD, STANDING,
-                LYING_NORMAL, LYING_RIGHT, LYING_LEFT};
+        // Setup spinner
+        final Spinner activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
+
+        String[] activitySpinnerElements = new String[]{BUS, BIKE, WALKING, SITTING_STRAIGHT, SITTING_FORWARD,
+                SITTING_BACKWARD, STANDING, LYING_NORMAL, LYING_RIGHT, LYING_LEFT};
         ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
         activitySpinner.setAdapter(activityAdapter);
 
-        String[] bagSpinnerElements = new String[]{"0.35", "0.5", "0.7", "1.2"};
-        ArrayAdapter<String> bagSizeAdapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_spinner_dropdown_item, bagSpinnerElements);
-        bagSizeSpinner.setAdapter(bagSizeAdapter);
-
         // Load buttons
-        mStartStopButton = (Button) getActivity().findViewById(R.id.record_button);
+        mStartStopButton = (Button) view.findViewById(R.id.record_button);
         mStartStopButton.setBackgroundColor(
                 ContextCompat.getColor(getActivity(), R.color.md_grey_300));
         mCancelButton = (Button) view.findViewById(R.id.cancel_button);
@@ -113,6 +111,10 @@ public class ActivityRecordingFragment extends ConnectionOverlayFragment {
 
                                     // Add a line which indicates end of recording
                                     mWriter.append("end of record,,,,,,,\n").flush();
+                                } else {
+                                    Toast.makeText(getActivity(),
+                                            "No data received from RESpeck in recording period",
+                                            Toast.LENGTH_LONG).show();
                                 }
 
                                 outputData = new StringBuilder();
@@ -129,10 +131,8 @@ public class ActivityRecordingFragment extends ConnectionOverlayFragment {
                     }, 1000);
                 } else {
                     // Start recording
-
                     mSubjectName = nameTextField.getText().toString();
                     if (!mSubjectName.equals("")) {
-                        mBagSize = bagSizeSpinner.getSelectedItem().toString();
                         mActivity = activitySpinner.getSelectedItem().toString();
 
                         mIsRecording = true;
@@ -156,70 +156,42 @@ public class ActivityRecordingFragment extends ConnectionOverlayFragment {
             }
         });
 
-        // Create volume directory if it doesn't exist
-        File directory = new File(Utils.getInstance().getDataDirectory(getActivity()) +
-                Constants.VOLUME_DATA_DIRECTORY_NAME);
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            if (created) {
-                Log.i("DF", "Directory created: " + directory);
-            } else {
-                Log.e("Volume recording", "Couldn't create Volume recording folder on external storage");
-            }
-        }
-
-        String filename = directory.getAbsolutePath() +
+        String filename = Utils.getInstance().getDataDirectory(getActivity()) + Constants.LOGGING_DIRECTORY_NAME +
                 new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
-                " Volume calibration.csv";
+                " Activity RESpeck Logs " + Utils.getInstance().getConfig(getActivity()).get(
+                Constants.Config.RESPECK_UUID) +
+                ".csv";
+
         try {
             // Create file for current day and append header, if it doesn't exist yet
             if (!new File(filename).exists()) {
                 mWriter = new OutputStreamWriter(
                         new FileOutputStream(filename, true));
-                mWriter.append(Constants.VOLUME_DATA_HEADER).append("\n");
+                mWriter.append(Constants.ACTIVITY_RECORDING_HEADER).append("\n");
                 mWriter.flush();
             } else {
                 mWriter = new OutputStreamWriter(new FileOutputStream(filename, true));
             }
+            Log.i(LOG_TAG, "Logging file created");
         } catch (IOException e) {
-            Log.e("Volume calibration", "Error while creating the file");
+            Log.e(LOG_TAG, "Error while creating the file");
         }
 
-        mSpeckServiceReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-
-                RESpeckLiveData data = (RESpeckLiveData) intent.getSerializableExtra(Constants.RESPECK_LIVE_DATA);
-
-                // If we are currently recording (button is pressed), store the received values
-                if (mIsRecording) {
-                    if ((mActivity.equals(SITTING_STRAIGHT) || mActivity.equals(SITTING_BACKWARD) || mActivity.equals(
-                            SITTING_FORWARD) || mActivity.equals(
-                            STANDING)) && !(data.getActivityType() == Constants.ACTIVITY_STAND_SIT)) {
-                        Toast.makeText(getActivity(),
-                                "RESpeck registers activity other than sitting or standing, which is the selected option",
-                                Toast.LENGTH_LONG).show();
-                        cancelRecording();
-                    } else if ((mActivity.equals(LYING_NORMAL) || mActivity.equals(LYING_LEFT) || mActivity.equals(
-                            LYING_RIGHT)) && !(data.getActivityType() == Constants.ACTIVITY_LYING)) {
-                        Toast.makeText(getActivity(),
-                                "RESpeck registers activity other than lying down, which is the selected option",
-                                Toast.LENGTH_LONG).show();
-                        cancelRecording();
-                    }
-
-                    String output = mSubjectName + "," + data.getPhoneTimestamp() + "," +
-                            data.getAccelX() + "," + data.getAccelY() + "," + data.getAccelZ() + "," +
-                            data.getBreathingSignal() + "," + mActivity + "," + mBagSize + "\n";
-                    outputData.append(output);
-                }
-            }
-        };
-
-        getActivity().registerReceiver(mSpeckServiceReceiver, new IntentFilter(
-                Constants.ACTION_RESPECK_LIVE_BROADCAST));
+        ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
 
         return view;
+    }
+
+    @Override
+    public void updateRESpeckData(RESpeckLiveData data) {
+        // If we are currently recording (button is pressed), store the received values
+        if (mIsRecording) {
+            String output = mSubjectName + "," + data.getPhoneTimestamp() + "," +
+                    data.getAccelX() + "," + data.getAccelY() + "," + data.getAccelZ() + "," +
+                    data.getBreathingSignal() + "," + mActivity + "," + data.getActivityLevel() + "," +
+                    data.getActivityType() + "\n";
+            outputData.append(output);
+        }
     }
 
     private void cancelRecording() {
@@ -238,11 +210,13 @@ public class ActivityRecordingFragment extends ConnectionOverlayFragment {
     @Override
     public void onDestroy() {
         try {
-            mWriter.close();
+            if (mWriter != null) {
+                mWriter.close();
+            }
         } catch (IOException e) {
-            Log.e("Volume calibration", "Error while creating the file");
+            Log.e(LOG_TAG, "Error while closing the file");
         }
-        getActivity().unregisterReceiver(mSpeckServiceReceiver);
+        ((MainActivity) getActivity()).unregisterRESpeckDataObserver(this);
         super.onDestroy();
     }
 

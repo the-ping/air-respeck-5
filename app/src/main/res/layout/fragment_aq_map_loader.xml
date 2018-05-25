@@ -1,121 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:padding="15dp">
-
-    <Button
-        android:id="@+id/live_map_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:text="@string/maps_loader_live_button"
-        android:textAllCaps="false"/>
-
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/historical_data_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="15dp"
-            android:background="@android:color/darker_gray"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:text="@string/maps_loader_historical_data_title"/>
-
-        <Spinner
-            android:id="@+id/spinner_timeframe"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginBottom="15dp"
-            android:layout_marginTop="10dp"/>
-
-        <LinearLayout
-            android:id="@+id/custom_selection_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="10dp"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.13"
-                    android:text="From:"/>
-
-                <Button
-                    android:id="@+id/date_from"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:background="@android:color/transparent"
-                    android:text="Date"
-                    android:textAllCaps="false"/>
-
-                <Button
-                    android:id="@+id/time_from"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:background="@android:color/transparent"
-                    android:text="Time"
-                    android:textAllCaps="false"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.13"
-                    android:text="To:"/>
-
-                <Button
-                    android:id="@+id/date_to"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:background="@android:color/transparent"
-                    android:text="Date"
-                    android:textAllCaps="false"/>
-
-                <Button
-                    android:id="@+id/time_to"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:background="@android:color/transparent"
-                    android:text="Time"
-                    android:textAllCaps="false"/>
-            </LinearLayout>
-        </LinearLayout>
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="15dp">
 
         <Button
-            android:id="@+id/historical_loader_button"
+            android:id="@+id/live_map_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:text="@string/maps_loader_historical_button"
+            android:text="@string/maps_loader_live_button"
             android:textAllCaps="false"/>
+
+
+        <LinearLayout
+            android:id="@+id/historical_data_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="15dp"
+                android:background="@android:color/darker_gray"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:text="@string/maps_loader_historical_data_title"/>
+
+            <Spinner
+                android:id="@+id/spinner_timeframe"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginBottom="15dp"
+                android:layout_marginTop="10dp"/>
+
+            <LinearLayout
+                android:id="@+id/custom_selection_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.13"
+                        android:text="From:"/>
+
+                    <Button
+                        android:id="@+id/date_from"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:background="@android:color/transparent"
+                        android:text="Date"
+                        android:textAllCaps="false"/>
+
+                    <Button
+                        android:id="@+id/time_from"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:background="@android:color/transparent"
+                        android:text="Time"
+                        android:textAllCaps="false"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.13"
+                        android:text="To:"/>
+
+                    <Button
+                        android:id="@+id/date_to"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:background="@android:color/transparent"
+                        android:text="Date"
+                        android:textAllCaps="false"/>
+
+                    <Button
+                        android:id="@+id/time_to"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:background="@android:color/transparent"
+                        android:text="Time"
+                        android:textAllCaps="false"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/historical_loader_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:text="@string/maps_loader_historical_button"
+                android:textAllCaps="false"/>
+        </LinearLayout>
+
     </LinearLayout>
 
-</LinearLayout>
+    <include layout="@layout/content_connecting"/>
+</RelativeLayout>

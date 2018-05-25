@@ -42,4 +42,5 @@
             android:layout_height="wrap_content"
             android:text="@string/high_pollution_legend"/>
     </LinearLayout>
+
 </RelativeLayout>

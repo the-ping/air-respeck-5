@@ -16,8 +16,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.AirspeckDataObserver;
 import com.specknet.airrespeck.activities.ConnectionStateObserver;
 import com.specknet.airrespeck.activities.MainActivity;
+import com.specknet.airrespeck.activities.RESpeckDataObserver;
+import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
@@ -28,7 +32,8 @@ import java.util.Map;
  * Home screen for subjects using the app
  */
 
-public class SubjectHomeFragment extends Fragment implements ConnectionStateObserver {
+public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver, AirspeckDataObserver,
+        ConnectionStateObserver {
 
     private ImageView connectedStatusRESpeck;
     private ImageView connectedStatusAirspeck;
@@ -94,6 +99,7 @@ public class SubjectHomeFragment extends Fragment implements ConnectionStateObse
         if (airspeckEnabled) {
             // Update connection symbol based on state stored in MainActivity
             updateAirspeckConnectionSymbol(((MainActivity) getActivity()).getIsAirspeckConnected());
+            ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
         } else {
             // Only show disabled symbol if Airspeck is disabled
             connectedStatusAirspeck.setVisibility(View.GONE);
@@ -103,6 +109,7 @@ public class SubjectHomeFragment extends Fragment implements ConnectionStateObse
         if (respeckEnabled) {
             // Update connection symbol based on state stored in MainActivity
             updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
+            ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
         } else {
             // Only show disabled symbol if RESpeck is disabled
             connectedStatusRESpeck.setVisibility(View.GONE);
@@ -121,6 +128,18 @@ public class SubjectHomeFragment extends Fragment implements ConnectionStateObse
                                       boolean showPulseoxConnecting) {
         updateRESpeckConnectionSymbol(showRESpeckConnected);
         updateAirspeckConnectionSymbol(showAirspeckConnected);
+    }
+
+
+    // Let connection symbol flicker if new data comes in
+    @Override
+    public void updateAirspeckData(AirspeckData data) {
+        updateAirspeckConnectionSymbol(true);
+    }
+
+    @Override
+    public void updateRESpeckData(RESpeckLiveData data) {
+        updateRESpeckConnectionSymbol(true);
     }
 
     private void showPowerOffDialog() {
@@ -208,6 +227,15 @@ public class SubjectHomeFragment extends Fragment implements ConnectionStateObse
             connectedStatusAirspeck.setVisibility(View.GONE);
             progressBarAirspeck.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterRESpeckDataObserver(this);
+        ((MainActivity) getActivity()).unregisterAirspeckDataObserver(this);
+        ((MainActivity) getActivity()).unregisterConnectionStateObserver(this);
+        super.onDestroy();
     }
 }
 

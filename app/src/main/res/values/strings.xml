@@ -64,11 +64,13 @@
 
     <string name="menu_activity_summary">Activity Summary</string>
     <string name="menu_respeck_readings">RESpeck Readings</string>
+    <string name="menu_activity_logging_respeck">RESpeck Activity Logging</string>
 
-    <string name="menu_activity_logging">Activity Logging</string>
     <string name="menu_inout_prediction">Indoor Prediction</string>
 
     <string name="menu_pulseox">Pulseox Readings</string>
+
+    <string name="menu_activity_logging_general">General Activity Logging</string>
 
     <string name="menu_airspeck_subgroup">Airspeck</string>
     <string name="menu_respeck_subgroup">RESpeck</string>

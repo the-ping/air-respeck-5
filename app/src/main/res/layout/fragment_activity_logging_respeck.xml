@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="15dp">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="vertical"
+                      android:weightSum="1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.04"
+                android:gravity="center"
+                android:text="Enter subject name"/>
+
+            <EditText
+                android:id="@+id/name_text_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.04"
+                android:ems="10"
+                android:hint="Name"
+                android:inputType="textPersonName"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_weight="0.04"
+                android:gravity="center"
+                android:text="Chose activity"/>
+
+            <Spinner
+                android:id="@+id/activity_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_weight="0.04"/>
+
+            <Button
+                android:id="@+id/record_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:layout_weight="0.04"
+                android:text="@string/button_text_start_recording"/>
+
+            <Button
+                android:id="@+id/cancel_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_weight="0.04"
+                android:text="@string/button_text_cancel_recording"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <include layout="@layout/content_connecting"/>
+</RelativeLayout>

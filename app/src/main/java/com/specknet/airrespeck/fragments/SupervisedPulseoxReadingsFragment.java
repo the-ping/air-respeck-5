@@ -71,4 +71,11 @@ public class SupervisedPulseoxReadingsFragment extends ConnectionOverlayFragment
         mReadingItems.get(1).value = data.getSpo2();
         mListViewAdapter.notifyDataSetChanged();
     }
+
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterPulseoxDataObserver(this);
+        super.onDestroy();
+    }
 }

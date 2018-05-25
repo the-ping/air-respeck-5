@@ -437,5 +437,8 @@ public class AirspeckPacketHandler {
         if (mLocationReceiver != null) {
             mSpeckService.unregisterReceiver(mLocationReceiver);
         }
+        if (mIsIndoorReceiver != null) {
+            mSpeckService.unregisterReceiver(mIsIndoorReceiver);
+        }
     }
 }

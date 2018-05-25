@@ -355,4 +355,11 @@ public class SupervisedAirspeckReadingsFragment extends ConnectionOverlayFragmen
 
         mSegmentedBarAdapter.notifyDataSetChanged();
     }
+
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterAirspeckDataObserver(this);
+        super.onDestroy();
+    }
 }

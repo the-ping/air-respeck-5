@@ -17,14 +17,14 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 
-public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment {
+public class SupervisedGeneralActivityLoggingFragment extends ConnectionOverlayFragment {
 
     private String transitText = "";
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_activity_logging, container, false);
+        final View view = inflater.inflate(R.layout.fragment_activity_logging_general, container, false);
 
         final RadioButton[] transitButtons = new RadioButton[]{
                 (RadioButton) view.findViewById(R.id.radioButtonStatic),

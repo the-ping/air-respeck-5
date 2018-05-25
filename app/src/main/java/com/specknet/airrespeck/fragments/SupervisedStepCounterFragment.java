@@ -74,4 +74,11 @@ public class SupervisedStepCounterFragment extends ConnectionOverlayFragment imp
         mVelocityGraphView.stopBreathingGraphUpdates();
         super.onDetach();
     }
+
+    @Override
+    public void onDestroy() {
+        // Unregister this class as observer. If we haven't observed, nothing happens
+        ((MainActivity) getActivity()).unregisterRESpeckDataObserver(this);
+        super.onDestroy();
+    }
 }

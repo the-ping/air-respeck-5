@@ -40,7 +40,8 @@ import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
-import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
+import com.specknet.airrespeck.fragments.SupervisedGeneralActivityLoggingFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
@@ -59,6 +60,7 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -111,18 +113,15 @@ public class MainActivity extends AppCompatActivity {
                     case UPDATE_RESPECK_READINGS:
                         if (msg.obj instanceof RESpeckLiveData) {
                             service.updateRespeckReadings((RESpeckLiveData) msg.obj);
-                            service.updateRESpeckConnection(true);
                         }
                         break;
                     case UPDATE_AIRSPECK_READINGS:
                         service.notifyNewAirspeckReading((AirspeckData) msg.obj);
-                        service.updateAirspeckConnection(true);
                         mAirspeckConnected = true;
                         mLastAirspeckNotificationTime = System.currentTimeMillis();
                         break;
                     case UPDATE_PULSEOX_READINGS:
                         service.updatePulseoxReadings((PulseoxData) msg.obj);
-                        service.updatePulseoxConnection(true);
                         break;
                     case SHOW_SNACKBAR_MESSAGE:
                         service.showSnackbarFromHandler((String) msg.obj);
@@ -447,9 +446,6 @@ public class MainActivity extends AppCompatActivity {
                         mNavDrawerLayout.closeDrawers();
 
                         switch (menuItem.getItemId()) {
-                            case R.id.nav_subject:
-                                displayFragment(new SubjectHomeFragment());
-                                break;
                             case R.id.nav_airspeck_readings:
                                 displayFragment(new SupervisedAirspeckReadingsFragment());
                                 break;
@@ -465,8 +461,11 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_activity_summary:
                                 displayFragment(new SupervisedActivitySummaryFragment());
                                 break;
-                            case R.id.nav_activity_logging:
-                                displayFragment(new SupervisedActivityLoggingFragment());
+                            case R.id.nav_activity_logging_general:
+                                displayFragment(new SupervisedGeneralActivityLoggingFragment());
+                                break;
+                            case R.id.nav_activity_logging_respeck:
+                                displayFragment(new SupervisedRESpeckActivityLoggingFragment());
                                 break;
                             case R.id.nav_inout_prediction:
                                 displayFragment(new SupervisedIndoorPredictionFragment());
@@ -785,7 +784,7 @@ public class MainActivity extends AppCompatActivity {
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 
         // Replace fragment
-        displayFragment(new SubjectHomeFragment());
+        displayFragment(new SupervisedRESpeckReadingsFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();
@@ -896,7 +895,9 @@ public class MainActivity extends AppCompatActivity {
                 // If the current activity is sitting or standing the sensor was put into the correct orientation,
                 // so we can dismiss the dialog
                 if (newData.getActivityType() == Constants.ACTIVITY_STAND_SIT) {
-                    mWrongOrientationDialog.dismiss();
+                    if (mWrongOrientationDialog.isAdded()) {
+                        mWrongOrientationDialog.dismiss();
+                    }
                 }
             }
         }
@@ -912,7 +913,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void registerRESpeckDataObserver(RESpeckDataObserver observer) {
         respeckDataObservers.add(observer);
-        Log.i("MainActivity", "Number of RESpeck observers: " + respeckDataObservers.size());
+    }
+
+    public void unregisterRESpeckDataObserver(RESpeckDataObserver observer) {
+        respeckDataObservers.remove(observer);
     }
 
     private void notifyNewAirspeckReading(AirspeckData newData) {
@@ -923,6 +927,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void registerAirspeckDataObserver(AirspeckDataObserver observer) {
         airspeckDataObservers.add(observer);
+    }
+
+    public void unregisterAirspeckDataObserver(AirspeckDataObserver observer) {
+        airspeckDataObservers.remove(observer);
     }
 
     private void updatePulseoxReadings(PulseoxData newValues) {
@@ -939,8 +947,16 @@ public class MainActivity extends AppCompatActivity {
         pulseoxDataObservers.add(observer);
     }
 
+    public void unregisterPulseoxDataObserver(PulseoxDataObserver observer) {
+        pulseoxDataObservers.remove(observer);
+    }
+
     public void registerConnectionStateObserver(ConnectionStateObserver observer) {
         connectionStateObservers.add(observer);
+    }
+
+    public void unregisterConnectionStateObserver(ConnectionStateObserver observer) {
+        connectionStateObservers.remove(observer);
     }
 
     private void notifyNewConnectionState() {
