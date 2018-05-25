@@ -10,6 +10,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Point;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Base64;
@@ -106,6 +108,28 @@ public final class Utils {
         return new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.UK).format(new Date());
     }
 
+    public static void createExternalDirectory(Context context) {
+        // Create directories on external storage if they don't exist
+        File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
+            // scanFile should force the indexation of the new directory.
+            MediaScannerConnection.scanFile(context, new String[]{directory.toString()}, null,
+                    new MediaScannerConnection.OnScanCompletedListener() {
+                        public void onScanCompleted(String path, Uri uri) {
+                            Log.i("ExternalStorage", "Scanned " + path + ":");
+                            Log.i("ExternalStorage", "-> uri=" + uri);
+                        }
+                    });
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create app root folder on external storage");
+            }
+        }
+    }
+
     public String getDataDirectory(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(
                 "com.specknet.airrespeck", Context.MODE_PRIVATE);
@@ -164,7 +188,7 @@ public final class Utils {
             }
         }
 
-        if (true) {//!loadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty()) {
+        if (!loadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty()) {
             directory = new File(dataDirectoryPath + Constants.PULSEOX_DATA_DIRECTORY_NAME);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
@@ -574,4 +598,6 @@ public final class Utils {
         }
         return false;
     }
+
+
 }

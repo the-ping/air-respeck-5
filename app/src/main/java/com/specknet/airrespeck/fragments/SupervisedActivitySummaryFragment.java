@@ -2,6 +2,8 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +24,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Fragment to show a summary of the Activity in the last hour, day, week
@@ -80,8 +84,23 @@ public class SupervisedActivitySummaryFragment extends BaseFragment {
             updateActivitySummary();
         }
 
+        startActivitySummaryUpdaterTask();
+
         return view;
     }
+
+    private void startActivitySummaryUpdaterTask() {
+        final int delay = 5 * 60 * 1000;
+        final Handler h = new Handler();
+
+        h.postDelayed(new Runnable() {
+            public void run() {
+                updateActivitySummary();
+                h.postDelayed(this, delay);
+            }
+        }, delay);
+    }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

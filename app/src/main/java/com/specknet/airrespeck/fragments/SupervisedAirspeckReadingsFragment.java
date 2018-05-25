@@ -6,11 +6,9 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.AirspeckDataObserver;
@@ -23,8 +21,6 @@ import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.utils.Constants;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 
 
 public class SupervisedAirspeckReadingsFragment extends BaseFragment implements AirspeckDataObserver {
@@ -50,32 +46,20 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
         super.onCreate(savedInstanceState);
 
         ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
-        mReadingsModeAQReadingsScreen = Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(getLayout(mReadingsModeAQReadingsScreen), container, false);
+        View view = inflater.inflate(R.layout.fragment_aqreadings_list_segmentedbar, container, false);
 
         Context context = view.getContext();
 
-        // Set the adapter
-        switch (mReadingsModeAQReadingsScreen) {
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST:
-                ListView listView = (ListView) view.findViewById(R.id.listView_item_list);
-                mListViewAdapter = new ReadingItemArrayAdapter(context, getReadingItems());
-                listView.setAdapter(mListViewAdapter);
-                break;
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS: {
-                RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.sb_item_list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-                mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems());
-                recyclerView.setAdapter(mSegmentedBarAdapter);
-                break;
-            }
-        }
+        mSegmentedBarAdapter = new ReadingItemSegmentedBarAdapter(context, getReadingItems());
+        recyclerView.setAdapter(mSegmentedBarAdapter);
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(LAST_VALUES)) {
@@ -97,33 +81,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
         super.onSaveInstanceState(outState);
     }
 
-    /**
-     * Returns the layout according to the current display mode preference
-     *
-     * @param readingsDisplayMode int Display mode preference
-     * @return int Layout resource id
-     */
-    private int getLayout(final String readingsDisplayMode) {
-        switch (readingsDisplayMode) {
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST:
-                return R.layout.fragment_aqreadings_listview;
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS:
-                return R.layout.fragment_aqreadings_list_segmentedbar;
-            default:
-                return R.layout.fragment_aqreadings_listview;
-        }
-    }
-
-    private void notifyDataSetChange(final String readingsDisplayMode) {
-        switch (readingsDisplayMode) {
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_LIST:
-                mListViewAdapter.notifyDataSetChanged();
-                break;
-            case Constants.READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS:
-                mSegmentedBarAdapter.notifyDataSetChanged();
-                break;
-        }
-    }
 
     /**
      * Construct and return a list with all the air quality readings.
@@ -401,7 +358,7 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
             mReadingItems.get(4).segments = buildRelativeHumidityScale(Math.round(data.getTemperature()));
             mReadingItems.get(4).value = data.getHumidity();
 
-            notifyDataSetChange(mReadingsModeAQReadingsScreen);
+            mSegmentedBarAdapter.notifyDataSetChanged();
         }
     }
 }

@@ -1,11 +1,9 @@
 package com.specknet.airrespeck.fragments;
 
 import android.app.AlertDialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -15,13 +13,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TableRow;
 import android.widget.Toast;
 
-//import com.crashlytics.android.Crashlytics;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.ConnectionStateObserver;
 import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
@@ -32,15 +28,13 @@ import java.util.Map;
  * Home screen for subjects using the app
  */
 
-public class SubjectHomeFragment extends BaseFragment {
+public class SubjectHomeFragment extends BaseFragment implements ConnectionStateObserver {
 
     private ImageView connectedStatusRESpeck;
     private ImageView connectedStatusAirspeck;
     private ProgressBar progressBarRESpeck;
     private ProgressBar progressBarAirspeck;
     private ImageView airspeckOffButton;
-    private ImageView respeckDisabledImage;
-    private ImageView airspeckDisabledImage;
 
 
     /**
@@ -69,10 +63,8 @@ public class SubjectHomeFragment extends BaseFragment {
         progressBarRESpeck = (ProgressBar) view.findViewById(R.id.progress_bar_respeck);
         progressBarAirspeck = (ProgressBar) view.findViewById(R.id.progress_bar_airspeck);
 
-        airspeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_airspeck);
-        respeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_respeck);
-
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
+        ImageView airspeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_airspeck);
+        ImageView respeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_respeck);
 
         ImageButton diaryButton = (ImageButton) view.findViewById(R.id.diary_button);
         diaryButton.setOnClickListener(new View.OnClickListener() {
@@ -120,7 +112,18 @@ public class SubjectHomeFragment extends BaseFragment {
         }
 
         mIsCreated = true;
+
+        // Register this fragment as connection state observer
+        ((MainActivity) getActivity()).registerConnectionStateObserver(this);
+
         return view;
+    }
+
+    @Override
+    public void updateConnectionState(boolean showRESpeckConnected, boolean showAirspeckConnected,
+                                      boolean showPulseoxConnecting) {
+        updateRESpeckConnectionSymbol(showRESpeckConnected);
+        updateAirspeckConnectionSymbol(showAirspeckConnected);
     }
 
     private void showPowerOffDialog() {

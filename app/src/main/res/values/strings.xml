@@ -7,7 +7,6 @@
 
 
     <!-- Strings related to login issues -->
-    <string name="connecting_to_devices">Connecting to devices</string>
     <string name="device_found">found</string>
     <string name="waiting_for_data">Waiting for data</string>
 
@@ -21,20 +20,15 @@
 
 
     <!-- Strings related to Readings -->
-    <string name="readings_title">Live data</string>
     <string name="activity_summary_title">Activity summary of past …</string>
 
-    <string name="reading_respiratory_rate">Respiratory rate</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
 
     <string name="reading_pm1_0">PM 1.0</string>
     <string name="reading_temp">Temperature</string>
     <string name="reading_rel_humidity">Humidity</string>
-    <string name="reading_o3">O3</string>
-    <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins total</string>
-    <string name="readings_airspeck_title">Airspeck readings</string>
     <string name="readings_respeck_title">RESpeck readings</string>
     <string name="reading_breathing_rate">Breathing rate</string>
     <string name="reading_avg_breathing_rate">Minute average breathing rate</string>
@@ -56,22 +50,25 @@
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
     <string name="graphs_bins_title">Current reading: bin count</string>
     <string name="graphs_breathing_flow_title">Breathing signal (flow rate)</string>
-    <string name="graphs_breathing_pca_title">Breathing signal (volume, PCA)</string>
 
     <string name="graphs_bins_description">Particle count in bin</string>
 
     <!-- Strings related to Menus -->
 
     <!-- Button/tabs menu -->
-    <string name="menu_home">Overview</string>
-    <string name="menu_air_quality">Air quality</string>
-    <string name="menu_pulseox">Pulseox</string>
-    <string name="menu_aq_graphs">AQ Graphs</string>
-    <string name="menu_activity_summary">Activity</string>
-    <string name="menu_breathing_graph">Breathing</string>
-    <string name="menu_aq_map">AQ Map</string>
-    <string name="menu_act_logging">Act logging</string>
-    <string name="menu_act_prediction">Act pred</string>
+    <string name="menu_subject">Device connectivity</string>
+
+    <string name="menu_airspeck_readings">Airspeck Readings</string>
+    <string name="menu_airspeck_graphs">Airspeck Graphs</string>
+    <string name="menu_airspeck_map">Airspeck Map</string>
+
+    <string name="menu_activity_summary">Activity Summary</string>
+    <string name="menu_respeck_readings">RESpeck Readings</string>
+
+    <string name="menu_activity_logging">Activity Logging</string>
+    <string name="menu_inout_prediction">Indoor Prediction</string>
+
+    <string name="menu_pulseox">Pulseox Readings</string>
 
     <!-- Action Bar menu -->
     <string name="action_supervised_mode">Supervised mode</string>
@@ -212,11 +209,6 @@
         <item>2</item>
     </string-array>
 
-    <string name="connection_text_both_devices">Connecting to devices</string>
-    <string name="connection_text_respeck_only">Connecting to RESpeck</string>
-    <string name="connection_text_airspeck_only">Connecting to Airspeck</string>
-    <string name="connection_text_pulseox_only">Connecting to Pulseox</string>
-
     <!-- Strings related to foreground bluetooth service -->
 
     <!-- Password dialog -->
@@ -238,12 +230,6 @@
 
     <string name="notification_speck_title">RESpeck and Airspeck</string>
     <string name="notification_speck_text">Listening for sensor data</string>
-
-    <string name="notification_respeck_upload_title">Upload RESpeck</string>
-    <string name="notification_respeck_upload_text">Uploading RESpeck data</string>
-
-    <string name="notification_airspeck_upload_title">Upload Airspeck</string>
-    <string name="notification_airspeck_upload_text">Uploading Airspeck data</string>
 
 
     <!-- Map -->

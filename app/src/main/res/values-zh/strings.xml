@@ -7,7 +7,6 @@
 
 
     <!-- Strings related to login issues -->
-    <string name="connecting_to_devices">连接到设备</string>
     <string name="device_found">连接的</string>
     <string name="waiting_for_data">等待数据</string>
 
@@ -22,19 +21,15 @@
 
 
     <!-- Strings related to Readings -->
-    <string name="readings_title">实时数据</string>
 
     <!-- Readings -->
 
-    <string name="reading_respiratory_rate">呼吸频率</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
 
     <string name="reading_pm1_0">PM 1.0</string>
     <string name="reading_temp">温度</string>
     <string name="reading_rel_humidity">湿度</string>
-    <string name="reading_o3">O3</string>
-    <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins total</string>
 
     <!-- Reading unit -->
@@ -49,9 +44,9 @@
     <!-- Strings related to Menus -->
 
     <!-- Button/tabs menu -->
-    <string name="menu_home">首页</string>
-    <string name="menu_air_quality">空气质量</string>
-    <string name="menu_aq_graphs">图的</string>
+    <string name="menu_subject">首页</string>
+    <string name="menu_airspeck_readings">空气质量</string>
+    <string name="menu_airspeck_graphs">图的</string>
 
     <!-- Action Bar menu -->
     <string name="action_supervised_mode">监督模式</string>

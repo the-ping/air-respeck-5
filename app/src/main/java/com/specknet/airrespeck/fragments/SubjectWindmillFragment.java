@@ -1,6 +1,5 @@
 package com.specknet.airrespeck.fragments;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.activities.ConnectionStateObserver;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.models.RESpeckLiveData;
@@ -28,7 +28,7 @@ import java.util.Locale;
  * start the rehab app and diary app.
  */
 
-public class SubjectWindmillFragment extends BaseFragment implements RESpeckDataObserver {
+public class SubjectWindmillFragment extends BaseFragment implements RESpeckDataObserver, ConnectionStateObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
@@ -100,7 +100,16 @@ public class SubjectWindmillFragment extends BaseFragment implements RESpeckData
 
         mBreathingGraphView.startBreathingGraphUpdates();
 
+        // Register this fragment as connection state observer
+        ((MainActivity) getActivity()).registerConnectionStateObserver(this);
+
         return view;
+    }
+
+    @Override
+    public void updateConnectionState(boolean showRESpeckConnected, boolean showAirspeckConnected,
+                                      boolean showPulseoxConnecting) {
+        updateRESpeckConnectionSymbol(showRESpeckConnected);
     }
 
     // This method gets called from the rehab button in this fragment.

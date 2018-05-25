@@ -7,18 +7,6 @@
     <color name="sb_value_sign_background">#7492E2</color>
     <color name="sb_empty_segment_background">#858585</color>
 
-    <color name="pocket_color_1">#85edb9</color>
-    <color name="pocket_color_2">#34bdb7</color>
-    <color name="pocket_color_3">#ee4458</color>
-    <color name="pocket_color_4">#fcb74d</color>
-
-    <integer-array name="pocket_background_colors">
-        <item>@color/pocket_color_1</item>
-        <item>@color/pocket_color_2</item>
-        <item>@color/pocket_color_3</item>
-        <item>@color/pocket_color_4</item>
-    </integer-array>
-
     <color name="breathing_graph_line_color">#303F9F</color>
     <color name="bins_graph_color">#bbbbbb</color>
 

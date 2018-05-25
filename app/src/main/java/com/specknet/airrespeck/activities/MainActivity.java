@@ -12,40 +12,34 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.location.GpsSatellite;
-import android.location.GpsStatus;
 import android.location.LocationManager;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
-import com.specknet.airrespeck.fragments.BaseFragment;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
-import com.specknet.airrespeck.fragments.SubjectValuesFragment;
-import com.specknet.airrespeck.fragments.SubjectWindmillFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
@@ -54,7 +48,6 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedStepCounterFragment;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
@@ -65,9 +58,7 @@ import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -78,11 +69,6 @@ import static android.content.Intent.ACTION_BATTERY_LOW;
 import static android.content.Intent.ACTION_BATTERY_OKAY;
 import static android.content.Intent.ACTION_POWER_CONNECTED;
 import static android.content.Intent.ACTION_POWER_DISCONNECTED;
-
-//import com.crashlytics.android.ndk.CrashlyticsNdk;
-//import com.crashlytics.android.Crashlytics;
-
-//import io.fabric.sdk.android.Fabric;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -95,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
     public final static int SHOW_RESPECK_DISCONNECTED = 4;
     public final static int SHOW_AIRSPECK_CONNECTED = 5;
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
-    private static final int ACTIVITY_SUMMARY_UPDATE = 7;
     private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
     public final static int UPDATE_PULSEOX_READINGS = 9;
     public final static int SHOW_PULSEOX_CONNECTED = 10;
@@ -131,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                     case UPDATE_AIRSPECK_READINGS:
-                        service.updateAirspeckReadings((AirspeckData) msg.obj);
+                        service.notifyNewAirspeckReading((AirspeckData) msg.obj);
                         service.updateAirspeckConnection(true);
                         mAirspeckConnected = true;
                         mLastAirspeckNotificationTime = System.currentTimeMillis();
@@ -139,9 +124,6 @@ public class MainActivity extends AppCompatActivity {
                     case UPDATE_PULSEOX_READINGS:
                         service.updatePulseoxReadings((PulseoxData) msg.obj);
                         service.updatePulseoxConnection(true);
-                        break;
-                    case ACTIVITY_SUMMARY_UPDATE:
-                        service.updateActivitySummary();
                         break;
                     case SHOW_SNACKBAR_MESSAGE:
                         service.showSnackbarFromHandler((String) msg.obj);
@@ -186,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
                         service.updateRESpeckConnection(false);
                         break;
                     case AIRSPECK_NOTIFICATION_WATCHDOG:
-
                         if (mAirspeckConnected) {
                             long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
                             //service.showSnackbarFromHandler(Long.toString(t));
@@ -202,33 +183,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final Handler mUIHandler = new UIHandler(this);
-
-    // FRAGMENTS
-    private static final String TAG_AQREADINGS_FRAGMENT = "AQREADINGS_FRAGMENT";
-    private static final String TAG_GRAPHS_FRAGMENT = "GRAPHS_FRAGMENT";
-    private static final String TAG_SUBJECT_HOME_FRAGMENT = "SUBJECT_HOME_FRAGMENT";
-    private static final String TAG_SUBJECT_VALUES_FRAGMENT = "SUBJECT_VALUES_FRAGMENT";
-    private static final String TAG_SUBJECT_WINDMILL_FRAGMENT = "SUBJECT_WINDMILL_FRAGMENT";
-    private static final String TAG_ACTIVITY_SUMMARY_FRAGMENT = "ACTIVITY_SUMMARY_FRAGMENT";
-    private static final String TAG_ACTIVITY_LOGGING_FRAGMENT = "ACTIVITY_LOGGING_FRAGMENT";
-    private static final String TAG_ACTIVITY_PREDICTION_FRAGMENT = "ACTIVITY_PREDICTION_FRAGMENT";
-    private static final String TAG_BREATHING_GRAPH_FRAGMENT = "BREATHING_GRAPH_FRAGMENT";
-    private static final String TAG_PULSEOX_FRAGMENT = "PULSEOX_FRAGMENT";
-    private static final String TAG_AQ_MAP_FRAGMENT = "AQ_MAP_FRAGMENT";
-    private static final String TAG_STEPCOUNT_FRAGMENT = "STEPCOUNT_FRAGMENT";
-
-    private SubjectHomeFragment mSubjectHomeFragment;
-    private SubjectValuesFragment mSubjectValuesFragment;
-    private SubjectWindmillFragment mSubjectWindmillFragment;
-    private SupervisedAirspeckReadingsFragment mSupervisedAirspeckReadingsFragment;
-    private SupervisedAirspeckGraphsFragment mSupervisedAirspeckGraphsFragment;
-    private SupervisedActivitySummaryFragment mSupervisedActivitySummaryFragment;
-    private SupervisedActivityLoggingFragment mSupervisedActivityLoggingFragment;
-    private SupervisedActivityPredictionFragment mSupervisedActivityPredictionFragment;
-    private SupervisedRESpeckReadingsFragment mSupervisedRESpeckReadingsFragment;
-    private SupervisedPulseoxReadingsFragment mSupervisedPulseoxReadingsFragment;
-    private SupervisedAirspeckMapLoaderFragment mSupervisedAirspeckMapLoaderFragment;
-    private SupervisedStepCounterFragment mSupervisedStepCounterFragment;
 
     // Config loaded from config content provider
     private boolean mIsSupervisedStartingMode;
@@ -270,12 +224,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String SAVED_STATE_IS_SUPERVISED_MODE = "supervised_mode";
     private boolean mIsSupervisedModeCurrentlyShown;
 
-    TabLayout tabLayout;
-    ViewPager viewPager;
-    ArrayList<Fragment> supervisedFragments = new ArrayList<>();
-    ArrayList<String> supervisedTitles = new ArrayList<>();
-    ArrayList<Fragment> subjectFragments = new ArrayList<>();
-    ArrayList<String> subjectTitles = new ArrayList<>();
+    DrawerLayout mNavDrawerLayout;
+    FrameLayout mMainFrameLayout;
 
     private DialogFragment mWrongOrientationDialog;
     private boolean mIsWrongOrientationDialogDisplayed = false;
@@ -288,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
     private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
     private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
     private Set<PulseoxDataObserver> pulseoxDataObservers = new HashSet<>();
+    private Set<ConnectionStateObserver> connectionStateObservers = new HashSet<>();
 
     private AutoUpdateApk aua;
 
@@ -320,23 +271,6 @@ public class MainActivity extends AppCompatActivity {
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
-    }
-
-    private boolean checkIfSecurityKeyExists() {
-        String securityKey = Utils.getSecurityKey(this);
-        String projectIDKey = Utils.getProjectIDForKey(this);
-
-        // If either the key hasn't been set yet, or if it wasn't created with the currently used project ID,
-        // create a new key.
-        if (securityKey.equals("") || !projectIDKey.equals(
-                mLoadedConfig.get(Constants.Config.SUBJECT_ID).substring(0, 2))) {
-            // Open SecurityKeyActivity
-            Intent intent = new Intent(this, SecurityKeySetupActivity.class);
-            startActivity(intent);
-            return false;
-        } else {
-            return true;
-        }
     }
 
     private void showDoPairingDialog() {
@@ -384,6 +318,23 @@ public class MainActivity extends AppCompatActivity {
         initMainActivity();
     }
 
+    private boolean checkIfSecurityKeyExists() {
+        String securityKey = Utils.getSecurityKey(this);
+        String projectIDKey = Utils.getProjectIDForKey(this);
+
+        // If either the key hasn't been set yet, or if it wasn't created with the currently used project ID,
+        // create a new key.
+        if (securityKey.equals("") || !projectIDKey.equals(
+                mLoadedConfig.get(Constants.Config.SUBJECT_ID).substring(0, 2))) {
+            // Open SecurityKeyActivity
+            Intent intent = new Intent(this, SecurityKeySetupActivity.class);
+            startActivity(intent);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     @SuppressLint("MissingPermission")
     public void initMainActivity() {
         mIsActivityInitialised = true;
@@ -393,9 +344,55 @@ public class MainActivity extends AppCompatActivity {
         AutoUpdateApk.enableMobileUpdates();
 
         // Setup the part of the layout which is the same for both modes
-        setContentView(R.layout.activity_main_tabs);
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
-        viewPager = (ViewPager) findViewById(R.id.view_pager);
+        setContentView(R.layout.activity_main);
+
+        mNavDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        mMainFrameLayout = (FrameLayout) findViewById(R.id.main_frame);
+
+        // Setup nav drawer menu
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        // set item as selected to persist highlight
+                        menuItem.setChecked(true);
+                        // close drawer when item is tapped
+                        mNavDrawerLayout.closeDrawers();
+
+                        switch (menuItem.getItemId()) {
+                            case R.id.nav_subject:
+                                displayFragment(new SubjectHomeFragment());
+                                break;
+                            case R.id.nav_airspeck_readings:
+                                displayFragment(new SupervisedAirspeckReadingsFragment());
+                                break;
+                            case R.id.nav_airspeck_graphs:
+                                displayFragment(new SupervisedAirspeckGraphsFragment());
+                                break;
+                            case R.id.nav_airspeck_map:
+                                displayFragment(new SupervisedAirspeckMapLoaderFragment());
+                                break;
+                            case R.id.nav_respeck_readings:
+                                displayFragment(new SupervisedRESpeckReadingsFragment());
+                                break;
+                            case R.id.nav_activity_summary:
+                                displayFragment(new SupervisedActivitySummaryFragment());
+                                break;
+                            case R.id.nav_activity_logging:
+                                displayFragment(new SupervisedActivityLoggingFragment());
+                                break;
+                            case R.id.nav_inout_prediction:
+                                displayFragment(new SupervisedActivityPredictionFragment());
+                                break;
+                            case R.id.nav_pulseox:
+                                displayFragment(new SupervisedPulseoxReadingsFragment());
+                                break;
+                        }
+                        return true;
+                    }
+                });
 
         /* Keep CPU running. TODO: Do we really need this? From Android developers: Creating and holding wake locks
         can have a dramatic impact on the host device's battery life. Thus you should use wake locks only when
@@ -412,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Create the external directories for storing the data if storage is enabled
         if (mIsStoreDataLocally) {
-            createExternalDirectory();
+            Utils.createExternalDirectory(this);
         }
 
         // Start GPS phone storage service
@@ -423,9 +420,6 @@ public class MainActivity extends AppCompatActivity {
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        setupFragments();
-        setupViewPager();
-
         // Load current mode if stored. If no mode was stored, use starting mode.
         if (mSavedInstanceState != null) {
             mIsSupervisedModeCurrentlyShown = mSavedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
@@ -433,7 +427,6 @@ public class MainActivity extends AppCompatActivity {
             // Set mode to starting mode specified in config file
             mIsSupervisedModeCurrentlyShown = mIsSupervisedStartingMode;
         }
-
 
         // Call displayMode methods so the tabs are set correctly
         if (mIsSupervisedModeCurrentlyShown) {
@@ -455,6 +448,9 @@ public class MainActivity extends AppCompatActivity {
         // Add the toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
 
         // For use with snack bar (notification bar at the bottom of the screen)
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
@@ -469,8 +465,13 @@ public class MainActivity extends AppCompatActivity {
         // Initialise broadcast receiver which receives data from the speck service
         initBroadcastReceiver();
 
-        startActivitySummaryUpdaterTask();
         startAirspeckWatchdogUpdaterTask();
+    }
+
+    private void displayFragment(Fragment newFragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.main_frame, newFragment);
+        transaction.commit();
     }
 
     private void startPhoneGPSService() {
@@ -486,8 +487,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == Constants.REQUEST_CODE_LOCATION_PERMISSION) {
             Log.i("AirspeckMap", "onRequestPermissionResult: " + grantResults[0]);
             // If request is cancelled, the result arrays are empty.
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted. Start the phone service.
                 checkPermissionsAndInitMainActivity();
             } else {
@@ -509,28 +509,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // Do nothing.
-    }
-
-    private void createExternalDirectory() {
-        // Create directories on external storage if they don't exist
-        File directory = new File(Constants.EXTERNAL_DIRECTORY_STORAGE_PATH);
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            // The following is used as the directory sometimes doesn't show as it is not indexed by the system yet
-            // scanFile should force the indexation of the new directory.
-            MediaScannerConnection.scanFile(this, new String[]{directory.toString()}, null,
-                    new MediaScannerConnection.OnScanCompletedListener() {
-                        public void onScanCompleted(String path, Uri uri) {
-                            Log.i("ExternalStorage", "Scanned " + path + ":");
-                            Log.i("ExternalStorage", "-> uri=" + uri);
-                        }
-                    });
-            if (created) {
-                Log.i("DF", "Directory created: " + directory);
-            } else {
-                throw new RuntimeException("Couldn't create app root folder on external storage");
-            }
-        }
     }
 
     @Override
@@ -655,7 +633,7 @@ public class MainActivity extends AppCompatActivity {
                         sendMessageToHandler(SHOW_AIRSPECK_DISCONNECTED, null);
                         break;
                     case Constants.ACTION_PULSEOX_BROADCAST:
-                        PulseoxData pd = (PulseoxData)intent.getSerializableExtra(Constants.PULSEOX_DATA);
+                        PulseoxData pd = (PulseoxData) intent.getSerializableExtra(Constants.PULSEOX_DATA);
                         pd.toStringForFile();
                         //Toast.makeText(context,
                         //        "Pulseox: " + pd.toStringForFile(),
@@ -750,11 +728,7 @@ public class MainActivity extends AppCompatActivity {
             mShowSupervisedAQMap = false;
         }
 
-        if (mIsPulseoxEnabled) {
-            mShowSupervisedPulseoxReadings = true;
-        } else {
-            mShowSupervisedPulseoxReadings = false;
-        }
+        mShowSupervisedPulseoxReadings = mIsPulseoxEnabled;
 
         mShowStepCount = false;
         mShowSubjectHome = true;
@@ -776,155 +750,6 @@ public class MainActivity extends AppCompatActivity {
                 Constants.Config.SHOW_SUBJECT_VALUES_SCREEN));
     }
 
-    private void setupViewPager() {
-        // Setup supervised mode arrays
-        supervisedFragments.clear();
-        supervisedTitles.clear();
-        // Only show each fragment if we set the config to true
-        if (mShowStepCount) {
-            supervisedFragments.add(mSupervisedStepCounterFragment);
-            supervisedTitles.add("Steps");
-        }
-        if (mShowSupervisedRESpeckReadings) {
-            supervisedFragments.add(mSupervisedRESpeckReadingsFragment);
-            supervisedTitles.add(getString(R.string.menu_breathing_graph));
-        }
-        if (mShowSupervisedAirspeckReadings) {
-            supervisedFragments.add(mSupervisedAirspeckReadingsFragment);
-            supervisedTitles.add(getString(R.string.menu_air_quality));
-        }
-        if (mShowSupervisedPulseoxReadings) {
-            supervisedFragments.add(mSupervisedPulseoxReadingsFragment);
-            supervisedTitles.add(getString(R.string.menu_pulseox));
-        }
-        if (mShowSupervisedAQGraphs) {
-            supervisedFragments.add(mSupervisedAirspeckGraphsFragment);
-            supervisedTitles.add(getString(R.string.menu_aq_graphs));
-        }
-        if (mShowSupervisedActivitySummary) {
-            supervisedFragments.add(mSupervisedActivitySummaryFragment);
-            supervisedTitles.add(getString(R.string.menu_activity_summary));
-        }
-        if (mShowSupervisedAQMap) {
-            supervisedFragments.add(mSupervisedAirspeckMapLoaderFragment);
-            supervisedTitles.add(getString(R.string.menu_aq_map));
-        }
-        //if (mIsAirspeckEnabled && mIsRESpeckEnabled) {
-        // Only if we have data from both sensors does activity logging make sense as we need all data to make any
-        // judgement about indoor/outdoor
-        supervisedFragments.add(mSupervisedActivityLoggingFragment);
-        supervisedTitles.add(getString(R.string.menu_act_logging));
-        //}
-        if (mIsAirspeckEnabled) {
-            supervisedFragments.add(mSupervisedActivityPredictionFragment);
-            supervisedTitles.add(getString(R.string.menu_act_prediction));
-        }
-
-        // Setup subject mode arrays
-        subjectFragments.clear();
-        subjectTitles.clear();
-
-        if (mShowSubjectHome) {
-            subjectFragments.add(mSubjectHomeFragment);
-            // Emtpy title as we display icons
-            subjectTitles.add("");
-        }
-        if (mShowSubjectValues) {
-            subjectFragments.add(mSubjectValuesFragment);
-            subjectTitles.add("");
-        }
-        if (mShowSubjectWindmill) {
-            subjectFragments.add(mSubjectWindmillFragment);
-            subjectTitles.add("");
-        }
-
-        // Set the PagerAdapter. It will check in which mode we are and load the corresponding Fragments
-        viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
-    }
-
-    private void setupFragments() {
-        // Load or create fragments
-        FragmentManager fm = getSupportFragmentManager();
-        if (mSavedInstanceState != null) {
-            // If we have saved something from a previous activity lifecycle, the fragments probably already exist
-            mSupervisedAirspeckReadingsFragment =
-                    (SupervisedAirspeckReadingsFragment) fm.getFragment(mSavedInstanceState, TAG_AQREADINGS_FRAGMENT);
-            mSupervisedAirspeckGraphsFragment =
-                    (SupervisedAirspeckGraphsFragment) fm.getFragment(mSavedInstanceState, TAG_GRAPHS_FRAGMENT);
-            mSupervisedActivitySummaryFragment = (SupervisedActivitySummaryFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_ACTIVITY_SUMMARY_FRAGMENT);
-            mSupervisedRESpeckReadingsFragment = (SupervisedRESpeckReadingsFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_BREATHING_GRAPH_FRAGMENT);
-            mSupervisedPulseoxReadingsFragment = (SupervisedPulseoxReadingsFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_PULSEOX_FRAGMENT);
-            mSupervisedAirspeckMapLoaderFragment = (SupervisedAirspeckMapLoaderFragment) fm.getFragment(
-                    mSavedInstanceState,
-                    TAG_AQ_MAP_FRAGMENT);
-            mSupervisedActivityPredictionFragment = (SupervisedActivityPredictionFragment) fm.getFragment(
-                    mSavedInstanceState, TAG_ACTIVITY_PREDICTION_FRAGMENT);
-            mSubjectHomeFragment = (SubjectHomeFragment) fm.getFragment(mSavedInstanceState, TAG_SUBJECT_HOME_FRAGMENT);
-            mSubjectValuesFragment = (SubjectValuesFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_SUBJECT_VALUES_FRAGMENT);
-            mSubjectWindmillFragment = (SubjectWindmillFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_SUBJECT_WINDMILL_FRAGMENT);
-            mSupervisedStepCounterFragment = (SupervisedStepCounterFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_STEPCOUNT_FRAGMENT);
-            mSupervisedActivityLoggingFragment = (SupervisedActivityLoggingFragment) fm.getFragment(mSavedInstanceState,
-                    TAG_ACTIVITY_LOGGING_FRAGMENT);
-        }
-        // If there is no saved instance state, or if the fragments haven't been created during the last activity
-        // startup, create them now
-        if (mSupervisedAirspeckReadingsFragment == null) {
-            mSupervisedAirspeckReadingsFragment = new SupervisedAirspeckReadingsFragment();
-        }
-        if (mSupervisedAirspeckGraphsFragment == null) {
-            mSupervisedAirspeckGraphsFragment = new SupervisedAirspeckGraphsFragment();
-        }
-        if (mSupervisedActivitySummaryFragment == null) {
-            mSupervisedActivitySummaryFragment = new SupervisedActivitySummaryFragment();
-        }
-        if (mSupervisedRESpeckReadingsFragment == null) {
-            mSupervisedRESpeckReadingsFragment = new SupervisedRESpeckReadingsFragment();
-        }
-        if (mSupervisedPulseoxReadingsFragment == null) {
-            mSupervisedPulseoxReadingsFragment = new SupervisedPulseoxReadingsFragment();
-        }
-        if (mSupervisedAirspeckMapLoaderFragment == null) {
-            mSupervisedAirspeckMapLoaderFragment = new SupervisedAirspeckMapLoaderFragment();
-        }
-        if (mSubjectHomeFragment == null) {
-            mSubjectHomeFragment = new SubjectHomeFragment();
-        }
-        if (mSubjectValuesFragment == null) {
-            mSubjectValuesFragment = new SubjectValuesFragment();
-        }
-        if (mSubjectWindmillFragment == null) {
-            mSubjectWindmillFragment = new SubjectWindmillFragment();
-        }
-        if (mSupervisedStepCounterFragment == null) {
-            mSupervisedStepCounterFragment = new SupervisedStepCounterFragment();
-        }
-        if (mSupervisedActivityLoggingFragment == null) {
-            mSupervisedActivityLoggingFragment = new SupervisedActivityLoggingFragment();
-        }
-        if (mSupervisedActivityPredictionFragment == null) {
-            mSupervisedActivityPredictionFragment = new SupervisedActivityPredictionFragment();
-        }
-    }
-
-    private void startActivitySummaryUpdaterTask() {
-        final int delay = 5 * 60 * 1000;
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Message msg = new Message();
-                msg.what = ACTIVITY_SUMMARY_UPDATE;
-                msg.setTarget(mUIHandler);
-                msg.sendToTarget();
-            }
-        }, 0, delay);
-    }
 
     private void startAirspeckWatchdogUpdaterTask() {
         final int delay = 15 * 1000;
@@ -943,19 +768,7 @@ public class MainActivity extends AppCompatActivity {
     public void displaySupervisedMode() {
         mIsSupervisedModeCurrentlyShown = true;
 
-        // Update displayed Fragments to reflect mode
-        ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(supervisedFragments, supervisedTitles);
-        viewPager.setCurrentItem(0);
-
-        // We only display tabs if there is more than one fragment
-        if (supervisedFragments.size() > 1) {
-            tabLayout.setVisibility(View.VISIBLE);
-            tabLayout.setupWithViewPager(viewPager);
-            // Update tab icons
-            // tabLayout.getTabAt(0).setIcon(Constants.MENU_ICON_HOME);
-        } else {
-            tabLayout.setVisibility(View.GONE);
-        }
+        displayFragment(new SupervisedAirspeckReadingsFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();
@@ -964,21 +777,8 @@ public class MainActivity extends AppCompatActivity {
     public void displaySubjectMode() {
         mIsSupervisedModeCurrentlyShown = false;
 
-        // Update displayed Fragments to reflect mode
-        ((SectionsPagerAdapter) viewPager.getAdapter()).setDisplayedFragments(subjectFragments, subjectTitles);
-        viewPager.setCurrentItem(0);
+        displayFragment(new SubjectHomeFragment());
 
-        if (subjectFragments.size() > 1) {
-            tabLayout.setVisibility(View.VISIBLE);
-            tabLayout.setupWithViewPager(viewPager);
-
-            for (int i = 0; i < subjectFragments.size(); i++) {
-                tabLayout.getTabAt(i).setIcon(((BaseFragment) subjectFragments.get(i)).getIcon());
-                tabLayout.getTabAt(i).setText("");
-            }
-        } else {
-            tabLayout.setVisibility(View.GONE);
-        }
         // Recreate options menu
         invalidateOptionsMenu();
     }
@@ -1007,44 +807,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putBoolean(SAVED_STATE_IS_SUPERVISED_MODE, mIsSupervisedModeCurrentlyShown);
-        super.onSaveInstanceState(outState);
-
-        FragmentManager fm = getSupportFragmentManager();
-        if (mSupervisedAirspeckReadingsFragment != null && mSupervisedAirspeckReadingsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_AQREADINGS_FRAGMENT, mSupervisedAirspeckReadingsFragment);
-        }
-        if (mSupervisedAirspeckGraphsFragment != null && mSupervisedAirspeckGraphsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_GRAPHS_FRAGMENT, mSupervisedAirspeckGraphsFragment);
-        }
-        if (mSupervisedActivitySummaryFragment != null && mSupervisedActivitySummaryFragment.isAdded()) {
-            fm.putFragment(outState, TAG_ACTIVITY_SUMMARY_FRAGMENT, mSupervisedActivitySummaryFragment);
-        }
-        if (mSupervisedRESpeckReadingsFragment != null && mSupervisedRESpeckReadingsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_BREATHING_GRAPH_FRAGMENT, mSupervisedRESpeckReadingsFragment);
-        }
-        if (mSupervisedPulseoxReadingsFragment != null && mSupervisedPulseoxReadingsFragment.isAdded()) {
-            fm.putFragment(outState, TAG_PULSEOX_FRAGMENT, mSupervisedPulseoxReadingsFragment);
-        }
-        if (mSubjectHomeFragment != null && mSubjectHomeFragment.isAdded()) {
-            fm.putFragment(outState, TAG_SUBJECT_HOME_FRAGMENT, mSubjectHomeFragment);
-        }
-        if (mSubjectValuesFragment != null && mSubjectValuesFragment.isAdded()) {
-            fm.putFragment(outState, TAG_SUBJECT_VALUES_FRAGMENT, mSubjectValuesFragment);
-        }
-        if (mSubjectWindmillFragment != null && mSubjectWindmillFragment.isAdded()) {
-            fm.putFragment(outState, TAG_SUBJECT_WINDMILL_FRAGMENT, mSubjectWindmillFragment);
-        }
-        if (mSupervisedActivityLoggingFragment != null && mSupervisedActivityLoggingFragment.isAdded()) {
-            fm.putFragment(outState, TAG_ACTIVITY_LOGGING_FRAGMENT, mSupervisedActivityLoggingFragment);
-        }
-        if (mSupervisedActivityPredictionFragment != null && mSupervisedActivityPredictionFragment.isAdded()) {
-            fm.putFragment(outState, TAG_ACTIVITY_PREDICTION_FRAGMENT, mSupervisedActivityPredictionFragment);
-        }
 
         // Save connection state
         outState.putBoolean(Constants.IS_RESPECK_CONNECTED, mIsRESpeckConnected);
         outState.putBoolean(Constants.IS_AIRSPECK_CONNECTED, mIsAirspeckConnected);
         outState.putBoolean(Constants.IS_PULSEOX_CONNECTED, mIsPulseoxConnected);
+
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -1064,49 +833,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_supervised_mode) {
-            DialogFragment supervisedPasswordDialog = new SupervisedPasswordDialog();
-            supervisedPasswordDialog.show(getFragmentManager(), "password_dialog");
-        } else if (id == R.id.action_subject_mode) {
-            displaySubjectMode();
-        } else if (id == R.id.action_close_app) {
-            stopServices();
-            finish();
-        } else if (id == R.id.action_volume_recording) {
-            startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
-        } else if (id == R.id.action_view_config) {
-            startActivity(new Intent(this, ConfigViewActivity.class));
-        } else if (id == R.id.action_check_for_updates) {
-            Toast.makeText(this,
-                    "Checking for updates in background. You will be notified when an update is available in about a minute.",
-                    Toast.LENGTH_LONG).show();
-            aua.checkUpdatesManually();
+        switch(item.getItemId()) {
+            case R.id.action_supervised_mode:
+                DialogFragment supervisedPasswordDialog = new SupervisedPasswordDialog();
+                supervisedPasswordDialog.show(getFragmentManager(), "password_dialog");
+                return true;
+            case R.id.action_subject_mode:
+                displaySubjectMode();
+                return true;
+            case R.id.action_close_app:
+                stopServices();
+                finish();
+                return true;
+            case R.id.action_volume_recording:
+                startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
+                return true;
+            case R.id.action_view_config:
+                startActivity(new Intent(this, ConfigViewActivity.class));
+                return true;
+            case R.id.action_check_for_updates:
+                Toast.makeText(this,
+                        "Checking for updates in background. You will be notified when an update is available in about a minute.",
+                        Toast.LENGTH_LONG).show();
+                aua.checkUpdatesManually();
+                return true;
+            case android.R.id.home:
+                mNavDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    public void updateConnectionLoadingLayout() {
-        boolean showAirspeckConnecting = mIsAirspeckEnabled && !mIsAirspeckConnected;
-        boolean showRESpeckConnecting = mIsRESpeckEnabled && !mIsRESpeckConnected;
-        boolean showPulseoxConnecting = mIsPulseoxEnabled && !mIsPulseoxConnected;
-
-
-        if (mIsSupervisedModeCurrentlyShown) {
-            mSupervisedRESpeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
-            mSupervisedAirspeckReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
-            mSupervisedAirspeckGraphsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
-            mSupervisedPulseoxReadingsFragment.showConnecting(showAirspeckConnecting, showRESpeckConnecting, showPulseoxConnecting);
-        }
     }
 
     private void updateRespeckReadings(RESpeckLiveData newData) {
@@ -1141,11 +900,6 @@ public class MainActivity extends AppCompatActivity {
         Log.i("MainActivity", "Number of RESpeck observers: " + respeckDataObservers.size());
     }
 
-
-    private void updateAirspeckReadings(AirspeckData newValues) {
-        notifyNewAirspeckReading(newValues);
-    }
-
     private void notifyNewAirspeckReading(AirspeckData newData) {
         for (AirspeckDataObserver observer : airspeckDataObservers) {
             observer.updateAirspeckData(newData);
@@ -1170,6 +924,15 @@ public class MainActivity extends AppCompatActivity {
         pulseoxDataObservers.add(observer);
     }
 
+    public void registerConnectionStateObserver(ConnectionStateObserver observer) {
+        connectionStateObservers.add(observer);
+    }
+
+    private void notifyNewConnectionState() {
+        for (ConnectionStateObserver observer : connectionStateObservers) {
+            observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected);
+        }
+    }
 
     public void setWrongOrientationDialogDisplayed(boolean isDisplayed) {
         if (!isDisplayed) {
@@ -1188,29 +951,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRESpeckConnection(boolean isConnected) {
         mIsRESpeckConnected = isConnected;
-        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
-            mSubjectHomeFragment.updateRESpeckConnectionSymbol(isConnected);
-        }
-        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectWindmill) {
-            mSubjectWindmillFragment.updateRESpeckConnectionSymbol(isConnected);
-        }
-        updateConnectionLoadingLayout();
+        notifyNewConnectionState();
     }
 
     private void updateAirspeckConnection(boolean isConnected) {
         mIsAirspeckConnected = isConnected;
-        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
-            mSubjectHomeFragment.updateAirspeckConnectionSymbol(isConnected);
-        }
-        updateConnectionLoadingLayout();
+        notifyNewConnectionState();
     }
 
     private void updatePulseoxConnection(boolean isConnected) {
         mIsPulseoxConnected = isConnected;
-        if (!mIsSupervisedModeCurrentlyShown && mShowSubjectHome) {
-            //mSubjectHomeFragment.updatePulseoxConnectionSymbol(isConnected);
-        }
-        updateConnectionLoadingLayout();
+        notifyNewConnectionState();
     }
 
     private void showSnackbarFromHandler(String message) {
@@ -1224,13 +975,6 @@ public class MainActivity extends AppCompatActivity {
         msg.obj = text;
         msg.setTarget(mUIHandler);
         msg.sendToTarget();
-    }
-
-    private void updateActivitySummary() {
-        // The activity summary is only displayed in supervised mode
-        if (mIsSupervisedModeCurrentlyShown && mShowSupervisedActivitySummary) {
-            mSupervisedActivitySummaryFragment.updateActivitySummary();
-        }
     }
 
     public boolean getIsRESpeckConnected() {

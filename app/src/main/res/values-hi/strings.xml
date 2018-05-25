@@ -7,7 +7,6 @@
 
 
     <!-- Strings related to login issues -->
-    <string name="connecting_to_devices">उपकरणों से कनेक्ट करना</string>
     <string name="device_found">जुड़े हुए</string>
     <string name="waiting_for_data">डेटा के लिए प्रतीक्षा कर रहा है</string>
 
@@ -22,19 +21,15 @@
 
 
     <!-- Strings related to Readings -->
-    <string name="readings_title">सजीव आंकड़ा</string>
 
     <!-- Readings -->
 
-    <string name="reading_respiratory_rate">श्वसन दर</string>
     <string name="reading_pm10">PM 10</string>
     <string name="reading_pm2_5">PM 2.5</string>
 
     <string name="reading_pm1_0">PM 1.0</string>
     <string name="reading_temp">तापमान</string>
     <string name="reading_rel_humidity">नमी</string>
-    <string name="reading_o3">O3</string>
-    <string name="reading_no2">NO2</string>
     <string name="reading_bins">Bins total</string>
 
     <!-- Reading unit -->
@@ -49,9 +44,9 @@
     <!-- Strings related to Menus -->
 
     <!-- Button/tabs menu -->
-    <string name="menu_home">घर</string>
-    <string name="menu_air_quality">हवा की गुणवत्ता</string>
-    <string name="menu_aq_graphs">रेखांकन</string>
+    <string name="menu_subject">घर</string>
+    <string name="menu_airspeck_readings">हवा की गुणवत्ता</string>
+    <string name="menu_airspeck_graphs">रेखांकन</string>
 
     <!-- Action Bar menu -->
     <string name="action_supervised_mode">निगरानी मोड</string>
