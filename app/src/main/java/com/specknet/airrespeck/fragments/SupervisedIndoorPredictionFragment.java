@@ -6,25 +6,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.activities.AirspeckDataObserver;
-import com.specknet.airrespeck.activities.MainActivity;
-import com.specknet.airrespeck.models.AirspeckData;
-import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 
-import java.util.Locale;
+public class SupervisedIndoorPredictionFragment extends ConnectionOverlayFragment {
 
-public class SupervisedActivityPredictionFragment extends BaseFragment {
-
-    private IndoorOutdoorPredictor indoorOutdoorPredictor;
     private TextView indoorLikelihoodText;
 
     @Override

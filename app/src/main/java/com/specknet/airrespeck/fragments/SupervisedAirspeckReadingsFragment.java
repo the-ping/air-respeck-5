@@ -23,11 +23,10 @@ import com.specknet.airrespeck.utils.Constants;
 import java.util.ArrayList;
 
 
-public class SupervisedAirspeckReadingsFragment extends BaseFragment implements AirspeckDataObserver {
+public class SupervisedAirspeckReadingsFragment extends ConnectionOverlayFragment implements AirspeckDataObserver {
 
     private ArrayList<ReadingItem> mReadingItems;
 
-    private ReadingItemArrayAdapter mListViewAdapter;
     private ReadingItemSegmentedBarAdapter mSegmentedBarAdapter;
 
     private AirspeckData mLastValuesDisplayed;
@@ -67,8 +66,6 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
                 updateAirspeckData(loadedItems);
             }
         }
-
-        mIsCreated = true;
 
         return view;
     }
@@ -348,17 +345,14 @@ public class SupervisedAirspeckReadingsFragment extends BaseFragment implements 
     public void updateAirspeckData(AirspeckData data) {
         mLastValuesDisplayed = data;
 
-        if (mIsCreated) {
+        mReadingItems.get(0).value = data.getPm1();
+        mReadingItems.get(1).value = data.getPm2_5();
+        mReadingItems.get(2).value = data.getPm10();
+        mReadingItems.get(3).value = data.getTemperature();
 
-            mReadingItems.get(0).value = data.getPm1();
-            mReadingItems.get(1).value = data.getPm2_5();
-            mReadingItems.get(2).value = data.getPm10();
-            mReadingItems.get(3).value = data.getTemperature();
+        mReadingItems.get(4).segments = buildRelativeHumidityScale(Math.round(data.getTemperature()));
+        mReadingItems.get(4).value = data.getHumidity();
 
-            mReadingItems.get(4).segments = buildRelativeHumidityScale(Math.round(data.getTemperature()));
-            mReadingItems.get(4).value = data.getHumidity();
-
-            mSegmentedBarAdapter.notifyDataSetChanged();
-        }
+        mSegmentedBarAdapter.notifyDataSetChanged();
     }
 }

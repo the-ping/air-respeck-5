@@ -1,32 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_subject"
-            android:title="@string/menu_subject" />
+            android:id="@+id/menu_airspeck_subgroup"
+            android:title="@string/menu_airspeck_subgroup">
+            <menu>
+                <item
+                    android:id="@+id/nav_airspeck_readings"
+                    android:title="@string/menu_airspeck_readings"/>
+                <item
+                    android:id="@+id/nav_airspeck_graphs"
+                    android:title="@string/menu_airspeck_graphs"/>
+                <item
+                    android:id="@+id/nav_airspeck_map"
+                    android:title="@string/menu_airspeck_map"/>
+                <item
+                    android:id="@+id/nav_inout_prediction"
+                    android:title="@string/menu_inout_prediction"/>
+            </menu>
+        </item>
         <item
-            android:id="@+id/nav_airspeck_readings"
-            android:title="@string/menu_airspeck_readings" />
+            android:id="@+id/menu_respeck_subgroup"
+            android:title="@string/menu_respeck_subgroup">
+            <menu>
+                <item
+                    android:id="@+id/nav_respeck_readings"
+                    android:title="@string/menu_respeck_readings"/>
+                <item
+                    android:id="@+id/nav_activity_summary"
+                    android:title="@string/menu_activity_summary"/>
+                <item
+                    android:id="@+id/nav_activity_logging"
+                    android:title="@string/menu_activity_logging"/>
+            </menu>
+        </item>
         <item
-            android:id="@+id/nav_airspeck_graphs"
-            android:title="@string/menu_airspeck_graphs" />
+            android:id="@+id/menu_pulseox_subgroup"
+            android:title="@string/menu_pulseox_subgroup">
+            <menu>
+                <item
+                    android:id="@+id/nav_pulseox"
+                    android:title="@string/menu_pulseox"/>
+            </menu>
+        </item>
+        <!--
         <item
-            android:id="@+id/nav_airspeck_map"
-            android:title="@string/menu_airspeck_map" />
-        <item
-            android:id="@+id/nav_respeck_readings"
-            android:title="@string/menu_respeck_readings" />
-        <item
-            android:id="@+id/nav_activity_summary"
-            android:title="@string/menu_activity_summary" />
-        <item
-            android:id="@+id/nav_activity_logging"
-            android:title="@string/menu_activity_logging" />
-        <item
-            android:id="@+id/nav_inout_prediction"
-            android:title="@string/menu_inout_prediction" />
-        <item
-            android:id="@+id/nav_pulseox"
-            android:title="@string/menu_pulseox" />
+            android:id="@+id/menu_other_subgroup"
+            android:title="@string/menu_other_subgroup">
+            <menu>
+
+            </menu>
+        </item>
+        -->
     </group>
 </menu>

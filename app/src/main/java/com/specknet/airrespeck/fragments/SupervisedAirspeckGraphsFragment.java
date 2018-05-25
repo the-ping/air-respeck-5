@@ -37,7 +37,7 @@ import java.util.List;
 import static com.specknet.airrespeck.utils.Utils.onlyKeepTimeInHour;
 
 
-public class SupervisedAirspeckGraphsFragment extends BaseFragment implements AirspeckDataObserver {
+public class SupervisedAirspeckGraphsFragment extends ConnectionOverlayFragment implements AirspeckDataObserver {
 
     private int BINS_NUMBER = 16;
     private LinkedList<AirspeckData> dataBuffer = new LinkedList<>();
@@ -100,8 +100,6 @@ public class SupervisedAirspeckGraphsFragment extends BaseFragment implements Ai
 
         setupPMsChart();
         setupBinsChart();
-
-        mIsCreated = true;
 
         return view;
     }

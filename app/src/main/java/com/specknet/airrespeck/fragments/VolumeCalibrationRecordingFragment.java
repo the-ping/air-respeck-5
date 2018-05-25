@@ -1,4 +1,4 @@
-package com.specknet.airrespeck.activities;
+package com.specknet.airrespeck.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,7 +9,9 @@ import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.fragments.ConnectionOverlayFragment;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -33,7 +36,7 @@ import java.util.Locale;
  * Activity for recording volume data with zipper bags and sealing rings.
  */
 
-public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
+public class VolumeCalibrationRecordingFragment extends ConnectionOverlayFragment {
 
     private OutputStreamWriter mWriter;
     private BroadcastReceiver mSpeckServiceReceiver;
@@ -56,36 +59,33 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
     private final String LYING_RIGHT = "Lying down right";
     private final String LYING_LEFT = "Lying down left";
 
-
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_volume_calibration_recording);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_volume_calibration_recording, container, false);
 
         // Setup spinners
-        final Spinner activitySpinner = (Spinner) findViewById(R.id.activity_spinner);
-        final Spinner bagSizeSpinner = (Spinner) findViewById(R.id.bag_size_spinner);
+        final Spinner activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
+        final Spinner bagSizeSpinner = (Spinner) view.findViewById(R.id.bag_size_spinner);
 
-        final EditText nameTextField = (EditText) findViewById(R.id.name_text_field);
+        final EditText nameTextField = (EditText) view.findViewById(R.id.name_text_field);
 
         //String[] activitySpinnerElements = new String[]{SITTING_STRAIGHT, STANDING, LYING_NORMAL};
         String[] activitySpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD, SITTING_BACKWARD, STANDING,
                 LYING_NORMAL, LYING_RIGHT, LYING_LEFT};
-        ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
         activitySpinner.setAdapter(activityAdapter);
 
         String[] bagSpinnerElements = new String[]{"0.35", "0.5", "0.7", "1.2"};
-        ArrayAdapter<String> bagSizeAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> bagSizeAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, bagSpinnerElements);
         bagSizeSpinner.setAdapter(bagSizeAdapter);
 
         // Load buttons
-        mStartStopButton = (Button) findViewById(R.id.record_button);
+        mStartStopButton = (Button) getActivity().findViewById(R.id.record_button);
         mStartStopButton.setBackgroundColor(
-                ContextCompat.getColor(getApplicationContext(), R.color.md_grey_300));
-        mCancelButton = (Button) findViewById(R.id.cancel_button);
+                ContextCompat.getColor(getActivity(), R.color.md_grey_300));
+        mCancelButton = (Button) view.findViewById(R.id.cancel_button);
 
         outputData = new StringBuilder();
 
@@ -109,7 +109,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                                 if (outputData.length() != 0) {
                                     mWriter.write(outputData.toString());
                                     mWriter.flush();
-                                    Toast.makeText(getApplicationContext(),
+                                    Toast.makeText(getActivity(),
                                             "Recording saved",
                                             Toast.LENGTH_LONG).show();
 
@@ -123,7 +123,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                                 mStartStopButton.setText(R.string.button_text_start_recording);
                                 mStartStopButton.setEnabled(true);
                                 mStartStopButton.setBackgroundColor(
-                                        ContextCompat.getColor(getApplicationContext(), R.color.md_grey_300));
+                                        ContextCompat.getColor(getActivity(), R.color.md_grey_300));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -142,11 +142,10 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                         // Change button label to tell the user that we are recording
                         mStartStopButton.setText(R.string.button_text_stop_recording);
                         mStartStopButton.setBackgroundColor(
-                                ContextCompat.getColor(getApplicationContext(), R.color.md_green_300));
+                                ContextCompat.getColor(getActivity(), R.color.md_green_300));
                         mCancelButton.setEnabled(true);
                     } else {
-                        Toast.makeText(VolumeCalibrationRecordingActivity.this, "Enter subject name",
-                                Toast.LENGTH_LONG).show();
+                        Toast.makeText(getActivity(), "Enter subject name", Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -160,7 +159,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
         });
 
         // Create volume directory if it doesn't exist
-        File directory = new File(Utils.getInstance().getDataDirectory(this) +
+        File directory = new File(Utils.getInstance().getDataDirectory(getActivity()) +
                 Constants.VOLUME_DATA_DIRECTORY_NAME);
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
@@ -182,8 +181,7 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                 mWriter.append(Constants.VOLUME_DATA_HEADER).append("\n");
                 mWriter.flush();
             } else {
-                mWriter = new OutputStreamWriter(
-                        new FileOutputStream(filename, true));
+                mWriter = new OutputStreamWriter(new FileOutputStream(filename, true));
             }
         } catch (IOException e) {
             Log.e("Volume calibration", "Error while creating the file");
@@ -200,13 +198,13 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
                     if ((mActivity.equals(SITTING_STRAIGHT) || mActivity.equals(SITTING_BACKWARD) || mActivity.equals(
                             SITTING_FORWARD) || mActivity.equals(
                             STANDING)) && !(data.getActivityType() == Constants.ACTIVITY_STAND_SIT)) {
-                        Toast.makeText(getApplicationContext(),
+                        Toast.makeText(getActivity(),
                                 "RESpeck registers activity other than sitting or standing, which is the selected option",
                                 Toast.LENGTH_LONG).show();
                         cancelRecording();
                     } else if ((mActivity.equals(LYING_NORMAL) || mActivity.equals(LYING_LEFT) || mActivity.equals(
                             LYING_RIGHT)) && !(data.getActivityType() == Constants.ACTIVITY_LYING)) {
-                        Toast.makeText(getApplicationContext(),
+                        Toast.makeText(getActivity(),
                                 "RESpeck registers activity other than lying down, which is the selected option",
                                 Toast.LENGTH_LONG).show();
                         cancelRecording();
@@ -220,8 +218,10 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
             }
         };
 
-        registerReceiver(mSpeckServiceReceiver, new IntentFilter(
+        getActivity().registerReceiver(mSpeckServiceReceiver, new IntentFilter(
                 Constants.ACTION_RESPECK_LIVE_BROADCAST));
+
+        return view;
     }
 
     private void cancelRecording() {
@@ -232,27 +232,20 @@ public class VolumeCalibrationRecordingActivity extends AppCompatActivity {
 
         // Change button label to tell the user that the recording has stopped
         mStartStopButton.setText(R.string.button_text_start_recording);
-        mStartStopButton.setBackgroundColor(
-                ContextCompat.getColor(getApplicationContext(), R.color.md_grey_300));
+        mStartStopButton.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
         mCancelButton.setEnabled(false);
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         try {
             mWriter.close();
         } catch (IOException e) {
             Log.e("Volume calibration", "Error while creating the file");
         }
-        unregisterReceiver(mSpeckServiceReceiver);
+        getActivity().unregisterReceiver(mSpeckServiceReceiver);
         super.onDestroy();
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        startActivity(new Intent(this, MainActivity.class));
-        finish();
-    }
 }

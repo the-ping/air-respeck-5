@@ -29,7 +29,7 @@ import java.util.Locale;
  * Fragment for loading Google Maps Activity with pollution information
  */
 
-public class SupervisedAirspeckMapLoaderFragment extends BaseFragment implements Serializable {
+public class SupervisedAirspeckMapLoaderFragment extends ConnectionOverlayFragment implements Serializable {
 
     public static final String KEY_PARENT = "parent";
     public static final String KEY_TYPE = "type";

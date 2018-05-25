@@ -14,12 +14,10 @@ import android.widget.TableLayout;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 
-public class SupervisedActivityLoggingFragment extends BaseFragment {
-
+public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment {
 
     private String transitText = "";
 

@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 
 import com.specknet.airrespeck.R;
@@ -21,7 +20,7 @@ import java.util.ArrayList;
  * Fragment to display the respiratory signal
  */
 
-public class SupervisedPulseoxReadingsFragment extends BaseFragment implements PulseoxDataObserver {
+public class SupervisedPulseoxReadingsFragment extends ConnectionOverlayFragment implements PulseoxDataObserver {
 
     // Breathing text values
     private ArrayList<ReadingItem> mReadingItems;
@@ -59,20 +58,17 @@ public class SupervisedPulseoxReadingsFragment extends BaseFragment implements P
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);
 
-        mIsCreated = true;
         return view;
     }
 
     @Override
     public void updatePulseoxData(PulseoxData data) {
-        if (mIsCreated) {
-            // Only update readings if they are not NaN
-            if (!Float.isNaN(data.getPulse())) {
-                Log.i("PulseoxReadings", "Updated pulse rate: " + data.getPulse());
-                mReadingItems.get(0).value = data.getPulse();
-            }
-            mReadingItems.get(1).value = data.getSpo2();
-            mListViewAdapter.notifyDataSetChanged();
+        // Only update readings if they are not NaN
+        if (!Float.isNaN(data.getPulse())) {
+            Log.i("PulseoxReadings", "Updated pulse rate: " + data.getPulse());
+            mReadingItems.get(0).value = data.getPulse();
         }
+        mReadingItems.get(1).value = data.getSpo2();
+        mListViewAdapter.notifyDataSetChanged();
     }
 }

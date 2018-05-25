@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +17,11 @@ import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Utils;
 import com.specknet.airrespeck.views.BreathingGraphView;
 
-import java.util.LinkedList;
-
 /**
  * Created by Darius on 12.07.2017.
  */
 
-public class SupervisedStepCounterFragment extends BaseFragment implements RESpeckDataObserver {
+public class SupervisedStepCounterFragment extends ConnectionOverlayFragment implements RESpeckDataObserver {
 
     private TextView mStepcountText;
     private BreathingGraphView mVelocityGraphView;

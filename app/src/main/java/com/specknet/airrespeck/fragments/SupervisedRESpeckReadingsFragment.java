@@ -22,7 +22,7 @@ import java.util.ArrayList;
  * Fragment to display the respiratory signal
  */
 
-public class SupervisedRESpeckReadingsFragment extends BaseFragment implements RESpeckDataObserver {
+public class SupervisedRESpeckReadingsFragment extends ConnectionOverlayFragment implements RESpeckDataObserver {
 
     // Breathing text values
     private ArrayList<ReadingItem> mReadingItems;
@@ -75,14 +75,11 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
 
         mBreathingGraphView.startBreathingGraphUpdates();
 
-        mIsCreated = true;
-
         return view;
     }
 
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
-        if (mIsCreated) {
             // Only update readings if they are not NaN
             if (!Float.isNaN(data.getBreathingRate())) {
                 Log.i("RespeckReadings", "Updated breathing rate: " + data.getBreathingRate());
@@ -94,7 +91,6 @@ public class SupervisedRESpeckReadingsFragment extends BaseFragment implements R
 
             // Update the graph
             mBreathingGraphView.addToBreathingGraphQueue(data);
-        }
     }
 
     @Override

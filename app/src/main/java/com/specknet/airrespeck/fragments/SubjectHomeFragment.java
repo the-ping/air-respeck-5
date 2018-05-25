@@ -6,12 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -28,14 +28,13 @@ import java.util.Map;
  * Home screen for subjects using the app
  */
 
-public class SubjectHomeFragment extends BaseFragment implements ConnectionStateObserver {
+public class SubjectHomeFragment extends Fragment implements ConnectionStateObserver {
 
     private ImageView connectedStatusRESpeck;
     private ImageView connectedStatusAirspeck;
     private ProgressBar progressBarRESpeck;
     private ProgressBar progressBarAirspeck;
     private ImageView airspeckOffButton;
-
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -111,8 +110,6 @@ public class SubjectHomeFragment extends BaseFragment implements ConnectionState
             respeckDisabledImage.setVisibility(View.VISIBLE);
         }
 
-        mIsCreated = true;
-
         // Register this fragment as connection state observer
         ((MainActivity) getActivity()).registerConnectionStateObserver(this);
 
@@ -167,58 +164,49 @@ public class SubjectHomeFragment extends BaseFragment implements ConnectionState
     }
 
     @Override
-    public int getIcon() {
-        return Constants.MENU_ICON_HOME;
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
     }
 
     public void updateRESpeckConnectionSymbol(boolean isConnected) {
-        if (mIsCreated) {
-            if (isConnected) {
-                // "Flash" with symbol when updating to indicate data coming in
-                progressBarRESpeck.setVisibility(View.GONE);
-                connectedStatusRESpeck.setVisibility(View.INVISIBLE);
+        if (isConnected) {
+            // "Flash" with symbol when updating to indicate data coming in
+            progressBarRESpeck.setVisibility(View.GONE);
+            connectedStatusRESpeck.setVisibility(View.INVISIBLE);
 
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        connectedStatusRESpeck.setVisibility(View.VISIBLE);
-                    }
-                }, 100);
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    connectedStatusRESpeck.setVisibility(View.VISIBLE);
+                }
+            }, 100);
 
-            } else {
-                connectedStatusRESpeck.setVisibility(View.GONE);
-                progressBarRESpeck.setVisibility(View.VISIBLE);
-            }
+        } else {
+            connectedStatusRESpeck.setVisibility(View.GONE);
+            progressBarRESpeck.setVisibility(View.VISIBLE);
         }
     }
 
     public void updateAirspeckConnectionSymbol(boolean isConnected) {
-        if (mIsCreated) {
-            if (isConnected) {
-                // "Flash" with symbol when updating to indicate data coming in
-                progressBarAirspeck.setVisibility(View.GONE);
-                connectedStatusAirspeck.setVisibility(View.INVISIBLE);
-                airspeckOffButton.setEnabled(true);
+        if (isConnected) {
+            // "Flash" with symbol when updating to indicate data coming in
+            progressBarAirspeck.setVisibility(View.GONE);
+            connectedStatusAirspeck.setVisibility(View.INVISIBLE);
+            airspeckOffButton.setEnabled(true);
 
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        connectedStatusAirspeck.setVisibility(View.VISIBLE);
-                    }
-                }, 100);
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    connectedStatusAirspeck.setVisibility(View.VISIBLE);
+                }
+            }, 100);
 
-            } else {
-                airspeckOffButton.setEnabled(false);
-                connectedStatusAirspeck.setVisibility(View.GONE);
-                progressBarAirspeck.setVisibility(View.VISIBLE);
-            }
+        } else {
+            airspeckOffButton.setEnabled(false);
+            connectedStatusAirspeck.setVisibility(View.GONE);
+            progressBarAirspeck.setVisibility(View.VISIBLE);
         }
     }
 }

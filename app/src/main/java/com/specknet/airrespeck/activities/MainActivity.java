@@ -41,7 +41,7 @@ import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
-import com.specknet.airrespeck.fragments.SupervisedActivityPredictionFragment;
+import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
     public final static int UPDATE_PULSEOX_READINGS = 9;
     public final static int SHOW_PULSEOX_CONNECTED = 10;
     public final static int SHOW_PULSEOX_DISCONNECTED = 11;
-
 
     /**
      * Static inner class doesn't hold an implicit reference to the outer class
@@ -248,6 +247,8 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
 
+    private ActionBar mActionbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -340,16 +341,100 @@ public class MainActivity extends AppCompatActivity {
         mIsActivityInitialised = true;
         FileLogger.logToFile(this, "App started and initialised");
         Log.i("MainActivity", "Initialising main activity");
+
         aua = new AutoUpdateApk(getApplicationContext(), true);
         AutoUpdateApk.enableMobileUpdates();
 
         // Setup the part of the layout which is the same for both modes
         setContentView(R.layout.activity_main);
-
         mNavDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-
         mMainFrameLayout = (FrameLayout) findViewById(R.id.main_frame);
+
+        aquireWakeLockToKeepAppRunning();
+
+        loadConfigInstanceVariables();
+
+        setupNavigationDrawer(navigationView);
+
+        if (mIsStoreDataLocally) {
+            Utils.createExternalDirectory(this);
+        }
+
+        if (mIsStorePhoneGPS) {
+            startPhoneGPSService();
+        }
+
+        // Add the toolbar
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+        mActionbar = getSupportActionBar();
+        mActionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+
+        // Set activity title
+        this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
+
+        // Load current mode if stored. If no mode was stored, use starting mode.
+        if (mSavedInstanceState != null) {
+            mIsSupervisedModeCurrentlyShown = mSavedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
+        } else {
+            // Set mode to starting mode specified in config file
+            mIsSupervisedModeCurrentlyShown = mIsSupervisedStartingMode;
+        }
+
+        // Call displayMode methods so the tabs are set correctly
+        if (mIsSupervisedModeCurrentlyShown) {
+            displaySupervisedMode();
+        } else {
+            displaySubjectMode();
+        }
+
+        // Load connection state
+        if (mSavedInstanceState != null) {
+            mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
+            mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
+            mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
+            updateRESpeckConnection(mIsRESpeckConnected);
+            updateAirspeckConnection(mIsAirspeckConnected);
+            updatePulseoxConnection(mIsPulseoxConnected);
+        }
+
+        // For use with snack bar (notification bar at the bottom of the screen)
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
+                Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+        startBluetoothCheckTask();
+
+        startSpeckService();
+
+        // Initialise broadcast receiver which receives data from the speck service
+        initBroadcastReceiver();
+
+        startAirspeckWatchdogUpdaterTask();
+    }
+
+    private void aquireWakeLockToKeepAppRunning() {
+        // Request wake lock to keep CPU running for all services of the app
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+        wakeLock.acquire();
+    }
+
+    public void setupNavigationDrawer(NavigationView navigationView) {
+        Menu navigationMenu = navigationView.getMenu();
+
+        // Hide parts of the navigation menu we don't need
+        if (!mIsAirspeckEnabled) {
+            navigationMenu.findItem(R.id.menu_airspeck_subgroup).setVisible(false);
+        }
+        if (!mIsRESpeckEnabled) {
+            navigationMenu.findItem(R.id.menu_respeck_subgroup).setVisible(false);
+        }
+        if (!mIsPulseoxEnabled) {
+            navigationMenu.findItem(R.id.menu_pulseox_subgroup).setVisible(false);
+        }
 
         // Setup nav drawer menu
         navigationView.setNavigationItemSelectedListener(
@@ -384,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
                                 displayFragment(new SupervisedActivityLoggingFragment());
                                 break;
                             case R.id.nav_inout_prediction:
-                                displayFragment(new SupervisedActivityPredictionFragment());
+                                displayFragment(new SupervisedIndoorPredictionFragment());
                                 break;
                             case R.id.nav_pulseox:
                                 displayFragment(new SupervisedPulseoxReadingsFragment());
@@ -393,79 +478,6 @@ public class MainActivity extends AppCompatActivity {
                         return true;
                     }
                 });
-
-        /* Keep CPU running. TODO: Do we really need this? From Android developers: Creating and holding wake locks
-        can have a dramatic impact on the host device's battery life. Thus you should use wake locks only when
-        strictly necessary and hold them for as short a time as possible. For example, you should never need to
-        use a wake lock in an activity. As described above, if you want to keep the screen on in your activity,
-        use FLAG_KEEP_SCREEN_ON.
-         */
-        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
-        wakeLock.acquire();
-
-        // Load configuration variables
-        loadConfigInstanceVariables();
-
-        // Create the external directories for storing the data if storage is enabled
-        if (mIsStoreDataLocally) {
-            Utils.createExternalDirectory(this);
-        }
-
-        // Start GPS phone storage service
-        if (mIsStorePhoneGPS) {
-            startPhoneGPSService();
-        }
-
-        // Set activity title
-        this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
-
-        // Load current mode if stored. If no mode was stored, use starting mode.
-        if (mSavedInstanceState != null) {
-            mIsSupervisedModeCurrentlyShown = mSavedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
-        } else {
-            // Set mode to starting mode specified in config file
-            mIsSupervisedModeCurrentlyShown = mIsSupervisedStartingMode;
-        }
-
-        // Call displayMode methods so the tabs are set correctly
-        if (mIsSupervisedModeCurrentlyShown) {
-            displaySupervisedMode();
-        } else {
-            displaySubjectMode();
-        }
-
-        // Load connection state
-        if (mSavedInstanceState != null) {
-            mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
-            mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
-            mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
-            updateRESpeckConnection(mIsRESpeckConnected);
-            updateAirspeckConnection(mIsAirspeckConnected);
-            updatePulseoxConnection(mIsPulseoxConnected);
-        }
-
-        // Add the toolbar
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
-        ActionBar actionbar = getSupportActionBar();
-        actionbar.setDisplayHomeAsUpEnabled(true);
-        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
-
-        // For use with snack bar (notification bar at the bottom of the screen)
-        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-
-        BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(
-                Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-        startBluetoothCheckTask();
-
-        startSpeckService();
-
-        // Initialise broadcast receiver which receives data from the speck service
-        initBroadcastReceiver();
-
-        startAirspeckWatchdogUpdaterTask();
     }
 
     private void displayFragment(Fragment newFragment) {
@@ -768,7 +780,12 @@ public class MainActivity extends AppCompatActivity {
     public void displaySupervisedMode() {
         mIsSupervisedModeCurrentlyShown = true;
 
-        displayFragment(new SupervisedAirspeckReadingsFragment());
+        // Enable navigation drawer
+        mActionbar.setDisplayHomeAsUpEnabled(true);
+        mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+
+        // Replace fragment
+        displayFragment(new SubjectHomeFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();
@@ -777,6 +794,11 @@ public class MainActivity extends AppCompatActivity {
     public void displaySubjectMode() {
         mIsSupervisedModeCurrentlyShown = false;
 
+        // Disable navigation drawer
+        mActionbar.setDisplayHomeAsUpEnabled(false);
+        mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        // Replace fragment
         displayFragment(new SubjectHomeFragment());
 
         // Recreate options menu
@@ -820,11 +842,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu, this adds items to the action bar if it is present.
         if (mIsSupervisedModeCurrentlyShown) {
-            if (mShowVolumeBagCalibrationView) {
-                getMenuInflater().inflate(R.menu.menu_supervised_volume_recording, menu);
-            } else {
-                getMenuInflater().inflate(R.menu.menu_supervised, menu);
-            }
+            getMenuInflater().inflate(R.menu.menu_supervised, menu);
         } else {
             // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
             getMenuInflater().inflate(R.menu.menu_subject, menu);
@@ -837,7 +855,7 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.action_supervised_mode:
                 DialogFragment supervisedPasswordDialog = new SupervisedPasswordDialog();
                 supervisedPasswordDialog.show(getFragmentManager(), "password_dialog");
@@ -848,9 +866,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_close_app:
                 stopServices();
                 finish();
-                return true;
-            case R.id.action_volume_recording:
-                startActivity(new Intent(this, VolumeCalibrationRecordingActivity.class));
                 return true;
             case R.id.action_view_config:
                 startActivity(new Intent(this, ConfigViewActivity.class));

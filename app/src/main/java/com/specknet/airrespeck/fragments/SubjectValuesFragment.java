@@ -2,11 +2,11 @@ package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
@@ -17,14 +17,13 @@ import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
 
-import java.util.HashMap;
 import java.util.Locale;
 
 /**
  * Created by Darius on 10.02.2017.
  */
 
-public class SubjectValuesFragment extends BaseFragment implements RESpeckDataObserver, AirspeckDataObserver {
+public class SubjectValuesFragment extends Fragment implements RESpeckDataObserver, AirspeckDataObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
@@ -55,43 +54,32 @@ public class SubjectValuesFragment extends BaseFragment implements RESpeckDataOb
         pm10Text = (TextView) view.findViewById(R.id.text_pm10);
         pm2_5Text = (TextView) view.findViewById(R.id.text_pm2_5);
 
-        mConnectingLayout = (LinearLayout) view.findViewById(R.id.connecting_layout);
-
-        mIsCreated = true;
-
         return view;
-    }
-
-    @Override
-    public int getIcon() {
-        return Constants.MENU_ICON_INFO;
     }
 
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
         // Only update view if fragment has been created!
-        if (mIsCreated) {
-            // Set breathing rate text to currently calculated rates
-            if (!Float.isNaN(data.getBreathingRate())) {
-                breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
-            }
-            averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
+        // Set breathing rate text to currently calculated rates
+        if (!Float.isNaN(data.getBreathingRate())) {
+            breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+        }
+        averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
 
-            // Set activity icon to reflect currently predicted activity
-            switch (data.getActivityType()) {
-                case Constants.ACTIVITY_LYING:
-                    activityIcon.setImageResource(R.drawable.vec_lying);
-                    break;
-                case Constants.ACTIVITY_WALKING:
-                    activityIcon.setImageResource(R.drawable.vec_walking);
-                    break;
-                case Constants.ACTIVITY_STAND_SIT:
-                    activityIcon.setImageResource(R.drawable.vec_standing_sitting);
-                    break;
-                case Constants.WRONG_ORIENTATION:
-                default:
-                    activityIcon.setImageResource(R.drawable.vec_xmark);
-            }
+        // Set activity icon to reflect currently predicted activity
+        switch (data.getActivityType()) {
+            case Constants.ACTIVITY_LYING:
+                activityIcon.setImageResource(R.drawable.vec_lying);
+                break;
+            case Constants.ACTIVITY_WALKING:
+                activityIcon.setImageResource(R.drawable.vec_walking);
+                break;
+            case Constants.ACTIVITY_STAND_SIT:
+                activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+                break;
+            case Constants.WRONG_ORIENTATION:
+            default:
+                activityIcon.setImageResource(R.drawable.vec_xmark);
         }
     }
 

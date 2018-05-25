@@ -3,6 +3,7 @@ package com.specknet.airrespeck.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,7 +29,7 @@ import java.util.Locale;
  * start the rehab app and diary app.
  */
 
-public class SubjectWindmillFragment extends BaseFragment implements RESpeckDataObserver, ConnectionStateObserver {
+public class SubjectWindmillFragment extends Fragment implements RESpeckDataObserver, ConnectionStateObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
@@ -85,8 +86,6 @@ public class SubjectWindmillFragment extends BaseFragment implements RESpeckData
                 launchRehab();
             }
         });
-
-        mIsCreated = true;
 
         // Update connection symbol based on state stored in MainActivity
         updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
@@ -176,13 +175,11 @@ public class SubjectWindmillFragment extends BaseFragment implements RESpeckData
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
         Log.i("RESpeckReadings", "updateRESpeckData");
-        if (mIsCreated) {
-            // Update the graph
-            mBreathingGraphView.addToBreathingGraphQueue(data);
+        // Update the graph
+        mBreathingGraphView.addToBreathingGraphQueue(data);
 
-            // Update the other readings
-            updateReadings(data);
-        }
+        // Update the other readings
+        updateReadings(data);
     }
 
     @Override

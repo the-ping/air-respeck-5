@@ -1,58 +1,53 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".fragments.SupervisedAirspeckGraphsFragment">
+    android:layout_height="match_parent">
 
-    <RelativeLayout
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/scrollView" >
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="15dp"
+                android:text="@string/graphs_pms_title"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="15dp"
-                    android:text="@string/graphs_pms_title"/>
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/pms_line_chart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"/>
 
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/pms_line_chart"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="25dp"/>
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="25dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/graphs_bins_title"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/graphs_bins_title" />
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/bins_line_chart"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"/>
 
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/bins_line_chart"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="25dp"/>
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="25dp" />
+        </LinearLayout>
+    </ScrollView>
 
-            </LinearLayout>
-        </ScrollView>
+    <include layout="@layout/content_connecting"/>
 
-        <include layout="@layout/content_connecting" />
-
-    </RelativeLayout>
-</FrameLayout>
+</RelativeLayout>
