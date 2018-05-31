@@ -48,6 +48,7 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.PulseoxData;
@@ -467,6 +468,9 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_activity_logging_respeck:
                                 displayFragment(new SupervisedRESpeckActivityLoggingFragment());
                                 break;
+                            case R.id.nav_activity_raw_accel_respeck:
+                                displayFragment(new SupervisedRESpeckRawAccerelationData(), "RAW");
+                                break;
                             case R.id.nav_inout_prediction:
                                 displayFragment(new SupervisedIndoorPredictionFragment());
                                 break;
@@ -482,6 +486,12 @@ public class MainActivity extends AppCompatActivity {
     private void displayFragment(Fragment newFragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.main_frame, newFragment);
+        transaction.commit();
+    }
+
+    private void displayFragment(Fragment newFragment, String tag) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.main_frame, newFragment, tag);
         transaction.commit();
     }
 
@@ -883,8 +893,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateRespeckReadings(RESpeckLiveData newData) {
+        Fragment rawFragment = getSupportFragmentManager().findFragmentByTag("RAW");
         // If the sensor is in the wrong orientation, show a dialog
-        if (mShowRESpeckWrongOrientationEnabled) {
+        if (!(rawFragment != null && rawFragment.isVisible()) && mShowRESpeckWrongOrientationEnabled) {
             if (!mIsWrongOrientationDialogDisplayed) {
                 if (newData.getActivityType() == Constants.WRONG_ORIENTATION && mIsActivityRunning) {
                     mIsWrongOrientationDialogDisplayed = true;

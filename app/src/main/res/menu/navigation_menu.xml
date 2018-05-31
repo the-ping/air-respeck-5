@@ -32,6 +32,9 @@
                 <item
                     android:id="@+id/nav_activity_logging_respeck"
                     android:title="@string/menu_activity_logging_respeck"/>
+                <item
+                    android:id="@+id/nav_activity_raw_accel_respeck"
+                    android:title="@string/menu_activity_raw_accel_respeck"/>
             </menu>
         </item>
         <item

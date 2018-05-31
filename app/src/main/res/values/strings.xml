@@ -30,6 +30,7 @@
     <string name="reading_rel_humidity">Humidity</string>
     <string name="reading_bins">Bins total</string>
     <string name="readings_respeck_title">RESpeck readings</string>
+    <string name="readings_respeck_acceleration_title">RESpeck acceleration data</string>
     <string name="reading_breathing_rate">Breathing rate</string>
     <string name="reading_avg_breathing_rate">Minute average breathing rate</string>
     <string name="readings_step_count">Step count in minute</string>
@@ -65,6 +66,7 @@
     <string name="menu_activity_summary">Activity Summary</string>
     <string name="menu_respeck_readings">RESpeck Readings</string>
     <string name="menu_activity_logging_respeck">RESpeck Activity Logging</string>
+    <string name="menu_activity_raw_accel_respeck">RESpeck Acceleration Data</string>
 
     <string name="menu_inout_prediction">Indoor Prediction</string>
 
