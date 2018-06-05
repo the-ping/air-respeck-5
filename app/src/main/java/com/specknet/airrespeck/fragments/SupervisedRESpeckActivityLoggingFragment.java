@@ -22,6 +22,8 @@ import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.CountUpTimer;
 import com.specknet.airrespeck.utils.Utils;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,9 +55,13 @@ public class SupervisedRESpeckActivityLoggingFragment extends ConnectionOverlayF
 
     private StringBuilder outputData;
 
+    private final String OUTSIDE = "Being outside";
+    private final String INSIDE = "Being inside";
+    private final String HALF_OPEN = "Being in half open passageways";
     private final String BUS = "Driving on a bus";
     private final String BIKE = "Driving bicycle";
     private final String WALKING = "Walking (without stops)";
+    private final String WALKING_100_STEPS = "Walking 100 steps";
     private final String SITTING_STRAIGHT = "Sitting straight";
     private final String SITTING_FORWARD = "Sitting bent forward";
     private final String SITTING_BACKWARD = "Sitting bent backward";
@@ -76,7 +82,8 @@ public class SupervisedRESpeckActivityLoggingFragment extends ConnectionOverlayF
         // Setup spinner
         activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
 
-        String[] activitySpinnerElements = new String[]{BUS, BIKE, WALKING, SITTING_STRAIGHT, SITTING_FORWARD,
+        String[] activitySpinnerElements = new String[]{OUTSIDE, INSIDE, HALF_OPEN, BUS, BIKE, WALKING,
+                WALKING_100_STEPS, SITTING_STRAIGHT, SITTING_FORWARD,
                 SITTING_BACKWARD, STANDING, LYING_ON_BACK, LYING_STOMACH, LYING_RIGHT, LYING_LEFT};
         ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);

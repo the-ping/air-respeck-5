@@ -29,10 +29,11 @@ import java.util.Locale;
  * start the rehab app and diary app.
  */
 
-public class SubjectWindmillFragment extends Fragment implements RESpeckDataObserver, ConnectionStateObserver {
+public class SupervisedRESpeckReadingsIcons extends Fragment implements RESpeckDataObserver, ConnectionStateObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
+    TextView stepCountText;
 
     ImageView activityIcon;
     private ImageView connectedStatusRESpeck;
@@ -45,7 +46,7 @@ public class SubjectWindmillFragment extends Fragment implements RESpeckDataObse
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public SubjectWindmillFragment() {
+    public SupervisedRESpeckReadingsIcons() {
 
     }
 
@@ -59,7 +60,7 @@ public class SubjectWindmillFragment extends Fragment implements RESpeckDataObse
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_windmill, container, false);
+        View view = inflater.inflate(R.layout.fragment_respeck_demo, container, false);
 
         // Load connection symbols
         connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);
@@ -68,24 +69,7 @@ public class SubjectWindmillFragment extends Fragment implements RESpeckDataObse
         breathingRateText = (TextView) view.findViewById(R.id.text_breathing);
         averageBreathingRateText = (TextView) view.findViewById(R.id.text_breathing_average);
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
-
-        // Setup onClick handler for buttons. We can't define them in the xml as that would search in MainActivity
-        ImageButton diaryButton = (ImageButton) view.findViewById(R.id.image_button_diary);
-        ImageButton rehabButton = (ImageButton) view.findViewById(R.id.image_button_exercise);
-
-        diaryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchDiary();
-            }
-        });
-
-        rehabButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchRehab();
-            }
-        });
+        stepCountText = (TextView) view.findViewById(R.id.text_step_count);
 
         // Update connection symbol based on state stored in MainActivity
         updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
@@ -157,6 +141,7 @@ public class SubjectWindmillFragment extends Fragment implements RESpeckDataObse
         // Set breathing rate text to currently calculated rates
         breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
         averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
+        stepCountText.setText(Integer.toString(data.getMinuteStepCount()));
 
         // Set activity icon to reflect currently predicted activity
         switch (data.getActivityType()) {

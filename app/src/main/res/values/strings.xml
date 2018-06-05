@@ -67,6 +67,7 @@
     <string name="menu_respeck_readings">RESpeck Readings</string>
     <string name="menu_activity_logging_respeck">RESpeck Activity Logging</string>
     <string name="menu_activity_raw_accel_respeck">RESpeck Acceleration Data</string>
+    <string name="menu_respeck_demo">RESpeck Demo</string>
 
     <string name="menu_inout_prediction">Indoor Prediction</string>
 

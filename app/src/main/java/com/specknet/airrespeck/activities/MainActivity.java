@@ -40,6 +40,7 @@ import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
 import com.specknet.airrespeck.fragments.SupervisedGeneralActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
@@ -61,7 +62,6 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -197,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsPulseoxEnabled;
     private boolean mShowSubjectHome;
     private boolean mShowSubjectValues;
-    private boolean mShowSubjectWindmill;
     private boolean mIsUploadDataToServer;
     private boolean mIsEncryptLocalData;
     private boolean mShowVolumeBagCalibrationView;
@@ -457,13 +456,10 @@ public class MainActivity extends AppCompatActivity {
                                 displayFragment(new SupervisedAirspeckMapLoaderFragment());
                                 break;
                             case R.id.nav_respeck_readings:
-                                displayFragment(new SupervisedRESpeckReadingsFragment());
+                                displayFragment(new SupervisedRESpeckReadingsIcons());
                                 break;
                             case R.id.nav_activity_summary:
                                 displayFragment(new SupervisedActivitySummaryFragment());
-                                break;
-                            case R.id.nav_activity_logging_general:
-                                displayFragment(new SupervisedGeneralActivityLoggingFragment());
                                 break;
                             case R.id.nav_activity_logging_respeck:
                                 displayFragment(new SupervisedRESpeckActivityLoggingFragment());
@@ -753,7 +749,6 @@ public class MainActivity extends AppCompatActivity {
 
         mShowStepCount = false;
         mShowSubjectHome = true;
-        mShowSubjectWindmill = false;
 
         // Load custom config which can be changed in pairing app
         mShowRESpeckWrongOrientationEnabled = !Boolean.parseBoolean(mLoadedConfig.get(
@@ -794,7 +789,7 @@ public class MainActivity extends AppCompatActivity {
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 
         // Replace fragment
-        displayFragment(new SupervisedRESpeckReadingsFragment());
+        displayFragment(new SupervisedRESpeckReadingsIcons());
 
         // Recreate options menu
         invalidateOptionsMenu();
