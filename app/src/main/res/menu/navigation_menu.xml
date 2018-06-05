@@ -14,9 +14,6 @@
                 <item
                     android:id="@+id/nav_airspeck_map"
                     android:title="@string/menu_airspeck_map"/>
-                <item
-                    android:id="@+id/nav_inout_prediction"
-                    android:title="@string/menu_inout_prediction"/>
             </menu>
         </item>
         <item
@@ -26,12 +23,6 @@
                 <item
                     android:id="@+id/nav_respeck_readings"
                     android:title="@string/menu_respeck_readings"/>
-                <item
-                    android:id="@+id/nav_activity_summary"
-                    android:title="@string/menu_activity_summary"/>
-                <item
-                    android:id="@+id/nav_activity_logging_respeck"
-                    android:title="@string/menu_activity_logging_respeck"/>
                 <item
                     android:id="@+id/nav_activity_raw_accel_respeck"
                     android:title="@string/menu_activity_raw_accel_respeck"/>
@@ -46,16 +37,20 @@
                     android:title="@string/menu_pulseox"/>
             </menu>
         </item>
-        <!--
         <item
             android:id="@+id/menu_other_subgroup"
             android:title="@string/menu_other_subgroup">
             <menu>
                 <item
-                    android:id="@+id/nav_activity_logging_general"
-                    android:title="@string/menu_activity_logging_general"/>
+                    android:id="@+id/nav_activity_summary"
+                    android:title="@string/menu_activity_summary"/>
+                <item
+                    android:id="@+id/nav_activity_logging"
+                    android:title="@string/menu_activity_logging"/>
+                <item
+                    android:id="@+id/nav_inout_prediction"
+                    android:title="@string/menu_inout_prediction"/>
             </menu>
         </item>
-        -->
     </group>
 </menu>

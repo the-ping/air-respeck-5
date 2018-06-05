@@ -83,9 +83,6 @@
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
-            <intent-filter>
-                <action android:name="com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST"/>
-            </intent-filter>
         </activity>
 
         <activity
@@ -118,16 +115,6 @@
                 android:value=".activities.MainActivity"/>
         </activity>
 
-        <activity
-            android:name=".fragments.VolumeCalibrationRecordingFragment"
-            android:label="@string/title_activity_volume_recording"
-            android:parentActivityName=".activities.MainActivity"
-            android:screenOrientation="portrait">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity"/>
-        </activity>
-
         <service
             android:name=".services.SpeckBluetoothService"
             android:enabled="true"
@@ -149,9 +136,6 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.specknet.airrespeck.IS_INDOOR_BROADCAST"/>
             </intent-filter>
         </service>
 

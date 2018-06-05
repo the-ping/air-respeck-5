@@ -40,17 +40,15 @@ import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
-import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
-import com.specknet.airrespeck.fragments.SupervisedGeneralActivityLoggingFragment;
-import com.specknet.airrespeck.fragments.SupervisedRESpeckActivityLoggingFragment;
-import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
-import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
@@ -84,105 +82,17 @@ public class MainActivity extends AppCompatActivity {
     public final static int SHOW_RESPECK_DISCONNECTED = 4;
     public final static int SHOW_AIRSPECK_CONNECTED = 5;
     public final static int SHOW_AIRSPECK_DISCONNECTED = 6;
-    private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
     public final static int UPDATE_PULSEOX_READINGS = 9;
     public final static int SHOW_PULSEOX_CONNECTED = 10;
     public final static int SHOW_PULSEOX_DISCONNECTED = 11;
-
-    /**
-     * Static inner class doesn't hold an implicit reference to the outer class
-     */
-    private static class UIHandler extends Handler {
-        // Using a weak reference means you won't prevent garbage collection
-        private final WeakReference<MainActivity> mService;
-
-        UIHandler(MainActivity service) {
-            mService = new WeakReference<>(service);
-        }
-
-        private boolean mAirspeckConnected = false;
-        private long mLastAirspeckNotificationTime = System.currentTimeMillis();
-
-        @Override
-        public void handleMessage(Message msg) {
-            final int what = msg.what;
-
-            MainActivity service = mService.get();
-
-            if (service != null) {
-                switch (what) {
-                    case UPDATE_RESPECK_READINGS:
-                        if (msg.obj instanceof RESpeckLiveData) {
-                            service.updateRespeckReadings((RESpeckLiveData) msg.obj);
-                        }
-                        break;
-                    case UPDATE_AIRSPECK_READINGS:
-                        service.notifyNewAirspeckReading((AirspeckData) msg.obj);
-                        mAirspeckConnected = true;
-                        mLastAirspeckNotificationTime = System.currentTimeMillis();
-                        break;
-                    case UPDATE_PULSEOX_READINGS:
-                        service.updatePulseoxReadings((PulseoxData) msg.obj);
-                        break;
-                    case SHOW_SNACKBAR_MESSAGE:
-                        service.showSnackbarFromHandler((String) msg.obj);
-                        break;
-                    case SHOW_AIRSPECK_CONNECTED:
-                        String messageAir = "AIRspeck "
-                                + msg.obj + " "
-                                + service.getString(R.string.device_found)
-                                + ". " + service.getString(R.string.waiting_for_data)
-                                + ".";
-                        service.updateAirspeckConnection(true);
-                        service.showSnackbarFromHandler(messageAir);
-                        mAirspeckConnected = true;
-                        mLastAirspeckNotificationTime = System.currentTimeMillis();
-                        break;
-                    case SHOW_AIRSPECK_DISCONNECTED:
-                        service.updateAirspeckConnection(false);
-                        mAirspeckConnected = false;
-                        break;
-                    case SHOW_PULSEOX_CONNECTED:
-                        String messagePulse = "Pulseox "
-                                + msg.obj + " "
-                                + service.getString(R.string.device_found)
-                                + ". " + service.getString(R.string.waiting_for_data)
-                                + ".";
-                        service.updatePulseoxConnection(true);
-                        service.showSnackbarFromHandler(messagePulse);
-                        break;
-                    case SHOW_PULSEOX_DISCONNECTED:
-                        service.updatePulseoxConnection(false);
-                        break;
-                    case SHOW_RESPECK_CONNECTED:
-                        String messageRE = "RESpeck "
-                                + msg.obj + " "
-                                + service.getString(R.string.device_found)
-                                + ". " + service.getString(R.string.waiting_for_data)
-                                + ".";
-                        service.updateRESpeckConnection(true);
-                        service.showSnackbarFromHandler(messageRE);
-                        break;
-                    case SHOW_RESPECK_DISCONNECTED:
-                        service.updateRESpeckConnection(false);
-                        break;
-                    case AIRSPECK_NOTIFICATION_WATCHDOG:
-                        if (mAirspeckConnected) {
-                            long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
-                            //service.showSnackbarFromHandler(Long.toString(t));
-                            if (t > 15 * 1000) {
-                                service.showSnackbarFromHandler(
-                                        "Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
-                            }
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
+    private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
+    // Variable to switch modes: subject mode or supervised mode
+    private static final String SAVED_STATE_IS_SUPERVISED_MODE = "supervised_mode";
+    // Speck service
+    final int REQUEST_ENABLE_BLUETOOTH = 0;
     private final Handler mUIHandler = new UIHandler(this);
-
+    DrawerLayout mNavDrawerLayout;
+    FrameLayout mMainFrameLayout;
     // Config loaded from config content provider
     private boolean mIsSupervisedStartingMode;
     private boolean mShowSupervisedAQGraphs;
@@ -204,48 +114,29 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsStorePhoneGPS;
     private boolean mIsStoreDataLocally;
     private boolean mShowRESpeckWrongOrientationEnabled;
-
     // Utils
     private Utils mUtils;
-
     // Layout view for snack bar
     private CoordinatorLayout mCoordinatorLayout;
-
-    // Speck service
-    final int REQUEST_ENABLE_BLUETOOTH = 0;
     private BroadcastReceiver mBroadcastReceiver;
     private boolean mIsRESpeckConnected;
     private boolean mIsAirspeckConnected;
     private boolean mIsPulseoxConnected;
-
-    // Variable to switch modes: subject mode or supervised mode
-    private static final String SAVED_STATE_IS_SUPERVISED_MODE = "supervised_mode";
     private boolean mIsSupervisedModeCurrentlyShown;
-
-    DrawerLayout mNavDrawerLayout;
-    FrameLayout mMainFrameLayout;
-
     private DialogFragment mWrongOrientationDialog;
     private boolean mIsWrongOrientationDialogDisplayed = false;
     private boolean mIsGPSDialogDisplayed = false;
     private boolean mIsBluetoothRequestDialogDisplayed = false;
-
     private boolean mIsActivityRunning = false;
     private boolean mIsActivityInitialised = false;
-
     private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
     private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
     private Set<PulseoxDataObserver> pulseoxDataObservers = new HashSet<>();
     private Set<ConnectionStateObserver> connectionStateObservers = new HashSet<>();
-
     private AutoUpdateApk aua;
-
     private Bundle mSavedInstanceState;
-
     private Map<String, String> mLoadedConfig;
-
     private BluetoothAdapter mBluetoothAdapter;
-
     private ActionBar mActionbar;
 
     @Override
@@ -461,8 +352,8 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_activity_summary:
                                 displayFragment(new SupervisedActivitySummaryFragment());
                                 break;
-                            case R.id.nav_activity_logging_respeck:
-                                displayFragment(new SupervisedRESpeckActivityLoggingFragment());
+                            case R.id.nav_activity_logging:
+                                displayFragment(new SupervisedActivityLoggingFragment());
                                 break;
                             case R.id.nav_activity_raw_accel_respeck:
                                 displayFragment(new SupervisedRESpeckRawAccerelationData(), "RAW");
@@ -766,7 +657,6 @@ public class MainActivity extends AppCompatActivity {
                 Constants.Config.SHOW_SUBJECT_VALUES_SCREEN));
     }
 
-
     private void startAirspeckWatchdogUpdaterTask() {
         final int delay = 15 * 1000;
         Timer timer = new Timer();
@@ -1024,5 +914,95 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean getIsPulseoxConnected() {
         return mIsPulseoxConnected;
+    }
+
+    /**
+     * Static inner class doesn't hold an implicit reference to the outer class
+     */
+    private static class UIHandler extends Handler {
+        // Using a weak reference means you won't prevent garbage collection
+        private final WeakReference<MainActivity> mService;
+        private boolean mAirspeckConnected = false;
+        private long mLastAirspeckNotificationTime = System.currentTimeMillis();
+        UIHandler(MainActivity service) {
+            mService = new WeakReference<>(service);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            final int what = msg.what;
+
+            MainActivity service = mService.get();
+
+            if (service != null) {
+                switch (what) {
+                    case UPDATE_RESPECK_READINGS:
+                        if (msg.obj instanceof RESpeckLiveData) {
+                            service.updateRespeckReadings((RESpeckLiveData) msg.obj);
+                        }
+                        break;
+                    case UPDATE_AIRSPECK_READINGS:
+                        service.notifyNewAirspeckReading((AirspeckData) msg.obj);
+                        mAirspeckConnected = true;
+                        mLastAirspeckNotificationTime = System.currentTimeMillis();
+                        break;
+                    case UPDATE_PULSEOX_READINGS:
+                        service.updatePulseoxReadings((PulseoxData) msg.obj);
+                        break;
+                    case SHOW_SNACKBAR_MESSAGE:
+                        service.showSnackbarFromHandler((String) msg.obj);
+                        break;
+                    case SHOW_AIRSPECK_CONNECTED:
+                        String messageAir = "AIRspeck "
+                                + msg.obj + " "
+                                + service.getString(R.string.device_found)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".";
+                        service.updateAirspeckConnection(true);
+                        service.showSnackbarFromHandler(messageAir);
+                        mAirspeckConnected = true;
+                        mLastAirspeckNotificationTime = System.currentTimeMillis();
+                        break;
+                    case SHOW_AIRSPECK_DISCONNECTED:
+                        service.updateAirspeckConnection(false);
+                        mAirspeckConnected = false;
+                        break;
+                    case SHOW_PULSEOX_CONNECTED:
+                        String messagePulse = "Pulseox "
+                                + msg.obj + " "
+                                + service.getString(R.string.device_found)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".";
+                        service.updatePulseoxConnection(true);
+                        service.showSnackbarFromHandler(messagePulse);
+                        break;
+                    case SHOW_PULSEOX_DISCONNECTED:
+                        service.updatePulseoxConnection(false);
+                        break;
+                    case SHOW_RESPECK_CONNECTED:
+                        String messageRE = "RESpeck "
+                                + msg.obj + " "
+                                + service.getString(R.string.device_found)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".";
+                        service.updateRESpeckConnection(true);
+                        service.showSnackbarFromHandler(messageRE);
+                        break;
+                    case SHOW_RESPECK_DISCONNECTED:
+                        service.updateRESpeckConnection(false);
+                        break;
+                    case AIRSPECK_NOTIFICATION_WATCHDOG:
+                        if (mAirspeckConnected) {
+                            long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
+                            //service.showSnackbarFromHandler(Long.toString(t));
+                            if (t > 15 * 1000) {
+                                service.showSnackbarFromHandler(
+                                        "Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
+                            }
+                        }
+                        break;
+                }
+            }
+        }
     }
 }

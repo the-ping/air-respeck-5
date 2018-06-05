@@ -62,7 +62,7 @@ public class VolumeCalibrationRecordingFragment extends ConnectionOverlayFragmen
         View view = inflater.inflate(R.layout.fragment_volume_calibration_recording, container, false);
 
         // Setup spinners
-        final Spinner activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
+        final Spinner activitySpinner = (Spinner) view.findViewById(R.id.category_spinner);
         final Spinner bagSizeSpinner = (Spinner) view.findViewById(R.id.bag_size_spinner);
 
         final EditText nameTextField = (EditText) view.findViewById(R.id.name_text_field);

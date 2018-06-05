@@ -1,15 +1,12 @@
 package com.specknet.airrespeck.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,15 +26,13 @@ import java.util.Locale;
  * start the rehab app and diary app.
  */
 
-public class SupervisedRESpeckReadingsIcons extends Fragment implements RESpeckDataObserver, ConnectionStateObserver {
+public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment implements RESpeckDataObserver {
 
     TextView breathingRateText;
     TextView averageBreathingRateText;
     TextView stepCountText;
 
     ImageView activityIcon;
-    private ImageView connectedStatusRESpeck;
-
 
     private BreathingGraphView mBreathingGraphView;
 
@@ -60,19 +55,13 @@ public class SupervisedRESpeckReadingsIcons extends Fragment implements RESpeckD
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_respeck_demo, container, false);
-
-        // Load connection symbols
-        connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);
+        View view = inflater.inflate(R.layout.fragment_respeck_readings_icons, container, false);
 
         // Load breathing textviews and icon
         breathingRateText = (TextView) view.findViewById(R.id.text_breathing);
         averageBreathingRateText = (TextView) view.findViewById(R.id.text_breathing_average);
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
         stepCountText = (TextView) view.findViewById(R.id.text_step_count);
-
-        // Update connection symbol based on state stored in MainActivity
-        updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
 
         // Create new graph
         mBreathingGraphView = new BreathingGraphView(getActivity());
@@ -89,57 +78,12 @@ public class SupervisedRESpeckReadingsIcons extends Fragment implements RESpeckD
         return view;
     }
 
-    @Override
-    public void updateConnectionState(boolean showRESpeckConnected, boolean showAirspeckConnected,
-                                      boolean showPulseoxConnecting) {
-        updateRESpeckConnectionSymbol(showRESpeckConnected);
-    }
-
-    // This method gets called from the rehab button in this fragment.
-    private void launchRehab() {
-        Intent LaunchIntent = getContext().getPackageManager().getLaunchIntentForPackage("com.specknet.rehab2");
-        try {
-            startActivity(LaunchIntent);
-        } catch (NullPointerException e) {
-            ((MainActivity) getActivity()).showOnSnackbar("Unable to start Rehab app. Is app installed?");
-        }
-    }
-
-    // This method gets called from the diary button in this fragment.
-    private void launchDiary() {
-        Intent LaunchIntent = getContext().getPackageManager().getLaunchIntentForPackage("com.specknet.rehabdiary");
-        try {
-            startActivity(LaunchIntent);
-        } catch (NullPointerException e) {
-            ((MainActivity) getActivity()).showOnSnackbar("Unable to start Diary app. Is app installed?");
-        }
-    }
-
-    public void updateRESpeckConnectionSymbol(boolean isConnected) {
-        if (connectedStatusRESpeck != null) {
-            if (isConnected) {
-                // "Flash" with symbol when updating to indicate data coming in
-                connectedStatusRESpeck.setImageResource(R.drawable.vec_wireless);
-                connectedStatusRESpeck.setVisibility(View.INVISIBLE);
-
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        connectedStatusRESpeck.setVisibility(View.VISIBLE);
-                    }
-                }, 100);
-
-            } else {
-                connectedStatusRESpeck.setImageResource(R.drawable.vec_xmark);
-            }
-        }
-    }
-
     private void updateReadings(RESpeckLiveData data) {
         // Update readings and activity symbol
         // Set breathing rate text to currently calculated rates
-        breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+        if (!Float.isNaN(data.getBreathingRate())) {
+            breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+        }
         averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
         stepCountText.setText(Integer.toString(data.getMinuteStepCount()));
 

@@ -50,7 +50,6 @@ public class AirspeckPacketHandler {
     private Date mDateOfLastAirspeckWrite = new Date(0);
 
     private OutputStreamWriter mAirspeckWriter;
-    private OutputStreamWriter mPredictionWriter;
 
     private static String airspeckUUID;
 
@@ -59,14 +58,12 @@ public class AirspeckPacketHandler {
     private BroadcastReceiver mLocationReceiver;
     private BroadcastReceiver mIsIndoorReceiver;
     private LocationData mLastPhoneLocation;
-    private String isActuallyIndoor = "";
 
     private boolean mIsStoreDataLocally;
     private boolean mIsEncryptData;
     private String subjectID;
     private String androidID;
 
-    private IndoorOutdoorPredictor indoorOutdoorPredictor;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
@@ -98,15 +95,6 @@ public class AirspeckPacketHandler {
         };
         speckService.registerReceiver(mLocationReceiver, new IntentFilter(Constants.ACTION_PHONE_LOCATION_BROADCAST));
 
-        mIsIndoorReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                isActuallyIndoor = Boolean.toString(intent.getBooleanExtra(Constants.IS_INDOOR, true));
-            }
-        };
-        speckService.registerReceiver(mIsIndoorReceiver, new IntentFilter(Constants.ACTION_IS_INDOOR_BROADCAST));
-
-        indoorOutdoorPredictor = new IndoorOutdoorPredictor(speckService);
     }
 
     synchronized void processAirspeckPacket(byte[] bytes) {
@@ -270,16 +258,6 @@ public class AirspeckPacketHandler {
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
 
-        // Update indoor/outdoor predictor
-        indoorOutdoorPredictor.updateScores(newAirspeckData, mSpeckService);
-        writeToIndoorPredictionFile();
-
-        // Broadcast predictor String for now:
-        Intent broadCastPredictorString = new Intent(Constants.ACTION_INDOOR_PREDICTION_BROADCAST);
-        broadCastPredictorString.putExtra(Constants.INDOOR_PREDICTION_STRING, indoorOutdoorPredictor.toString());
-        mSpeckService.sendBroadcast(broadCastPredictorString);
-
-
         // Send data to upload
         Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
         intentData.putExtra(Constants.AIRSPECK_DATA, newAirspeckData);
@@ -382,52 +360,6 @@ public class AirspeckPacketHandler {
         }
     }
 
-    private void writeToIndoorPredictionFile() {
-        String filenamePrediction = Utils.getInstance().getDataDirectory(
-                mSpeckService) + Constants.LOGGING_DIRECTORY_NAME + "IndoorPrediction " +
-                subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") +
-                new SimpleDateFormat(" yyyy-MM-dd", Locale.UK).format(new Date()) +
-                ".csv";
-
-        // If file doesn't exist, create a new one and add header
-        if (!new File(filenamePrediction).exists()) {
-            try {
-                // Close old connection if there was one
-                if (mPredictionWriter != null) {
-                    mPredictionWriter.close();
-                }
-
-                Log.i("AirspeckPacketHandler", "Indoor prediction data file created with header");
-                // Open new connection to new file
-                mPredictionWriter = new OutputStreamWriter(
-                        new FileOutputStream(filenamePrediction, true));
-                mPredictionWriter.append(Constants.INDOOR_PREDICTION_HEADER + "\n");
-                mPredictionWriter.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (mPredictionWriter == null) {
-            try {
-                mPredictionWriter = new OutputStreamWriter(
-                        new FileOutputStream(filenamePrediction, true));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Write new line to file
-        try {
-            mPredictionWriter.append(
-                    Utils.getUnixTimestamp() + ";" + indoorOutdoorPredictor.toFileString() + ";" + isActuallyIndoor + "\n");
-            mPredictionWriter.flush();
-        } catch (IOException e) {
-            Log.e("AirspeckPacketHandler", "Error while writing to indoor prediction file: " +
-                    e.getMessage());
-        }
-    }
 
     void closeHandler() throws Exception {
         if (mAirspeckWriter != null) {
