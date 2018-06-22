@@ -14,6 +14,7 @@ void initialise_stepcounter(StepCounter *step_counter) {
     step_counter->num_valid_steps = 0;
     step_counter->num_samples_until_static = 0;
     step_counter->minute_step_count = 0;
+    step_counter->current_state = STATIC;
 }
 
 void update_stepcounter(float *new_accel_data, StepCounter *step_counter) {
@@ -89,4 +90,8 @@ void update_stepcounter(float *new_accel_data, StepCounter *step_counter) {
 
 bool is_walking(StepCounter *step_counter) {
     return step_counter->current_state == WALKING;
+}
+
+bool is_moving(StepCounter *step_counter) {
+    return step_counter->current_state == MOVING;
 }

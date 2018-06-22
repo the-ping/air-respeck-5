@@ -1,26 +1,29 @@
 #include "predictions.h"
+#include "../stepcount/step_count.h"
 #include <memory.h>
+//#include <android/log.h>
 
-static int last_prediction = -1;
-static const int ACT_CLASS_BUFFER_SIZE = 50;
-// First value has to equal ACT_CLASS_BUFFER_SIZE. We store y value and activity level
-static float act_class_buffer[50][2];
-static int current_idx_in_buffer = -1;
-static bool is_buffer_full = 0;
+void initialise_activity_classification(ActivityPredictor *activity_predictor) {
+    activity_predictor->last_prediction = -1;
 
-void update_activity_classification_buffer(float *accel, float act_level) {
-    current_idx_in_buffer = (current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
-
-    act_class_buffer[current_idx_in_buffer][0] = accel[1];
-    act_class_buffer[current_idx_in_buffer][1] = act_level;
-
-    if (!is_buffer_full && current_idx_in_buffer == ACT_CLASS_BUFFER_SIZE - 1) {
-        is_buffer_full = 1;
-    }
+    activity_predictor->current_idx_in_buffer = -1;
+    activity_predictor->is_buffer_full = 0;
+    activity_predictor->stepcount_is_walking = 0;
 }
 
-bool get_is_buffer_full() {
-    return is_buffer_full;
+void update_activity_classification_buffer(ActivityPredictor *activity_predictor, float *accel, float act_level,
+                                           StepCounter *step_counter) {
+    activity_predictor->current_idx_in_buffer = (activity_predictor->current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
+
+    activity_predictor->act_class_buffer[activity_predictor->current_idx_in_buffer][0] = accel[1];
+    activity_predictor->act_class_buffer[activity_predictor->current_idx_in_buffer][1] = act_level;
+
+    if (!activity_predictor->is_buffer_full && activity_predictor->current_idx_in_buffer == ACT_CLASS_BUFFER_SIZE - 1) {
+        activity_predictor->is_buffer_full = 1;
+    }
+
+    // Get information about movement from step count
+    activity_predictor->stepcount_is_walking = is_walking(step_counter);
 }
 
 /* Quicksort. Needed for calculating the median */
@@ -74,18 +77,18 @@ float calc_median(const float data[], const int size) {
     }
 }
 
-int simple_predict() {
+int simple_predict(ActivityPredictor *activity_predictor) {
     // If the prediction buffer isn't filled yet, we cannot make any prediction. This should be checked
     // before calling this method, so return NULL in that case
-    if (!is_buffer_full) {
+    if (!activity_predictor->is_buffer_full) {
         return -1;
     }
 
     float ys[ACT_CLASS_BUFFER_SIZE], act_levels[ACT_CLASS_BUFFER_SIZE];
     /* Fill in the arrays of the past X acceleration values and maximum activity level */
     for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
-        ys[buffer_idx] = act_class_buffer[buffer_idx][0];
-        act_levels[buffer_idx] = act_class_buffer[buffer_idx][1];
+        ys[buffer_idx] = activity_predictor->act_class_buffer[buffer_idx][0];
+        act_levels[buffer_idx] = activity_predictor->act_class_buffer[buffer_idx][1];
     }
 
     float y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
@@ -97,8 +100,8 @@ int simple_predict() {
 
     // Is the sensor currently turned by 180° on the y-axis (vertical) above an angle which cannot occur while lying
     // down? This position can never occur except for a hand stand which we don't expect from the subjects.
-    if (0.8 <= ys[current_idx_in_buffer]) {
-        last_prediction = ACTIVITY_WRONG_ORIENTATION;
+    if (0.8 <= ys[activity_predictor->current_idx_in_buffer]) {
+        activity_predictor->last_prediction = ACTIVITY_WRONG_ORIENTATION;
     } else if (-0.4 <= y_median) {
         /* Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.
          * -0.4 corresponds to an angle of ~23° from the ground (degrees(arccos(-0.4)))
@@ -107,31 +110,36 @@ int simple_predict() {
          * higher activity level threshold than below as high activity values during posture changes are common
          * in lying position */
         if (al_median >= 0.11) {
-            last_prediction = ACTIVITY_WRONG_ORIENTATION;
+            activity_predictor->last_prediction = ACTIVITY_WRONG_ORIENTATION;
         } else {
-            last_prediction = ACTIVITY_LYING;
+            activity_predictor->last_prediction = ACTIVITY_LYING;
         }
     } else {
         // If the last prediction was lying down, we don't want to predict walking if the person is getting up.
         // We circumvent that by clearing the max_act_level level buffer. Walking can only be predicted when it is filled
         // again with high enough values
-        if (last_prediction == ACTIVITY_LYING) {
+        if (activity_predictor->last_prediction == ACTIVITY_LYING) {
             //__android_log_print(ANDROID_LOG_INFO, "DF",
             //                    "switched from lying do sit/stand -> clear activity level buffer!");
             for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
-                act_class_buffer[buffer_idx][1] = 0;
+                activity_predictor->act_class_buffer[buffer_idx][1] = 0;
             }
-            last_prediction = ACTIVITY_STAND_SIT;
+            activity_predictor->last_prediction = ACTIVITY_STAND_SIT;
         } else {
-            // __android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
-            if (al_median >= 0.043) { // Determined with distribution of activity levels with 5 subjects
-                last_prediction = ACTIVITY_WALKING;
+            //__android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
+            if (activity_predictor->stepcount_is_walking) {
+                activity_predictor->last_prediction = ACTIVITY_WALKING;
+            } else if (al_median >= 0.043) {
+                activity_predictor->last_prediction = ACTIVITY_MOVEMENT;
             } else {
-                last_prediction = ACTIVITY_STAND_SIT;
+                activity_predictor->last_prediction = ACTIVITY_STAND_SIT;
             }
         }
     }
-    return last_prediction;
+
+    //__android_log_print(ANDROID_LOG_INFO, "DF", "%d", activity_predictor->last_prediction);
+
+    return activity_predictor->last_prediction;
 }
 
 

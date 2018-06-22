@@ -17,8 +17,6 @@
 #include "../activityclassification/predictions.h"
 #include "../stepcount/step_count.h"
 
-#define PRE_FILTER_SIZE 8
-
 static MeanUnitAccelBuffer mean_unit_accel_filter;
 static RotationAxis rotation_axis;
 static MeanRotationAxisBuffer mean_rotation_axis_buffer;
@@ -26,6 +24,7 @@ static MeanUnitAccelBuffer mean_unit_accel_buffer;
 static MeanPostFilter mean_filter_breathing_signal;
 static MeanPostFilter mean_filter_angle;
 static ActivityLevelBuffer activity_level_buffer;
+
 
 void initialise_breathing_measures(BreathingMeasures *breathing_measures, unsigned int pre_filter_length,
                                    unsigned int post_filter_length, float activity_cutoff) {
@@ -46,7 +45,7 @@ void initialise_breathing_measures(BreathingMeasures *breathing_measures, unsign
 }
 
 void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures,
-                               StepCounter *step_counter) {
+                               StepCounter *step_counter, ActivityPredictor *activity_predictor) {
     // We assume apriori that the current breathing value is not valid.
     breathing_measures->is_valid = false;
 
@@ -68,8 +67,9 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
     update_activity_level_buffer(new_accel_data, &activity_level_buffer);
 
     // Save the most recent activity level to the classification buffer
-    update_activity_classification_buffer(new_accel_data,
-                                          activity_level_buffer.activity_levels[activity_level_buffer.current_position]);
+    update_activity_classification_buffer(activity_predictor, new_accel_data,
+                                          activity_level_buffer.activity_levels[activity_level_buffer.current_position],
+                                          step_counter);
 
     // Wait until the activity level buffer is filled before continuing with the breathing signal calculations
     if (activity_level_buffer.is_valid == false) {

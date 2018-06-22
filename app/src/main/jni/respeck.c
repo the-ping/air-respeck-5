@@ -10,6 +10,8 @@ static ThresholdBuffer threshold_buffer;
 static CurrentBreath current_breath;
 static StepCounter step_counter;
 static BreathingRateStats breathing_rate_stats;
+static ActivityPredictor activity_predictor;
+
 static float upper_threshold;
 static float lower_threshold;
 static float th_factor = 1.f;
@@ -32,6 +34,7 @@ void initBreathing(int pre_filter_length, int post_filter_length, float activity
     initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit);
     initialise_breathing_rate_stats(&breathing_rate_stats);
     initialise_stepcounter(&step_counter);
+    initialise_activity_classification(&activity_predictor);
 
     th_factor = threshold_factor;
     breathing_measures.is_breathing_initialised = true;
@@ -44,7 +47,7 @@ void updateBreathing(float x, float y, float z) {
     // Update the step counter
     update_stepcounter(new_accel_data, &step_counter);
 
-    update_breathing_measures(new_accel_data, &breathing_measures, &step_counter);
+    update_breathing_measures(new_accel_data, &breathing_measures, &step_counter, &activity_predictor);
     update_rms_threshold(breathing_measures.signal, &threshold_buffer);
 
     // Adjust the rms threshold by some factor.
@@ -123,8 +126,8 @@ float getActivityLevel() {
 
 void updateActivityClassification() {
     // Only do something if buffer is filled
-    if (get_is_buffer_full()) {
-        current_activity_classification = simple_predict();
+    if (activity_predictor.is_buffer_full) {
+        current_activity_classification = simple_predict(&activity_predictor);
     }
 }
 

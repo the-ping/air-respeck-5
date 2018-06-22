@@ -8,7 +8,6 @@
 
 typedef struct
 {
-
 	float sum[3];
 	int current_position;
 	int fill;

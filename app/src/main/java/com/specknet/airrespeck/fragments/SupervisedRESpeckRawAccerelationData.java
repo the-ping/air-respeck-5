@@ -51,6 +51,7 @@ public class SupervisedRESpeckRawAccerelationData extends ConnectionOverlayFragm
         mReadingItems.add(new ReadingItem("x", "", 0f));
         mReadingItems.add(new ReadingItem("y", "", 0f));
         mReadingItems.add(new ReadingItem("z", "", 0f));
+        mReadingItems.add(new ReadingItem("Act level", "", 0f));
         mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
     }
 
@@ -73,6 +74,8 @@ public class SupervisedRESpeckRawAccerelationData extends ConnectionOverlayFragm
         mReadingItems.get(0).value = data.getAccelX();
         mReadingItems.get(1).value = data.getAccelY();
         mReadingItems.get(2).value = data.getAccelZ();
+        mReadingItems.get(3).value = data.getActivityLevel();
+
         mListViewAdapter.notifyDataSetChanged();
     }
 

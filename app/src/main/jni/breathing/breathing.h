@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "../stepcount/step_count.h"
+#include "../activityclassification/predictions.h"
 
 typedef struct {
     float signal;
@@ -21,6 +22,6 @@ void initialise_breathing_measures(BreathingMeasures *breathing_measures, unsign
                                    unsigned int post_filter_length, float activity_cutoff);
 
 void update_breathing_measures(float *new_accel_data_original, BreathingMeasures *breathing_measures,
-                               StepCounter *step_counter);
+                               StepCounter *step_counter, ActivityPredictor *activityPredictor);
 
 #endif
