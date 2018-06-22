@@ -109,6 +109,17 @@ public class RESpeckPacketHandler {
     }
 
     void processRESpeckLivePacket(final byte[] values) {
+        // First look at the length to determine which packet format is in use
+        if (values.length < 192) {
+            // RESpeck v2
+            processRESpeckV2Packet(values);
+        }
+        else {
+            processRESpeckV4Packet(values);
+        }
+    }
+
+    void processRESpeckV2Packet(final byte[] values) {
         final int packetSequenceNumber = values[0] & 0xFF;
 
         //Check if the reading is not repeated
@@ -312,6 +323,45 @@ public class RESpeckPacketHandler {
                 // Increase sequence number for next incoming sample
                 currentSequenceNumberInBatch += 1;
             }
+        }
+    }
+
+    void processRESpeckV4Packet(final byte[] values) {
+        long actualPhoneTimestamp = Utils.getUnixTimestamp();
+        for (int i = 0; i < values.length; i += 6) {
+            final float x = combineAccelerationBytes(values[i + 1], values[i + 2]);
+            final float y = combineAccelerationBytes(values[i + 3], values[i + 4]);
+            final float z = combineAccelerationBytes(values[i + 5], values[i + 6]);
+
+            updateBreathing(x, y, z);
+
+            final float breathingSignal = getBreathingSignal();
+            final float activityLevel = getActivityLevel();
+            final int activityType = getCurrentActivityClassification();
+            final float breathingRate = getBreathingRate();
+            resetBreathingRate();
+
+
+            // Calculate interpolated timestamp of current sample based on sequence number
+            // There are 32 samples in each acceleration batch the RESpeck sends.
+            long interpolatedPhoneTimestampOfCurrentSample = (long) actualPhoneTimestamp;
+
+            RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
+                    0, currentSequenceNumberInBatch, x, y, z,
+                    breathingSignal, breathingRate, activityLevel, activityType, 0,
+                    getMinuteStepcount());
+
+            // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
+
+            // Store the important data in the external storage if set in config
+            if (mIsStoreDataLocally) {
+                writeToRESpeck(newRESpeckLiveData);
+            }
+
+            // Send live broadcast intent
+            Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
+            liveDataIntent.putExtra(Constants.RESPECK_LIVE_DATA, newRESpeckLiveData);
+            mSpeckService.sendBroadcast(liveDataIntent);
         }
     }
 
