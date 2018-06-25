@@ -327,11 +327,48 @@ public class RESpeckPacketHandler {
     }
 
     void processRESpeckV4Packet(final byte[] values) {
+        // Independent of the RESpeck timestamp, we use the phone timestamp
         long actualPhoneTimestamp = Utils.getUnixTimestamp();
-        for (int i = 0; i < values.length; i += 6) {
-            final float x = combineAccelerationBytes(values[i + 1], values[i + 2]);
-            final float y = combineAccelerationBytes(values[i + 3], values[i + 4]);
-            final float z = combineAccelerationBytes(values[i + 5], values[i + 6]);
+
+        // If this is our first sequence, or the last sequence was more than 2.5 times the average time
+        // difference in the past, we use the typical time difference between the RESpeck packets for
+        // determining the previous timestamp. This only affects the minute calculations. The breathing rate
+        // is calculated based on only the sampling rate.
+        if (mPhoneTimestampCurrentPacketReceived == -1 ||
+                mPhoneTimestampCurrentPacketReceived + 2.5 * Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS <
+                        actualPhoneTimestamp) {
+            mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
+                    Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+        } else {
+            // Store the previously used phone timestamp as previous timestamp
+            mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
+        }
+
+        long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
+                Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+
+        //Log.i("RESpeckPacketHandler",
+        //        "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
+
+        // If the last timestamp plus the average time difference is more than
+        // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
+        // last plus the average time difference.
+        if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
+                Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
+            // Log.i("RESpeckPacketHandler", "correction!");
+            mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
+        } else {
+            // Log.i("RESpeckPacketHandler", "no correction!");
+            mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
+        }
+
+        currentSequenceNumberInBatch = 0;
+
+
+        for (int i = 8; i < values.length; i += 6) {
+            final float x = combineAccelerationBytes(values[i + 0], values[i + 1]);
+            final float y = combineAccelerationBytes(values[i + 2], values[i + 3]);
+            final float z = combineAccelerationBytes(values[i + 4], values[i + 5]);
 
             updateBreathing(x, y, z);
 
@@ -342,13 +379,21 @@ public class RESpeckPacketHandler {
             resetBreathingRate();
 
 
+            // Store activity level and type for minute average
+            lastMinuteActivityLevel.add(activityLevel);
+            lastMinuteActivityType.add(activityType);
+
             // Calculate interpolated timestamp of current sample based on sequence number
             // There are 32 samples in each acceleration batch the RESpeck sends.
-            long interpolatedPhoneTimestampOfCurrentSample = (long) actualPhoneTimestamp;
+            long interpolatedPhoneTimestampOfCurrentSample = (long)
+                    ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) *
+                            (currentSequenceNumberInBatch * 1. /
+                                    Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
+                    mPhoneTimestampLastPacketReceived;
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
-                    0, currentSequenceNumberInBatch, x, y, z,
-                    breathingSignal, breathingRate, activityLevel, activityType, 0,
+                    mRESpeckTimestampCurrentPacketReceived, currentSequenceNumberInBatch, x, y, z,
+                    breathingSignal, breathingRate, activityLevel, activityType, mAverageBreathingRate,
                     getMinuteStepcount());
 
             // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
@@ -362,6 +407,49 @@ public class RESpeckPacketHandler {
             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
             liveDataIntent.putExtra(Constants.RESPECK_LIVE_DATA, newRESpeckLiveData);
             mSpeckService.sendBroadcast(liveDataIntent);
+
+            // Every full minute, calculate the average breathing rate in that minute. This value will
+            // only change after a call to "calculateAverageBreathing".
+            long currentProcessedMinute = DateUtils.truncate(new Date(
+                            mPhoneTimestampCurrentPacketReceived),
+                    Calendar.MINUTE).getTime();
+            if (currentProcessedMinute != latestProcessedMinute) {
+                calculateAverageBreathing();
+
+                mAverageBreathingRate = getAverageBreathingRate();
+                float stdDevBreathingRate = getStdDevBreathingRate();
+                int numberOfBreaths = getNumberOfBreaths();
+                int stepCountC = getMinuteStepcount();
+
+                // Reset the minute step count
+                resetMinuteStepcount();
+
+                // Empty the minute average window
+                resetMedianAverageBreathing();
+
+                // Get activity level and type
+                float meanActivityLevel = Utils.mean(lastMinuteActivityLevel);
+                int modeActivityType = Utils.mode(lastMinuteActivityType);
+
+                // Reset last minute values
+                lastMinuteActivityLevel = new ArrayList<>();
+                lastMinuteActivityType = new ArrayList<>();
+
+                RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
+                        mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
+                        modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion());
+
+                // Send average broadcast intent
+                Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
+                avgDataIntent.putExtra(Constants.RESPECK_AVG_DATA, avgData);
+                mSpeckService.sendBroadcast(avgDataIntent);
+
+                Log.i("RESpeckPacketHandler", "Avg data: " + avgData);
+
+                latestProcessedMinute = currentProcessedMinute;
+            }
+
+            currentSequenceNumberInBatch += 1;
         }
     }
 

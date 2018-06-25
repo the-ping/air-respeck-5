@@ -269,6 +269,7 @@ public class Constants {
 
     // Characteristics RESpeck
     public final static String RESPECK_LIVE_CHARACTERISTIC = "00002010-0000-1000-8000-00805f9b34fb";
+    public final static String RESPECK_LIVE_V4_CHARACTERISTIC = "00001524-1212-efde-1523-785feabcd125";
     public final static String RESPECK_BREATHING_RATES_CHARACTERISTIC = "00002016-0000-1000-8000-00805f9b34fb";
     public final static String RESPECK_STORED_DATA_CHARACTERISTIC = "00002015-0000-1000-8000-00805f9b34fb";
     public final static String RESPECK_BATTERY_LEVEL_CHARACTERISTIC = "00002017-0000-1000-8000-00805f9b34fb";
