@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -327,6 +328,22 @@ public class RESpeckPacketHandler {
     }
 
     void processRESpeckV4Packet(final byte[] values) {
+        //get the respeck timestamp
+        // Read timestamp from packet
+        Byte ts_1 = values[0];
+        Byte ts_2 = values[1];
+        Byte ts_3 = values[2];
+        Byte ts_4 = values[3];
+
+        long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
+        // Convert the timestamp of the RESpeck to correspond to milliseconds
+        long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
+
+        // and try ByteBuffer:
+        ByteBuffer buffer = ByteBuffer.wrap(values);
+        buffer.position(0);
+        //newRESpeckTimestamp = buffer.getLong();
+
         // Independent of the RESpeck timestamp, we use the phone timestamp
         long actualPhoneTimestamp = Utils.getUnixTimestamp();
 
@@ -392,7 +409,7 @@ public class RESpeckPacketHandler {
                     mPhoneTimestampLastPacketReceived;
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
-                    mRESpeckTimestampCurrentPacketReceived, currentSequenceNumberInBatch, x, y, z,
+                    newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z,
                     breathingSignal, breathingRate, activityLevel, activityType, mAverageBreathingRate,
                     getMinuteStepcount());
 
