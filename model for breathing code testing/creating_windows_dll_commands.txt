@@ -1,3 +1,7 @@
 -Djava.library.path=C:/Code/Arvind/AirRespeck/app/src/main/jni
 cd C:/Code/Arvind/AirRespeck/app/src/main/jni
+# Windows
 gcc -Wall -Wl,--export-all-symbols -Wl,--add-stdcall-alias -m64 -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -I"C:/Program Files/Java/jdk1.8.0_66/include" -I"C:/Program Files/Java/jdk1.8.0_66/include/win32" -shared respeck.c breathing/* stepcount/* activityclassification/* -o respeck-jni.dll
+
+# Linux
+gcc -shared respeck.c breathing/* stepcount/* activityclassification/* -o respeck-jni.so
