@@ -564,12 +564,22 @@ public class SpeckBluetoothService extends Service {
     private void establishRESpeckConnection() {
         Log.i("SpeckService", "Connecting to RESpeck...");
         FileLogger.logToFile(this, "Connecting to RESpeck");
+
+        final String respeck_characteristic;
+
+        if (getRESpeckFwVersion().contains("4")) {
+            respeck_characteristic = Constants.RESPECK_LIVE_V4_CHARACTERISTIC;
+        }
+        else {
+            respeck_characteristic = Constants.RESPECK_LIVE_CHARACTERISTIC;
+        }
+
         respeckLiveSubscription = mRESpeckDevice.establishConnection(false)
                 .flatMap(new Func1<RxBleConnection, Observable<?>>() {
                     @Override
                     public Observable<?> call(RxBleConnection rxBleConnection) {
                         return rxBleConnection.setupNotification(
-                                UUID.fromString(Constants.RESPECK_LIVE_CHARACTERISTIC));
+                                UUID.fromString(respeck_characteristic));
                     }
                 })
                 .doOnNext(new Action1<Object>() {
