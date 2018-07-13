@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -327,8 +329,30 @@ public class RESpeckPacketHandler {
     }
 
     void processRESpeckV4Packet(final byte[] values) {
+        //get the respeck timestamp
+        /*
+        // Read timestamp from packet
+        Byte ts_1 = values[0];
+        Byte ts_2 = values[1];
+        Byte ts_3 = values[2];
+        Byte ts_4 = values[3];
+
+        long uncorrectedRESpeckTimestamp = combineTimestampBytes(ts_1, ts_2, ts_3, ts_4);
+        // Convert the timestamp of the RESpeck to correspond to milliseconds
+        long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
+*/
+        byte[] time_array = {values[4], values[5], values[6], values[7], values[0], values[1], values[2], values[3]};
+        // and try ByteBuffer:
+        ByteBuffer buffer = ByteBuffer.wrap(time_array);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        buffer.position(0);
+        long uncorrectedRESpeckTimestamp = buffer.getLong();
+        long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 / 32768 * 1000;
+
+        Log.i("RESpeckPacketHandler", "rsts: " + Long.toString(newRESpeckTimestamp/1000));
+
         // Independent of the RESpeck timestamp, we use the phone timestamp
-        long actualPhoneTimestamp = Utils.getUnixTimestamp();
+        final long actualPhoneTimestamp = Utils.getUnixTimestamp();
 
         // If this is our first sequence, or the last sequence was more than 2.5 times the average time
         // difference in the past, we use the typical time difference between the RESpeck packets for
@@ -391,8 +415,8 @@ public class RESpeckPacketHandler {
                                     Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
                     mPhoneTimestampLastPacketReceived;
 
-            RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
-                    mRESpeckTimestampCurrentPacketReceived, currentSequenceNumberInBatch, x, y, z,
+            RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(actualPhoneTimestamp,
+                    newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z,
                     breathingSignal, breathingRate, activityLevel, activityType, mAverageBreathingRate,
                     getMinuteStepcount());
 
