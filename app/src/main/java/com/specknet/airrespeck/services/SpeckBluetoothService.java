@@ -90,11 +90,14 @@ public class SpeckBluetoothService extends Service {
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
     private boolean mIsServiceRunning = false;
     private BroadcastReceiver airspeckOffSignalReceiver;
+    private BroadcastReceiver respeckPausedReceiver;
 
     // Upload classes
     private AirspeckRemoteUploadService mAirspeckUploadService;
     private RespeckAndDiaryRemoteUploadService mRespeckUploadService;
     //private PulseoxRemoteUploadService mPulseoxUploadService;
+
+    private boolean mIsRESpeckPaused;
 
     public SpeckBluetoothService() {
 
@@ -123,7 +126,7 @@ public class SpeckBluetoothService extends Service {
         Notification notification = new Notification.Builder(this)
                 .setContentTitle(getText(R.string.notification_speck_title))
                 .setContentText(getText(R.string.notification_speck_text))
-                .setSmallIcon(R.drawable.vec_wireless)
+                .setSmallIcon(R.drawable.vec_wireless_active)
                 .setContentIntent(pendingIntent)
                 .build();
 
@@ -164,10 +167,12 @@ public class SpeckBluetoothService extends Service {
         airspeckHandler = new AirspeckPacketHandler(this);
         pulseoxHandler = new PulseoxPacketHandler(this);
 
+        mIsRESpeckPaused = false;
+
         // Create data uploading classes if desired
         if (mIsUploadData) {
             if (mIsRESpeckEnabled) {
-               mRespeckUploadService = new RespeckAndDiaryRemoteUploadService(this);
+                mRespeckUploadService = new RespeckAndDiaryRemoteUploadService(this);
             }
             if (mIsAirspeckEnabled) {
                 mAirspeckUploadService = new AirspeckRemoteUploadService(this);
@@ -178,8 +183,8 @@ public class SpeckBluetoothService extends Service {
         }
 
         // Register broadcast receiver to receive airspeck off signal
-        final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Constants.AIRSPECK_OFF_ACTION);
+        final IntentFilter intentFilterAirspeckOff = new IntentFilter();
+        intentFilterAirspeckOff.addAction(Constants.AIRSPECK_OFF_ACTION);
         airspeckOffSignalReceiver = new BroadcastReceiver() {
 
             @Override
@@ -194,7 +199,25 @@ public class SpeckBluetoothService extends Service {
                 }, 2000);
             }
         };
-        this.registerReceiver(airspeckOffSignalReceiver, intentFilter);
+        registerReceiver(airspeckOffSignalReceiver, intentFilterAirspeckOff);
+
+        final IntentFilter intentFilterRESpeckPaused = new IntentFilter();
+        intentFilterRESpeckPaused.addAction(Constants.ACTION_RESPECK_RECORDING_PAUSE);
+        intentFilterRESpeckPaused.addAction(Constants.ACTION_RESPECK_RECORDING_CONTINUE);
+        respeckPausedReceiver = new BroadcastReceiver() {
+
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Constants.ACTION_RESPECK_RECORDING_PAUSE)) {
+                    Log.i("SpeckService", "Received message to pause RESpeck recording");
+                    mIsRESpeckPaused = true;
+                } else if (intent.getAction().equals(Constants.ACTION_RESPECK_RECORDING_CONTINUE)) {
+                    Log.i("SpeckService", "Received message to continue RESpeck recording");
+                    mIsRESpeckPaused = false;
+                }
+            }
+        };
+        registerReceiver(respeckPausedReceiver, intentFilterRESpeckPaused);
     }
 
     private void loadConfigInstanceVariables() {
@@ -241,6 +264,10 @@ public class SpeckBluetoothService extends Service {
 
         Log.i("SpeckService", "Scanning..");
 
+        scanForDevices();
+    }
+
+    private void scanForDevices() {
         scanSubscription = rxBleClient.scanBleDevices()
                 .subscribe(
                         new Action1<RxBleScanResult>() {
@@ -252,7 +279,7 @@ public class SpeckBluetoothService extends Service {
 
                                 if ((mIsAirspeckFound || !mIsAirspeckEnabled) &&
                                         (mIsRESpeckFound || !mIsRESpeckEnabled) &&
-                                        (mIsPulseoxFound || !mIsPulseoxEnabled)){
+                                        (mIsPulseoxFound || !mIsPulseoxEnabled)) {
                                     scanSubscription.unsubscribe();
                                 }
 
@@ -266,9 +293,7 @@ public class SpeckBluetoothService extends Service {
                                             mIsAirspeckFound = true;
                                             SpeckBluetoothService.this.connectToAirspeck();
                                         }
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         // New UUID
                                         byte[] ba = rxBleScanResult.getScanRecord();
                                         if (ba != null && ba.length == 62) {
@@ -278,7 +303,8 @@ public class SpeckBluetoothService extends Service {
                                             if (bytesToHex(uuid).equalsIgnoreCase(AIRSPECK_UUID.substring(5))) {
                                                 mIsAirspeckFound = true;
                                                 AIRSPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
-                                                Log.i("SpeckService", "Connecting after scanning to: " + AIRSPECK_BLE_ADDRESS);
+                                                Log.i("SpeckService",
+                                                        "Connecting after scanning to: " + AIRSPECK_BLE_ADDRESS);
                                                 SpeckBluetoothService.this.connectToAirspeck();
                                             }
                                         }
@@ -287,14 +313,14 @@ public class SpeckBluetoothService extends Service {
                                 if (mIsRESpeckEnabled && !mIsRESpeckFound) {
                                     if (RESPECK_UUID.contains(":")) {
                                         // Old BLE address
-                                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(RESPECK_UUID)) {
+                                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
+                                                RESPECK_UUID)) {
                                             RESPECK_BLE_ADDRESS = RESPECK_UUID;
                                             mIsRESpeckFound = true;
                                             Log.i("SpeckService", "Connecting after scanning");
                                             SpeckBluetoothService.this.connectToRESpeck();
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         // New UUID
                                         byte[] ba = rxBleScanResult.getScanRecord();
                                         if (ba != null && ba.length == 62) {
@@ -304,7 +330,8 @@ public class SpeckBluetoothService extends Service {
                                             if (bytesToHex(uuid).equalsIgnoreCase(RESPECK_UUID.substring(5))) {
                                                 mIsRESpeckFound = true;
                                                 RESPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
-                                                Log.i("SpeckService", "Connecting after scanning to: " + RESPECK_BLE_ADDRESS);
+                                                Log.i("SpeckService",
+                                                        "Connecting after scanning to: " + RESPECK_BLE_ADDRESS);
                                                 SpeckBluetoothService.this.connectToRESpeck();
                                             }
                                         }
@@ -326,10 +353,19 @@ public class SpeckBluetoothService extends Service {
                             public void call(Throwable throwable) {
                                 // Handle an error here.
                                 Log.e("SpeckService", "Error while scanning: " + throwable.toString());
+                                Log.e("SpeckService", "Scanning again in 10 seconds");
+
+                                // Try again after timeout
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        scanForDevices();
+                                    }
+                                }, 10000);
                             }
-                        }
-                );
+                        });
     }
+
 
     private void connectToAirspeck() {
         mAirspeckDevice = rxBleClient.getBleDevice(AIRSPECK_BLE_ADDRESS);
@@ -380,7 +416,8 @@ public class SpeckBluetoothService extends Service {
                             public void call(Throwable throwable) {
                                 // An error with autoConnect means that we are disconnected
                                 Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck disconnected: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this,
+                                        "Airspeck disconnected: " + throwable.toString());
 
                                 Intent airspeckDisconnectedIntent = new Intent(
                                         Constants.ACTION_AIRSPECK_DISCONNECTED);
@@ -554,7 +591,8 @@ public class SpeckBluetoothService extends Service {
                                 Log.e("SpeckService",
                                         "Error occured while listening to RESpeck connection state changes: " +
                                                 throwable.getMessage());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck connecting state: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this,
+                                        "RESpeck connecting state: " + throwable.toString());
                             }
                         }
                 );
@@ -569,8 +607,7 @@ public class SpeckBluetoothService extends Service {
 
         if (getRESpeckFwVersion().contains("4")) {
             respeck_characteristic = Constants.RESPECK_LIVE_V4_CHARACTERISTIC;
-        }
-        else {
+        } else {
             respeck_characteristic = Constants.RESPECK_LIVE_CHARACTERISTIC;
         }
 
@@ -604,15 +641,20 @@ public class SpeckBluetoothService extends Service {
                         new Action1<Object>() {
                             @Override
                             public void call(Object characteristicValue) {
-                                // Given characteristic has been changes, process the value
-                                respeckHandler.processRESpeckLivePacket((byte[]) characteristicValue);
+                                if (!mIsRESpeckPaused) {
+                                    // Given characteristic has been changes, process the value
+                                    respeckHandler.processRESpeckLivePacket((byte[]) characteristicValue);
+                                } else {
+                                    Log.i("SpeckService", "RESpeck packet ignored as paused mode on");
+                                }
                             }
                         },
                         new Action1<Throwable>() {
                             @Override
                             public void call(Throwable throwable) {
                                 Log.e("SpeckService", "RESpeck bluetooth error: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck data handling error: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this,
+                                        "RESpeck data handling error: " + throwable.toString());
                             }
                         }
                 );
@@ -656,7 +698,8 @@ public class SpeckBluetoothService extends Service {
             Log.e("SpeckService", "Error while closing handlers: " + e.getMessage());
         }
 
-        this.unregisterReceiver(this.airspeckOffSignalReceiver);
+        unregisterReceiver(airspeckOffSignalReceiver);
+        unregisterReceiver(respeckPausedReceiver);
 
         // End uploading
         if (mAirspeckUploadService != null) {

@@ -138,6 +138,12 @@
             <intent-filter>
                 <action android:name="com.specknet.airspeck.AIRSPECK_LIVE_BROADCAST"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.respeck.ACTION_RESPECK_RECORDING_PAUSE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.specknet.respeck.ACTION_RESPECK_RECORDING_CONTINUE"/>
+            </intent-filter>
         </service>
 
         <service

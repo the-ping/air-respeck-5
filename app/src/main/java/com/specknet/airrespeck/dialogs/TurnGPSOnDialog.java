@@ -51,7 +51,9 @@ public class TurnGPSOnDialog extends DialogFragment {
 
     @Override
     public void onDismiss(DialogInterface dialog) {
-        ((MainActivity) getActivity()).setIsGPSDialogDisplayed(false);
+        if (getActivity() != null) {
+            ((MainActivity) getActivity()).setIsGPSDialogDisplayed(false);
+        }
         super.onDismiss(dialog);
     }
 }

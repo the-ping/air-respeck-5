@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +41,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private ProgressBar progressBarRESpeck;
     private ProgressBar progressBarAirspeck;
     private ImageView airspeckOffButton;
+    private ImageView respeckPausePlayButton;
+
+    private boolean isAirspeckEnabled;
+    private boolean isRespeckEnabled;
+    private boolean isRespeckPaused;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -70,11 +76,40 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         ImageView airspeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_airspeck);
         ImageView respeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_respeck);
 
+        isRespeckPaused = false;
+
         ImageButton diaryButton = (ImageButton) view.findViewById(R.id.diary_button);
         diaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startDiaryApp(getActivity(), "com.specknet.diarydaphne");
+            }
+        });
+
+        // Initialise pause button for RESpeck
+        respeckPausePlayButton = (ImageButton) view.findViewById(R.id.respeck_pause_button);
+        respeckPausePlayButton.setEnabled(false);
+        respeckPausePlayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isRespeckPaused) {
+                    // Send CONTINUE command
+                    Intent intentData = new Intent(Constants.ACTION_RESPECK_RECORDING_CONTINUE);
+                    getActivity().sendBroadcast(intentData);
+
+                    isRespeckPaused = false;
+
+                    respeckPausePlayButton.setImageDrawable(
+                            ContextCompat.getDrawable(getActivity(), R.drawable.ic_pause_black_24dp));
+
+                    connectedStatusRESpeck.setImageDrawable(
+                            ContextCompat.getDrawable(getActivity(), R.drawable.vec_wireless_active));
+
+                    FileLogger.logToFile(getActivity(), "RESpeck recording continued");
+                } else {
+                    respeckPausePlayButton.setEnabled(false);
+                    showRESpeckPauseDialog();
+                }
             }
         });
 
@@ -86,17 +121,17 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             public void onClick(View view) {
                 // Send switch off message to BLE service
                 airspeckOffButton.setEnabled(false);
-                showPowerOffDialog();
+                showAirspeckPowerOffDialog();
             }
         });
 
         Utils utils = Utils.getInstance();
         Map<String, String> config = utils.getConfig(getActivity());
-        boolean airspeckEnabled = !config.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
-        boolean respeckEnabled = !config.get(Constants.Config.RESPECK_UUID).isEmpty();
+        isAirspeckEnabled = !config.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
+        isRespeckEnabled = !config.get(Constants.Config.RESPECK_UUID).isEmpty();
 
         // Show disabled symbol if a device is not paired
-        if (airspeckEnabled) {
+        if (isAirspeckEnabled) {
             // Update connection symbol based on state stored in MainActivity
             updateAirspeckConnectionSymbol(((MainActivity) getActivity()).getIsAirspeckConnected());
             ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
@@ -106,7 +141,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             progressBarAirspeck.setVisibility(View.GONE);
             airspeckDisabledImage.setVisibility(View.VISIBLE);
         }
-        if (respeckEnabled) {
+        if (isRespeckEnabled) {
             // Update connection symbol based on state stored in MainActivity
             updateRESpeckConnectionSymbol(((MainActivity) getActivity()).getIsRESpeckConnected());
             ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
@@ -126,8 +161,12 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     @Override
     public void updateConnectionState(boolean showRESpeckConnected, boolean showAirspeckConnected,
                                       boolean showPulseoxConnecting) {
-        updateRESpeckConnectionSymbol(showRESpeckConnected);
-        updateAirspeckConnectionSymbol(showAirspeckConnected);
+        if (isRespeckEnabled) {
+            updateRESpeckConnectionSymbol(showRESpeckConnected);
+        }
+        if (isAirspeckEnabled) {
+            updateAirspeckConnectionSymbol(showAirspeckConnected);
+        }
     }
 
 
@@ -142,7 +181,47 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         updateRESpeckConnectionSymbol(true);
     }
 
-    private void showPowerOffDialog() {
+    private void showRESpeckPauseDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        alertDialogBuilder
+                .setMessage(getString(R.string.respeck_pause_message))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        isRespeckPaused = true;
+
+                        connectedStatusRESpeck.setImageDrawable(
+                                ContextCompat.getDrawable(getActivity(), R.drawable.vec_wireless_pause));
+
+                        // Set button image to play
+                        respeckPausePlayButton.setImageDrawable(
+                                ContextCompat.getDrawable(getActivity(), R.drawable.ic_play_arrow_black_24dp));
+
+                        // Enable button again
+                        respeckPausePlayButton.setEnabled(true);
+
+                        // Broadcast PAUSE message
+                        Intent intentData = new Intent(Constants.ACTION_RESPECK_RECORDING_PAUSE);
+                        getActivity().sendBroadcast(intentData);
+
+                        FileLogger.logToFile(getActivity(), "RESpeck recording paused");
+                    }
+                })
+                .setCancelable(true)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        respeckPausePlayButton.setEnabled(true);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        respeckPausePlayButton.setEnabled(true);
+                    }
+                });
+        alertDialogBuilder.create().show();
+    }
+
+    private void showAirspeckPowerOffDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
         alertDialogBuilder
                 .setMessage(getString(R.string.airspeck_power_off_message))
@@ -189,21 +268,35 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
     public void updateRESpeckConnectionSymbol(boolean isConnected) {
         if (isConnected) {
-            // "Flash" with symbol when updating to indicate data coming in
-            progressBarRESpeck.setVisibility(View.GONE);
-            connectedStatusRESpeck.setVisibility(View.INVISIBLE);
+            respeckPausePlayButton.setEnabled(true);
 
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    connectedStatusRESpeck.setVisibility(View.VISIBLE);
-                }
-            }, 100);
+            // "Flash" with symbol when updating to indicate data coming in
+            if (isRespeckPaused) {
+                connectedStatusRESpeck.setImageDrawable(
+                        ContextCompat.getDrawable(getActivity(), R.drawable.vec_wireless_pause));
+
+                progressBarRESpeck.setVisibility(View.GONE);
+                connectedStatusRESpeck.setVisibility(View.VISIBLE);
+            } else {
+                connectedStatusRESpeck.setImageDrawable(
+                        ContextCompat.getDrawable(getActivity(), R.drawable.vec_wireless_active));
+
+                progressBarRESpeck.setVisibility(View.GONE);
+                connectedStatusRESpeck.setVisibility(View.INVISIBLE);
+
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        connectedStatusRESpeck.setVisibility(View.VISIBLE);
+                    }
+                }, 100);
+            }
 
         } else {
             connectedStatusRESpeck.setVisibility(View.GONE);
             progressBarRESpeck.setVisibility(View.VISIBLE);
+            respeckPausePlayButton.setEnabled(false);
         }
     }
 
