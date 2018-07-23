@@ -275,12 +275,12 @@
     to the server. Note that you need a network connection for this operation.</string>
 
     <string name="respeck_pause_message">This action pauses the breathing recording. Use this before you take off the
-        device for a shower or a similar activity. Start the recording again after you put the RESpeck back on.\n
+        device for a shower or a similar activity. Press this button again to start the recording after you put the device back on.\n
+        यह क्रिया श्वास रिकॉर्डिंग को रोक देती है।स्नान या इस तरह की गतिविधि करने के लिए डिवाइस को उतारने से पहले डिवाइस को बंद करने के लिए इसका उपयोग करे । डिवाइस को वापिस पहनने के बाद फिर से रिकॉर्डिंग शुरू करें।
     </string>
 
-    <string name="airspeck_power_off_message">This action turns off the air pollution monitor. You can turn it back
-        on by pressing the power button on the device next to the white lamp.\n
-        यह क्रिया वायु प्रदूषण मॉनिटर को बंद कर देती है आप उसे सफेद दीपक के बगल में डिवाइस पर पावर बटन दबाकर इसे वापस चालू कर सकते हैं।</string>
+    <string name="airspeck_power_off_message">This action turns off the air pollution monitor. To turn it on again, press the power button on the device next to the white lamp.\n
+        यह क्रिया वायु प्रदूषण मॉनिटर को बंद कर देती है। मॉनिटर को फिर से चालू करने के लिए मॉनिटर के पावर बटन को दबाये, जो वाइट लाइट के बगल में है।</string>
 
     <string name="connection_text_both_devices">Connecting to devices</string>
     <string name="connection_text_respeck_only">Connecting to RESpeck</string>
