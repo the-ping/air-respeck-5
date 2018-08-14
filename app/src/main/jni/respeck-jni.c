@@ -28,12 +28,13 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JN
                                                                               float lower_threshold_limit,
                                                                               float upper_threshold_limit,
                                                                               float threshold_factor) {
+    float default_sampling_frequency = 12.5;
     if (is_post_filtering_enabled) {
         initBreathing(12, 12, activity_cutoff, threshold_filter_size, lower_threshold_limit,
-                      upper_threshold_limit, threshold_factor);
+                      upper_threshold_limit, threshold_factor, default_sampling_frequency);
     } else {
         initBreathing(12, 1, activity_cutoff, threshold_filter_size, lower_threshold_limit,
-                      upper_threshold_limit, threshold_factor);
+                      upper_threshold_limit, threshold_factor, default_sampling_frequency);
     }
 }
 

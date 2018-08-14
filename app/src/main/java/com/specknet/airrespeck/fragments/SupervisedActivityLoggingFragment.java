@@ -70,6 +70,8 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private final String HALF_OPEN = "Half-open";
     private final String BUS = "Riding a bus";
     private final String BIKE = "Riding a bicycle";
+    private final String TRAIN = "Riding a train";
+    private final String RUNNING = "Running (at different speeds)";
     private final String WALKING = "Walking (without stops)";
     private final String WALKING_UPSTAIRS = "Walking upstairs";
     private final String WALKING_DOWNSTAIRS = "Walking downstairs";
@@ -117,8 +119,8 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         final String[] orientationSpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD,
                 SITTING_BACKWARD, STANDING, LYING_ON_BACK, LYING_STOMACH, LYING_RIGHT, LYING_LEFT};
         final String[] indoorOutdoorSpinnerElements = new String[]{OUTDOOR, INDOOR, HALF_OPEN};
-        final String[] transportSpinnerElements = new String[]{BUS, BIKE, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
-                WALKING_DOWNSTAIRS};
+        final String[] transportSpinnerElements = new String[]{BUS, BIKE, TRAIN, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
+                WALKING_DOWNSTAIRS, RUNNING};
 
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 

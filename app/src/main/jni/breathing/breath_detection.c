@@ -89,12 +89,14 @@ void update_rms_threshold(float breathing_signal_value, ThresholdBuffer *thresho
     threshold_buffer->is_valid = true;
 }
 
-void initialise_breath(CurrentBreath *breath, float lower_threshold_limit, float upper_threshold_limit) {
+void initialise_breath(CurrentBreath *breath, float lower_threshold_limit, float upper_threshold_limit,
+                       float sampling_frequency) {
     breath->state = UNKNOWN;
     breath->breathing_rate = NAN;
     breath->min_threshold = lower_threshold_limit;
     breath->max_threshold = upper_threshold_limit;
     breath->sample_count = 0;
+    breath->sampling_frequency = sampling_frequency;
     breath->is_current_breath_valid = false;
     breath->is_complete = false;
     // We assume by default that the inspiration is above the x-axis. Adjust this if several breaths indicate
@@ -122,7 +124,7 @@ void end_breath(CurrentBreath *breath) {
         } else {
             // Only when we didn't have 3 abnormal breaths in a row do we count this breath as valid.
             // Calculate the breathing rate of the last cycle
-            float new_breathing_rate = (float) (60.0 * SAMPLE_RATE / (float) breath->sample_count);
+            float new_breathing_rate = (float) (60.0 * breath->sampling_frequency / (float) breath->sample_count);
 
             // We want the breathing rate to lie in a realistic range
             if (new_breathing_rate >= LOWEST_POSSIBLE_BREATHING_RATE &&

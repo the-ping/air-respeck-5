@@ -1,8 +1,6 @@
 #ifndef __BREATHING_H__
 #define __BREATHING_H__
 
-#define SAMPLE_RATE 12.5
-
 #include <stdint.h>
 #include <stdbool.h>
 #include "../stepcount/step_count.h"

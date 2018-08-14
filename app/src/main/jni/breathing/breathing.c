@@ -124,7 +124,7 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
     // angle changes comparable. This corresponds to the rotational change used in the Python code.
     float breathing_signal = dot_product(rotation_axis.current_axis, mean_rotation_axis_buffer.mean_axis);
     // TODO: Modify this factor so it corresponds as close as possible to the spirometer readings
-    breathing_signal = (float) (breathing_signal * SAMPLE_RATE * 10.0f);
+    breathing_signal = (float) (breathing_signal * 120.);
 
     // Breathing angle calculation
     float mean_accel_cross_mean_axis[3];

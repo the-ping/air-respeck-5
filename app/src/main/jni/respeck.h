@@ -20,9 +20,12 @@ char *testMessage();
  */
 void initBreathing(int pre_filter_length, int post_filter_length, float activity_cutoff,
                    unsigned int threshold_filter_size,
-                   float lower_threshold_limit, float upper_threshold_limit, float threshold_factor);
+                   float lower_threshold_limit, float upper_threshold_limit, float threshold_factor,
+                   float sampling_frequency);
 
 void updateBreathing(float x, float y, float z);
+
+void updateBreathingSignal(float breathingSignal);
 
 int getMinuteStepcount();
 

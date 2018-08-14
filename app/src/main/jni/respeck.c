@@ -21,17 +21,18 @@ static bool is_breath_end = false;
 static int current_activity_classification = -1;
 
 
-char *testEcho(char* testString) {
+char *testEcho(char *testString) {
     return testString;
 }
 
 void initBreathing(int pre_filter_length, int post_filter_length, float activity_cutoff,
                    unsigned int threshold_filter_size,
-                   float lower_threshold_limit, float upper_threshold_limit, float threshold_factor) {
+                   float lower_threshold_limit, float upper_threshold_limit, float threshold_factor,
+                   float sampling_frequency) {
     initialise_breathing_measures(&breathing_measures, (unsigned int) pre_filter_length,
                                   (unsigned int) post_filter_length, activity_cutoff);
     initialise_rms_threshold_buffer(&threshold_buffer, threshold_filter_size);
-    initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit);
+    initialise_breath(&current_breath, lower_threshold_limit, upper_threshold_limit, sampling_frequency);
     initialise_breathing_rate_stats(&breathing_rate_stats);
     initialise_stepcounter(&step_counter);
     initialise_activity_classification(&activity_predictor);
@@ -54,6 +55,27 @@ void updateBreathing(float x, float y, float z) {
     upper_threshold = threshold_buffer.upper_threshold_value / th_factor;
     lower_threshold = threshold_buffer.lower_threshold_value / th_factor;
     update_breath(breathing_measures.signal, upper_threshold, lower_threshold, &current_breath);
+
+    // If the breathing rate has been updated, add it to the statistics
+    if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
+        update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
+        current_breath.is_complete = false;
+        is_breath_end = true;
+    } else {
+        is_breath_end = false;
+    }
+}
+
+// This method should be used when using the library to calculate the breathing rate with a given breathing signal,
+// but without the acceleration data. The input could be the breathing signal from a nasal cannula or pressure
+// belt, for instance.
+void updateBreathingSignal(float breathingSignal) {
+    update_rms_threshold(breathingSignal, &threshold_buffer);
+
+    // Adjust the rms threshold by some factor which was set during initialisation of the library.
+    upper_threshold = threshold_buffer.upper_threshold_value / th_factor;
+    lower_threshold = threshold_buffer.lower_threshold_value / th_factor;
+    update_breath(breathingSignal, upper_threshold, lower_threshold, &current_breath);
 
     // If the breathing rate has been updated, add it to the statistics
     if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
