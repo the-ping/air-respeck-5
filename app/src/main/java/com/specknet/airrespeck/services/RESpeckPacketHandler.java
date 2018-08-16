@@ -304,7 +304,7 @@ public class RESpeckPacketHandler {
                         lastMinuteActivityLevel = new ArrayList<>();
                         lastMinuteActivityType = new ArrayList<>();
 
-                        RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
+                        RESpeckAveragedData avgData = new RESpeckAveragedData(latestProcessedMinute,
                                 mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
                                 modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion());
 
