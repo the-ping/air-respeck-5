@@ -7,5 +7,5 @@ import com.specknet.airrespeck.models.AirspeckData;
  */
 
 public interface ConnectionStateObserver {
-    void updateConnectionState(boolean respeckConnected, boolean airspeckConnected, boolean pulseoxConnected);
+    void updateConnectionState(boolean respeckConnected, boolean airspeckConnected, boolean pulseoxConnected, boolean inhalerConnected);
 }

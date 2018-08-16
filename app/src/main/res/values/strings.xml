@@ -39,6 +39,9 @@
     <string name="reading_pulse">Pulse</string>
     <string name="reading_spo2">SpO2</string>
 
+    <string name="readings_inhaler_title">Inhaler readings</string>
+    <string name="reading_press_time">Inhaler last used</string>
+
     <!-- Reading unit -->
     <string name="reading_unit_bpm">BrPM</string>
     <string name="reading_unit_ug_m3" translatable="false">µg/m³</string>
@@ -46,6 +49,7 @@
     <string name="reading_unit_percent" translatable="false">%</string>
 
     <string name="reading_unit_beats_pm">BPM</string>
+    <string name="reading_unit_none"></string>
 
     <!-- Graphs -->
     <string name="graphs_pms_title">PM 1, PM 2.5, PM 10</string>
@@ -72,12 +76,14 @@
     <string name="menu_inout_prediction">Indoor Prediction Testing</string>
 
     <string name="menu_pulseox">Pulseox Readings</string>
+    <string name="menu_inhaler">Inhaler Readings</string>
 
     <string name="menu_activity_logging_general">General Activity Logging</string>
 
     <string name="menu_airspeck_subgroup">Airspeck</string>
     <string name="menu_respeck_subgroup">RESpeck</string>
     <string name="menu_pulseox_subgroup">Pulseox</string>
+    <string name="menu_inhaler_subgroup">Inhaler</string>
     <string name="menu_other_subgroup">Others</string>
 
 

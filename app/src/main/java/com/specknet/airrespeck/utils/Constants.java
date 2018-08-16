@@ -102,6 +102,12 @@ public class Constants {
             "com.specknet.airspeck.PULSEOX_DISCONNECTED";
     public static final String ACTION_PULSEOX_BROADCAST =
             "com.specknet.airspeck.PULSEOX_BROADCAST";
+    public static final String ACTION_INHALER_CONNECTED =
+            "com.specknet.airspeck.INHALER_CONNECTED";
+    public static final String ACTION_INHALER_DISCONNECTED =
+            "com.specknet.airspeck.INHALER_DISCONNECTED";
+    public static final String ACTION_INHALER_BROADCAST =
+            "com.specknet.airspeck.INHALER_BROADCAST";
 
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
     public static final String ACTION_INDOOR_PREDICTION_BROADCAST = "com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST";
@@ -167,6 +173,7 @@ public class Constants {
     public static final String PHONE_LOCATION = "phone_location";
 
     public static final String PULSEOX_DATA = "pulseox_data";
+    public static final String INHALER_DATA = "inhaler_data";
 
     /**
      * Additional data for uploading to the server
@@ -296,6 +303,7 @@ public class Constants {
         public static final String AIRSPECKP_UUID = "AirspeckPUUID";
         public static final String PULSEOX_UUID = "PulseoxUUID";
         public static final String SPIROMETER_UUID = "SpirometerUUID";
+        public static final String INHALER_UUID = "InhalerUUID";
         public static final String UPLOAD_TO_SERVER = "UploadToServer";
         public static final String STORE_DATA_LOCALLY = "StoreDataLocally";
         public static final String ENCRYPT_LOCAL_DATA = "EncryptLocalData";
@@ -317,6 +325,7 @@ public class Constants {
     public static final String IS_RESPECK_CONNECTED = "IsRespeckConnected";
     public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
     public static final String IS_PULSEOX_CONNECTED = "IsPulseoxConnected";
+    public static final String IS_INHALER_CONNECTED = "IsInhalerConnected";
 
     public static final String INDOOR_PREDICTION_STRING = "IndoorPredictionString";
     public static final String IS_INDOOR = "IsIndoor";

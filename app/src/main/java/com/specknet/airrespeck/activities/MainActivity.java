@@ -45,11 +45,13 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
+import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
 import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.InhalerData;
 import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
@@ -102,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedPulseoxReadings;
+    private boolean mShowSupervisedInhalerReadings;
     private boolean mShowSupervisedRESpeckReadings;
     private boolean mShowStepCount;
     private boolean mShowSupervisedAQMap;
@@ -575,7 +578,7 @@ public class MainActivity extends AppCompatActivity {
                         //Toast.makeText(context,
                         //        "Pulseox: " + pd.toStringForFile(),
                         //        Toast.LENGTH_LONG).show();
-                        sendMessageToHandler(UPDATE_PULSEOX_READINGS, pd);
+                        sendMessageToHandler(UPDATE_INHALER_READINGS, ind);
                         break;
                     case Constants.ACTION_INHALER_CONNECTED:
                         String inhalerUUID = intent.getStringExtra(Constants.Config.INHALER_UUID);
