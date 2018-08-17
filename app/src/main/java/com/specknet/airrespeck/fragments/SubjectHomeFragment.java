@@ -160,7 +160,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
     @Override
     public void updateConnectionState(boolean showRESpeckConnected, boolean showAirspeckConnected,
-                                      boolean showPulseoxConnecting) {
+                                      boolean showPulseoxConnecting, boolean showInhalerConnecting) {
         if (isRespeckEnabled) {
             updateRESpeckConnectionSymbol(showRESpeckConnected);
         }
