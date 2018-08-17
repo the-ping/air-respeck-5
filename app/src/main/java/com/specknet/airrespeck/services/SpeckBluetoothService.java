@@ -52,39 +52,47 @@ public class SpeckBluetoothService extends Service {
     private Subscription airspeckSubscription;
     private Subscription respeckLiveSubscription;
     private Subscription pulseoxSubscription;
+    private Subscription inhalerSubscription;
 
     // Config settings
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
     private boolean mIsPulseoxEnabled;
+    private boolean mIsInhalerEnabled;
     private boolean mIsUploadData;
 
     // The UUIDs will be loaded from Config
     private static String RESPECK_UUID;
     private static String AIRSPECK_UUID;
     private static String PULSEOX_UUID;
+    private static String INHALER_UUID;
 
     // The BLE addresses will be used to connect
     private static String RESPECK_BLE_ADDRESS;
     private static String AIRSPECK_BLE_ADDRESS;
     private static String PULSEOX_BLE_ADDRESS;
+    private static String INHALER_BLE_ADDRESS;
 
     // Classes to handle received packets
     private RESpeckPacketHandler respeckHandler;
     private AirspeckPacketHandler airspeckHandler;
     private PulseoxPacketHandler pulseoxHandler;
+    private InhalerPacketHandler inhalerHandler;
 
     private RxBleDevice mAirspeckDevice;
     private RxBleDevice mRESpeckDevice;
     private RxBleDevice mPulseoxDevice;
+    private RxBleDevice mInhalerDevice;
 
     private boolean mIsAirspeckFound;
     private boolean mIsRESpeckFound;
     private boolean mIsPulseoxFound;
+    private boolean mIsInhalerFound;
 
     private String mRESpeckName;
     private String mAirspeckName;
     private String mPulseoxName;
+    private String mInhalerName;
 
     private Subscription scanSubscription;
     private RxBleConnection.RxBleConnectionState mLastRESpeckConnectionState;
@@ -166,6 +174,7 @@ public class SpeckBluetoothService extends Service {
         respeckHandler = new RESpeckPacketHandler(this);
         airspeckHandler = new AirspeckPacketHandler(this);
         pulseoxHandler = new PulseoxPacketHandler(this);
+        inhalerHandler = new InhalerPacketHandler(this);
 
         mIsRESpeckPaused = false;
 
@@ -179,6 +188,9 @@ public class SpeckBluetoothService extends Service {
             }
             if (mIsPulseoxEnabled) {
                 //mPulseOxUploadService = new PulseoxRemoteUploadService(this);
+            }
+            if (mIsInhalerEnabled) {
+                //mInhalerUploadService = new InhalerRemoteUploadService(this);
             }
         }
 
@@ -234,6 +246,9 @@ public class SpeckBluetoothService extends Service {
         // Is Pulseox enabled?
         mIsPulseoxEnabled = !loadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty();
 
+        // Is Inhaler enabled?
+        mIsInhalerEnabled = !loadedConfig.get(Constants.Config.INHALER_UUID).isEmpty();
+
         // Do we want to upload the data?
         mIsUploadData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));
 
@@ -241,6 +256,7 @@ public class SpeckBluetoothService extends Service {
         AIRSPECK_UUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID);
         RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
         PULSEOX_UUID = loadedConfig.get(Constants.Config.PULSEOX_UUID);
+        INHALER_UUID = loadedConfig.get(Constants.Config.INHALER_UUID);
     }
 
     /**
@@ -259,6 +275,7 @@ public class SpeckBluetoothService extends Service {
         mIsAirspeckFound = false;
         mIsRESpeckFound = false;
         mIsPulseoxFound = false;
+        mIsInhalerFound = false;
 
         rxBleClient = RxBleClient.create(this);
 
@@ -279,7 +296,8 @@ public class SpeckBluetoothService extends Service {
 
                                 if ((mIsAirspeckFound || !mIsAirspeckEnabled) &&
                                         (mIsRESpeckFound || !mIsRESpeckEnabled) &&
-                                        (mIsPulseoxFound || !mIsPulseoxEnabled)) {
+                                        (mIsPulseoxFound || !mIsPulseoxEnabled) &&
+                                        (mIsInhalerFound || !mIsInhalerEnabled)) {
                                     scanSubscription.unsubscribe();
                                 }
 
@@ -343,6 +361,15 @@ public class SpeckBluetoothService extends Service {
                                         mIsPulseoxFound = true;
                                         Log.i("SpeckService", "Pulseox: Connecting after scanning");
                                         SpeckBluetoothService.this.connectToPulseox();
+                                    }
+
+                                }
+                                if (mIsInhalerEnabled && !mIsInhalerFound) {
+                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(INHALER_UUID)) {
+                                        INHALER_BLE_ADDRESS = INHALER_UUID; // use BLE address for UUID
+                                        mIsInhalerFound = true;
+                                        Log.i("SpeckService", "Pulseox: Connecting after scanning");
+                                        SpeckBluetoothService.this.connectToInhaler();
                                     }
 
                                 }
@@ -482,6 +509,12 @@ public class SpeckBluetoothService extends Service {
         establishPulseoxConnection();
     }
 
+    private void connectToInhaler() {
+        mInhalerDevice = rxBleClient.getBleDevice(INHALER_BLE_ADDRESS);
+        mInhalerName = mInhalerDevice.getName();
+        establishInhalerConnection();
+    }
+
     private void establishPulseoxConnection() {
         Log.i("SpeckService", "Connecting to Pulseox...");
         FileLogger.logToFile(this, "Connecting to Pulseox");
@@ -532,6 +565,67 @@ public class SpeckBluetoothService extends Service {
                                 sendBroadcast(pulseoxDisconnectedIntent);
 
                                 pulseoxSubscription.unsubscribe();
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        establishPulseoxConnection();
+                                    }
+                                }, 2000);
+                            }
+                        }
+                );
+    }
+
+    private void establishInhalerConnection() {
+        Log.i("SpeckService", "Connecting to Inhaler...");
+        FileLogger.logToFile(this, "Connecting to Inhaler");
+
+        inhalerSubscription = mInhalerDevice.establishConnection(true)
+                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
+                    @Override
+                    public Observable<?> call(RxBleConnection rxBleConnection) {
+                        return rxBleConnection.setupNotification(UUID.fromString(
+                                Constants.INHALER_CHARACTERISTIC));
+                    }
+                })
+                .doOnNext(new Action1<Object>() {
+                    @Override
+                    public void call(Object notificationObservable) {
+                        // Notification has been set up
+                        Log.i("SpeckService", "Subscribed to Inhaler");
+                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Inhaler");
+                        Intent inhalerFoundIntent = new Intent(Constants.ACTION_INHALER_CONNECTED);
+                        inhalerFoundIntent.putExtra(Constants.Config.INHALER_UUID, INHALER_BLE_ADDRESS);
+                        sendBroadcast(inhalerFoundIntent);
+                    }
+                })
+                .flatMap(
+                        new Func1<Object, Observable<?>>() {
+                            @Override
+                            public Observable<?> call(Object notificationObservable) {
+                                return (Observable) notificationObservable;
+                            }
+                        }) // <-- Notification has been set up, now observe value changes.
+                .subscribe(
+                        new Action1<Object>() {
+                            @Override
+                            public void call(Object bytes) {
+                                inhalerHandler.processInhalerPacket((byte[]) bytes);
+                                Log.i("SpeckService", "Inhalerdata: " + ((byte[]) bytes).length);
+                            }
+                        },
+                        new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                // An error with autoConnect means that we are disconnected
+                                Log.e("SpeckService", "Inhaler disconnected: " + throwable.toString());
+                                FileLogger.logToFile(SpeckBluetoothService.this, "Inhaler disconnected");
+
+                                Intent inhalerDisconnectedIntent = new Intent(
+                                        Constants.ACTION_INHALER_DISCONNECTED);
+                                sendBroadcast(inhalerDisconnectedIntent);
+
+                                inhalerSubscription.unsubscribe();
                                 new Timer().schedule(new TimerTask() {
                                     @Override
                                     public void run() {
@@ -689,11 +783,16 @@ public class SpeckBluetoothService extends Service {
             pulseoxSubscription.unsubscribe();
         }
 
+        if (inhalerSubscription != null) {
+            inhalerSubscription.unsubscribe();
+        }
+
         // Close the handlers
         try {
             respeckHandler.closeHandler();
             airspeckHandler.closeHandler();
             pulseoxHandler.closeHandler();
+            inhalerHandler.closeHandler();
         } catch (Exception e) {
             Log.e("SpeckService", "Error while closing handlers: " + e.getMessage());
         }
