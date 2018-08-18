@@ -16,22 +16,17 @@
 #define ACTIVITY_LYING_DOWN_STOMACH 8
 #define ACTIVITY_MOVEMENT 9
 
-#define ACT_CLASS_BUFFER_SIZE 50
-
 #include <stdbool.h>
 #include "../stepcount/step_count.h"
 
 typedef struct {
     int last_prediction;
-    float act_class_buffer[ACT_CLASS_BUFFER_SIZE][2];
-    int current_idx_in_buffer;
-    bool is_buffer_full;
-    bool stepcount_is_walking;
 } ActivityPredictor;
 
 void initialise_activity_classification(ActivityPredictor *activity_predictor);
-void update_activity_classification_buffer(ActivityPredictor *activity_predictor, float *accel, float act_level,
-                                           StepCounter *step_counter);
-int simple_predict(ActivityPredictor *activity_predictor);
+
+void update_activity_classification(ActivityPredictor *activity_predictor, float *accel, StepCounter *step_counter);
+
+int get_advanced_activity_prediction(float x, float y, float z, bool is_walking, bool is_moving);
 
 #endif

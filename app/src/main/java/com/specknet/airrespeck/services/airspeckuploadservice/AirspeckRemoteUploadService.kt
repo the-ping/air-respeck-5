@@ -155,6 +155,7 @@ class AirspeckRemoteUploadService(bluetoothSpeckService: Service) {
                         json.put(Constants.LOC_ALTITUDE, data.location.altitude)
                         json.put(Constants.LOC_ACCURACY, nanToNull(data.location.accuracy))
                         json.put(Constants.AIRSPECK_BATTERY, data.battery)
+                        json.put(Constants.AIRSPECK_LUX, data.lux)
                         json.put("fw", data.fwVersion)
 
                     } catch (e: JSONException) {

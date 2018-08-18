@@ -1,6 +1,7 @@
 package com.specknet.airrespeck.services;
 
 import android.content.Intent;
+import android.provider.Settings.Secure;
 import android.util.Log;
 
 import com.specknet.airrespeck.models.RESpeckAveragedData;
@@ -10,8 +11,6 @@ import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
-
-import android.provider.Settings.Secure;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * This class processes new RESpeck packets which are passed from the SpeckBluetoothService.
@@ -44,7 +42,7 @@ public class RESpeckPacketHandler {
     private long mPhoneTimestampLastPacketReceived = -1;
     private long mRESpeckTimestampCurrentPacketReceived = -1;
     private Queue<RESpeckStoredSample> storedQueue;
-    private long latestProcessedMinute = 0L;
+    private long lastProcessedMinute = 0L;
     private int currentSequenceNumberInBatch = -1;
     private int latestStoredRespeckSeq = -1;
 
@@ -105,9 +103,6 @@ public class RESpeckPacketHandler {
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
                 Constants.THRESHOLD_FILTER_SIZE, Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD,
                 Constants.THRESHOLD_FACTOR);
-
-        // Start task which makes activity predictions every 2 seconds
-        startActivityClassificationTask();
     }
 
     void processRESpeckLivePacket(final byte[] values) {
@@ -244,7 +239,7 @@ public class RESpeckPacketHandler {
 
                     final float breathingSignal = getBreathingSignal();
                     final float activityLevel = getActivityLevel();
-                    final int activityType = getCurrentActivityClassification();
+                    final int activityType = getActivityClassification();
                     final float breathingRate = getBreathingRate();
                     resetBreathingRate();
 
@@ -282,7 +277,13 @@ public class RESpeckPacketHandler {
                     long currentProcessedMinute = DateUtils.truncate(new Date(
                                     mPhoneTimestampCurrentPacketReceived),
                             Calendar.MINUTE).getTime();
-                    if (currentProcessedMinute != latestProcessedMinute) {
+
+                    // Set last processed minute to current one if this is the first packet
+                    if (lastProcessedMinute == 0L) {
+                        lastProcessedMinute = currentProcessedMinute;
+                    }
+
+                    if (currentProcessedMinute != lastProcessedMinute) {
                         calculateAverageBreathing();
 
                         mAverageBreathingRate = getAverageBreathingRate();
@@ -304,7 +305,7 @@ public class RESpeckPacketHandler {
                         lastMinuteActivityLevel = new ArrayList<>();
                         lastMinuteActivityType = new ArrayList<>();
 
-                        RESpeckAveragedData avgData = new RESpeckAveragedData(latestProcessedMinute,
+                        RESpeckAveragedData avgData = new RESpeckAveragedData(lastProcessedMinute,
                                 mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
                                 modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion());
 
@@ -315,7 +316,7 @@ public class RESpeckPacketHandler {
 
                         Log.i("RESpeckPacketHandler", "Avg data: " + avgData);
 
-                        latestProcessedMinute = currentProcessedMinute;
+                        lastProcessedMinute = currentProcessedMinute;
                     }
 
                 } catch (IndexOutOfBoundsException e) {
@@ -398,7 +399,7 @@ public class RESpeckPacketHandler {
 
             final float breathingSignal = getBreathingSignal();
             final float activityLevel = getActivityLevel();
-            final int activityType = getCurrentActivityClassification();
+            final int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
             resetBreathingRate();
 
@@ -437,7 +438,7 @@ public class RESpeckPacketHandler {
             long currentProcessedMinute = DateUtils.truncate(new Date(
                             mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
-            if (currentProcessedMinute != latestProcessedMinute) {
+            if (currentProcessedMinute != lastProcessedMinute) {
                 calculateAverageBreathing();
 
                 mAverageBreathingRate = getAverageBreathingRate();
@@ -470,7 +471,7 @@ public class RESpeckPacketHandler {
 
                 Log.i("RESpeckPacketHandler", "Avg data: " + avgData);
 
-                latestProcessedMinute = currentProcessedMinute;
+                lastProcessedMinute = currentProcessedMinute;
             }
 
             currentSequenceNumberInBatch += 1;
@@ -643,20 +644,6 @@ public class RESpeckPacketHandler {
         }
     }
 
-    private void startActivityClassificationTask() {
-        // How often do we update the activity classification?
-        // half the window size for the activity predictions, in milliseconds
-        final int delay = 2000;
-
-        mActivityClassificationTimer = new Timer();
-        mActivityClassificationTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                updateActivityClassification();
-            }
-        }, 0, delay);
-    }
-
     void closeHandler() throws IOException {
         Log.i("RESpeckPacketHandler", "Close handler (i.e. OutputstreamWriters)");
         if (mRespeckWriter != null) {
@@ -705,9 +692,7 @@ public class RESpeckPacketHandler {
 
     public native float getStdDevBreathingRate();
 
-    public native int getCurrentActivityClassification();
-
-    public native void updateActivityClassification();
+    public native int getActivityClassification();
 
     public native float getUpperThreshold();
 

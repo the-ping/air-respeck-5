@@ -21,13 +21,15 @@ Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMsgFromJni(JNIEnv 
  * @param threshold_factor The factor with which to multiply the RMS threshold before considering it for minimum/
  * maximum limit and for the crossings
  */
-void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JNIEnv *env, jobject this,
-                                                                              bool is_post_filtering_enabled,
-                                                                              float activity_cutoff,
-                                                                              unsigned int threshold_filter_size,
-                                                                              float lower_threshold_limit,
-                                                                              float upper_threshold_limit,
-                                                                              float threshold_factor) {
+JNIEXPORT void JNICALL
+Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JNIEnv *env, jobject instance,
+                                                                         jboolean is_post_filtering_enabled,
+                                                                         jfloat activity_cutoff,
+                                                                         jint threshold_filter_size,
+                                                                         jfloat lower_threshold_limit,
+                                                                         jfloat upper_threshold_limit,
+                                                                         jfloat threshold_factor) {
+
     float default_sampling_frequency = 12.5;
     if (is_post_filtering_enabled) {
         initBreathing(12, 12, activity_cutoff, threshold_filter_size, lower_threshold_limit,
@@ -36,19 +38,11 @@ void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_initBreathing(JN
         initBreathing(12, 1, activity_cutoff, threshold_filter_size, lower_threshold_limit,
                       upper_threshold_limit, threshold_factor, default_sampling_frequency);
     }
-}
 
-int Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMinuteStepcount(JNIEnv *env, jobject this) {
-    return getMinuteStepcount();
 }
 
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_resetMinuteStepcount(JNIEnv *env, jobject this) {
     resetMinuteStepcount();
-}
-
-void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(JNIEnv *env, jobject this, float x,
-                                                                                float y, float z) {
-    updateBreathing(x, y, z);
 }
 
 jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getUpperThreshold(JNIEnv *env, jobject this) {
@@ -97,14 +91,9 @@ jfloat Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getActivityLev
     return getActivityLevel();
 }
 
-void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateActivityClassification(JNIEnv *env,
-                                                                                             jobject instance) {
-    updateActivityClassification();
-}
-
-jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getCurrentActivityClassification(JNIEnv *env,
-                                                                                                 jobject instance) {
-    return getCurrentActivityClassification();
+jint Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getActivityClassification(JNIEnv *env,
+                                                                                          jobject instance) {
+    return getActivityClassification();
 }
 
 jboolean Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getIsBreathEnd(JNIEnv *env, jobject instance) {
@@ -114,3 +103,19 @@ jboolean Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getIsBreathE
 void Java_com_specknet_airrespeck_services_RESpeckPacketHandler_resetBreathingRate(JNIEnv *env, jobject instance) {
     resetBreathingRate();
 }
+
+JNIEXPORT void JNICALL
+Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(JNIEnv *env, jobject instance, jfloat x,
+                                                                           jfloat y, jfloat z) {
+
+    updateBreathing(x, y, z);
+
+}
+
+JNIEXPORT jint JNICALL
+Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMinuteStepcount(JNIEnv *env, jobject instance) {
+
+    return getMinuteStepcount();
+
+}
+

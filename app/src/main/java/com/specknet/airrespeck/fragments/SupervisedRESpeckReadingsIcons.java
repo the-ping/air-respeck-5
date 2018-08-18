@@ -92,18 +92,39 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
             case Constants.ACTIVITY_LYING:
                 activityIcon.setImageResource(R.drawable.vec_lying);
                 break;
+            case Constants.ACTIVITY_LYING_DOWN_LEFT:
+                activityIcon.setImageResource(R.drawable.lying_to_left);
+                break;
+            case Constants.ACTIVITY_LYING_DOWN_RIGHT:
+                activityIcon.setImageResource(R.drawable.lying_to_right);
+                break;
+            case Constants.ACTIVITY_LYING_DOWN_STOMACH:
+                activityIcon.setImageResource(R.drawable.lying_stomach);
+                break;
+            case Constants.ACTIVITY_SITTING_BENT_BACKWARD:
+                activityIcon.setImageResource(R.drawable.sitting_backward);
+                break;
+            case Constants.ACTIVITY_SITTING_BENT_FORWARD:
+                activityIcon.setImageResource(R.drawable.sitting_forward);
+                break;
+            case Constants.ACTIVITY_STAND_SIT:
+                activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+                break;
+            case Constants.ACTIVITY_MOVEMENT:
+                activityIcon.setImageResource(R.drawable.movement);
+                break;
             case Constants.ACTIVITY_WALKING:
                 activityIcon.setImageResource(R.drawable.vec_walking);
                 break;
-            case Constants.ACTIVITY_STAND_SIT:
             default:
-                activityIcon.setImageResource(R.drawable.vec_standing_sitting);
+                activityIcon.setImageResource(R.drawable.vec_xmark);
         }
     }
 
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
         Log.i("RESpeckReadings", "updateRESpeckData");
+        Log.i("RESpeckReadings", data.toString());
         // Update the graph
         mBreathingGraphView.addToBreathingGraphQueue(data);
 

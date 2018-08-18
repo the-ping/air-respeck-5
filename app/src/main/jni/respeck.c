@@ -17,10 +17,6 @@ static float lower_threshold;
 static float th_factor = 1.f;
 static bool is_breath_end = false;
 
-// Activity classification
-static int current_activity_classification = -1;
-
-
 char *testEcho(char *testString) {
     return testString;
 }
@@ -146,15 +142,8 @@ float getActivityLevel() {
     return breathing_measures.max_act_level;
 }
 
-void updateActivityClassification() {
-    // Only do something if buffer is filled
-    if (activity_predictor.is_buffer_full) {
-        current_activity_classification = simple_predict(&activity_predictor);
-    }
-}
-
-int getCurrentActivityClassification() {
-    return current_activity_classification;
+int getActivityClassification() {
+    return activity_predictor.last_prediction;
 }
 
 bool getIsBreathEnd() {

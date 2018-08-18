@@ -55,9 +55,7 @@ int getNumberOfBreaths();
 
 float getActivityLevel();
 
-void updateActivityClassification();
-
-int getCurrentActivityClassification();
+int getActivityClassification();
 
 bool getIsBreathEnd();
 

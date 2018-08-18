@@ -6,8 +6,6 @@ import android.os.Environment;
 
 import com.specknet.airrespeck.R;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 
 /**
@@ -159,6 +157,7 @@ public class Constants {
     public static final String AIRSPECK_BINS_15 = "bins15";
     public static final String AIRSPECK_BINS_TOTAL = "bins_total";
     public static final String AIRSPECK_BATTERY = "battery";
+    public static final String AIRSPECK_LUX = "lux";
 
     public static final String ACTIVITY_SUMMARY_HOUR = "hour";
     public static final String ACTIVITY_SUMMARY_DAY = "day";
@@ -200,6 +199,12 @@ public class Constants {
     public static final int ACTIVITY_WALKING = 1;
     public static final int ACTIVITY_LYING = 2;
     public static final int WRONG_ORIENTATION = 3;
+    public static final int ACTIVITY_SITTING_BENT_FORWARD = 4;
+    public static final int ACTIVITY_SITTING_BENT_BACKWARD = 5;
+    public static final int ACTIVITY_LYING_DOWN_RIGHT = 6;
+    public static final int ACTIVITY_LYING_DOWN_LEFT = 7;
+    public static final int ACTIVITY_LYING_DOWN_STOMACH = 8;
+    public static final int ACTIVITY_MOVEMENT = 9;
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down", "Wrong orientation"};
 
     /*

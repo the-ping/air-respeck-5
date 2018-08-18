@@ -5,25 +5,12 @@
 
 void initialise_activity_classification(ActivityPredictor *activity_predictor) {
     activity_predictor->last_prediction = -1;
-
-    activity_predictor->current_idx_in_buffer = -1;
-    activity_predictor->is_buffer_full = 0;
-    activity_predictor->stepcount_is_walking = 0;
 }
 
-void update_activity_classification_buffer(ActivityPredictor *activity_predictor, float *accel, float act_level,
-                                           StepCounter *step_counter) {
-    activity_predictor->current_idx_in_buffer = (activity_predictor->current_idx_in_buffer + 1) % ACT_CLASS_BUFFER_SIZE;
-
-    activity_predictor->act_class_buffer[activity_predictor->current_idx_in_buffer][0] = accel[1];
-    activity_predictor->act_class_buffer[activity_predictor->current_idx_in_buffer][1] = act_level;
-
-    if (!activity_predictor->is_buffer_full && activity_predictor->current_idx_in_buffer == ACT_CLASS_BUFFER_SIZE - 1) {
-        activity_predictor->is_buffer_full = 1;
-    }
-
-    // Get information about movement from step count
-    activity_predictor->stepcount_is_walking = is_walking(step_counter);
+void update_activity_classification(ActivityPredictor *activity_predictor, float *accel, StepCounter *step_counter) {
+    activity_predictor->last_prediction = get_advanced_activity_prediction(accel[0], accel[1], accel[2],
+                                                                           is_walking(step_counter),
+                                                                           is_moving(step_counter));
 }
 
 /* Quicksort. Needed for calculating the median */
@@ -77,69 +64,39 @@ float calc_median(const float data[], const int size) {
     }
 }
 
-int simple_predict(ActivityPredictor *activity_predictor) {
-    // If the prediction buffer isn't filled yet, we cannot make any prediction. This should be checked
-    // before calling this method, so return NULL in that case
-    if (!activity_predictor->is_buffer_full) {
-        return -1;
+
+int get_advanced_activity_prediction(float x, float y, float z, bool is_walking, bool is_moving) {
+    if (is_walking) {
+        return ACTIVITY_WALKING;
+    }
+    if (is_moving) {
+        return ACTIVITY_MOVEMENT;
     }
 
-    float ys[ACT_CLASS_BUFFER_SIZE], act_levels[ACT_CLASS_BUFFER_SIZE];
-    /* Fill in the arrays of the past X acceleration values and maximum activity level */
-    for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
-        ys[buffer_idx] = activity_predictor->act_class_buffer[buffer_idx][0];
-        act_levels[buffer_idx] = activity_predictor->act_class_buffer[buffer_idx][1];
-    }
-
-    float y_median = calc_median(ys, ACT_CLASS_BUFFER_SIZE);
-    // A median activity level greater than 0.025 indicates walking
-    float al_median = calc_median(act_levels, ACT_CLASS_BUFFER_SIZE);
-
-    // First, check whether we have an invalid orientation.
-    // ==================
-
-    // Is the sensor currently turned by 180° on the y-axis (vertical) above an angle which cannot occur while lying
-    // down? This position can never occur except for a hand stand which we don't expect from the subjects.
-    if (0.8 <= ys[activity_predictor->current_idx_in_buffer]) {
-        activity_predictor->last_prediction = ACTIVITY_WRONG_ORIENTATION;
-    } else if (-0.4 <= y_median) {
-        /* Is y_median higher than -0.4?. If yes, we are lying down. Else, check activity levels.
-         * -0.4 corresponds to an angle of ~23° from the ground (degrees(arccos(-0.4)))
-         * If the activity level is above a certain threshold, we assume the
-         * orientation is wrong, as walking during lying is not possible. Note that we use a considerably
-         * higher activity level threshold than below as high activity values during posture changes are common
-         * in lying position */
-        if (al_median >= 0.11) {
-            activity_predictor->last_prediction = ACTIVITY_WRONG_ORIENTATION;
+    // Lying on the side?
+    if (x < -0.66129816) {
+        return ACTIVITY_LYING_DOWN_RIGHT;  // Lying down to the right
+    } else if (x > 0.67874145) {
+        return ACTIVITY_LYING_DOWN_LEFT;  // Lying down to the left
+    } else if (y > -0.28865455) {
+        // Lying either on back or stomach:
+        if (z > 0) {
+            return ACTIVITY_LYING; // Lying down normal on back
         } else {
-            activity_predictor->last_prediction = ACTIVITY_LYING;
+            return ACTIVITY_LYING_DOWN_STOMACH; // Lying down on stomach
         }
     } else {
-        // If the last prediction was lying down, we don't want to predict walking if the person is getting up.
-        // We circumvent that by clearing the max_act_level level buffer. Walking can only be predicted when it is filled
-        // again with high enough values
-        if (activity_predictor->last_prediction == ACTIVITY_LYING) {
-            //__android_log_print(ANDROID_LOG_INFO, "DF",
-            //                    "switched from lying do sit/stand -> clear activity level buffer!");
-            for (int buffer_idx = 0; buffer_idx < ACT_CLASS_BUFFER_SIZE; buffer_idx++) {
-                activity_predictor->act_class_buffer[buffer_idx][1] = 0;
-            }
-            activity_predictor->last_prediction = ACTIVITY_STAND_SIT;
-        } else {
-            //__android_log_print(ANDROID_LOG_INFO, "DF", "al median: %lf", al_median);
-            if (activity_predictor->stepcount_is_walking) {
-                activity_predictor->last_prediction = ACTIVITY_WALKING;
-            } else if (al_median >= 0.043) {
-                activity_predictor->last_prediction = ACTIVITY_MOVEMENT;
-            } else {
-                activity_predictor->last_prediction = ACTIVITY_STAND_SIT;
-            }
+        // Not lying
+        // Leaning forward or backward? -> Sitting
+        if (z > 0.43) {
+            return ACTIVITY_SITTING_BENT_BACKWARD; // Sitting bent backward
+        } else if (z < -0.43) {
+            return ACTIVITY_SITTING_BENT_FORWARD; // Sitting bent forward
         }
+
+        // Default to sitting/standing
+        return ACTIVITY_STAND_SIT;
     }
-
-    //__android_log_print(ANDROID_LOG_INFO, "DF", "%d", activity_predictor->last_prediction);
-
-    return activity_predictor->last_prediction;
 }
 
 

@@ -66,10 +66,7 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
     // Fill the buffer for the activity level
     update_activity_level_buffer(new_accel_data, &activity_level_buffer);
 
-    // Save the most recent activity level to the classification buffer
-    update_activity_classification_buffer(activity_predictor, new_accel_data,
-                                          activity_level_buffer.activity_levels[activity_level_buffer.current_position],
-                                          step_counter);
+    update_activity_classification(activity_predictor, new_accel_data, step_counter);
 
     // Wait until the activity level buffer is filled before continuing with the breathing signal calculations
     if (activity_level_buffer.is_valid == false) {
