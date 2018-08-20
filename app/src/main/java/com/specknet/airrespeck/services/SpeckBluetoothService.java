@@ -21,6 +21,8 @@ import com.polidea.rxandroidble.RxBleScanResult;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.services.airspeckuploadservice.AirspeckRemoteUploadService;
+import com.specknet.airrespeck.services.inhaleruploadservice.InhalerRemoteUploadService;
+import com.specknet.airrespeck.services.pulseoxuploadservice.PulseoxRemoteUploadService;
 import com.specknet.airrespeck.services.respeckuploadservice.RespeckAndDiaryRemoteUploadService;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
@@ -103,7 +105,8 @@ public class SpeckBluetoothService extends Service {
     // Upload classes
     private AirspeckRemoteUploadService mAirspeckUploadService;
     private RespeckAndDiaryRemoteUploadService mRespeckUploadService;
-    //private PulseoxRemoteUploadService mPulseoxUploadService;
+    private PulseoxRemoteUploadService mPulseoxUploadService;
+    private InhalerRemoteUploadService mInhalerUploadService;
 
     private boolean mIsRESpeckPaused;
 
@@ -187,10 +190,10 @@ public class SpeckBluetoothService extends Service {
                 mAirspeckUploadService = new AirspeckRemoteUploadService(this);
             }
             if (mIsPulseoxEnabled) {
-                //mPulseOxUploadService = new PulseoxRemoteUploadService(this);
+                mPulseoxUploadService = new PulseoxRemoteUploadService(this);
             }
             if (mIsInhalerEnabled) {
-                //mInhalerUploadService = new InhalerRemoteUploadService(this);
+                mInhalerUploadService = new InhalerRemoteUploadService(this);
             }
         }
 

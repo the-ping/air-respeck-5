@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class InhalerPacketHandler {
 
-    // Pulseox data
+    // Inhaler data
     private ByteBuffer packetData;
 
     // Initial values for last write timestamps

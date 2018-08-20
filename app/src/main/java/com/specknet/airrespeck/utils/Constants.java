@@ -173,6 +173,9 @@ public class Constants {
     public static final String PHONE_LOCATION = "phone_location";
 
     public static final String PULSEOX_DATA = "pulseox_data";
+    public static final String PULSEOX_PULSE = "pulseox_pulse";
+    public static final String PULSEOX_SPO2 = "pulseox_sp02";
+
     public static final String INHALER_DATA = "inhaler_data";
 
     /**
@@ -236,6 +239,7 @@ public class Constants {
     public static final String VOLUME_DATA_DIRECTORY_NAME = "/Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_NAME = "/Airspeck/";
     public static final String PULSEOX_DATA_DIRECTORY_NAME = "/Pulseox/";
+    public static final String INHALER_DATA_DIRECTORY_NAME = "/Inhaler/";
     public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
     public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
@@ -251,6 +255,7 @@ public class Constants {
             "gpsLongitude,gpsLatitude,gpsAltitude,gpsAccuracy,luxLevel,motion,battery";
 
     public static final String PULSEOX_DATA_HEADER = "phoneTimestamp,pulse,spo2";
+    public static final String INHALER_DATA_HEADER = "phoneTimestamp";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 
