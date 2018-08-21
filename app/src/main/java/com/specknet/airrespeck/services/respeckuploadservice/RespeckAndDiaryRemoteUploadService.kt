@@ -70,12 +70,11 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
         try {
             jsonHeader.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
-            jsonHeader.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
-            var airspeckUUID = loadedConfig.get(Constants.Config.AIRSPECKP_UUID)
-            if (airspeckUUID == null) {
-                airspeckUUID = ""
+            var respeckUUID = loadedConfig.get(Constants.Config.RESPECK_UUID)
+            if (respeckUUID == null) {
+                respeckUUID = ""
             }
-            jsonHeader.put("qoe_uuid", airspeckUUID)
+            jsonHeader.put("respeck_uuid", respeckUUID)
             jsonHeader.put("security_key", Utils.getSecurityKey(speckService));
             jsonHeader.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)

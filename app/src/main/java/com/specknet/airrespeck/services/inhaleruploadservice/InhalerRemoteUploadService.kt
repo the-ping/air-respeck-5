@@ -72,12 +72,11 @@ class InhalerRemoteUploadService(bluetoothSpeckService: Service) {
         try {
             json.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
-            json.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
             var inhuuid = loadedConfig.get(Constants.Config.INHALER_UUID)
             if (inhuuid == null) {
                 inhuuid = ""
             }
-            json.put("inh_uuid", inhuuid)
+            json.put("inhaler_uuid", inhuuid)
             json.put("security_key", Utils.getSecurityKey(speckService))
             json.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)

@@ -72,12 +72,11 @@ class PulseoxRemoteUploadService(bluetoothSpeckService: Service) {
         try {
             json.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
-            json.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
             var poxuuid = loadedConfig.get(Constants.Config.PULSEOX_UUID)
             if (poxuuid == null) {
                 poxuuid = ""
             }
-            json.put("pox_uuid", poxuuid)
+            json.put("pulseox_uuid", poxuuid)
             json.put("security_key", Utils.getSecurityKey(speckService))
             json.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             json.put("app_version", utils.appVersionCode)
@@ -126,8 +125,8 @@ class PulseoxRemoteUploadService(bluetoothSpeckService: Service) {
                         json.put("messagetype", "pox_data")
                         val data = intent.getSerializableExtra(Constants.PULSEOX_DATA) as PulseoxData
                         json.put("timestamp", data.phoneTimestamp)
-                        json.put(Constants.PULSEOX_PULSE, data.pulse)
-                        json.put(Constants.PULSEOX_SPO2, data.spo2)
+                        json.put("pulse", data.pulse)
+                        json.put("spo2", data.spo2)
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
