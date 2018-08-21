@@ -293,7 +293,7 @@ public class Constants {
     public final static String PULSEOX_CHARACTERISTIC = "0AAD7EA0-0D60-11E2-8E3C-0002A5D5C51B";
 
     // Characteristics for Inhaler
-    public final static String INHALER_CHARACTERISTIC = "0AAD7EA0-0D60-11E2-8E3C-0002A5D5C51B";
+    public final static String INHALER_CHARACTERISTIC = "00001524-1212-efde-1523-785feabcd123";
 
     // Breathing signal calculation constants
     public static final int THRESHOLD_FILTER_SIZE = 60;
