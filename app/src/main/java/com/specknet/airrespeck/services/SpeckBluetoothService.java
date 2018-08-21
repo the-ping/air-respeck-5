@@ -371,7 +371,7 @@ public class SpeckBluetoothService extends Service {
                                     if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(INHALER_UUID)) {
                                         INHALER_BLE_ADDRESS = INHALER_UUID; // use BLE address for UUID
                                         mIsInhalerFound = true;
-                                        Log.i("SpeckService", "Pulseox: Connecting after scanning");
+                                        Log.i("SpeckService", "Inhaler: Connecting after scanning");
                                         SpeckBluetoothService.this.connectToInhaler();
                                     }
 

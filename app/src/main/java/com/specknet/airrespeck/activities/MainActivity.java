@@ -722,7 +722,10 @@ public class MainActivity extends AppCompatActivity {
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 
         // Replace fragment
-        displayFragment(new SupervisedRESpeckReadingsIcons());
+        if (mIsRESpeckEnabled) displayFragment(new SupervisedRESpeckReadingsIcons());
+        else if (mIsAirspeckEnabled) displayFragment(new SupervisedAirspeckReadingsFragment());
+        else if (mIsPulseoxEnabled) displayFragment(new SupervisedPulseoxReadingsFragment());
+        else if (mIsInhalerEnabled) displayFragment(new SupervisedInhalerReadingsFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();

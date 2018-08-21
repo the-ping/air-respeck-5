@@ -123,7 +123,7 @@ class InhalerRemoteUploadService(bluetoothSpeckService: Service) {
                 Constants.ACTION_INHALER_BROADCAST -> {
                     val json = JSONObject()
                     try {
-                        json.put("messagetype", "pox_data")
+                        json.put("messagetype", "inh_data")
                         val data = intent.getSerializableExtra(Constants.INHALER_DATA) as InhalerData
                         json.put("timestamp", data.phoneTimestamp)
                     } catch (e: JSONException) {

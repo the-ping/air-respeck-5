@@ -47,7 +47,7 @@ public class SupervisedInhalerReadingsFragment extends ConnectionOverlayFragment
 
         mReadingItems = new ArrayList<>();
         mReadingItems.add(new ReadingItem(getString(R.string.reading_press_time),
-                getString(R.string.reading_unit_none), Float.NaN));
+                getString(R.string.reading_unit_none), "No use detected"));
         mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
     }
 
@@ -57,7 +57,7 @@ public class SupervisedInhalerReadingsFragment extends ConnectionOverlayFragment
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_inhaler_readings, container, false);
 
-        // Attach the adapter to a ListView for displaying the Pulseox readings
+        // Attach the adapter to a ListView for displaying the Inhaler readings
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);
 
