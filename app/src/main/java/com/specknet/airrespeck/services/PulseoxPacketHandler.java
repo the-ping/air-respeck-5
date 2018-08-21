@@ -63,7 +63,7 @@ public class PulseoxPacketHandler {
 
         Utils utils = Utils.getInstance();
         Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
-        pulseoxUUID = "00:1C:05:FF:F0:0F";
+        pulseoxUUID = loadedConfig.get(Constants.Config.PULSEOX_UUID);
 
         mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
 

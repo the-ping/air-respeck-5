@@ -64,7 +64,7 @@ public class InhalerPacketHandler {
 
         Utils utils = Utils.getInstance();
         Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
-        inhalerUUID = "00:1C:05:FF:F0:0F";
+        inhalerUUID = loadedConfig.get(Constants.Config.INHALER_UUID);
 
         mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
 
@@ -78,6 +78,12 @@ public class InhalerPacketHandler {
     synchronized void processInhalerPacket(byte[] bytes) {
         Log.i("InhalerPacketHandler", "Processing Inhaler packet");
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
+
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        Log.i("InhalerPacketHandler", "Payload: " + sb.toString());
 
         InhalerData newInhalerData = new InhalerData(currentPhoneTimestamp);
 

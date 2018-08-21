@@ -56,7 +56,7 @@ public class ConnectionOverlayFragment extends Fragment implements ConnectionSta
 
     @Override
     public void updateConnectionState(boolean respeckConnected, boolean airspeckConnected, boolean pulseoxConnected, boolean inhalerConnected) {
-        int n = 3;
+        int n = 4;
         if (!mIsAirspeckEnabled || airspeckConnected) n -= 1;
         if (!mIsRESpeckEnabled || respeckConnected) n -= 1;
         if (!mIsPulseoxEnabled || pulseoxConnected) n -= 1;
