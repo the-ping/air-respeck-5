@@ -200,6 +200,18 @@ public final class Utils {
             }
         }
 
+        if (!loadedConfig.get(Constants.Config.INHALER_UUID).isEmpty()) {
+            directory = new File(dataDirectoryPath + Constants.INHALER_DATA_DIRECTORY_NAME);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (created) {
+                    Log.i("DF", "Directory created: " + directory);
+                } else {
+                    throw new RuntimeException("Couldn't create Inhaler folder on external storage");
+                }
+            }
+        }
+
         if (Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENABLE_PHONE_LOCATION_STORAGE))) {
             directory = new File(dataDirectoryPath + Constants.PHONE_LOCATION_DIRECTORY_NAME);
             if (!directory.exists()) {

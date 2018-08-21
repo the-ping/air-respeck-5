@@ -632,7 +632,7 @@ public class SpeckBluetoothService extends Service {
                                 new Timer().schedule(new TimerTask() {
                                     @Override
                                     public void run() {
-                                        establishPulseoxConnection();
+                                        establishInhalerConnection();
                                     }
                                 }, 2000);
                             }
