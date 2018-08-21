@@ -85,18 +85,21 @@ public class InhalerPacketHandler {
         }
         Log.i("InhalerPacketHandler", "Payload: " + sb.toString());
 
-        InhalerData newInhalerData = new InhalerData(currentPhoneTimestamp);
+        if (bytes[0] == 0x00) {
+            // Only respond to button press. Ignore release.
 
-        Log.i("InhalerHandler", "New Inhaler packet processed: " + newInhalerData);
+            InhalerData newInhalerData = new InhalerData(currentPhoneTimestamp);
+            Log.i("InhalerHandler", "New Inhaler packet processed: " + newInhalerData);
 
-        // Send data to upload
-        Intent intentData = new Intent(Constants.ACTION_INHALER_BROADCAST);
-        intentData.putExtra(Constants.INHALER_DATA, newInhalerData);
-        mSpeckService.sendBroadcast(intentData);
+            // Send data to upload
+            Intent intentData = new Intent(Constants.ACTION_INHALER_BROADCAST);
+            intentData.putExtra(Constants.INHALER_DATA, newInhalerData);
+            mSpeckService.sendBroadcast(intentData);
 
-        // Store the important data in the external storage if set in config
-        if (mIsStoreDataLocally) {
-            writeToInhalerFile(newInhalerData);
+            // Store the important data in the external storage if set in config
+            if (mIsStoreDataLocally) {
+                writeToInhalerFile(newInhalerData);
+            }
         }
     }
 

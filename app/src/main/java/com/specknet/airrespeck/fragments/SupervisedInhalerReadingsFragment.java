@@ -16,7 +16,10 @@ import com.specknet.airrespeck.models.InhalerData;
 import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.models.ReadingItem;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Fragment to display the respiratory signal
@@ -65,8 +68,10 @@ public class SupervisedInhalerReadingsFragment extends ConnectionOverlayFragment
     public void updateInhalerData(InhalerData data) {
         // Only update readings if they are not NaN
         if (!Float.isNaN(data.getPhoneTimestamp())) {
+            String sdf = new SimpleDateFormat("HH:mm:ss", Locale.UK).format(new Date(data.getPhoneTimestamp()));
             Log.i("InhalerReadings", "Last inhaler press: " + data.getPhoneTimestamp());
-            mReadingItems.get(0).value = data.getPhoneTimestamp();
+
+            mReadingItems.get(0).stringValue = sdf;
             mListViewAdapter.notifyDataSetChanged();
         }
     }
