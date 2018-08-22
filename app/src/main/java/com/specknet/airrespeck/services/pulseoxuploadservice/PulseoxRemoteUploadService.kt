@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.specknet.airrespeck.models.PulseoxAveragedData
 import com.specknet.airrespeck.models.PulseoxData
 import com.specknet.airrespeck.utils.Constants
 import com.specknet.airrespeck.utils.Utils
@@ -119,12 +120,12 @@ class PulseoxRemoteUploadService(bluetoothSpeckService: Service) {
     class PulseoxReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                Constants.ACTION_PULSEOX_BROADCAST -> {
+                Constants.ACTION_PULSEOX_AVG_BROADCAST -> {
                     val json = JSONObject()
                     try {
                         json.put("messagetype", "pox_data")
-                        val data = intent.getSerializableExtra(Constants.PULSEOX_DATA) as PulseoxData
-                        json.put("timestamp", data.phoneTimestamp)
+                        val data = intent.getSerializableExtra(Constants.PULSEOX_AVG_DATA) as PulseoxAveragedData
+                        json.put("timestamp", data.timestamp)
                         json.put("pulse", data.pulse)
                         json.put("spo2", data.spo2)
                     } catch (e: JSONException) {

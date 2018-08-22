@@ -102,6 +102,8 @@ public class Constants {
             "com.specknet.airspeck.PULSEOX_DISCONNECTED";
     public static final String ACTION_PULSEOX_BROADCAST =
             "com.specknet.airspeck.PULSEOX_BROADCAST";
+    public static final String ACTION_PULSEOX_AVG_BROADCAST =
+            "com.specknet.respeck.PULSEOX_AVG_BROADCAST";
     public static final String ACTION_INHALER_CONNECTED =
             "com.specknet.airspeck.INHALER_CONNECTED";
     public static final String ACTION_INHALER_DISCONNECTED =
@@ -175,6 +177,7 @@ public class Constants {
     public static final String PULSEOX_DATA = "pulseox_data";
     public static final String PULSEOX_PULSE = "pulseox_pulse";
     public static final String PULSEOX_SPO2 = "pulseox_sp02";
+    public static final String PULSEOX_AVG_DATA = "pulseox_avg_data";
 
     public static final String INHALER_DATA = "inhaler_data";
 
