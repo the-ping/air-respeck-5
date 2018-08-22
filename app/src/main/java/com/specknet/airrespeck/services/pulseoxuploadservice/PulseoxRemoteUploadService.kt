@@ -90,7 +90,7 @@ class PulseoxRemoteUploadService(bluetoothSpeckService: Service) {
         configPath = Constants.UPLOAD_SERVER_PATH
         pulseoxServer = PulseoxServer.create(configUrl)
 
-        speckService.registerReceiver(pulseoxReceiver, IntentFilter(Constants.ACTION_PULSEOX_BROADCAST))
+        speckService.registerReceiver(pulseoxReceiver, IntentFilter(Constants.ACTION_PULSEOX_AVG_BROADCAST))
 
         // Setup upload queue which stores data until it can be uploaded
         val queueFile = File(speckService.filesDir, FILENAME)
