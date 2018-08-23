@@ -44,6 +44,7 @@ import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
+import com.specknet.airrespeck.fragments.SupervisedCoughingFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
@@ -363,6 +364,9 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case R.id.nav_pulseox:
                                 displayFragment(new SupervisedPulseoxReadingsFragment());
+                                break;
+                            case R.id.nav_coughing:
+                                displayFragment(new SupervisedCoughingFragment());
                                 break;
                         }
                         return true;

@@ -40,6 +40,11 @@ public class Constants {
     public static final String UPLOAD_SERVER_PATH = "uploadAirRespeck";
 
 
+    // This was set as a compromise between optimising communication frequency (as low as possible)
+    // and update frequency (as high as possible)
+    public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
+    public static final float SAMPLING_FREQUENCY = 12.5f; //12.5f;
+
     /**
      * HTTP WEB SERVICES (NEW USER, GET USER)
      */
@@ -179,18 +184,9 @@ public class Constants {
     /**
      * GRAPHS FRAGMENT UI
      */
-    public static final int BREATHING_SIGNAL_CHART_NUMBER_OF_SAMPLES = (int) Math.round(15 * 12.5);
+    public static final int BREATHING_SIGNAL_CHART_NUMBER_OF_SAMPLES = (int) Math.round(12 * SAMPLING_FREQUENCY);
     public static final int PM_CHART_NUMBER_OF_SAMPLES = 30;
-
-
-    public static final String READINGS_MODE_HOME_SCREEN_LIST = "0";
-
-    public static final String READINGS_MODE_AQREADINGS_SCREEN_LIST = "0";
-    public static final String READINGS_MODE_AQREADINGS_SCREEN_SEGMENTED_BARS = "1";
-
     public static final String FONT_SIZE_NORMAL = "1";
-
-    public static final String MENU_BUTTONS_PADDING_NORMAL = "5";
 
     /**
      * Activities
@@ -207,19 +203,12 @@ public class Constants {
     public static final int ACTIVITY_MOVEMENT = 9;
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down", "Wrong orientation"};
 
-    /*
-    Others
-     */
-    // This was set as a compromise between optimising communication frequency (as low as possible)
-    // and update frequency (as high as possible)
-    public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
-    public static final double SAMPLING_FREQUENCY = 12.5;
 
     // The typical difference between two RESpeck packets dependent on the number of samples per batch. If the
     // sampling frequency were exactly 12.5, this would be 32/12.5*1000 = 2560. However, on a recording of 14 hours,
     // the average time difference was closer to 2563.
-    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS = 2563;
-    // (int) Math.round(NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
+    public static final int AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS = (int) Math.round(
+            NUMBER_OF_SAMPLES_PER_BATCH / SAMPLING_FREQUENCY * 1000.);
 
     public static final int MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP = 400;
 

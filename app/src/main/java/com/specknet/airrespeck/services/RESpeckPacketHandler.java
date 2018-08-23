@@ -102,7 +102,7 @@ public class RESpeckPacketHandler {
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
                 Constants.THRESHOLD_FILTER_SIZE, Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD,
-                Constants.THRESHOLD_FACTOR);
+                Constants.THRESHOLD_FACTOR, Constants.SAMPLING_FREQUENCY);
     }
 
     void processRESpeckLivePacket(final byte[] values) {
@@ -110,8 +110,7 @@ public class RESpeckPacketHandler {
         if (values.length < 192) {
             // RESpeck v2
             processRESpeckV2Packet(values);
-        }
-        else {
+        } else {
             processRESpeckV4Packet(values);
         }
     }
@@ -350,7 +349,7 @@ public class RESpeckPacketHandler {
         long uncorrectedRESpeckTimestamp = buffer.getLong();
         long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 / 32768 * 1000;
 
-        Log.i("RESpeckPacketHandler", "rsts: " + Long.toString(newRESpeckTimestamp/1000));
+        Log.i("RESpeckPacketHandler", "rsts: " + Long.toString(newRESpeckTimestamp / 1000));
 
         // Independent of the RESpeck timestamp, we use the phone timestamp
         final long actualPhoneTimestamp = Utils.getUnixTimestamp();
@@ -662,7 +661,8 @@ public class RESpeckPacketHandler {
 
     // JNI methods
     public native void initBreathing(boolean isPostFilteringEnabled, float activityCutoff, int thresholdFilterSize,
-                                     float lowerThresholdLimit, float upperThresholdLimit, float threshold_factor);
+                                     float lowerThresholdLimit, float upperThresholdLimit, float thresholdFactor,
+                                     float samplingFrequency);
 
     public native int getMinuteStepcount();
 

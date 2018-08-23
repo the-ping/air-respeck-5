@@ -250,7 +250,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                         ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
             }
-        }, 1000);
+        }, 2000);
     }
 
     private void saveRespeckRecording() {

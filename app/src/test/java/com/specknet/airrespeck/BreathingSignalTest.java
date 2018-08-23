@@ -85,7 +85,8 @@ public class BreathingSignalTest {
         // Open each file, generate the breathing signal for it, and write the result into another file
         for (File file : listOfFiles) {
             handler.initBreathing(true, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
-                    Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR);
+                    Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR,
+                    Constants.SAMPLING_FREQUENCY);
             ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
             ArrayList<Float[]> allMeasures = new ArrayList<>();
 
@@ -121,7 +122,8 @@ public class BreathingSignalTest {
     private ArrayList<Float[]> calculateMeasuresBasedOnCurrentLibrary(ArrayList<Float[]> accelValues) {
         RESpeckPacketHandler handler = new RESpeckPacketHandler();
         handler.initBreathing(true, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
-                Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR);
+                Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR,
+                Constants.SAMPLING_FREQUENCY);
 
         ArrayList<Float[]> allMeasures = new ArrayList<>();
 
