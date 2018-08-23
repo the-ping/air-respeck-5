@@ -1,6 +1,6 @@
-package com.specknet.airrespeck.utils;
+package com.specknet.airrespeck.models;
 
-class SVC {
+public class SVC {
 
     private enum Kernel {LINEAR, POLY, RBF, SIGMOID}
 

@@ -1,5 +1,7 @@
 package com.specknet.airrespeck.utils;
 
+import com.specknet.airrespeck.models.SVC;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 

@@ -1,5 +1,7 @@
 package com.specknet.airrespeck.utils;
 
+import com.specknet.airrespeck.utils.Complex;
+
 public class FFT {
 
     // compute the FFT of x[], assuming its length is a power of 2

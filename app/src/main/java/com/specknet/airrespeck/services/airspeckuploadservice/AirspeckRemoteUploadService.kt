@@ -73,7 +73,6 @@ class AirspeckRemoteUploadService(bluetoothSpeckService: Service) {
         try {
             json.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
-            json.put("respeck_uuid", loadedConfig.get(Constants.Config.RESPECK_UUID))
             var qoeuuid = loadedConfig.get(Constants.Config.AIRSPECKP_UUID)
             if (qoeuuid == null) {
                 qoeuuid = ""

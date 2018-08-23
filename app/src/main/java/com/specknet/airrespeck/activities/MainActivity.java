@@ -46,11 +46,13 @@ import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedCoughingFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
+import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
 import com.specknet.airrespeck.models.AirspeckData;
+import com.specknet.airrespeck.models.InhalerData;
 import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.services.PhoneGPSService;
@@ -86,6 +88,9 @@ public class MainActivity extends AppCompatActivity {
     public final static int UPDATE_PULSEOX_READINGS = 9;
     public final static int SHOW_PULSEOX_CONNECTED = 10;
     public final static int SHOW_PULSEOX_DISCONNECTED = 11;
+    public final static int UPDATE_INHALER_READINGS = 12;
+    public final static int SHOW_INHALER_CONNECTED = 13;
+    public final static int SHOW_INHALER_DISCONNECTED = 14;
     private static final int AIRSPECK_NOTIFICATION_WATCHDOG = 8;
     // Variable to switch modes: subject mode or supervised mode
     private static final String SAVED_STATE_IS_SUPERVISED_MODE = "supervised_mode";
@@ -100,12 +105,14 @@ public class MainActivity extends AppCompatActivity {
     private boolean mShowSupervisedActivitySummary;
     private boolean mShowSupervisedAirspeckReadings;
     private boolean mShowSupervisedPulseoxReadings;
+    private boolean mShowSupervisedInhalerReadings;
     private boolean mShowSupervisedRESpeckReadings;
     private boolean mShowStepCount;
     private boolean mShowSupervisedAQMap;
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
     private boolean mIsPulseoxEnabled;
+    private boolean mIsInhalerEnabled;
     private boolean mShowSubjectHome;
     private boolean mShowSubjectValues;
     private boolean mIsUploadDataToServer;
@@ -123,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsRESpeckConnected;
     private boolean mIsAirspeckConnected;
     private boolean mIsPulseoxConnected;
+    private boolean mIsInhalerConnected;
     private boolean mIsSupervisedModeCurrentlyShown;
     private DialogFragment mWrongOrientationDialog;
     private boolean mIsWrongOrientationDialogDisplayed = false;
@@ -133,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
     private Set<RESpeckDataObserver> respeckDataObservers = new HashSet<>();
     private Set<AirspeckDataObserver> airspeckDataObservers = new HashSet<>();
     private Set<PulseoxDataObserver> pulseoxDataObservers = new HashSet<>();
+    private Set<InhalerDataObserver> inhalerDataObservers = new HashSet<>();
     private Set<ConnectionStateObserver> connectionStateObservers = new HashSet<>();
     private AutoUpdateApk aua;
     private Bundle mSavedInstanceState;
@@ -285,9 +294,11 @@ public class MainActivity extends AppCompatActivity {
             mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
             mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
             mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
+            mIsInhalerConnected = mSavedInstanceState.getBoolean(Constants.IS_INHALER_CONNECTED);
             updateRESpeckConnection(mIsRESpeckConnected);
             updateAirspeckConnection(mIsAirspeckConnected);
             updatePulseoxConnection(mIsPulseoxConnected);
+            updatePulseoxConnection(mIsInhalerConnected);
         }
 
         // For use with snack bar (notification bar at the bottom of the screen)
@@ -325,6 +336,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!mIsPulseoxEnabled) {
             navigationMenu.findItem(R.id.menu_pulseox_subgroup).setVisible(false);
+        }
+        if (!mIsInhalerEnabled) {
+            navigationMenu.findItem(R.id.menu_inhaler_subgroup).setVisible(false);
         }
 
         // Setup nav drawer menu
@@ -367,6 +381,8 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case R.id.nav_coughing:
                                 displayFragment(new SupervisedCoughingFragment());
+                            case R.id.nav_inhaler:
+                                displayFragment(new SupervisedInhalerReadingsFragment());
                                 break;
                         }
                         return true;
@@ -559,6 +575,21 @@ public class MainActivity extends AppCompatActivity {
                     case Constants.ACTION_PULSEOX_DISCONNECTED:
                         sendMessageToHandler(SHOW_PULSEOX_DISCONNECTED, null);
                         break;
+                    case Constants.ACTION_INHALER_BROADCAST:
+                        InhalerData ind = (InhalerData) intent.getSerializableExtra(Constants.INHALER_DATA);
+                        ind.toStringForFile();
+                        //Toast.makeText(context,
+                        //        "Pulseox: " + pd.toStringForFile(),
+                        //        Toast.LENGTH_LONG).show();
+                        sendMessageToHandler(UPDATE_INHALER_READINGS, ind);
+                        break;
+                    case Constants.ACTION_INHALER_CONNECTED:
+                        String inhalerUUID = intent.getStringExtra(Constants.Config.INHALER_UUID);
+                        sendMessageToHandler(SHOW_INHALER_CONNECTED, inhalerUUID);
+                        break;
+                    case Constants.ACTION_INHALER_DISCONNECTED:
+                        sendMessageToHandler(SHOW_INHALER_DISCONNECTED, null);
+                        break;
                     case ACTION_BATTERY_LOW:
                         FileLogger.logToFile(MainActivity.this, "Battery level low");
                         break;
@@ -599,6 +630,15 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(mBroadcastReceiver, new IntentFilter(
                     Constants.ACTION_PULSEOX_DISCONNECTED));
         }
+
+        if (mIsInhalerEnabled) {
+            registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.ACTION_INHALER_BROADCAST));
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
+                    Constants.ACTION_INHALER_CONNECTED));
+            registerReceiver(mBroadcastReceiver, new IntentFilter(
+                    Constants.ACTION_INHALER_DISCONNECTED));
+        }
+
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_LOW));
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_BATTERY_OKAY));
         registerReceiver(mBroadcastReceiver, new IntentFilter(ACTION_POWER_CONNECTED));
@@ -618,6 +658,7 @@ public class MainActivity extends AppCompatActivity {
         mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
         mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
         mIsPulseoxEnabled = !mLoadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty();
+        mIsInhalerEnabled = !mLoadedConfig.get(Constants.Config.INHALER_UUID).isEmpty();
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;
@@ -641,6 +682,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mShowSupervisedPulseoxReadings = mIsPulseoxEnabled;
+        mShowSupervisedInhalerReadings = mIsInhalerEnabled;
 
         mShowStepCount = false;
         mShowSubjectHome = true;
@@ -683,7 +725,10 @@ public class MainActivity extends AppCompatActivity {
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
 
         // Replace fragment
-        displayFragment(new SupervisedRESpeckReadingsIcons());
+        if (mIsRESpeckEnabled) displayFragment(new SupervisedRESpeckReadingsIcons());
+        else if (mIsAirspeckEnabled) displayFragment(new SupervisedAirspeckReadingsFragment());
+        else if (mIsPulseoxEnabled) displayFragment(new SupervisedPulseoxReadingsFragment());
+        else if (mIsInhalerEnabled) displayFragment(new SupervisedInhalerReadingsFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();
@@ -732,6 +777,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putBoolean(Constants.IS_RESPECK_CONNECTED, mIsRESpeckConnected);
         outState.putBoolean(Constants.IS_AIRSPECK_CONNECTED, mIsAirspeckConnected);
         outState.putBoolean(Constants.IS_PULSEOX_CONNECTED, mIsPulseoxConnected);
+        outState.putBoolean(Constants.IS_INHALER_CONNECTED, mIsInhalerConnected);
 
         super.onSaveInstanceState(outState);
     }
@@ -851,6 +897,24 @@ public class MainActivity extends AppCompatActivity {
         pulseoxDataObservers.remove(observer);
     }
 
+    private void updateInhalerReadings(InhalerData newValues) {
+        notifyNewInhalerReading(newValues);
+    }
+
+    private void notifyNewInhalerReading(InhalerData newData) {
+        for (InhalerDataObserver observer : inhalerDataObservers) {
+            observer.updateInhalerData(newData);
+        }
+    }
+
+    public void registerInhalerDataObserver(InhalerDataObserver observer) {
+        inhalerDataObservers.add(observer);
+    }
+
+    public void unregisterInhalerDataObserver(InhalerDataObserver observer) {
+        inhalerDataObservers.remove(observer);
+    }
+
     public void registerConnectionStateObserver(ConnectionStateObserver observer) {
         connectionStateObservers.add(observer);
     }
@@ -861,7 +925,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void notifyNewConnectionState() {
         for (ConnectionStateObserver observer : connectionStateObservers) {
-            observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected);
+            observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected, mIsInhalerConnected);
         }
     }
 
@@ -895,6 +959,11 @@ public class MainActivity extends AppCompatActivity {
         notifyNewConnectionState();
     }
 
+    private void updateInhalerConnection(boolean isConnected) {
+        mIsInhalerConnected = isConnected;
+        notifyNewConnectionState();
+    }
+
     private void showSnackbarFromHandler(String message) {
         Snackbar.make(mCoordinatorLayout, message, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
@@ -918,6 +987,10 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean getIsPulseoxConnected() {
         return mIsPulseoxConnected;
+    }
+
+    public boolean getIsInhalerConnected() {
+        return mIsInhalerConnected;
     }
 
     /**
@@ -953,6 +1026,9 @@ public class MainActivity extends AppCompatActivity {
                     case UPDATE_PULSEOX_READINGS:
                         service.updatePulseoxReadings((PulseoxData) msg.obj);
                         break;
+                    case UPDATE_INHALER_READINGS:
+                        service.updateInhalerReadings((InhalerData) msg.obj);
+                        break;
                     case SHOW_SNACKBAR_MESSAGE:
                         service.showSnackbarFromHandler((String) msg.obj);
                         break;
@@ -982,6 +1058,18 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case SHOW_PULSEOX_DISCONNECTED:
                         service.updatePulseoxConnection(false);
+                        break;
+                    case SHOW_INHALER_CONNECTED:
+                        String messageInhaler = "Inhaler "
+                                + msg.obj + " "
+                                + service.getString(R.string.device_found)
+                                + ". " + service.getString(R.string.waiting_for_data)
+                                + ".";
+                        service.updateInhalerConnection(true);
+                        service.showSnackbarFromHandler(messageInhaler);
+                        break;
+                    case SHOW_INHALER_DISCONNECTED:
+                        service.updateInhalerConnection(false);
                         break;
                     case SHOW_RESPECK_CONNECTED:
                         String messageRE = "RESpeck "

@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.LocationData;
+import com.specknet.airrespeck.models.PulseoxAveragedData;
 import com.specknet.airrespeck.models.PulseoxData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
@@ -23,6 +24,7 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -56,6 +58,10 @@ public class PulseoxPacketHandler {
     private String subjectID;
     private String androidID;
 
+    private long latestProcessedMinute = 0L;
+    private ArrayList<Float> lastMinutePulse = new ArrayList<>();
+    private ArrayList<Float> lastMinuteSpo2 = new ArrayList<>();
+
     public PulseoxPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
@@ -63,7 +69,7 @@ public class PulseoxPacketHandler {
 
         Utils utils = Utils.getInstance();
         Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
-        pulseoxUUID = "00:1C:05:FF:F0:0F";
+        pulseoxUUID = loadedConfig.get(Constants.Config.PULSEOX_UUID);
 
         mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
 
@@ -84,6 +90,10 @@ public class PulseoxPacketHandler {
         int sat = bytes[7];
         Log.i("RAT", "Sat:" + Integer.toString(sat));
 
+        // Store pulse and spo2 for minute average
+        lastMinutePulse.add((float)pulse);
+        lastMinuteSpo2.add((float)sat);
+
         PulseoxData newPulseoxData = new PulseoxData(currentPhoneTimestamp, pulse, sat);
 
         Log.i("PulseoxHandler", "New Pulseox packet processed: " + newPulseoxData);
@@ -96,6 +106,35 @@ public class PulseoxPacketHandler {
         // Store the important data in the external storage if set in config
         if (mIsStoreDataLocally) {
             writeToPulseoxFile(newPulseoxData);
+        }
+
+        // Every full minute, calculate the average breathing rate in that minute. This value will
+        // only change after a call to "calculateAverageBreathing".
+        long currentProcessedMinute = DateUtils.truncate(new Date(
+                        currentPhoneTimestamp),
+                Calendar.MINUTE).getTime();
+        if (currentProcessedMinute != latestProcessedMinute) {
+
+            float meanPulse = Utils.mean(lastMinutePulse);
+            float meanSat = Utils.mean(lastMinuteSpo2);
+
+            // Reset last minute values
+            lastMinutePulse = new ArrayList<>();
+            lastMinuteSpo2 = new ArrayList<>();
+
+            if (!Float.isNaN(meanPulse) && !Float.isNaN(meanSat)) {
+                PulseoxAveragedData avgData = new PulseoxAveragedData(currentProcessedMinute,
+                        meanPulse, meanSat);
+
+                // Send average broadcast intent
+                Intent avgDataIntent = new Intent(Constants.ACTION_PULSEOX_AVG_BROADCAST);
+                avgDataIntent.putExtra(Constants.PULSEOX_AVG_DATA, avgData);
+                mSpeckService.sendBroadcast(avgDataIntent);
+
+                Log.i("PulseoxPacketHandler", "Avg data: " + avgData);
+            }
+
+            latestProcessedMinute = currentProcessedMinute;
         }
     }
 
