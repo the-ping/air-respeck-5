@@ -105,6 +105,14 @@ public class Constants {
             "com.specknet.airspeck.PULSEOX_DISCONNECTED";
     public static final String ACTION_PULSEOX_BROADCAST =
             "com.specknet.airspeck.PULSEOX_BROADCAST";
+    public static final String ACTION_PULSEOX_AVG_BROADCAST =
+            "com.specknet.respeck.PULSEOX_AVG_BROADCAST";
+    public static final String ACTION_INHALER_CONNECTED =
+            "com.specknet.airspeck.INHALER_CONNECTED";
+    public static final String ACTION_INHALER_DISCONNECTED =
+            "com.specknet.airspeck.INHALER_DISCONNECTED";
+    public static final String ACTION_INHALER_BROADCAST =
+            "com.specknet.airspeck.INHALER_BROADCAST";
 
     public static final String ACTION_PHONE_LOCATION_BROADCAST = "com.specknet.airrespeck.PHONE_LOCATION";
     public static final String ACTION_INDOOR_PREDICTION_BROADCAST = "com.specknet.airrespeck.INDOOR_PREDICTION_BROADCAST";
@@ -171,6 +179,11 @@ public class Constants {
     public static final String PHONE_LOCATION = "phone_location";
 
     public static final String PULSEOX_DATA = "pulseox_data";
+    public static final String PULSEOX_PULSE = "pulseox_pulse";
+    public static final String PULSEOX_SPO2 = "pulseox_sp02";
+    public static final String PULSEOX_AVG_DATA = "pulseox_avg_data";
+
+    public static final String INHALER_DATA = "inhaler_data";
 
     /**
      * Additional data for uploading to the server
@@ -223,6 +236,7 @@ public class Constants {
     public static final String VOLUME_DATA_DIRECTORY_NAME = "/Volume calibration/";
     public static final String AIRSPECK_DATA_DIRECTORY_NAME = "/Airspeck/";
     public static final String PULSEOX_DATA_DIRECTORY_NAME = "/Pulseox/";
+    public static final String INHALER_DATA_DIRECTORY_NAME = "/Inhaler/";
     public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
     public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
@@ -238,6 +252,7 @@ public class Constants {
             "gpsLongitude,gpsLatitude,gpsAltitude,gpsAccuracy,luxLevel,motion,battery";
 
     public static final String PULSEOX_DATA_HEADER = "phoneTimestamp,pulse,spo2";
+    public static final String INHALER_DATA_HEADER = "phoneTimestamp";
 
     public static final String GPS_PHONE_HEADER = "timestamp,longitude,latitude,altitude,accuracy";
 
@@ -274,6 +289,9 @@ public class Constants {
     // Characteristics for Pulseox
     public final static String PULSEOX_CHARACTERISTIC = "0AAD7EA0-0D60-11E2-8E3C-0002A5D5C51B";
 
+    // Characteristics for Inhaler
+    public final static String INHALER_CHARACTERISTIC = "00001524-1212-efde-1523-785feabcd123";
+
     // Breathing signal calculation constants
     public static final int THRESHOLD_FILTER_SIZE = 60;
     public static final float MINIMUM_THRESHOLD = 0.003f;
@@ -290,6 +308,7 @@ public class Constants {
         public static final String AIRSPECKP_UUID = "AirspeckPUUID";
         public static final String PULSEOX_UUID = "PulseoxUUID";
         public static final String SPIROMETER_UUID = "SpirometerUUID";
+        public static final String INHALER_UUID = "InhalerUUID";
         public static final String UPLOAD_TO_SERVER = "UploadToServer";
         public static final String STORE_DATA_LOCALLY = "StoreDataLocally";
         public static final String ENCRYPT_LOCAL_DATA = "EncryptLocalData";
@@ -311,6 +330,7 @@ public class Constants {
     public static final String IS_RESPECK_CONNECTED = "IsRespeckConnected";
     public static final String IS_AIRSPECK_CONNECTED = "IsAirspeckConnected";
     public static final String IS_PULSEOX_CONNECTED = "IsPulseoxConnected";
+    public static final String IS_INHALER_CONNECTED = "IsInhalerConnected";
 
     public static final String INDOOR_PREDICTION_STRING = "IndoorPredictionString";
     public static final String IS_INDOOR = "IsIndoor";

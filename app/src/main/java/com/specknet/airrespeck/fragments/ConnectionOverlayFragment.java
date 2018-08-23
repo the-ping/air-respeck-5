@@ -30,6 +30,7 @@ public class ConnectionOverlayFragment extends Fragment implements ConnectionSta
     private boolean mIsAirspeckEnabled;
     private boolean mIsRESpeckEnabled;
     private boolean mIsPulseoxEnabled;
+    private boolean mIsInhalerEnabled;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -49,15 +50,17 @@ public class ConnectionOverlayFragment extends Fragment implements ConnectionSta
         // Manually pull connection state on startup. Every new change is then pushed by observer pattern.
         updateConnectionState(((MainActivity) getActivity()).getIsRESpeckConnected(),
                 ((MainActivity) getActivity()).getIsAirspeckConnected(),
-                ((MainActivity) getActivity()).getIsPulseoxConnected());
+                ((MainActivity) getActivity()).getIsPulseoxConnected(),
+                ((MainActivity) getActivity()).getIsInhalerConnected());
     }
 
     @Override
-    public void updateConnectionState(boolean respeckConnected, boolean airspeckConnected, boolean pulseoxConnected) {
-        int n = 3;
+    public void updateConnectionState(boolean respeckConnected, boolean airspeckConnected, boolean pulseoxConnected, boolean inhalerConnected) {
+        int n = 4;
         if (!mIsAirspeckEnabled || airspeckConnected) n -= 1;
         if (!mIsRESpeckEnabled || respeckConnected) n -= 1;
         if (!mIsPulseoxEnabled || pulseoxConnected) n -= 1;
+        if (!mIsInhalerEnabled || inhalerConnected) n -= 1;
 
         if (isAdded() && mConnectingLayout != null && mTextConnectionLayout != null) {
             if (n == 0) {
@@ -70,6 +73,9 @@ public class ConnectionOverlayFragment extends Fragment implements ConnectionSta
                 mConnectingLayout.setVisibility(View.VISIBLE);
             } else if (mIsPulseoxEnabled && !pulseoxConnected && n == 1) {
                 mTextConnectionLayout.setText(getString(R.string.connection_text_pulseox_only));
+                mConnectingLayout.setVisibility(View.VISIBLE);
+            } else if (mIsInhalerEnabled && !inhalerConnected && n == 1) {
+                mTextConnectionLayout.setText(getString(R.string.connection_text_inhaler_only));
                 mConnectingLayout.setVisibility(View.VISIBLE);
             } else {
                 mTextConnectionLayout.setText(getString(R.string.connection_text_both_devices));
