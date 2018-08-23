@@ -240,17 +240,15 @@ public class SpeckBluetoothService extends Service {
         Utils utils = Utils.getInstance();
         Map<String, String> loadedConfig = utils.getConfig(this);
 
-        // Look whether Airspeck is enabled in config
+        // Look whether each of the devices is enabled
         mIsAirspeckEnabled = !loadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
 
-        // Is RESpeck enabled?
         mIsRESpeckEnabled = !loadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
 
-        // Is Pulseox enabled?
-        mIsPulseoxEnabled = !loadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty();
-
-        // Is Inhaler enabled?
-        mIsInhalerEnabled = !loadedConfig.get(Constants.Config.INHALER_UUID).isEmpty();
+        mIsPulseoxEnabled = loadedConfig.containsKey(Constants.Config.PULSEOX_UUID) && !loadedConfig.get(
+                Constants.Config.PULSEOX_UUID).isEmpty();
+        mIsInhalerEnabled = loadedConfig.containsKey(Constants.Config.INHALER_UUID) && !loadedConfig.get(
+                Constants.Config.INHALER_UUID).isEmpty();
 
         // Do we want to upload the data?
         mIsUploadData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.UPLOAD_TO_SERVER));

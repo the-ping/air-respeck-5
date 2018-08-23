@@ -40,6 +40,7 @@ import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
 import com.specknet.airrespeck.fragments.SubjectHomeFragment;
+import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
@@ -48,7 +49,6 @@ import com.specknet.airrespeck.fragments.SupervisedCoughingFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
 import com.specknet.airrespeck.models.AirspeckData;
@@ -657,8 +657,10 @@ public class MainActivity extends AppCompatActivity {
         // Check whether RESpeck and/or Airspeck have been paired
         mIsRESpeckEnabled = !mLoadedConfig.get(Constants.Config.RESPECK_UUID).isEmpty();
         mIsAirspeckEnabled = !mLoadedConfig.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
-        mIsPulseoxEnabled = !mLoadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty();
-        mIsInhalerEnabled = !mLoadedConfig.get(Constants.Config.INHALER_UUID).isEmpty();
+        mIsPulseoxEnabled = mLoadedConfig.containsKey(Constants.Config.PULSEOX_UUID) && !mLoadedConfig.get(
+                Constants.Config.PULSEOX_UUID).isEmpty();
+        mIsInhalerEnabled = mLoadedConfig.containsKey(Constants.Config.INHALER_UUID) && !mLoadedConfig.get(
+                Constants.Config.INHALER_UUID).isEmpty();
 
         // Options which are fixed for now
         mIsStoreDataLocally = true;
@@ -925,7 +927,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void notifyNewConnectionState() {
         for (ConnectionStateObserver observer : connectionStateObservers) {
-            observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected, mIsInhalerConnected);
+            observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected,
+                    mIsInhalerConnected);
         }
     }
 
@@ -1001,6 +1004,7 @@ public class MainActivity extends AppCompatActivity {
         private final WeakReference<MainActivity> mService;
         private boolean mAirspeckConnected = false;
         private long mLastAirspeckNotificationTime = System.currentTimeMillis();
+
         UIHandler(MainActivity service) {
             mService = new WeakReference<>(service);
         }

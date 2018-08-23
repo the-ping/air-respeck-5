@@ -188,7 +188,7 @@ public final class Utils {
             }
         }
 
-        if (!loadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty()) {
+        if (loadedConfig.containsKey(Constants.Config.PULSEOX_UUID) && !loadedConfig.get(Constants.Config.PULSEOX_UUID).isEmpty()) {
             directory = new File(dataDirectoryPath + Constants.PULSEOX_DATA_DIRECTORY_NAME);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
@@ -200,7 +200,7 @@ public final class Utils {
             }
         }
 
-        if (!loadedConfig.get(Constants.Config.INHALER_UUID).isEmpty()) {
+        if (loadedConfig.containsKey(Constants.Config.INHALER_UUID) && !loadedConfig.get(Constants.Config.INHALER_UUID).isEmpty()) {
             directory = new File(dataDirectoryPath + Constants.INHALER_DATA_DIRECTORY_NAME);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
