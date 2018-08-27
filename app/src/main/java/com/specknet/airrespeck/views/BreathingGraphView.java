@@ -35,7 +35,6 @@ public class BreathingGraphView extends LineChart {
     private Handler mBreathingGraphHandler;
     private LinkedList<BreathingGraphData> mBreathingDataQueue = new LinkedList<>();
 
-    private float lastZ = 0;
     private final int DEFAULT_DELAY = Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS /
             Constants.NUMBER_OF_SAMPLES_PER_BATCH;
 
@@ -112,8 +111,7 @@ public class BreathingGraphView extends LineChart {
     }
 
     private void updateBreathingGraph(BreathingGraphData data) {
-        Entry newEntry = new Entry(data.getTimestamp(), data.getAccelZ() - lastZ);
-        lastZ = data.getAccelZ();
+        Entry newEntry = new Entry(data.getTimestamp(), data.getBreathingSignal());
 
         // Define the axis limits
         float negativeLowerLimit = -2.0f;

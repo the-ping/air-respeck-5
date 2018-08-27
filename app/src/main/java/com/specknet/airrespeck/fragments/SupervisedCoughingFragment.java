@@ -59,7 +59,7 @@ public class SupervisedCoughingFragment extends ConnectionOverlayFragment implem
 //                Toast.makeText(getActivity(), String.format(Locale.UK, "%.8f", prediction),
 //                        Toast.LENGTH_SHORT).show();
                 Log.i("DF", String.format(Locale.UK, "%.8f", prediction));
-                updateCoughingSymbol(prediction >= 0.5);
+                updateCoughingSymbol(prediction >= 0.5 && !isCurrentlyWalking);
                 handler.postDelayed(this, delay);
             }
         }, 0);
@@ -81,7 +81,7 @@ public class SupervisedCoughingFragment extends ConnectionOverlayFragment implem
 
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
-        isCurrentlyWalking = data.getActivityType() == 2;
+        isCurrentlyWalking = data.getActivityType() == 1;
         coughingDetector.updateCoughing(data.getAccelX(), data.getAccelY(), data.getAccelZ());
     }
 
