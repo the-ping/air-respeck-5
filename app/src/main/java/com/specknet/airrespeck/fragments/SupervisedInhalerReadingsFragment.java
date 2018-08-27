@@ -49,6 +49,10 @@ public class SupervisedInhalerReadingsFragment extends ConnectionOverlayFragment
         mReadingItems.add(new ReadingItem(getString(R.string.reading_press_time),
                 getString(R.string.reading_unit_none), "No use detected"));
         mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
+
+        if (((MainActivity) getActivity()).lastInhalerPress != null) {
+            updateInhalerData(((MainActivity) getActivity()).lastInhalerPress);
+        }
     }
 
     @Override
