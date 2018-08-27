@@ -3,6 +3,7 @@ package com.specknet.airrespeck.fragments;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,8 @@ import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.CoughingDetector;
 
+import java.util.Locale;
+
 /**
  * Created by Darius on 12.07.2017.
  */
@@ -24,6 +27,7 @@ public class SupervisedCoughingFragment extends ConnectionOverlayFragment implem
     private ImageView coughingIcon;
     private ImageView nonCoughingIcon;
     private boolean isCurrentlyWalking = false;
+    private final Handler handler = new Handler();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,15 +50,23 @@ public class SupervisedCoughingFragment extends ConnectionOverlayFragment implem
     }
 
     private void startCoughingPredictionTask() {
-        final Handler h = new Handler();
-        final int delay = 200; // milliseconds
 
-        h.postDelayed(new Runnable() {
+        final int delay = 500; // milliseconds
+
+        handler.postDelayed(new Runnable() {
             public void run() {
-                updateCoughingSymbol(!isCurrentlyWalking && coughingDetector.predictIsCouhging());
-                h.postDelayed(this, delay);
+                double prediction = coughingDetector.predictIsCouhging();
+//                Toast.makeText(getActivity(), String.format(Locale.UK, "%.8f", prediction),
+//                        Toast.LENGTH_SHORT).show();
+                Log.i("DF", String.format(Locale.UK, "%.8f", prediction));
+                updateCoughingSymbol(prediction >= 0.5);
+                handler.postDelayed(this, delay);
             }
         }, 0);
+    }
+
+    private void stopCoughingPredictionTask() {
+        handler.removeCallbacksAndMessages(null);
     }
 
     private void updateCoughingSymbol(boolean show) {
@@ -82,6 +94,7 @@ public class SupervisedCoughingFragment extends ConnectionOverlayFragment implem
     public void onDestroy() {
         // Unregister this class as observer. If we haven't observed, nothing happens
         ((MainActivity) getActivity()).unregisterRESpeckDataObserver(this);
+        stopCoughingPredictionTask();
         super.onDestroy();
     }
 }

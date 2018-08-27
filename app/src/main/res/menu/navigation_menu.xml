@@ -60,7 +60,7 @@
                     android:id="@+id/nav_inout_prediction"
                     android:title="@string/menu_inout_prediction"/>
                 <item
-                    android:id="@+id/nav_coughing"
+                    android:id="@+id/nav_coughing_prediction"
                     android:title="@string/menu_coughing"/>
             </menu>
         </item>
