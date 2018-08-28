@@ -87,6 +87,8 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private final String ORIENTATION = "Orientation";
     private final String INOUT = "Indoor / Outdoor";
     private final String TRANSPORT = "Movement / Modes of transport";
+    private final String COUGHING = "Coughing";
+    private final String NONCOUGHING = "Noncoughing";
 
     private final String LOG_TAG = "RESpeckActivityLogging";
 
@@ -109,7 +111,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         // Setup category spinner
         categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
 
-        String[] categorySpinnerElements = new String[]{ORIENTATION, INOUT, TRANSPORT};
+        String[] categorySpinnerElements = new String[]{ORIENTATION, INOUT, TRANSPORT, COUGHING};
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_dropdown_item, categorySpinnerElements);
         categorySpinner.setAdapter(categoryAdapter);
@@ -121,6 +123,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         final String[] indoorOutdoorSpinnerElements = new String[]{OUTDOOR, INDOOR, HALF_OPEN};
         final String[] transportSpinnerElements = new String[]{BUS, BIKE, TRAIN, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
                 WALKING_DOWNSTAIRS, RUNNING};
+        final String[] coughingSpinnerElements = new String[]{COUGHING, NONCOUGHING};
 
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
@@ -136,6 +139,9 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                         break;
                     case 2:
                         activitySpinnerElements = transportSpinnerElements;
+                        break;
+                    case 3:
+                        activitySpinnerElements = coughingSpinnerElements;
                 }
                 ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
