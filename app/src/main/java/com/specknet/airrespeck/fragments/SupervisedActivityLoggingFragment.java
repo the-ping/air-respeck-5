@@ -142,6 +142,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                         break;
                     case 3:
                         activitySpinnerElements = coughingSpinnerElements;
+                        break;
                 }
                 ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
                         android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);

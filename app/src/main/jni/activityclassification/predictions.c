@@ -67,7 +67,7 @@ float calc_median(const float data[], const int size) {
 
 int get_advanced_activity_prediction(float x, float y, float z, bool is_walking, bool is_moving) {
     // Sensor turned by 180°?
-    if (y > 0.6) {
+    if (y > 0.8) {
         return ACTIVITY_WRONG_ORIENTATION;
     }
 
