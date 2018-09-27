@@ -21,8 +21,8 @@
             android:id="@+id/diary_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="40dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="15dp"
             android:background="@drawable/clickable_button_background"
             android:padding="15dp"
             app:srcCompat="@drawable/vec_diary"/>
@@ -167,6 +167,16 @@
                 android:progress="80"/>
 
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/camera_button"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginTop="0dp"
+            android:background="@drawable/clickable_button_background"
+            android:padding="25dp"
+            app:srcCompat="@drawable/vec_camera"/>
 
     </LinearLayout>
 

@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -83,6 +84,16 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             @Override
             public void onClick(View view) {
                 startDiaryApp(getActivity(), "com.specknet.diarydaphne");
+            }
+        });
+
+        ImageButton cameraButton = (ImageButton) view.findViewById(R.id.camera_button);
+        cameraButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getActivity().startActivity(intent);
             }
         });
 
