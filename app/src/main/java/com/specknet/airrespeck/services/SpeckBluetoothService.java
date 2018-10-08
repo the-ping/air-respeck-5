@@ -344,9 +344,12 @@ public class SpeckBluetoothService extends Service {
                                         byte[] ba = rxBleScanResult.getScanRecord();
                                         if (ba != null && ba.length == 62) {
                                             byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
+                                            byte[] uuid4 = Arrays.copyOfRange(ba, 15, 23);
                                             Log.i("SpeckService", "uuid from respeck: " + bytesToHex(uuid));
+                                            Log.i("SpeckService", "uuid from respeck4: " + bytesToHex(uuid4));
                                             Log.i("SpeckService", "uuid from config: " + RESPECK_UUID.substring(5));
-                                            if (bytesToHex(uuid).equalsIgnoreCase(RESPECK_UUID.substring(5))) {
+                                            if (bytesToHex(uuid).equalsIgnoreCase(RESPECK_UUID.substring(5)) ||
+                                                    bytesToHex(uuid4).equalsIgnoreCase(RESPECK_UUID.substring(5))) {
                                                 mIsRESpeckFound = true;
                                                 RESPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
                                                 Log.i("SpeckService",
