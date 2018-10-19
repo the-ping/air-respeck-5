@@ -176,6 +176,7 @@
             android:layout_marginTop="0dp"
             android:background="@drawable/clickable_button_background"
             android:padding="25dp"
+            android:visibility="gone"
             app:srcCompat="@drawable/vec_camera"/>
 
     </LinearLayout>

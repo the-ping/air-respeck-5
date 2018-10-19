@@ -48,6 +48,8 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private boolean isRespeckEnabled;
     private boolean isRespeckPaused;
 
+    private boolean isCameraButtonEnabled;
+
     /**
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -161,6 +163,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             connectedStatusRESpeck.setVisibility(View.GONE);
             progressBarRESpeck.setVisibility(View.GONE);
             respeckDisabledImage.setVisibility(View.VISIBLE);
+        }
+
+        isCameraButtonEnabled = Boolean.parseBoolean(config.get(Constants.Config.SHOW_PHOTO_BUTTON));
+        if (isCameraButtonEnabled){
+            cameraButton.setVisibility(View.VISIBLE);
         }
 
         // Register this fragment as connection state observer
