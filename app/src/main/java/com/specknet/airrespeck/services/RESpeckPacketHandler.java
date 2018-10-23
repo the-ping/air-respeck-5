@@ -344,10 +344,10 @@ public class RESpeckPacketHandler {
         byte[] time_array = {values[4], values[5], values[6], values[7], values[0], values[1], values[2], values[3]};
         // and try ByteBuffer:
         ByteBuffer buffer = ByteBuffer.wrap(time_array);
-        buffer.order(ByteOrder.BIG_ENDIAN);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(0);
         long uncorrectedRESpeckTimestamp = buffer.getLong();
-        long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 / 32768 * 1000;
+        long newRESpeckTimestamp = uncorrectedRESpeckTimestamp / 1000000;
 
         Log.i("RESpeckPacketHandler", "rsts: " + Long.toString(newRESpeckTimestamp / 1000));
 
@@ -415,7 +415,7 @@ public class RESpeckPacketHandler {
                                     Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
                     mPhoneTimestampLastPacketReceived;
 
-            RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(actualPhoneTimestamp,
+            RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z,
                     breathingSignal, breathingRate, activityLevel, activityType, mAverageBreathingRate,
                     getMinuteStepcount());

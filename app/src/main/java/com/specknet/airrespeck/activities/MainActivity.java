@@ -63,6 +63,7 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.lang.ref.WeakReference;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -148,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, String> mLoadedConfig;
     private BluetoothAdapter mBluetoothAdapter;
     private ActionBar mActionbar;
+    public InhalerData lastInhalerPress = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -579,10 +581,9 @@ public class MainActivity extends AppCompatActivity {
                     case Constants.ACTION_INHALER_BROADCAST:
                         InhalerData ind = (InhalerData) intent.getSerializableExtra(Constants.INHALER_DATA);
                         ind.toStringForFile();
-                        //Toast.makeText(context,
-                        //        "Pulseox: " + pd.toStringForFile(),
-                        //        Toast.LENGTH_LONG).show();
                         sendMessageToHandler(UPDATE_INHALER_READINGS, ind);
+                        Log.i("MainActivity", "Inhaler pressed: " + ind.getPhoneTimestamp());
+                        lastInhalerPress = ind;
                         break;
                     case Constants.ACTION_INHALER_CONNECTED:
                         String inhalerUUID = intent.getStringExtra(Constants.Config.INHALER_UUID);
@@ -740,7 +741,7 @@ public class MainActivity extends AppCompatActivity {
     public void displaySubjectMode() {
         mIsSupervisedModeCurrentlyShown = false;
 
-        // Disable navigation drawer
+        // Disable navigation drawerF
         mActionbar.setDisplayHomeAsUpEnabled(false);
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
@@ -1092,7 +1093,7 @@ public class MainActivity extends AppCompatActivity {
                         if (mAirspeckConnected) {
                             long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
                             //service.showSnackbarFromHandler(Long.toString(t));
-                            if (t > 15 * 1000) {
+                            if (t > 45 * 1000) {
                                 service.showSnackbarFromHandler(
                                         "Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
                             }
