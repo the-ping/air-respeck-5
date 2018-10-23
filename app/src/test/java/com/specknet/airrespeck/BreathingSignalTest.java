@@ -74,10 +74,8 @@ public class BreathingSignalTest {
 
     @Test
     public void generateAndSaveMeasuresFromAccelFiles() {
-        String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Projects\\Western General" +
-                "\\data\\respeck\\";
-        String pathOutputFileMeasures = "C:\\Users\\Darius\\Dropbox\\Studium\\ArbeitArvind\\Projects\\Western General" +
-                "\\data\\breathing measures\\";
+        String pathAccelDir = "C:\\Users\\Darius\\Dropbox\\ArbeitArvind\\Projects\\APCaPS\\test";
+        String pathOutputFileMeasures = "C:\\Users\\Darius\\Dropbox\\ArbeitArvind\\Projects\\APCaPS\\testout\\";
 
         File[] listOfFiles = new File(pathAccelDir).listFiles();
         RESpeckPacketHandler handler = new RESpeckPacketHandler();
@@ -87,18 +85,19 @@ public class BreathingSignalTest {
             handler.initBreathing(true, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
                     Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR,
                     Constants.SAMPLING_FREQUENCY);
-            ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 0, "\t");
+            ArrayList<Float[]> accelValues = loadAccel(file.getAbsolutePath(), 3, ",");
             ArrayList<Float[]> allMeasures = new ArrayList<>();
 
             Float[] measures;
             for (Float[] accelVector : accelValues) {
-                measures = new Float[5];
+                measures = new Float[6];
                 handler.updateBreathing(accelVector[0], accelVector[1], accelVector[2]);
                 measures[0] = handler.getBreathingSignal();
                 measures[1] = handler.getBreathingRate();
                 measures[2] = handler.getBreathingAngle();
                 measures[3] = handler.getLowerThreshold();
                 measures[4] = handler.getUpperThreshold();
+                measures[5] = (float) handler.getActivityClassification();
                 allMeasures.add(measures);
             }
             saveMeasures(allMeasures, pathOutputFileMeasures + file.getName());
