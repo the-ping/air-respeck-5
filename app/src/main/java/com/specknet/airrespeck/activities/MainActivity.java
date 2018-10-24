@@ -381,9 +381,6 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_pulseox:
                                 displayFragment(new SupervisedPulseoxReadingsFragment());
                                 break;
-                            case R.id.nav_coughing_prediction:
-                                displayFragment(new SupervisedCoughingFragment());
-                                break;
                             case R.id.nav_inhaler:
                                 displayFragment(new SupervisedInhalerReadingsFragment());
                                 break;
