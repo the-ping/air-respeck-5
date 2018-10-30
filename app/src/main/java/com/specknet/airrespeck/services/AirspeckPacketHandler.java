@@ -64,12 +64,14 @@ public class AirspeckPacketHandler {
     private String subjectID;
     private String androidID;
 
+    private final int fullPacketLength = 104;
+    boolean v4_airspeck = false;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
         // Initialise opc data arrays
-        opcData = ByteBuffer.allocate(62);
+        opcData = ByteBuffer.allocate(86);
         opcData.order(ByteOrder.LITTLE_ENDIAN);
         packetData = ByteBuffer.allocate(128); // A little larger than necessary in case we add fields to the packet
 
@@ -85,6 +87,11 @@ public class AirspeckPacketHandler {
         androidID = Settings.Secure.getString(speckService.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
+        // which airspeck version are we speaking to?
+        if (androidID.startsWith("0104-")) {
+            v4_airspeck = true;
+        }
+
         // Start broadcast receiver for phone location
         mLastPhoneLocation = new LocationData(Float.NaN, Float.NaN, Float.NaN, Float.NaN);
         mLocationReceiver = new BroadcastReceiver() {
@@ -97,7 +104,16 @@ public class AirspeckPacketHandler {
 
     }
 
-    synchronized void processAirspeckPacket(byte[] bytes) {
+    void processAirspeckPacket(byte[] bytes) {
+        if (v4_airspeck) {
+            // RESpeck v2
+            processAirspeckV4Packet(bytes);
+        } else {
+            processAirspeckV2Packet(bytes);
+        }
+    }
+
+    private void processAirspeckV2Packet(byte[] bytes) {
         Log.i("AirSpeckPacketHandler", "Processing Airspeck sub-packet. Full packet position=" + packetData.position());
         int packetLength = bytes.length;
         StringBuilder sb = new StringBuilder();
@@ -111,7 +127,7 @@ public class AirspeckPacketHandler {
             if (packetData.position() == 102) {
                 Log.i("AirspeckPacketHandler",
                         "Full length packet received from old firmware without CRC byte");
-                processDataFromPacket(packetData);
+                processDataFromPacket(packetData, 62);
                 packetData.clear();
             } else if (packetData.position() == 106) {
                 // Set to beginning of CRC value
@@ -127,7 +143,7 @@ public class AirspeckPacketHandler {
                 if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
                     Log.i("AirSpeckPacketHandler",
                             "Full length packet received from new firmware with CRC byte: " + packetData.position());
-                    processDataFromPacket(packetData);
+                    processDataFromPacket(packetData, 62);
                     packetData.clear();
                 } else {
                     /*
@@ -198,7 +214,7 @@ public class AirspeckPacketHandler {
         return crc;
     }
 
-    private void processDataFromPacket(ByteBuffer buffer) {
+    private void processDataFromPacket(ByteBuffer buffer, final int len) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(0);
         byte header = buffer.get();
@@ -219,8 +235,8 @@ public class AirspeckPacketHandler {
         Log.i("AirspeckPacketHandler", "Temperature: " + temperature + " Humidity: " + humidity);
 
         // Load OPC data
-        opcData.put(buffer.array(), buffer.position(), 62);
-        buffer.position(buffer.position() + 62);
+        opcData.put(buffer.array(), buffer.position(), len);
+        buffer.position(buffer.position() + len);
         processOPCPacket(opcData);
         opcData.clear();
 
@@ -295,7 +311,38 @@ public class AirspeckPacketHandler {
         mPm1 = buffer.getFloat();
         mPm2_5 = buffer.getFloat();
         mPm10 = buffer.getFloat();
+
+        Log.i("AirspeckPacketHandler", "PMs: " + mPm1 + ", " + mPm2_5 + ", " + mPm10);
     }
+
+    private void processAirspeckV4Packet(byte[] bytes) {
+        Log.i("AirSpeckPacketHandler", "Processing Airspeck sub-packet. Full packet position=" + packetData.position());
+        int packetLength = bytes.length;
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        Log.i("AirspeckPacketHandler", "Payload: " + sb.toString());
+
+        if (packetData.position() > 0) {
+            packetData.put(bytes);
+            if (packetData.position() == fullPacketLength) {
+                Log.i("AirspeckPacketHandler",
+                        "Full length packet received");
+                processDataFromPacket(packetData, 86-16);
+                packetData.clear();
+
+            } else if (packetData.position() > fullPacketLength) {
+                Log.i("AirseckPacketHandler", "Received packet with unexpected length: " + packetData.position());
+            }
+        } else if (bytes[0] == 0x03) {
+            packetData.put(bytes);
+            Log.i("AirSpeckPacketHandler", "Received packet ID 3");
+        } else {
+            Log.e("AirspeckPacketHandler", "Unknown packet received");
+        }
+    }
+
 
     private void writeToAirspeckFile(AirspeckData airspeckData) {
         // Check whether we are in a new day

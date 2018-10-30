@@ -1090,7 +1090,7 @@ public class MainActivity extends AppCompatActivity {
                         if (mAirspeckConnected) {
                             long t = System.currentTimeMillis() - mLastAirspeckNotificationTime;
                             //service.showSnackbarFromHandler(Long.toString(t));
-                            if (t > 45 * 1000) {
+                            if (t > 60 * 1000) {
                                 service.showSnackbarFromHandler(
                                         "Waiting for Air Quality readings...\nAirspeck may be in standby mode.");
                             }
