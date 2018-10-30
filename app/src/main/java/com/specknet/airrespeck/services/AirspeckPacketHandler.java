@@ -88,7 +88,7 @@ public class AirspeckPacketHandler {
                 Settings.Secure.ANDROID_ID);
 
         // which airspeck version are we speaking to?
-        if (androidID.startsWith("0104-")) {
+        if (airspeckUUID.startsWith("0104-")) {
             v4_airspeck = true;
         }
 
