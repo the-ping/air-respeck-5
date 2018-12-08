@@ -56,6 +56,7 @@ public class PhoneGPSService extends Service implements
 
     private Date mDateofLastWrite = new Date(0);
 
+    private boolean mIsEncryptData;
     private boolean mIsStoreDataLocally;
     private String patientID;
     private String androidID;
@@ -79,6 +80,8 @@ public class PhoneGPSService extends Service implements
 
                 // Store whether we want to store data locally
                 mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
+
+                mIsEncryptData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
 
                 patientID = loadedConfig.get(Constants.Config.SUBJECT_ID);
                 androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
@@ -184,8 +187,10 @@ public class PhoneGPSService extends Service implements
                     // Open new connection to new file
                     mGPSWriter = new OutputStreamWriter(
                             new FileOutputStream(filename, true));
+                    if (mIsEncryptData) {
+                        mGPSWriter.append("Encrypted").append("\n");
+                    }
                     mGPSWriter.append(Constants.GPS_PHONE_HEADER).append("\n");
-
                     mGPSWriter.flush();
                 } else {
                     // Open new connection to new file
@@ -202,7 +207,14 @@ public class PhoneGPSService extends Service implements
 
         // Write new line to file
         try {
-            mGPSWriter.append(line).append("\n");
+            if (mIsEncryptData) {
+                // Write new line to file. If concatenation is split up with append, the second part might not be written,
+                // meaning that there will be a line without a line break in the file.
+                mGPSWriter.append(Utils.encrypt(line, this) + "\n");
+
+            } else {
+                mGPSWriter.append(line + "\n");
+            }
             mGPSWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();

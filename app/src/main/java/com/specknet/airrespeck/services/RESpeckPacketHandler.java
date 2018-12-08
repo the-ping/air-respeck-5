@@ -70,7 +70,7 @@ public class RESpeckPacketHandler {
     private String patientID;
     private String androidID;
 
-    private Timer mActivityClassificationTimer;
+    private boolean mIsEncryptData;
 
     public RESpeckPacketHandler() {
         // This is only meant for running tests on the c code!
@@ -91,9 +91,10 @@ public class RESpeckPacketHandler {
 
         RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
 
-        // Do we store data locally?
         mIsStoreDataLocally = Boolean.parseBoolean(
                 loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
+
+        mIsEncryptData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
 
         patientID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Secure.getString(speckService.getContentResolver(),
@@ -619,7 +620,9 @@ public class RESpeckPacketHandler {
                     // Open new connection to file (which creates file)
                     mRespeckWriter = new OutputStreamWriter(
                             new FileOutputStream(filenameRESpeck, true));
-
+                    if (mIsEncryptData) {
+                        mRespeckWriter.append("Encrypted").append("\n");
+                    }
                     mRespeckWriter.append(Constants.RESPECK_DATA_HEADER + "\n");
                 } else {
                     Log.i("RESpeckPacketHandler", "Open existing RESpeck file");
@@ -635,7 +638,11 @@ public class RESpeckPacketHandler {
         try {
             // Write new line to file. If concatenation is split up with append, the second part might not be written,
             // meaning that there will be a line without a line break in the file.
-            mRespeckWriter.append(data.toStringForFile() + "\n");
+            if (mIsEncryptData) {
+                mRespeckWriter.append(Utils.encrypt(data.toStringForFile(), mSpeckService) + "\n");
+            } else {
+                mRespeckWriter.append(data.toStringForFile() + "\n");
+            }
             mRespeckWriter.flush();
 
         } catch (IOException e) {
@@ -648,10 +655,6 @@ public class RESpeckPacketHandler {
         if (mRespeckWriter != null) {
             mRespeckWriter.flush();
             mRespeckWriter.close();
-        }
-
-        if (mActivityClassificationTimer != null) {
-            mActivityClassificationTimer.cancel();
         }
     }
 

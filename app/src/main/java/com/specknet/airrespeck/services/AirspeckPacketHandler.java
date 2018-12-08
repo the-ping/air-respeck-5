@@ -396,6 +396,8 @@ public class AirspeckPacketHandler {
         // Write new line to file
         try {
             // Write Airspeck data together with subjectID. If encryption is enabled, encrypt line
+            // If concatenation is split up with append, the second part might not be written,
+            // meaning that there will be a line without a line break in the file.
             if (mIsEncryptData) {
                 mAirspeckWriter.append(Utils.encrypt(airspeckData.toStringForFile(), mSpeckService) + "\n");
             } else {
