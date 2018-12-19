@@ -114,7 +114,6 @@ public class SpeckBluetoothService extends Service {
 
     }
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, final int startId) {
         new Thread() {
@@ -287,114 +286,106 @@ public class SpeckBluetoothService extends Service {
 
     private void scanForDevices() {
         scanSubscription = rxBleClient.scanBleDevices()
-                .subscribe(
-                        new Action1<RxBleScanResult>() {
-                            @Override
-                            public void call(RxBleScanResult rxBleScanResult) {
-                                Log.i("SpeckService",
-                                        "FOUND :" + rxBleScanResult.getBleDevice().getName() + ", " +
-                                                rxBleScanResult.getBleDevice().getMacAddress());
+                .subscribe(rxBleScanResult -> {
+                    Log.i("SpeckService",
+                            "FOUND :" + rxBleScanResult.getBleDevice().getName() + ", " +
+                                    rxBleScanResult.getBleDevice().getMacAddress());
 
-                                if ((mIsAirspeckFound || !mIsAirspeckEnabled) &&
-                                        (mIsRESpeckFound || !mIsRESpeckEnabled) &&
-                                        (mIsPulseoxFound || !mIsPulseoxEnabled) &&
-                                        (mIsInhalerFound || !mIsInhalerEnabled)) {
-                                    scanSubscription.unsubscribe();
-                                }
+                    if ((mIsAirspeckFound || !mIsAirspeckEnabled) &&
+                            (mIsRESpeckFound || !mIsRESpeckEnabled) &&
+                            (mIsPulseoxFound || !mIsPulseoxEnabled) &&
+                            (mIsInhalerFound || !mIsInhalerEnabled)) {
+                        scanSubscription.unsubscribe();
+                    }
 
-                                if (mIsAirspeckEnabled && !mIsAirspeckFound) {
-                                    // Process scan result here.
-                                    if (AIRSPECK_UUID.contains(":")) {
-                                        // Old BLE address
-                                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
-                                                AIRSPECK_UUID)) {
-                                            AIRSPECK_BLE_ADDRESS = AIRSPECK_UUID;
-                                            mIsAirspeckFound = true;
-                                            SpeckBluetoothService.this.connectToAirspeck();
-                                        }
-                                    } else {
-                                        // New UUID
-                                        byte[] ba = rxBleScanResult.getScanRecord();
-                                        if (ba != null && ba.length == 62) {
-                                            byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
-                                            Log.i("SpeckService", "uuid from airspeck: " + bytesToHex(uuid));
-                                            Log.i("SpeckService", "uuid from config: " + AIRSPECK_UUID.substring(5));
-                                            if (bytesToHex(uuid).equalsIgnoreCase(AIRSPECK_UUID.substring(5))) {
-                                                mIsAirspeckFound = true;
-                                                AIRSPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
-                                                Log.i("SpeckService",
-                                                        "Connecting after scanning to: " + AIRSPECK_BLE_ADDRESS);
-                                                SpeckBluetoothService.this.connectToAirspeck();
-                                            }
-                                        }
-                                    }
-                                }
-                                if (mIsRESpeckEnabled && !mIsRESpeckFound) {
-                                    if (RESPECK_UUID.contains(":")) {
-                                        // Old BLE address
-                                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
-                                                RESPECK_UUID)) {
-                                            RESPECK_BLE_ADDRESS = RESPECK_UUID;
-                                            mIsRESpeckFound = true;
-                                            Log.i("SpeckService", "Connecting after scanning");
-                                            SpeckBluetoothService.this.connectToRESpeck();
-                                        }
-                                    } else {
-                                        // New UUID
-                                        byte[] ba = rxBleScanResult.getScanRecord();
-                                        if (ba != null && ba.length == 62) {
-                                            byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
-                                            byte[] uuid4 = Arrays.copyOfRange(ba, 15, 23);
-                                            Log.i("SpeckService", "uuid from respeck: " + bytesToHex(uuid));
-                                            Log.i("SpeckService", "uuid from respeck4: " + bytesToHex(uuid4));
-                                            Log.i("SpeckService", "uuid from config: " + RESPECK_UUID.substring(5));
-                                            if (bytesToHex(uuid).equalsIgnoreCase(RESPECK_UUID.substring(5)) ||
-                                                    bytesToHex(uuid4).equalsIgnoreCase(RESPECK_UUID.substring(5))) {
-                                                mIsRESpeckFound = true;
-                                                RESPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
-                                                Log.i("SpeckService",
-                                                        "Connecting after scanning to: " + RESPECK_BLE_ADDRESS);
-                                                SpeckBluetoothService.this.connectToRESpeck();
-                                            }
-                                        }
-                                    }
-                                }
-                                if (mIsPulseoxEnabled && !mIsPulseoxFound) {
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(PULSEOX_UUID)) {
-                                        PULSEOX_BLE_ADDRESS = PULSEOX_UUID; // use BLE address for UUID
-                                        mIsPulseoxFound = true;
-                                        Log.i("SpeckService", "Pulseox: Connecting after scanning");
-                                        SpeckBluetoothService.this.connectToPulseox();
-                                    }
-
-                                }
-                                if (mIsInhalerEnabled && !mIsInhalerFound) {
-                                    if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(INHALER_UUID)) {
-                                        INHALER_BLE_ADDRESS = INHALER_UUID; // use BLE address for UUID
-                                        mIsInhalerFound = true;
-                                        Log.i("SpeckService", "Inhaler: Connecting after scanning");
-                                        SpeckBluetoothService.this.connectToInhaler();
-                                    }
-
+                    if (mIsAirspeckEnabled && !mIsAirspeckFound) {
+                        // Process scan result here.
+                        if (AIRSPECK_UUID.contains(":")) {
+                            // Old BLE address
+                            if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
+                                    AIRSPECK_UUID)) {
+                                AIRSPECK_BLE_ADDRESS = AIRSPECK_UUID;
+                                mIsAirspeckFound = true;
+                                SpeckBluetoothService.this.connectToAirspeck();
+                            }
+                        } else {
+                            // New UUID
+                            byte[] ba = rxBleScanResult.getScanRecord();
+                            if (ba != null && ba.length == 62) {
+                                byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
+                                Log.i("SpeckService", "uuid from airspeck: " + bytesToHex(uuid));
+                                Log.i("SpeckService", "uuid from config: " + AIRSPECK_UUID.substring(5));
+                                if (bytesToHex(uuid).equalsIgnoreCase(AIRSPECK_UUID.substring(5))) {
+                                    mIsAirspeckFound = true;
+                                    AIRSPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
+                                    Log.i("SpeckService",
+                                            "Connecting after scanning to: " + AIRSPECK_BLE_ADDRESS);
+                                    SpeckBluetoothService.this.connectToAirspeck();
                                 }
                             }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                // Handle an error here.
-                                Log.e("SpeckService", "Error while scanning: " + throwable.toString());
-                                Log.e("SpeckService", "Scanning again in 10 seconds");
-
-                                // Try again after timeout
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        scanForDevices();
-                                    }
-                                }, 10000);
+                        }
+                    }
+                    if (mIsRESpeckEnabled && !mIsRESpeckFound) {
+                        if (RESPECK_UUID.contains(":")) {
+                            // Old BLE address
+                            if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(
+                                    RESPECK_UUID)) {
+                                RESPECK_BLE_ADDRESS = RESPECK_UUID;
+                                mIsRESpeckFound = true;
+                                Log.i("SpeckService", "Connecting after scanning");
+                                SpeckBluetoothService.this.connectToRESpeck();
                             }
-                        });
+                        } else {
+                            // New UUID
+                            byte[] ba = rxBleScanResult.getScanRecord();
+                            if (ba != null && ba.length == 62) {
+                                byte[] uuid = Arrays.copyOfRange(ba, 7, 15);
+                                byte[] uuid4 = Arrays.copyOfRange(ba, 15, 23);
+                                Log.i("SpeckService", "uuid from respeck: " + bytesToHex(uuid));
+                                Log.i("SpeckService", "uuid from respeck4: " + bytesToHex(uuid4));
+                                Log.i("SpeckService", "uuid from config: " + RESPECK_UUID.substring(5));
+                                if (bytesToHex(uuid).equalsIgnoreCase(RESPECK_UUID.substring(5)) ||
+                                        bytesToHex(uuid4).equalsIgnoreCase(RESPECK_UUID.substring(5))) {
+                                    mIsRESpeckFound = true;
+                                    RESPECK_BLE_ADDRESS = rxBleScanResult.getBleDevice().getMacAddress();
+                                    Log.i("SpeckService",
+                                            "Connecting after scanning to: " + RESPECK_BLE_ADDRESS);
+                                    SpeckBluetoothService.this.connectToRESpeck();
+                                }
+                            }
+                        }
+                    }
+                    if (mIsPulseoxEnabled && !mIsPulseoxFound) {
+                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(PULSEOX_UUID)) {
+                            PULSEOX_BLE_ADDRESS = PULSEOX_UUID; // use BLE address for UUID
+                            mIsPulseoxFound = true;
+                            Log.i("SpeckService", "Pulseox: Connecting after scanning");
+                            SpeckBluetoothService.this.connectToPulseox();
+                        }
+
+                    }
+                    if (mIsInhalerEnabled && !mIsInhalerFound) {
+                        if (rxBleScanResult.getBleDevice().getMacAddress().equalsIgnoreCase(INHALER_UUID)) {
+                            INHALER_BLE_ADDRESS = INHALER_UUID; // use BLE address for UUID
+                            mIsInhalerFound = true;
+                            Log.i("SpeckService", "Inhaler: Connecting after scanning");
+                            SpeckBluetoothService.this.connectToInhaler();
+                        }
+
+                    }
+                }, throwable -> {
+                    // Handle an error here.
+                    Log.e("SpeckService", "Error while scanning: " + throwable.toString());
+                    Log.e("SpeckService", "Scanning again in 10 seconds");
+
+                    // Try again after timeout
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            scanForDevices();
+                        }
+                    }, 10000);
+                });
     }
 
 
@@ -409,102 +400,63 @@ public class SpeckBluetoothService extends Service {
         FileLogger.logToFile(this, "Connecting to Airspeck");
 
         airspeckSubscription = mAirspeckDevice.establishConnection(true)
-                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(RxBleConnection rxBleConnection) {
-                        return rxBleConnection.setupNotification(UUID.fromString(
-                                Constants.AIRSPECK_LIVE_CHARACTERISTIC));
-                    }
+                .flatMap((Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(UUID.fromString(
+                        Constants.AIRSPECK_LIVE_CHARACTERISTIC)))
+                .doOnNext(notificationObservable -> {
+                    // Notification has been set up
+                    Log.i("SpeckService", "Subscribed to Airspeck");
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Airspeck");
+                    Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
+                    airspeckFoundIntent.putExtra(Constants.Config.AIRSPECKP_UUID, AIRSPECK_UUID);
+                    sendBroadcast(airspeckFoundIntent);
                 })
-                .doOnNext(new Action1<Object>() {
-                    @Override
-                    public void call(Object notificationObservable) {
-                        // Notification has been set up
-                        Log.i("SpeckService", "Subscribed to Airspeck");
-                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Airspeck");
-                        Intent airspeckFoundIntent = new Intent(Constants.ACTION_AIRSPECK_CONNECTED);
-                        airspeckFoundIntent.putExtra(Constants.Config.AIRSPECKP_UUID, AIRSPECK_UUID);
-                        sendBroadcast(airspeckFoundIntent);
-                    }
-                })
-                .flatMap(
-                        new Func1<Object, Observable<?>>() {
-                            @Override
-                            public Observable<?> call(Object notificationObservable) {
-                                return (Observable) notificationObservable;
-                            }
-                        }) // <-- Notification has been set up, now observe value changes.
-                .subscribe(
-                        new Action1<Object>() {
-                            @Override
-                            public void call(Object bytes) {
-                                airspeckHandler.processAirspeckPacket((byte[]) bytes);
-                                //Log.i("SpeckService", "turnOff: " + turn_off);
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                // An error with autoConnect means that we are disconnected
-                                Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this,
-                                        "Airspeck disconnected: " + throwable.toString());
+                .flatMap((Func1<Object, Observable<?>>) notificationObservable -> (Observable) notificationObservable) // <-- Notification has been set up, now observe value changes.
+                .subscribe(bytes -> {
+                    airspeckHandler.processAirspeckPacket((byte[]) bytes);
+                    //Log.i("SpeckService", "turnOff: " + turn_off);
+                }, throwable -> {
+                    // An error with autoConnect means that we are disconnected
+                    Log.e("SpeckService", "Airspeck disconnected: " + throwable.toString());
+                    FileLogger.logToFile(SpeckBluetoothService.this,
+                            "Airspeck disconnected: " + throwable.toString());
 
-                                Intent airspeckDisconnectedIntent = new Intent(
-                                        Constants.ACTION_AIRSPECK_DISCONNECTED);
-                                sendBroadcast(airspeckDisconnectedIntent);
+                    Intent airspeckDisconnectedIntent = new Intent(
+                            Constants.ACTION_AIRSPECK_DISCONNECTED);
+                    sendBroadcast(airspeckDisconnectedIntent);
 
-                                airspeckSubscription.unsubscribe();
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        establishAirspeckConnection();
-                                    }
-                                }, 10000);
-                            }
+                    airspeckSubscription.unsubscribe();
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            establishAirspeckConnection();
                         }
-                );
+                    }, 10000);
+                });
     }
 
     public void turnOffAirspeck() {
         Log.e("SpeckService", "Turning off");
         FileLogger.logToFile(this, "Turning off Airspeck after power off command");
         mAirspeckDevice.establishConnection(true)
-                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(RxBleConnection rxBleConnection) {
-                        return rxBleConnection.writeCharacteristic(UUID.fromString(
-                                Constants.AIRSPECK_POWER_OFF_CHARACTERISTIC),
-                                Constants.OFF_COMMAND);
+                .flatMap((Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.writeCharacteristic(UUID.fromString(
+                        Constants.AIRSPECK_POWER_OFF_CHARACTERISTIC),
+                        Constants.OFF_COMMAND))
+                .subscribe(bytes -> Log.e("SpeckService", "Turning off: " + bytes.toString()), throwable -> {
 
-                    }
-                })
-                .subscribe(
-                        new Action1<Object>() {
-                            @Override
-                            public void call(Object bytes) {
-                                Log.e("SpeckService", "Turning off: " + bytes.toString());
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
+                    // An error with autoConnect means that we are disconnected
+                    Log.e("SpeckService", "Airspeck turned off: " + throwable.toString());
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck turned off");
+                    Intent airspeckDisconnectedIntent = new Intent(
+                            Constants.ACTION_AIRSPECK_DISCONNECTED);
+                    sendBroadcast(airspeckDisconnectedIntent);
 
-                                // An error with autoConnect means that we are disconnected
-                                Log.e("SpeckService", "Airspeck turned off: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "Airspeck turned off");
-                                Intent airspeckDisconnectedIntent = new Intent(
-                                        Constants.ACTION_AIRSPECK_DISCONNECTED);
-                                sendBroadcast(airspeckDisconnectedIntent);
-
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        establishAirspeckConnection();
-                                    }
-                                }, 2000);
-                            }
-                        });
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            establishAirspeckConnection();
+                        }
+                    }, 2000);
+                });
     }
 
     private void connectToPulseox() {
@@ -524,60 +476,37 @@ public class SpeckBluetoothService extends Service {
         FileLogger.logToFile(this, "Connecting to Pulseox");
 
         pulseoxSubscription = mPulseoxDevice.establishConnection(true)
-                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(RxBleConnection rxBleConnection) {
-                        return rxBleConnection.setupNotification(UUID.fromString(
-                                Constants.PULSEOX_CHARACTERISTIC));
-                    }
+                .flatMap((Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(UUID.fromString(
+                        Constants.PULSEOX_CHARACTERISTIC)))
+                .doOnNext(notificationObservable -> {
+                    // Notification has been set up
+                    Log.i("SpeckService", "Subscribed to Pulseox");
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Pulseox");
+                    Intent pulseoxFoundIntent = new Intent(Constants.ACTION_PULSEOX_CONNECTED);
+                    pulseoxFoundIntent.putExtra(Constants.Config.PULSEOX_UUID, PULSEOX_BLE_ADDRESS);
+                    sendBroadcast(pulseoxFoundIntent);
                 })
-                .doOnNext(new Action1<Object>() {
-                    @Override
-                    public void call(Object notificationObservable) {
-                        // Notification has been set up
-                        Log.i("SpeckService", "Subscribed to Pulseox");
-                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Pulseox");
-                        Intent pulseoxFoundIntent = new Intent(Constants.ACTION_PULSEOX_CONNECTED);
-                        pulseoxFoundIntent.putExtra(Constants.Config.PULSEOX_UUID, PULSEOX_BLE_ADDRESS);
-                        sendBroadcast(pulseoxFoundIntent);
-                    }
-                })
-                .flatMap(
-                        new Func1<Object, Observable<?>>() {
-                            @Override
-                            public Observable<?> call(Object notificationObservable) {
-                                return (Observable) notificationObservable;
-                            }
-                        }) // <-- Notification has been set up, now observe value changes.
-                .subscribe(
-                        new Action1<Object>() {
-                            @Override
-                            public void call(Object bytes) {
-                                pulseoxHandler.processPulseoxPacket((byte[]) bytes);
-                                Log.i("SpeckService", "Pulseoxdata: " + ((byte[]) bytes).length);
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                // An error with autoConnect means that we are disconnected
-                                Log.e("SpeckService", "Pulseox disconnected: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "Pulseox disconnected");
+                .flatMap((Func1<Object, Observable<?>>) notificationObservable -> (Observable) notificationObservable) // <-- Notification has been set up, now observe value changes.
+                .subscribe(bytes -> {
+                    pulseoxHandler.processPulseoxPacket((byte[]) bytes);
+                    Log.i("SpeckService", "Pulseoxdata: " + ((byte[]) bytes).length);
+                }, throwable -> {
+                    // An error with autoConnect means that we are disconnected
+                    Log.e("SpeckService", "Pulseox disconnected: " + throwable.toString());
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Pulseox disconnected");
 
-                                Intent pulseoxDisconnectedIntent = new Intent(
-                                        Constants.ACTION_PULSEOX_DISCONNECTED);
-                                sendBroadcast(pulseoxDisconnectedIntent);
+                    Intent pulseoxDisconnectedIntent = new Intent(
+                            Constants.ACTION_PULSEOX_DISCONNECTED);
+                    sendBroadcast(pulseoxDisconnectedIntent);
 
-                                pulseoxSubscription.unsubscribe();
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        establishPulseoxConnection();
-                                    }
-                                }, 2000);
-                            }
+                    pulseoxSubscription.unsubscribe();
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            establishPulseoxConnection();
                         }
-                );
+                    }, 2000);
+                });
     }
 
     private void establishInhalerConnection() {
@@ -585,115 +514,83 @@ public class SpeckBluetoothService extends Service {
         FileLogger.logToFile(this, "Connecting to Inhaler");
 
         inhalerSubscription = mInhalerDevice.establishConnection(true)
-                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(RxBleConnection rxBleConnection) {
-                        return rxBleConnection.setupNotification(UUID.fromString(
-                                Constants.INHALER_CHARACTERISTIC));
-                    }
+                .flatMap((Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(UUID.fromString(
+                        Constants.INHALER_CHARACTERISTIC)))
+                .doOnNext(notificationObservable -> {
+                    // Notification has been set up
+                    Log.i("SpeckService", "Subscribed to Inhaler");
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Inhaler");
+                    Intent inhalerFoundIntent = new Intent(Constants.ACTION_INHALER_CONNECTED);
+                    inhalerFoundIntent.putExtra(Constants.Config.INHALER_UUID, INHALER_BLE_ADDRESS);
+                    sendBroadcast(inhalerFoundIntent);
                 })
-                .doOnNext(new Action1<Object>() {
-                    @Override
-                    public void call(Object notificationObservable) {
-                        // Notification has been set up
-                        Log.i("SpeckService", "Subscribed to Inhaler");
-                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Inhaler");
-                        Intent inhalerFoundIntent = new Intent(Constants.ACTION_INHALER_CONNECTED);
-                        inhalerFoundIntent.putExtra(Constants.Config.INHALER_UUID, INHALER_BLE_ADDRESS);
-                        sendBroadcast(inhalerFoundIntent);
-                    }
-                })
-                .flatMap(
-                        new Func1<Object, Observable<?>>() {
-                            @Override
-                            public Observable<?> call(Object notificationObservable) {
-                                return (Observable) notificationObservable;
-                            }
-                        }) // <-- Notification has been set up, now observe value changes.
-                .subscribe(
-                        new Action1<Object>() {
-                            @Override
-                            public void call(Object bytes) {
-                                inhalerHandler.processInhalerPacket((byte[]) bytes);
-                                Log.i("SpeckService", "Inhalerdata: " + ((byte[]) bytes).length);
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                // An error with autoConnect means that we are disconnected
-                                Log.e("SpeckService", "Inhaler disconnected: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this, "Inhaler disconnected");
+                .flatMap((Func1<Object, Observable<?>>) notificationObservable -> (Observable) notificationObservable) // <-- Notification has been set up, now observe value changes.
+                .subscribe(bytes -> {
+                    inhalerHandler.processInhalerPacket((byte[]) bytes);
+                    Log.i("SpeckService", "Inhalerdata: " + ((byte[]) bytes).length);
+                }, throwable -> {
+                    // An error with autoConnect means that we are disconnected
+                    Log.e("SpeckService", "Inhaler disconnected: " + throwable.toString());
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Inhaler disconnected");
 
-                                Intent inhalerDisconnectedIntent = new Intent(
-                                        Constants.ACTION_INHALER_DISCONNECTED);
-                                sendBroadcast(inhalerDisconnectedIntent);
+                    Intent inhalerDisconnectedIntent = new Intent(
+                            Constants.ACTION_INHALER_DISCONNECTED);
+                    sendBroadcast(inhalerDisconnectedIntent);
 
-                                inhalerSubscription.unsubscribe();
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        establishInhalerConnection();
-                                    }
-                                }, 2000);
-                            }
+                    inhalerSubscription.unsubscribe();
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            establishInhalerConnection();
                         }
-                );
+                    }, 2000);
+                });
     }
 
     private void connectToRESpeck() {
         mRESpeckDevice = rxBleClient.getBleDevice(RESPECK_BLE_ADDRESS);
         mRESpeckName = mRESpeckDevice.getName();
         mRESpeckDevice.observeConnectionStateChanges()
-                .subscribe(
-                        new Action1<RxBleConnection.RxBleConnectionState>() {
-                            @Override
-                            public void call(RxBleConnection.RxBleConnectionState connectionState) {
-                                if (connectionState == RxBleConnection.RxBleConnectionState.DISCONNECTED && mIsServiceRunning) {
-                                    FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck disconnected");
-                                    Intent respeckDisconnectedIntent = new Intent(
-                                            Constants.ACTION_RESPECK_DISCONNECTED);
-                                    sendBroadcast(respeckDisconnectedIntent);
+                .subscribe(connectionState -> {
+                    if (connectionState == RxBleConnection.RxBleConnectionState.DISCONNECTED && mIsServiceRunning) {
+                        FileLogger.logToFile(SpeckBluetoothService.this, "RESpeck disconnected");
+                        Intent respeckDisconnectedIntent = new Intent(
+                                Constants.ACTION_RESPECK_DISCONNECTED);
+                        sendBroadcast(respeckDisconnectedIntent);
 
-                                    if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTED) {
-                                        // If we were just disconnected, try to immediately connect again.
-                                        Log.i("SpeckService", "RESpeck connection lost, trying to reconnect");
-                                        new Timer().schedule(new TimerTask() {
-                                            @Override
-                                            public void run() {
-                                                establishRESpeckConnection();
-                                            }
-                                        }, 10000);
-                                    } else if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTING) {
-                                        // This means we tried to reconnect, but there was a timeout. In this case we
-                                        // wait for x seconds before reconnecting
-                                        Log.i("SpeckService",
-                                                String.format(
-                                                        "RESpeck connection timeout, waiting %d seconds before reconnect",
-                                                        Constants.RECONNECTION_TIMEOUT_MILLIS / 1000));
-                                        new Timer().schedule(new TimerTask() {
-                                            @Override
-                                            public void run() {
-                                                Log.i("SpeckService", "RESpeck reconnecting...");
-                                                establishRESpeckConnection();
-                                            }
-                                        }, Constants.RECONNECTION_TIMEOUT_MILLIS);
-                                    }
+                        if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTED) {
+                            // If we were just disconnected, try to immediately connect again.
+                            Log.i("SpeckService", "RESpeck connection lost, trying to reconnect");
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    establishRESpeckConnection();
                                 }
-                                mLastRESpeckConnectionState = connectionState;
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                Log.e("SpeckService",
-                                        "Error occured while listening to RESpeck connection state changes: " +
-                                                throwable.getMessage());
-                                FileLogger.logToFile(SpeckBluetoothService.this,
-                                        "RESpeck connecting state: " + throwable.toString());
-                            }
+                            }, 10000);
+                        } else if (mLastRESpeckConnectionState == RxBleConnection.RxBleConnectionState.CONNECTING) {
+                            // This means we tried to reconnect, but there was a timeout. In this case we
+                            // wait for x seconds before reconnecting
+                            Log.i("SpeckService",
+                                    String.format(
+                                            "RESpeck connection timeout, waiting %d seconds before reconnect",
+                                            Constants.RECONNECTION_TIMEOUT_MILLIS / 1000));
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    Log.i("SpeckService", "RESpeck reconnecting...");
+                                    establishRESpeckConnection();
+                                }
+                            }, Constants.RECONNECTION_TIMEOUT_MILLIS);
                         }
-                );
+                    }
+                    mLastRESpeckConnectionState = connectionState;
+                }, throwable -> {
+                    Log.e("SpeckService",
+                            "Error occured while listening to RESpeck connection state changes: " +
+                                    throwable.getMessage());
+                    FileLogger.logToFile(SpeckBluetoothService.this,
+                            "RESpeck connecting state: " + throwable.toString());
+                });
         establishRESpeckConnection();
     }
 
@@ -710,52 +607,29 @@ public class SpeckBluetoothService extends Service {
         }
 
         respeckLiveSubscription = mRESpeckDevice.establishConnection(false)
-                .flatMap(new Func1<RxBleConnection, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(RxBleConnection rxBleConnection) {
-                        return rxBleConnection.setupNotification(
-                                UUID.fromString(respeck_characteristic));
-                    }
+                .flatMap((Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(
+                        UUID.fromString(respeck_characteristic)))
+                .doOnNext(notificationObservable -> {
+                    // Notification has been set up
+                    Log.i("SpeckService", "Subscribed to RESpeck");
+                    FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to RESpeck");
+                    Intent respeckFoundIntent = new Intent(Constants.ACTION_RESPECK_CONNECTED);
+                    respeckFoundIntent.putExtra(Constants.Config.RESPECK_UUID, RESPECK_UUID);
+                    sendBroadcast(respeckFoundIntent);
                 })
-                .doOnNext(new Action1<Object>() {
-                    @Override
-                    public void call(Object notificationObservable) {
-                        // Notification has been set up
-                        Log.i("SpeckService", "Subscribed to RESpeck");
-                        FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to RESpeck");
-                        Intent respeckFoundIntent = new Intent(Constants.ACTION_RESPECK_CONNECTED);
-                        respeckFoundIntent.putExtra(Constants.Config.RESPECK_UUID, RESPECK_UUID);
-                        sendBroadcast(respeckFoundIntent);
+                .flatMap((Func1<Object, Observable<?>>) notificationObservable -> (Observable) notificationObservable)
+                .subscribe(characteristicValue -> {
+                    if (!mIsRESpeckPaused) {
+                        // Given characteristic has been changes, process the value
+                        respeckHandler.processRESpeckLivePacket((byte[]) characteristicValue);
+                    } else {
+                        Log.i("SpeckService", "RESpeck packet ignored as paused mode on");
                     }
-                })
-                .flatMap(
-                        new Func1<Object, Observable<?>>() {
-                            @Override
-                            public Observable<?> call(Object notificationObservable) {
-                                return (Observable) notificationObservable;
-                            }
-                        })
-                .subscribe(
-                        new Action1<Object>() {
-                            @Override
-                            public void call(Object characteristicValue) {
-                                if (!mIsRESpeckPaused) {
-                                    // Given characteristic has been changes, process the value
-                                    respeckHandler.processRESpeckLivePacket((byte[]) characteristicValue);
-                                } else {
-                                    Log.i("SpeckService", "RESpeck packet ignored as paused mode on");
-                                }
-                            }
-                        },
-                        new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                Log.e("SpeckService", "RESpeck bluetooth error: " + throwable.toString());
-                                FileLogger.logToFile(SpeckBluetoothService.this,
-                                        "RESpeck data handling error: " + throwable.toString());
-                            }
-                        }
-                );
+                }, throwable -> {
+                    Log.e("SpeckService", "RESpeck bluetooth error: " + throwable.toString());
+                    FileLogger.logToFile(SpeckBluetoothService.this,
+                            "RESpeck data handling error: " + throwable.toString());
+                });
     }
 
     public String getRESpeckFwVersion() {
