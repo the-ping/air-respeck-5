@@ -60,7 +60,7 @@ public class ReadingItemArrayAdapter extends ArrayAdapter<ReadingItem> {
         if (item.stringValue != null) {
             viewHolder.value.setText(item.stringValue);
         } else {
-            viewHolder.value.setText(String.format(Locale.UK, "%.2f", item.value));
+            viewHolder.value.setText(String.format(Locale.UK, "%.4f", item.value));
         }
 
         // Return the completed view to render on screen
