@@ -550,6 +550,7 @@ public class SpeckBluetoothService extends Service {
     private void connectToRESpeck() {
         mRESpeckDevice = rxBleClient.getBleDevice(RESPECK_BLE_ADDRESS);
         mRESpeckName = mRESpeckDevice.getName();
+        /*
         mRESpeckDevice.observeConnectionStateChanges()
                 .subscribe(connectionState -> {
                     if (connectionState == RxBleConnection.RxBleConnectionState.DISCONNECTED && mIsServiceRunning) {
@@ -591,6 +592,7 @@ public class SpeckBluetoothService extends Service {
                     FileLogger.logToFile(SpeckBluetoothService.this,
                             "RESpeck connecting state: " + throwable.toString());
                 });
+                */
         establishRESpeckConnection();
     }
 
@@ -606,7 +608,7 @@ public class SpeckBluetoothService extends Service {
             respeck_characteristic = Constants.RESPECK_LIVE_CHARACTERISTIC;
         }
 
-        respeckLiveSubscription = mRESpeckDevice.establishConnection(false)
+        respeckLiveSubscription = mRESpeckDevice.establishConnection(true)
                 .flatMap((Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(
                         UUID.fromString(respeck_characteristic)))
                 .doOnNext(notificationObservable -> {
@@ -626,9 +628,22 @@ public class SpeckBluetoothService extends Service {
                         Log.i("SpeckService", "RESpeck packet ignored as paused mode on");
                     }
                 }, throwable -> {
-                    Log.e("SpeckService", "RESpeck bluetooth error: " + throwable.toString());
+                    // An error with autoConnect means that we are disconnected
+                    Log.e("SpeckService", "Respeck disconnected: " + throwable.toString());
                     FileLogger.logToFile(SpeckBluetoothService.this,
-                            "RESpeck data handling error: " + throwable.toString());
+                            "Respeck disconnected: " + throwable.toString());
+
+                    Intent respeckDisconnectedIntent = new Intent(
+                            Constants.ACTION_RESPECK_DISCONNECTED);
+                    sendBroadcast(respeckDisconnectedIntent);
+
+                    respeckLiveSubscription.unsubscribe();
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            establishRESpeckConnection();
+                        }
+                    }, 10000);
                 });
     }
 
