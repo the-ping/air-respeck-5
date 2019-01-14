@@ -26,7 +26,6 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Timer;
 
 /**
  * This class processes new RESpeck packets which are passed from the SpeckBluetoothService.
@@ -91,19 +90,17 @@ public class RESpeckPacketHandler {
 
         RESPECK_UUID = loadedConfig.get(Constants.Config.RESPECK_UUID);
 
-        mIsStoreDataLocally = Boolean.parseBoolean(
-                loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
+        mIsStoreDataLocally = Boolean.parseBoolean(loadedConfig.get(Constants.Config.STORE_DATA_LOCALLY));
 
         mIsEncryptData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
 
         patientID = loadedConfig.get(Constants.Config.SUBJECT_ID);
-        androidID = Secure.getString(speckService.getContentResolver(),
-                Secure.ANDROID_ID);
+        androidID = Secure.getString(speckService.getContentResolver(), Secure.ANDROID_ID);
 
         // Initialize Breathing Functions
-        initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF,
-                Constants.THRESHOLD_FILTER_SIZE, Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD,
-                Constants.THRESHOLD_FACTOR, Constants.SAMPLING_FREQUENCY);
+        initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
+                Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR,
+                Constants.SAMPLING_FREQUENCY);
     }
 
     void processRESpeckLivePacket(final byte[] values) {
@@ -158,18 +155,14 @@ public class RESpeckPacketHandler {
                 // difference in the past, we use the typical time difference between the RESpeck packets for
                 // determining the previous timestamp. This only affects the minute calculations. The breathing rate
                 // is calculated based on only the sampling rate.
-                if (mPhoneTimestampCurrentPacketReceived == -1 ||
-                        mPhoneTimestampCurrentPacketReceived + 2.5 * Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS <
-                                actualPhoneTimestamp) {
-                    mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
-                            Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+                if (mPhoneTimestampCurrentPacketReceived == -1 || mPhoneTimestampCurrentPacketReceived + 2.5 * Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS < actualPhoneTimestamp) {
+                    mPhoneTimestampLastPacketReceived = actualPhoneTimestamp - Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
                 } else {
                     // Store the previously used phone timestamp as previous timestamp
                     mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
                 }
 
-                long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
-                        Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+                long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived + Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
 
                 //Log.i("RESpeckPacketHandler",
                 //        "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
@@ -177,8 +170,8 @@ public class RESpeckPacketHandler {
                 // If the last timestamp plus the average time difference is more than
                 // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
                 // last plus the average time difference.
-                if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
-                        Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
+                if (Math.abs(
+                        extrapolatedPhoneTimestamp - actualPhoneTimestamp) > Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
                     // Log.i("RESpeckPacketHandler", "correction!");
                     mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
                 } else {
@@ -249,11 +242,7 @@ public class RESpeckPacketHandler {
 
                     // Calculate interpolated timestamp of current sample based on sequence number
                     // There are 32 samples in each acceleration batch the RESpeck sends.
-                    long interpolatedPhoneTimestampOfCurrentSample = (long)
-                            ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) *
-                                    (currentSequenceNumberInBatch * 1. /
-                                            Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
-                            mPhoneTimestampLastPacketReceived;
+                    long interpolatedPhoneTimestampOfCurrentSample = (long) ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) * (currentSequenceNumberInBatch * 1. / Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + mPhoneTimestampLastPacketReceived;
 
                     RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                             mRESpeckTimestampCurrentPacketReceived, currentSequenceNumberInBatch, x, y, z,
@@ -274,8 +263,7 @@ public class RESpeckPacketHandler {
 
                     // Every full minute, calculate the average breathing rate in that minute. This value will
                     // only change after a call to "calculateAverageBreathing".
-                    long currentProcessedMinute = DateUtils.truncate(new Date(
-                                    mPhoneTimestampCurrentPacketReceived),
+                    long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                             Calendar.MINUTE).getTime();
 
                     // Set last processed minute to current one if this is the first packet
@@ -359,18 +347,14 @@ public class RESpeckPacketHandler {
         // difference in the past, we use the typical time difference between the RESpeck packets for
         // determining the previous timestamp. This only affects the minute calculations. The breathing rate
         // is calculated based on only the sampling rate.
-        if (mPhoneTimestampCurrentPacketReceived == -1 ||
-                mPhoneTimestampCurrentPacketReceived + 2.5 * Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS <
-                        actualPhoneTimestamp) {
-            mPhoneTimestampLastPacketReceived = actualPhoneTimestamp -
-                    Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+        if (mPhoneTimestampCurrentPacketReceived == -1 || mPhoneTimestampCurrentPacketReceived + 2.5 * Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS < actualPhoneTimestamp) {
+            mPhoneTimestampLastPacketReceived = actualPhoneTimestamp - Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
         } else {
             // Store the previously used phone timestamp as previous timestamp
             mPhoneTimestampLastPacketReceived = mPhoneTimestampCurrentPacketReceived;
         }
 
-        long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived +
-                Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+        long extrapolatedPhoneTimestamp = mPhoneTimestampLastPacketReceived + Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
 
         //Log.i("RESpeckPacketHandler",
         //        "Diff phone respeck: " + (extrapolatedPhoneTimestamp - newRESpeckTimestamp));
@@ -378,8 +362,8 @@ public class RESpeckPacketHandler {
         // If the last timestamp plus the average time difference is more than
         // x seconds apart, we use the actual phone timestamp. Otherwise, we use the
         // last plus the average time difference.
-        if (Math.abs(extrapolatedPhoneTimestamp - actualPhoneTimestamp) >
-                Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
+        if (Math.abs(
+                extrapolatedPhoneTimestamp - actualPhoneTimestamp) > Constants.MAXIMUM_MILLISECONDS_DEVIATION_ACTUAL_AND_CORRECTED_TIMESTAMP) {
             // Log.i("RESpeckPacketHandler", "correction!");
             mPhoneTimestampCurrentPacketReceived = actualPhoneTimestamp;
         } else {
@@ -410,16 +394,11 @@ public class RESpeckPacketHandler {
 
             // Calculate interpolated timestamp of current sample based on sequence number
             // There are 32 samples in each acceleration batch the RESpeck sends.
-            long interpolatedPhoneTimestampOfCurrentSample = (long)
-                    ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) *
-                            (currentSequenceNumberInBatch * 1. /
-                                    Constants.NUMBER_OF_SAMPLES_PER_BATCH)) +
-                    mPhoneTimestampLastPacketReceived;
+            long interpolatedPhoneTimestampOfCurrentSample = (long) ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) * (currentSequenceNumberInBatch * 1. / Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + mPhoneTimestampLastPacketReceived;
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
-                    newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z,
-                    breathingSignal, breathingRate, activityLevel, activityType, mAverageBreathingRate,
-                    getMinuteStepcount());
+                    newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
+                    activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount());
 
             // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
 
@@ -435,8 +414,7 @@ public class RESpeckPacketHandler {
 
             // Every full minute, calculate the average breathing rate in that minute. This value will
             // only change after a call to "calculateAverageBreathing".
-            long currentProcessedMinute = DateUtils.truncate(new Date(
-                            mPhoneTimestampCurrentPacketReceived),
+            long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
             if (currentProcessedMinute != lastProcessedMinute) {
                 calculateAverageBreathing();
@@ -460,9 +438,9 @@ public class RESpeckPacketHandler {
                 lastMinuteActivityLevel = new ArrayList<>();
                 lastMinuteActivityType = new ArrayList<>();
 
-                RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute,
-                        mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
-                        modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion());
+                RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute, mAverageBreathingRate,
+                        stdDevBreathingRate, numberOfBreaths, meanActivityLevel, modeActivityType, stepCountC,
+                        mSpeckService.getRESpeckFwVersion());
 
                 // Send average broadcast intent
                 Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
@@ -485,8 +463,7 @@ public class RESpeckPacketHandler {
 
         // Log.i("RAT", "BATTERY LEVEL notification received: " + Integer.toString(battLevel));
 
-        int chargePercentage = (100 * (batteryLevel - BATTERY_EMPTY_LEVEL) /
-                (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
+        int chargePercentage = (100 * (batteryLevel - BATTERY_EMPTY_LEVEL) / (BATTERY_FULL_LEVEL - BATTERY_EMPTY_LEVEL));
 
         if (chargePercentage < 1) {
             chargePercentage = 1;
@@ -535,13 +512,11 @@ public class RESpeckPacketHandler {
                 int numberOfBreaths = values[i + 1] & 0xFF;
                 if (numberOfBreaths > 5) {
                     float meanBreathingRate = (float) (values[i + 2] & 0xFF) / 5.0f;
-                    float sdBreathingRate = (float) Math.sqrt((float) (values[i + 3] & 0xFF) /
-                            10.0f);
+                    float sdBreathingRate = (float) Math.sqrt((float) (values[i + 3] & 0xFF) / 10.0f);
 
                     Byte upperActivityLevel = values[i + 4];
                     Byte lowerActivityLevel = values[i + 5];
-                    float combinedActivityLevel = combineActivityLevelBytes(upperActivityLevel,
-                            lowerActivityLevel);
+                    float combinedActivityLevel = combineActivityLevelBytes(upperActivityLevel, lowerActivityLevel);
 
                     RESpeckStoredSample ras = new RESpeckStoredSample(breathAveragePhoneTimestamp,
                             breathAverageRESpeckTimestamp, breathAverageSequenceNumber++, numberOfBreaths,
@@ -595,16 +570,13 @@ public class RESpeckPacketHandler {
 
         String fw_version = mSpeckService.getRESpeckFwVersion();
 
-        String filenameRESpeck = Utils.getInstance().getDataDirectory(mSpeckService) +
-                Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " +
-                patientID + " " + androidID + " " + RESPECK_UUID.replace(":", "") +
-                "(" + fw_version + ") " +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
-                ".csv";
+        String filenameRESpeck = Utils.getInstance().getDataDirectory(
+                mSpeckService) + Constants.RESPECK_DATA_DIRECTORY_NAME + "RESpeck " + patientID + " " + androidID + " " + RESPECK_UUID.replace(
+                ":", "") + "(" + fw_version + ") " + new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) + ".csv";
 
         // If the file doesn't exist, or we are in a new day, create a new file
-        if (!new File(filenameRESpeck).exists() || currentWriteDay != previousWriteDay ||
-                now.getTime() - mDateOfLastRESpeckWrite.getTime() > numberOfMillisInDay) {
+        if (!new File(
+                filenameRESpeck).exists() || currentWriteDay != previousWriteDay || now.getTime() - mDateOfLastRESpeckWrite.getTime() > numberOfMillisInDay) {
             try {
                 /*
                  * RESpeck writer
@@ -618,16 +590,11 @@ public class RESpeckPacketHandler {
                 if (!new File(filenameRESpeck).exists()) {
                     Log.i("RESpeckPacketHandler", "RESpeck data file created with header");
                     // Open new connection to file (which creates file)
-                    mRespeckWriter = new OutputStreamWriter(
-                            new FileOutputStream(filenameRESpeck, true));
-                    if (mIsEncryptData) {
-                        mRespeckWriter.append("Encrypted").append("\n");
-                    }
+                    mRespeckWriter = new OutputStreamWriter(new FileOutputStream(filenameRESpeck, true));
                     mRespeckWriter.append(Constants.RESPECK_DATA_HEADER + "\n");
                 } else {
                     Log.i("RESpeckPacketHandler", "Open existing RESpeck file");
-                    mRespeckWriter = new OutputStreamWriter(
-                            new FileOutputStream(filenameRESpeck, true));
+                    mRespeckWriter = new OutputStreamWriter(new FileOutputStream(filenameRESpeck, true));
                 }
             } catch (IOException e) {
                 Log.e("RESpeckPacketHandler", "Error while creating respeck or merged file: " + e.getMessage());
@@ -638,11 +605,7 @@ public class RESpeckPacketHandler {
         try {
             // Write new line to file. If concatenation is split up with append, the second part might not be written,
             // meaning that there will be a line without a line break in the file.
-            if (mIsEncryptData) {
-                mRespeckWriter.append(Utils.encrypt(data.toStringForFile(), mSpeckService) + "\n");
-            } else {
-                mRespeckWriter.append(data.toStringForFile() + "\n");
-            }
+            mRespeckWriter.append(data.toStringForFile() + "\n");
             mRespeckWriter.flush();
 
         } catch (IOException e) {

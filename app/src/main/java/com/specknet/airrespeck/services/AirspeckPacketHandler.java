@@ -11,16 +11,15 @@ import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.LocationData;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
-import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
@@ -84,8 +83,7 @@ public class AirspeckPacketHandler {
         mIsEncryptData = Boolean.parseBoolean(loadedConfig.get(Constants.Config.ENCRYPT_LOCAL_DATA));
 
         subjectID = loadedConfig.get(Constants.Config.SUBJECT_ID);
-        androidID = Settings.Secure.getString(speckService.getContentResolver(),
-                Settings.Secure.ANDROID_ID);
+        androidID = Settings.Secure.getString(speckService.getContentResolver(), Settings.Secure.ANDROID_ID);
 
         // which airspeck version are we speaking to?
         if (airspeckUUID.startsWith("0104-")) {
@@ -105,11 +103,17 @@ public class AirspeckPacketHandler {
     }
 
     void processAirspeckPacket(byte[] bytes) {
-        if (v4_airspeck) {
-            // RESpeck v2
-            processAirspeckV4Packet(bytes);
-        } else {
-            processAirspeckV2Packet(bytes);
+
+        try {
+            if (v4_airspeck) {
+                // RESpeck v2
+                processAirspeckV4Packet(bytes);
+            } else {
+                processAirspeckV2Packet(bytes);
+            }
+        } catch (BufferOverflowException e) {
+            FileLogger.logToFile(mSpeckService,
+                    "BufferOverflowException in AirspeckPacketHandler: " + FileLogger.getStackTraceAsString(e));
         }
     }
 
@@ -125,8 +129,7 @@ public class AirspeckPacketHandler {
         if (packetData.position() > 0) {
             packetData.put(bytes);
             if (packetData.position() == 102) {
-                Log.i("AirspeckPacketHandler",
-                        "Full length packet received from old firmware without CRC byte");
+                Log.i("AirspeckPacketHandler", "Full length packet received from old firmware without CRC byte");
                 processDataFromPacket(packetData, 62);
                 packetData.clear();
             } else if (packetData.position() == 106) {
@@ -137,8 +140,7 @@ public class AirspeckPacketHandler {
 
                 byte[] packet_without_crc = Arrays.copyOfRange(packetData.array(), 0, 104);
                 int calculatedCRC = calculateCRC16(packet_without_crc);
-                Log.i("AirSpeckPacketHandler",
-                        "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
+                Log.i("AirSpeckPacketHandler", "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
 
                 if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
                     Log.i("AirSpeckPacketHandler",
@@ -252,8 +254,8 @@ public class AirspeckPacketHandler {
         LocationData location = mLastPhoneLocation;
 
         // Use Airspeck GPS if phone location is NaN or 0
-        if ((location.getLatitude() == 0f || Double.isNaN(location.getLatitude())) &&
-                (location.getLongitude() == 0f || Double.isNaN(location.getLongitude()))) {
+        if ((location.getLatitude() == 0f || Double.isNaN(
+                location.getLatitude())) && (location.getLongitude() == 0f || Double.isNaN(location.getLongitude()))) {
             Log.i("AirspeckPacketHandler", "Phone didn't receive GPS, so use GPS sensor data");
             location = new LocationData(latitude, longitude, altitude, Float.NaN);
         }
@@ -268,9 +270,8 @@ public class AirspeckPacketHandler {
 
         long currentPhoneTimestamp = Utils.getUnixTimestamp();
 
-        AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10,
-                temperature, humidity, mBins, location, lux, motion, batteryLevel,
-                mSpeckService.getAirspeckFwVersion());
+        AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10, temperature,
+                humidity, mBins, location, lux, motion, batteryLevel, mSpeckService.getAirspeckFwVersion());
 
         Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
 
@@ -327,9 +328,8 @@ public class AirspeckPacketHandler {
         if (packetData.position() > 0) {
             packetData.put(bytes);
             if (packetData.position() == fullPacketLength) {
-                Log.i("AirspeckPacketHandler",
-                        "Full length packet received");
-                processDataFromPacket(packetData, 86-16);
+                Log.i("AirspeckPacketHandler", "Full length packet received");
+                processDataFromPacket(packetData, 86 - 16);
                 packetData.clear();
 
             } else if (packetData.position() > fullPacketLength) {
@@ -354,15 +354,12 @@ public class AirspeckPacketHandler {
         String fw_version = mSpeckService.getAirspeckFwVersion();
 
         String filenameAirspeck = Utils.getInstance().getDataDirectory(
-                mSpeckService) + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " +
-                subjectID + " " + androidID + " " + airspeckUUID.replace(":", "") +
-                "(" + fw_version + ") " +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) +
-                ".csv";
+                mSpeckService) + Constants.AIRSPECK_DATA_DIRECTORY_NAME + "Airspeck " + subjectID + " " + androidID + " " + airspeckUUID.replace(
+                ":", "") + "(" + fw_version + ") " + new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(now) + ".csv";
 
         // If we are in a new day, create a new file if necessary
-        if (!new File(filenameAirspeck).exists() || currentWriteDay != previousWriteDay ||
-                now.getTime() - mDateOfLastAirspeckWrite.getTime() > numberOfMillisInDay) {
+        if (!new File(
+                filenameAirspeck).exists() || currentWriteDay != previousWriteDay || now.getTime() - mDateOfLastAirspeckWrite.getTime() > numberOfMillisInDay) {
             try {
                 // Close old connection if there was one
                 if (mAirspeckWriter != null) {
@@ -373,8 +370,7 @@ public class AirspeckPacketHandler {
                 if (!new File(filenameAirspeck).exists()) {
                     Log.i("AirspeckPacketHandler", "Airspeck data file created with header");
                     // Open new connection to new file
-                    mAirspeckWriter = new OutputStreamWriter(
-                            new FileOutputStream(filenameAirspeck, true));
+                    mAirspeckWriter = new OutputStreamWriter(new FileOutputStream(filenameAirspeck, true));
                     if (mIsEncryptData) {
                         mAirspeckWriter.append("Encrypted").append("\n");
                     }
@@ -382,8 +378,7 @@ public class AirspeckPacketHandler {
                     mAirspeckWriter.flush();
                 } else {
                     // Open new connection to new file
-                    mAirspeckWriter = new OutputStreamWriter(
-                            new FileOutputStream(filenameAirspeck, true));
+                    mAirspeckWriter = new OutputStreamWriter(new FileOutputStream(filenameAirspeck, true));
                 }
 
             } catch (IOException e) {
