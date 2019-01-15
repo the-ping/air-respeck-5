@@ -612,7 +612,7 @@ public class SpeckBluetoothService extends Service {
             respeck_characteristic = Constants.RESPECK_LIVE_CHARACTERISTIC;
         }
 
-        respeckLiveSubscription = mRESpeckDevice.establishConnection(true).flatMap(
+        respeckLiveSubscription = mRESpeckDevice.establishConnection(false).flatMap(
                 (Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(
                         UUID.fromString(respeck_characteristic))).doOnNext(notificationObservable -> {
             // Notification has been set up
