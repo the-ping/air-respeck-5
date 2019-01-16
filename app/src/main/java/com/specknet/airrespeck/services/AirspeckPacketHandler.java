@@ -196,6 +196,7 @@ public class AirspeckPacketHandler {
     }
 
     private void processAirspeckV2Packet9AD(byte[] bytes) {
+        final int full_packet_length = 107;
         Log.i("AirSpeckPacketHandler", "Processing Airspeck sub-packet. Full packet position=" + packetData.position());
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -211,8 +212,29 @@ public class AirspeckPacketHandler {
         }
         else {
             packetData.put(bytes, 1, bytes.length - 1);
-            if (packetData.position() == 106) {
+            if (packetData.position() == full_packet_length) {
                 // We've now received a full packet, so process and empty byte buffer
+
+
+                // First check that the CRC matches
+                // Set to beginning of CRC value
+                packetData.position(full_packet_length - 2);
+                short transmittedCRC = packetData.getShort();
+                int ucrc = transmittedCRC & 0xffff;
+
+                byte[] packet_without_crc = Arrays.copyOfRange(packetData.array(), 0, full_packet_length - 2);
+                int calculatedCRC = calculateCRC16(packet_without_crc);
+                Log.i("AirSpeckPacketHandler", "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
+
+                if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
+                    Log.i("AirSpeckPacketHandler",
+                            "CRC check passed");
+                }
+                else {
+                    Log.i("AirSpeckPacketHandler",
+                            "CRC check failed");
+                }
+
                 processDataFromPacket(packetData, 62);
                 packetData.clear();
             }
