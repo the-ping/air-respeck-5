@@ -66,6 +66,8 @@ public class AirspeckPacketHandler {
     private final int fullPacketLength = 104;
     boolean v4_airspeck = false;
 
+    private int currentSubpacketID = 0;
+
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
 
@@ -206,11 +208,22 @@ public class AirspeckPacketHandler {
 
         if (packetData.position() == 0) {
             // Wait for the start of a new full packet by looking for a subpacket ID of zero
-            if (bytes[0] == 0x00 && bytes[1] == 0x03) {
-                packetData.put(bytes, 1, bytes.length - 1); // add subpacket without leading ID
+            if (bytes[0] == 0x00) {
+                currentSubpacketID = 0;
+                if (bytes[1] == 0x03) {  // Airspeck sensor data packet ID
+                    packetData.put(bytes, 1, bytes.length - 1); // add subpacket without leading ID
+                }
             }
         }
         else {
+            if (bytes[0] == currentSubpacketID + 1) {
+                currentSubpacketID += 1;
+            }
+            else {
+                Log.i("AirSpeckPacketHandler",
+                        "Expected subpacket missing");
+            }
+
             packetData.put(bytes, 1, bytes.length - 1);
             if (packetData.position() == full_packet_length) {
                 // We've now received a full packet, so process and empty byte buffer
