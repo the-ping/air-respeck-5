@@ -109,7 +109,12 @@ public class AirspeckPacketHandler {
                 // RESpeck v2
                 processAirspeckV4Packet(bytes);
             } else {
-                processAirspeckV2Packet(bytes);
+                if (mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
+                    processAirspeckV2Packet9AD(bytes);
+                }
+                else {
+                    processAirspeckV2Packet(bytes);
+                }
             }
         } catch (BufferOverflowException e) {
             FileLogger.logToFile(mSpeckService,
@@ -190,6 +195,30 @@ public class AirspeckPacketHandler {
         }
     }
 
+    private void processAirspeckV2Packet9AD(byte[] bytes) {
+        Log.i("AirSpeckPacketHandler", "Processing Airspeck sub-packet. Full packet position=" + packetData.position());
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        Log.i("AirspeckPacketHandler", "Payload: " + sb.toString());
+
+        if (packetData.position() == 0) {
+            // Wait for the start of a new full packet by looking for a subpacket ID of zero
+            if (bytes[0] == 0x00 && bytes[1] == 0x03) {
+                packetData.put(bytes, 1, bytes.length - 1); // add subpacket without leading ID
+            }
+        }
+        else {
+            packetData.put(bytes, 1, bytes.length - 1);
+            if (packetData.position() == 106) {
+                // We've now received a full packet, so process and empty byte buffer
+                processDataFromPacket(packetData, 62);
+                packetData.clear();
+            }
+        }
+    }
+
     private void removeBytesFromStart(ByteBuffer bf, int n) {
         int index = 0;
         for (int i = n; i < bf.position(); i++) {
@@ -216,7 +245,7 @@ public class AirspeckPacketHandler {
         return crc;
     }
 
-    private void processDataFromPacket(ByteBuffer buffer, final int len) {
+    private void processDataFromPacket(ByteBuffer buffer, final int opc_len) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(0);
         byte header = buffer.get();
@@ -237,8 +266,8 @@ public class AirspeckPacketHandler {
         Log.i("AirspeckPacketHandler", "Temperature: " + temperature + " Humidity: " + humidity);
 
         // Load OPC data
-        opcData.put(buffer.array(), buffer.position(), len);
-        buffer.position(buffer.position() + len);
+        opcData.put(buffer.array(), buffer.position(), opc_len);
+        buffer.position(buffer.position() + opc_len);
         processOPCPacket(opcData);
         opcData.clear();
 
