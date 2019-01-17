@@ -66,7 +66,7 @@ public class AirspeckPacketHandler {
     private final int fullPacketLength = 104;
     boolean v4_airspeck = false;
 
-    private int currentSubpacketID = 0;
+    private int currentSubpacketID = -1;
 
     public AirspeckPacketHandler(SpeckBluetoothService speckService) {
         mSpeckService = speckService;
@@ -206,50 +206,57 @@ public class AirspeckPacketHandler {
         }
         Log.i("AirspeckPacketHandler", "Payload: " + sb.toString());
 
-        if (packetData.position() == 0) {
-            // Wait for the start of a new full packet by looking for a subpacket ID of zero
-            if (bytes[0] == 0x00) {
-                currentSubpacketID = 0;
-                if (bytes[1] == 0x03) {  // Airspeck sensor data packet ID
-                    packetData.put(bytes, 1, bytes.length - 1); // add subpacket without leading ID
-                }
+        if (bytes[0] == 0x00) {
+            // We received the start of a new whole packet, so clear the buffer
+            packetData.clear();
+            currentSubpacketID = 0;
+
+            if (bytes[1] == 0x03) {  // Airspeck sensor data packet ID
+                packetData.put(bytes, 1, bytes.length - 1); // add subpacket without leading ID
+            }
+            else {
+                Log.i("AirSpeckPacketHandler",
+                        "Unexpected packet type " + bytes[1] + " received");
             }
         }
-        else {
+        else { // append to existing packet
             if (bytes[0] == currentSubpacketID + 1) {
+                packetData.put(bytes, 1, bytes.length - 1);
                 currentSubpacketID += 1;
+
+                // Do we have a full packet yet?
+                if (packetData.position() == full_packet_length) {
+                    // We've now received a full packet, so process and empty byte buffer
+
+                    // First check that the CRC matches
+                    // Set to beginning of CRC value
+                    packetData.position(full_packet_length - 2);
+                    short transmittedCRC = packetData.getShort();
+                    int ucrc = transmittedCRC & 0xffff;
+
+                    byte[] packet_without_crc = Arrays.copyOfRange(packetData.array(), 0, full_packet_length - 2);
+                    int calculatedCRC = calculateCRC16(packet_without_crc);
+                    Log.i("AirSpeckPacketHandler", "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
+
+                    if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
+                        Log.i("AirSpeckPacketHandler",
+                                "CRC check passed");
+                    }
+                    else {
+                        Log.i("AirSpeckPacketHandler",
+                                "CRC check failed");
+                    }
+
+                    processDataFromPacket(packetData, 62);
+                    packetData.clear();
+                    currentSubpacketID = -1;
+                }
             }
             else {
                 Log.i("AirSpeckPacketHandler",
                         "Expected subpacket missing");
-            }
-
-            packetData.put(bytes, 1, bytes.length - 1);
-            if (packetData.position() == full_packet_length) {
-                // We've now received a full packet, so process and empty byte buffer
-
-
-                // First check that the CRC matches
-                // Set to beginning of CRC value
-                packetData.position(full_packet_length - 2);
-                short transmittedCRC = packetData.getShort();
-                int ucrc = transmittedCRC & 0xffff;
-
-                byte[] packet_without_crc = Arrays.copyOfRange(packetData.array(), 0, full_packet_length - 2);
-                int calculatedCRC = calculateCRC16(packet_without_crc);
-                Log.i("AirSpeckPacketHandler", "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
-
-                if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
-                    Log.i("AirSpeckPacketHandler",
-                            "CRC check passed");
-                }
-                else {
-                    Log.i("AirSpeckPacketHandler",
-                            "CRC check failed");
-                }
-
-                processDataFromPacket(packetData, 62);
                 packetData.clear();
+                currentSubpacketID = -1;
             }
         }
     }
