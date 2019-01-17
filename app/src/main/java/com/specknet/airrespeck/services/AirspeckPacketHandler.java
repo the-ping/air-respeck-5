@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.LocationData;
@@ -64,7 +65,7 @@ public class AirspeckPacketHandler {
     private String androidID;
 
     private final int fullPacketLength = 104;
-    boolean v4_airspeck = false;
+    boolean airspeck_mini = false;
 
     private int currentSubpacketID = -1;
 
@@ -75,6 +76,7 @@ public class AirspeckPacketHandler {
         opcData = ByteBuffer.allocate(86);
         opcData.order(ByteOrder.LITTLE_ENDIAN);
         packetData = ByteBuffer.allocate(128); // A little larger than necessary in case we add fields to the packet
+        packetData.order(ByteOrder.LITTLE_ENDIAN);
 
         Utils utils = Utils.getInstance();
         Map<String, String> loadedConfig = utils.getConfig(mSpeckService);
@@ -89,7 +91,7 @@ public class AirspeckPacketHandler {
 
         // which airspeck version are we speaking to?
         if (airspeckUUID.startsWith("0104-")) {
-            v4_airspeck = true;
+            airspeck_mini = true;
         }
 
         // Start broadcast receiver for phone location
@@ -107,14 +109,17 @@ public class AirspeckPacketHandler {
     void processAirspeckPacket(byte[] bytes) {
 
         try {
-            if (v4_airspeck) {
+            if (airspeck_mini) {
                 // RESpeck v2
+                Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini");
                 processAirspeckV4Packet(bytes);
             } else {
                 if (mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
+                    Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal (9AD+)");
                     processAirspeckV2Packet9AD(bytes);
                 }
                 else {
+                    Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal (<9AD)");
                     processAirspeckV2Packet(bytes);
                 }
             }
@@ -238,16 +243,16 @@ public class AirspeckPacketHandler {
                     int calculatedCRC = calculateCRC16(packet_without_crc);
                     Log.i("AirSpeckPacketHandler", "CRC: transmitted=" + ucrc + ", calculated=" + calculatedCRC);
 
-                    if (calculatedCRC == ucrc || true) {  // disable CRC checking for now
+                    if (calculatedCRC == ucrc) {  // disable CRC checking for now
                         Log.i("AirSpeckPacketHandler",
-                                "CRC check passed");
+                                "CRC check passed, processing packet");
+                        processDataFromPacket(packetData, 62);
                     }
                     else {
                         Log.i("AirSpeckPacketHandler",
                                 "CRC check failed");
                     }
 
-                    processDataFromPacket(packetData, 62);
                     packetData.clear();
                     currentSubpacketID = -1;
                 }
@@ -288,7 +293,6 @@ public class AirspeckPacketHandler {
     }
 
     private void processDataFromPacket(ByteBuffer buffer, final int opc_len) {
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(0);
         byte header = buffer.get();
         long uuid = buffer.getLong();
