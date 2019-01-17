@@ -13,7 +13,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 25
         versionCode 85
-        versionName "2.5.8-subpacket_ids"
+        versionName "2.5.8"
 
         // Enabling multidex support.
         // multiDexEnabled true
