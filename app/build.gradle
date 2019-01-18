@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'io.fabric'
+
 
 repositories {
     google()
@@ -12,8 +14,8 @@ android {
         applicationId "com.specknet.airrespeck"
         minSdkVersion 22
         targetSdkVersion 25
-        versionCode 85
-        versionName "2.5.8"
+        versionCode 86
+        versionName "2.5.9"
 
         // Enabling multidex support.
         // multiDexEnabled true
@@ -62,7 +64,7 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.1'
     implementation 'org.apache.commons:commons-lang3:3.7'
     implementation 'com.google.firebase:firebase-core:16.0.6'
-    implementation 'com.google.firebase:firebase-crash:16.2.1'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.8'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.google.android.gms:play-services-places:16.0.0'
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
