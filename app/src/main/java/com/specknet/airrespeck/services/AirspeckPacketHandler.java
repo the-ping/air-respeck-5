@@ -114,7 +114,11 @@ public class AirspeckPacketHandler {
                 Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini");
                 processAirspeckV4Packet(bytes);
             } else {
-                if (mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
+                Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal " + mSpeckService.getAirspeckFwVersion());
+                if (Character.isDigit(mSpeckService.getAirspeckFwVersion().charAt(0)) &&
+                        Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(1)) &&
+                        Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(2)) &&
+                        mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
                     Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal (9AD+)");
                     processAirspeckV2Packet9AD(bytes);
                 }

@@ -646,7 +646,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     public String getAirspeckFwVersion() {
-        return mAirspeckName.substring(3);
+        return mAirspeckName.substring(2);
     }
 
 
