@@ -110,17 +110,26 @@ public class AirspeckPacketHandler {
 
         try {
             if (airspeck_mini) {
-                // RESpeck v2
-                Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini");
-                processAirspeckV4Packet(bytes);
-            } else {
+                Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini " + mSpeckService.getAirspeckFwVersion());
+                if (Character.isDigit(mSpeckService.getAirspeckFwVersion().charAt(0)) &&
+                        Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(1)) &&
+                        Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(2)) &&
+                        mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
+                    Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini (9AD+)");
+                    processAirspeckPacket9AD(bytes, 104, 70);
+                }
+                else {
+                    Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini (<9AD)");
+                    processAirspeckV4Packet(bytes);
+                }
+            } else { // personal belt
                 Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal " + mSpeckService.getAirspeckFwVersion());
                 if (Character.isDigit(mSpeckService.getAirspeckFwVersion().charAt(0)) &&
                         Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(1)) &&
                         Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(2)) &&
                         mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
                     Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal (9AD+)");
-                    processAirspeckV2Packet9AD(bytes);
+                    processAirspeckPacket9AD(bytes, 107, 62);
                 }
                 else {
                     Log.i("AirSpeckPacketHandler", "Paired with Airspeck personal (<9AD)");
@@ -206,8 +215,8 @@ public class AirspeckPacketHandler {
         }
     }
 
-    private void processAirspeckV2Packet9AD(byte[] bytes) {
-        final int full_packet_length = 107;
+    private void processAirspeckPacket9AD(byte[] bytes, int full_packet_length, int opc_length) {
+        //final int full_packet_length = 107;
         Log.i("AirSpeckPacketHandler", "Processing Airspeck sub-packet. Full packet position=" + packetData.position());
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
