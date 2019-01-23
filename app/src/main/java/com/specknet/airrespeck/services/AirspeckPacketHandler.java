@@ -116,7 +116,7 @@ public class AirspeckPacketHandler {
                         Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(2)) &&
                         mSpeckService.getAirspeckFwVersion().compareTo("9AD") >= 0) {
                     Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini (9AD+)");
-                    processAirspeckPacket9AD(bytes, 104, 70);
+                    processAirspeckPacket9AD(bytes, 109, 70);
                 }
                 else {
                     Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini (<9AD)");
@@ -243,6 +243,7 @@ public class AirspeckPacketHandler {
                 currentSubpacketID += 1;
 
                 // Do we have a full packet yet?
+                Log.d("AirSpeckPacketHandler", "subpacket: " + bytes[0] + ", length: " + packetData.position());
                 if (packetData.position() == full_packet_length) {
                     // We've now received a full packet, so process and empty byte buffer
 
