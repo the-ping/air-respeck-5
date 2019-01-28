@@ -206,6 +206,8 @@ public class AirspeckPacketHandler {
                 }
             } else if (packetData.position() > 102) {
                 Log.i("AirSpeckPacketHandler", "Received packet with unexpected length: " + packetData.position());
+                // Clear packet
+                packetData.clear();
             }
         } else if (bytes[0] == 0x03) {
             packetData.put(bytes);
