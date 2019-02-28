@@ -606,7 +606,7 @@ public class SpeckBluetoothService extends Service {
 
         final String respeck_characteristic;
 
-        if (getRESpeckFwVersion().contains("4")) {
+        if (getRESpeckFwVersion().contains("4") || getRESpeckFwVersion().contains("5")) {
             respeck_characteristic = Constants.RESPECK_LIVE_V4_CHARACTERISTIC;
         } else {
             respeck_characteristic = Constants.RESPECK_LIVE_CHARACTERISTIC;
