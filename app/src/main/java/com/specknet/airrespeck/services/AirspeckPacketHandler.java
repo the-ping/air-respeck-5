@@ -341,6 +341,7 @@ public class AirspeckPacketHandler {
         float longitude = buffer.getFloat();
         short altitude = buffer.getShort();
 
+        Log.i("AirspeckPacketHandler", "GPS: Lat: " + latitude + ". Lng: " + longitude);
         // Use phone location by default
         LocationData location = mLastPhoneLocation;
 

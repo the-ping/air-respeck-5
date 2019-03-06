@@ -81,10 +81,12 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
     }
 
     // If the subject is currently walking, discard signal
+    /* TODO: only uncomment if step counter is reliable enough. Currently (02-2019), it isn't.
     if (is_walking(step_counter)) {
         breathing_measures->signal = NAN;
         return;
     }
+     */
 
     // Fill up mean filter buffer. This smooths the acceleration values by returning the mean for each window of
     // 12 samples
