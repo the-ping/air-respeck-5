@@ -90,7 +90,7 @@ public class AirspeckPacketHandler {
         androidID = Settings.Secure.getString(speckService.getContentResolver(), Settings.Secure.ANDROID_ID);
 
         // which airspeck version are we speaking to?
-        if (airspeckUUID.startsWith("0104-")) {
+        if (airspeckUUID.startsWith("0104-") || airspeckUUID.startsWith("0204-")) {
             airspeck_mini = true;
         }
 
