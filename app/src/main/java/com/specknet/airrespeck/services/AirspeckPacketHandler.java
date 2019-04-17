@@ -406,6 +406,10 @@ public class AirspeckPacketHandler {
         mPm10 = buffer.getFloat();
 
         Log.i("AirspeckPacketHandler", "PMs: " + mPm1 + ", " + mPm2_5 + ", " + mPm10);
+
+        if (mPm1 == 0.0 && mPm2_5 == 0.0 && mPm10 == 0.0) {
+            FileLogger.logToFile(mSpeckService, "PM values all zero");
+        }
     }
 
     private void processAirspeckV4Packet(byte[] bytes) {
