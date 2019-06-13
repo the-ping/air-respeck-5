@@ -88,7 +88,6 @@
     <string name="menu_other_subgroup">Others</string>
 
 
-
     <!-- Action Bar menu -->
     <string name="action_supervised_mode">Supervised mode</string>
     <string name="action_subject_mode">Subject mode</string>
@@ -271,6 +270,10 @@
     <string name="storage_request_dialog_message">App requires storage permission to load the configuration file
         and to store recorded values</string>
     <string name="dialog_button_ok">OK</string>
+    <string name="mic_request_dialog_title">Please allow microphone permission</string>
+    <string name="mic_request_dialog_message">App requires microphone permission when adding a voice comment
+        with your location</string>
+
 
     <!-- Config view screen -->
     <string name="config_view_title">Pairing configuration</string>
@@ -294,5 +297,8 @@
     <string name="connection_text_airspeck_only">Connecting to Airspeck</string>
     <string name="connection_text_pulseox_only">Connecting to Pulseox</string>
     <string name="connection_text_inhaler_only">Connecting to Inhaler</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

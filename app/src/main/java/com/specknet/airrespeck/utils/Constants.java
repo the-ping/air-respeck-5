@@ -240,6 +240,8 @@ public class Constants {
     public static final String PHONE_LOCATION_DIRECTORY_NAME = "/Phone GPS/";
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
     public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
+    public static final String MEDIA_DIRECTORY_NAME = "/Media/";
+
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,sequenceNumber,x,y,z," +
             "breathingSignal,breathingRate,activityLevel,activityType";
@@ -272,6 +274,8 @@ public class Constants {
     // Request permissions
     public static final int REQUEST_CODE_LOCATION_PERMISSION = 0;
     public static final int REQUEST_CODE_STORAGE_PERMISSION = 1;
+    public static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+
 
     // Characteristics Airspeck
     public static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";

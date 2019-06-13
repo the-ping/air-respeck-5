@@ -245,6 +245,17 @@ public final class Utils {
                 throw new RuntimeException("Couldn't create logging directory on external storage");
             }
         }
+
+        // Create media folder
+        directory = new File(dataDirectoryPath + Constants.MEDIA_DIRECTORY_NAME);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create media directory on external storage");
+            }
+        }
     }
 
     private boolean loadConfig(Context context) {
@@ -426,6 +437,34 @@ public final class Utils {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setMessage(R.string.location_request_dialog_message)
                 .setTitle(R.string.location_request_dialog_title);
+        builder.setNeutralButton(R.string.dialog_button_ok,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Utils.checkAndRequestLocationPermission(activity);
+                        dialogInterface.dismiss();
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public static boolean checkAndRequestMicPermission(final Activity activity) {
+        if (ActivityCompat.checkSelfPermission(activity,
+                Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    Constants.REQUEST_RECORD_AUDIO_PERMISSION);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public static void showMicRequestDialog(final Activity activity) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setMessage(R.string.mic_request_dialog_message)
+                .setTitle(R.string.mic_request_dialog_title);
         builder.setNeutralButton(R.string.dialog_button_ok,
                 new DialogInterface.OnClickListener() {
                     @Override

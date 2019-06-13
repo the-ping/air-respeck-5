@@ -200,6 +200,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        boolean isMicPermissionGranted = Utils.checkAndRequestMicPermission(MainActivity.this);
+        if (!isMicPermissionGranted) {
+            return;
+        }
+
         // Check whether this is the first app start. If yes, a security key needs to be created
         boolean keyExists = checkIfSecurityKeyExists();
         if (!keyExists) {
@@ -430,6 +435,15 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // Permission was not granted. Explain to the user why we need permission and ask again
                 Utils.showStorageRequestDialog(MainActivity.this);
+            }
+        } else if (requestCode == Constants.REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted. Initialise this activity.
+                checkPermissionsAndInitMainActivity();
+            } else {
+                // Permission was not granted. Explain to the user why we need permission and ask again
+                Utils.showMicRequestDialog(MainActivity.this);
             }
         }
     }

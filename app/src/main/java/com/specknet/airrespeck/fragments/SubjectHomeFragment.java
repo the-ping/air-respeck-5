@@ -1,14 +1,22 @@
 package com.specknet.airrespeck.fragments;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +36,16 @@ import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
+
+import okhttp3.internal.Util;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Home screen for subjects using the app
@@ -36,6 +53,12 @@ import java.util.Map;
 
 public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver, AirspeckDataObserver,
         ConnectionStateObserver {
+
+    static final int REQUEST_IMAGE_CAPTURE = 0;
+    static final int REQUEST_VIDEO_CAPTURE = 1;
+
+
+    File mediaFile = null;
 
     private ImageView connectedStatusRESpeck;
     private ImageView connectedStatusAirspeck;
@@ -89,15 +112,88 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             }
         });
 
+
+        // Photograph button
         ImageButton cameraButton = (ImageButton) view.findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getActivity().startActivity(intent);
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+
+                    try {
+                        mediaFile = createMediaFile(".jpg");
+                    } catch (IOException ex) {
+                        // TODO: Error occurred while creating the File
+                    }
+
+                    if (mediaFile != null) {
+                        Uri photoURI = FileProvider.getUriForFile(getContext(),
+                                "com.specknet.airrespeck.fileprovider",
+                                mediaFile);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                    }
+                }
             }
         });
+
+        // Video button
+        ImageButton videoButton = (ImageButton) view.findViewById(R.id.video_button);
+        videoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+
+                    try {
+                        mediaFile = createMediaFile(".mp4");
+                    } catch (IOException ex) {
+                        // TODO: Error occurred while creating the File
+                    }
+
+                    if (mediaFile != null) {
+                        Uri videoURI = FileProvider.getUriForFile(getContext(),
+                                "com.specknet.airrespeck.fileprovider",
+                                mediaFile);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoURI);
+                        startActivityForResult(intent, REQUEST_VIDEO_CAPTURE);
+                    }
+                }
+            }
+        });
+
+        // Text button
+        ImageButton textButton = (ImageButton) view.findViewById(R.id.text_button);
+        textButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TextSubmission textFragment = new TextSubmission();
+                textFragment.show(getActivity().getFragmentManager(), "text");
+            }
+        });
+
+        // Audio button
+        ImageButton audioButton = (ImageButton) view.findViewById(R.id.audio_button);
+        audioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) {
+                    requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            Constants.REQUEST_RECORD_AUDIO_PERMISSION);
+                }
+
+                Fragment fragment = new AudioSubmission();
+                android.support.v4.app.FragmentManager fm = getActivity().getSupportFragmentManager();
+                android.support.v4.app.FragmentTransaction transaction = fm.beginTransaction();
+                transaction.replace(R.id.main_frame, fragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
+        });
+
 
         // Initialise pause button for RESpeck
         respeckPausePlayButton = (ImageButton) view.findViewById(R.id.respeck_pause_button);
@@ -347,6 +443,30 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         ((MainActivity) getActivity()).unregisterAirspeckDataObserver(this);
         ((MainActivity) getActivity()).unregisterConnectionStateObserver(this);
         super.onDestroy();
+    }
+
+    public File createMediaFile(String suffix) throws IOException {
+            String directory = Utils.getInstance().getDataDirectory(getActivity()) +
+                    Constants.MEDIA_DIRECTORY_NAME;
+            String filename = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File mediaFile = new File(new File(directory), filename.concat(suffix));
+            mediaFile.createNewFile();
+            return mediaFile;
+        }
+
+    // Processing media after collection
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK){
+            mediaFile.delete();
+        }
+        else if (requestCode == REQUEST_IMAGE_CAPTURE){
+            Toast.makeText(getContext(), "Picture saved successfully", Toast.LENGTH_SHORT).show();
+        }
+        else if (requestCode == REQUEST_VIDEO_CAPTURE){
+            Toast.makeText(getContext(), "Video saved successfully", Toast.LENGTH_SHORT).show();
+        }
     }
 }
 
