@@ -469,7 +469,7 @@ public final class Utils {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        Utils.checkAndRequestLocationPermission(activity);
+                        Utils.checkAndRequestMicPermission(activity);
                         dialogInterface.dismiss();
                     }
                 });
