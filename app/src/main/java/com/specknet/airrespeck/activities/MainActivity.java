@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
@@ -63,7 +64,6 @@ import com.specknet.airrespeck.utils.ThemeUtils;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.lang.ref.WeakReference;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter;
     private ActionBar mActionbar;
     public InhalerData lastInhalerPress = null;
+    private boolean mCollectMedia = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,6 +167,13 @@ public class MainActivity extends AppCompatActivity {
         // Load configuration
         mUtils = Utils.getInstance();
         mLoadedConfig = mUtils.getConfig(this);
+
+        Log.i("MainActivity", "Pairing info: " + new Gson().toJson(mLoadedConfig));
+
+        if (mLoadedConfig.containsKey("CollectMedia") && mLoadedConfig.get("CollectMedia").compareTo("True") == 0) {
+            mCollectMedia = true;
+            Log.i("MainActivity", "Enable media collection");
+        }
 
         if (mLoadedConfig.isEmpty()) {
             showDoPairingDialog();
@@ -200,9 +208,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        boolean isMicPermissionGranted = Utils.checkAndRequestMicPermission(MainActivity.this);
-        if (!isMicPermissionGranted) {
-            return;
+        if (mCollectMedia) {
+            boolean isMicPermissionGranted = Utils.checkAndRequestMicPermission(MainActivity.this);
+            if (!isMicPermissionGranted) {
+                return;
+            }
         }
 
         // Check whether this is the first app start. If yes, a security key needs to be created
