@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TableLayout;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
@@ -72,6 +73,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private boolean isRespeckPaused;
 
     private boolean isCameraButtonEnabled;
+    private TableLayout mediaButtonsTable;
 
     /**
      * Required empty constructor for the fragment manager to instantiate the
@@ -112,6 +114,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             }
         });
 
+        mediaButtonsTable = (TableLayout) view.findViewById(R.id.media_buttons_table);
 
         // Photograph button
         ImageButton cameraButton = (ImageButton) view.findViewById(R.id.camera_button);
@@ -264,6 +267,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         isCameraButtonEnabled = Boolean.parseBoolean(config.get(Constants.Config.SHOW_PHOTO_BUTTON));
         if (isCameraButtonEnabled){
             cameraButton.setVisibility(View.VISIBLE);
+            mediaButtonsTable.setVisibility(View.VISIBLE);
         }
 
         // Register this fragment as connection state observer

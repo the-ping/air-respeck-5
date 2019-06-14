@@ -170,14 +170,13 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i("MainActivity", "Pairing info: " + new Gson().toJson(mLoadedConfig));
 
-        if (mLoadedConfig.containsKey("CollectMedia") && mLoadedConfig.get("CollectMedia").compareTo("True") == 0) {
-            mCollectMedia = true;
-            Log.i("MainActivity", "Enable media collection");
-        }
-
         if (mLoadedConfig.isEmpty()) {
             showDoPairingDialog();
             return;
+        }
+
+        if (mLoadedConfig.containsKey(Constants.Config.SHOW_PHOTO_BUTTON)) {
+            mCollectMedia = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.SHOW_PHOTO_BUTTON));
         }
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
