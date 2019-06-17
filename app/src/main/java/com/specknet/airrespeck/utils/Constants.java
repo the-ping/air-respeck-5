@@ -322,7 +322,7 @@ public class Constants {
         public static final String DISABLE_POST_FILTERING_BREATHING = "DisablePostFilteringBreathing";
         public static final String DISABLE_WRONG_ORIENTATION_DIALOG = "DisableWrongOrientationDialog";
         public static final String SHOW_SUBJECT_VALUES_SCREEN = "ShowSubjectValues";
-        public static final String SHOW_PHOTO_BUTTON = "ShowPhotoButton";
+        public static final String SHOW_MEDIA_BUTTONS = "ShowMediaButtons";
     }
 
     public static final String SECURITY_KEY_FILE = "SecurityKeyFile";

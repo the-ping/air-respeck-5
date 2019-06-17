@@ -46,7 +46,6 @@ import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckMapLoaderFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckReadingsFragment;
-import com.specknet.airrespeck.fragments.SupervisedCoughingFragment;
 import com.specknet.airrespeck.fragments.SupervisedIndoorPredictionFragment;
 import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
@@ -175,8 +174,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (mLoadedConfig.containsKey(Constants.Config.SHOW_PHOTO_BUTTON)) {
-            mCollectMedia = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.SHOW_PHOTO_BUTTON));
+        if (mLoadedConfig.containsKey(Constants.Config.SHOW_MEDIA_BUTTONS)) {
+            mCollectMedia = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.SHOW_MEDIA_BUTTONS));
         }
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.

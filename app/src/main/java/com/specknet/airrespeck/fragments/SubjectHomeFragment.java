@@ -2,10 +2,6 @@ package com.specknet.airrespeck.fragments;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -41,10 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
-
-import okhttp3.internal.Util;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -72,7 +65,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private boolean isRespeckEnabled;
     private boolean isRespeckPaused;
 
-    private boolean isCameraButtonEnabled;
+    private boolean isMediaButtonsEnabled;
     private TableLayout mediaButtonsTable;
 
     /**
@@ -114,13 +107,15 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             }
         });
 
-        mediaButtonsTable = (TableLayout) view.findViewById(R.id.media_buttons_table);
 
-        // Photograph button
-        ImageButton cameraButton = (ImageButton) view.findViewById(R.id.camera_button);
-        cameraButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+
+        Map<String, String> config = Utils.getInstance().getConfig(getActivity());
+        isMediaButtonsEnabled = Boolean.parseBoolean(config.get(Constants.Config.SHOW_MEDIA_BUTTONS));
+
+        if (isMediaButtonsEnabled){
+            // Photograph button
+            ImageButton cameraButton = (ImageButton) view.findViewById(R.id.camera_button);
+            cameraButton.setOnClickListener(view12 -> {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
 
@@ -138,14 +133,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                     }
                 }
-            }
-        });
+            });
 
-        // Video button
-        ImageButton videoButton = (ImageButton) view.findViewById(R.id.video_button);
-        videoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            // Video button
+            ImageButton videoButton = (ImageButton) view.findViewById(R.id.video_button);
+            videoButton.setOnClickListener(view1 -> {
                 Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
                 if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
 
@@ -163,24 +155,18 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                         startActivityForResult(intent, REQUEST_VIDEO_CAPTURE);
                     }
                 }
-            }
-        });
+            });
 
-        // Text button
-        ImageButton textButton = (ImageButton) view.findViewById(R.id.text_button);
-        textButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            // Text button
+            ImageButton textButton = (ImageButton) view.findViewById(R.id.text_button);
+            textButton.setOnClickListener(view13 -> {
                 TextSubmission textFragment = new TextSubmission();
                 textFragment.show(getActivity().getFragmentManager(), "text");
-            }
-        });
+            });
 
-        // Audio button
-        ImageButton audioButton = (ImageButton) view.findViewById(R.id.audio_button);
-        audioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            // Audio button
+            ImageButton audioButton = (ImageButton) view.findViewById(R.id.audio_button);
+            audioButton.setOnClickListener(view14 -> {
                 if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ) {
@@ -194,51 +180,46 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                 transaction.replace(R.id.main_frame, fragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
-            }
-        });
+            });
 
+            // Now that the buttons have been initialised, show them.
+            mediaButtonsTable = (TableLayout) view.findViewById(R.id.media_buttons_table);
+            mediaButtonsTable.setVisibility(View.VISIBLE);
+        }
 
         // Initialise pause button for RESpeck
         respeckPausePlayButton = (ImageButton) view.findViewById(R.id.respeck_pause_button);
         respeckPausePlayButton.setEnabled(false);
-        respeckPausePlayButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isRespeckPaused) {
-                    // Send CONTINUE command
-                    Intent intentData = new Intent(Constants.ACTION_RESPECK_RECORDING_CONTINUE);
-                    getActivity().sendBroadcast(intentData);
+        respeckPausePlayButton.setOnClickListener(v -> {
+            if (isRespeckPaused) {
+                // Send CONTINUE command
+                Intent intentData = new Intent(Constants.ACTION_RESPECK_RECORDING_CONTINUE);
+                getActivity().sendBroadcast(intentData);
 
-                    isRespeckPaused = false;
+                isRespeckPaused = false;
 
-                    respeckPausePlayButton.setImageDrawable(
-                            ContextCompat.getDrawable(getActivity(), R.drawable.ic_pause_black_24dp));
+                respeckPausePlayButton.setImageDrawable(
+                        ContextCompat.getDrawable(getActivity(), R.drawable.ic_pause_black_24dp));
 
-                    connectedStatusRESpeck.setImageDrawable(
-                            ContextCompat.getDrawable(getActivity(), R.drawable.vec_wireless_active));
+                connectedStatusRESpeck.setImageDrawable(
+                        ContextCompat.getDrawable(getActivity(), R.drawable.vec_wireless_active));
 
-                    FileLogger.logToFile(getActivity(), "RESpeck recording continued");
-                } else {
-                    respeckPausePlayButton.setEnabled(false);
-                    showRESpeckPauseDialog();
-                }
+                FileLogger.logToFile(getActivity(), "RESpeck recording continued");
+            } else {
+                respeckPausePlayButton.setEnabled(false);
+                showRESpeckPauseDialog();
             }
         });
 
         // Initialise turn off button for Airspeck
         airspeckOffButton = (ImageButton) view.findViewById(R.id.airspeck_off_button);
         airspeckOffButton.setEnabled(false);
-        airspeckOffButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Send switch off message to BLE service
-                airspeckOffButton.setEnabled(false);
-                showAirspeckPowerOffDialog();
-            }
+        airspeckOffButton.setOnClickListener(view15 -> {
+            // Send switch off message to BLE service
+            airspeckOffButton.setEnabled(false);
+            showAirspeckPowerOffDialog();
         });
 
-        Utils utils = Utils.getInstance();
-        Map<String, String> config = utils.getConfig(getActivity());
         isAirspeckEnabled = !config.get(Constants.Config.AIRSPECKP_UUID).isEmpty();
         isRespeckEnabled = !config.get(Constants.Config.RESPECK_UUID).isEmpty();
 
@@ -262,12 +243,6 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             connectedStatusRESpeck.setVisibility(View.GONE);
             progressBarRESpeck.setVisibility(View.GONE);
             respeckDisabledImage.setVisibility(View.VISIBLE);
-        }
-
-        isCameraButtonEnabled = Boolean.parseBoolean(config.get(Constants.Config.SHOW_PHOTO_BUTTON));
-        if (isCameraButtonEnabled){
-            cameraButton.setVisibility(View.VISIBLE);
-            mediaButtonsTable.setVisibility(View.VISIBLE);
         }
 
         // Register this fragment as connection state observer
