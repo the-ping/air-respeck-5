@@ -446,7 +446,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             mediaFile.delete();
         }
         else if (requestCode == REQUEST_IMAGE_CAPTURE){
-            Toast.makeText(getContext(), "Picture saved successfully\nPlease check image quality now", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Picture saved successfully\nPlease check image quality now by\nzooming in on the photo", Toast.LENGTH_SHORT).show();
             // Launch default viewer for the file
             Intent intent2 = new Intent();
             intent2.setAction(android.content.Intent.ACTION_VIEW);
