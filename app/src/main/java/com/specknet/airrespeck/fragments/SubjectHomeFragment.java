@@ -1,6 +1,7 @@
 package com.specknet.airrespeck.fragments;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -68,6 +69,8 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private boolean isMediaButtonsEnabled;
     private TableLayout mediaButtonsTable;
 
+    private Uri photoURI;
+
     /**
      * Required empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -126,9 +129,10 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                     }
 
                     if (mediaFile != null) {
-                        Uri photoURI = FileProvider.getUriForFile(getContext(),
+                        photoURI = FileProvider.getUriForFile(getContext(),
                                 "com.specknet.airrespeck.fileprovider",
                                 mediaFile);
+
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                     }
@@ -442,6 +446,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         }
         else if (requestCode == REQUEST_IMAGE_CAPTURE){
             Toast.makeText(getContext(), "Picture saved successfully", Toast.LENGTH_SHORT).show();
+            // Launch default viewer for the file
+            Intent intent2 = new Intent();
+            intent2.setAction(android.content.Intent.ACTION_VIEW);
+            intent2.setDataAndType(photoURI,"image/*");
+            ((Activity) getContext()).startActivity(intent2);
         }
         else if (requestCode == REQUEST_VIDEO_CAPTURE){
             Toast.makeText(getContext(), "Video saved successfully", Toast.LENGTH_SHORT).show();
