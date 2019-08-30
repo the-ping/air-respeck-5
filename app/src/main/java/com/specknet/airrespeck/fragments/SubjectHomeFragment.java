@@ -129,7 +129,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                     }
 
                     if (mediaFile != null) {
-                        photoURI = FileProvider.getUriForFile(getContext(),
+                        Uri photoURI = FileProvider.getUriForFile(getContext(),
                                 "com.specknet.airrespeck.fileprovider",
                                 mediaFile);
 
@@ -433,6 +433,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                     Constants.MEDIA_DIRECTORY_NAME;
             String filename = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             File mediaFile = new File(new File(directory), filename.concat(suffix));
+            photoURI = Uri.parse(mediaFile.toString());
             mediaFile.createNewFile();
             return mediaFile;
         }
@@ -445,7 +446,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             mediaFile.delete();
         }
         else if (requestCode == REQUEST_IMAGE_CAPTURE){
-            Toast.makeText(getContext(), "Picture saved successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Picture saved successfully\nPlease check image quality now", Toast.LENGTH_SHORT).show();
             // Launch default viewer for the file
             Intent intent2 = new Intent();
             intent2.setAction(android.content.Intent.ACTION_VIEW);
