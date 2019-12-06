@@ -69,6 +69,8 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private boolean isMediaButtonsEnabled;
     private TableLayout mediaButtonsTable;
 
+    private boolean isRehabProject;
+
     private Uri photoURI;
 
     /**
@@ -90,6 +92,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_subject_home, container, false);
 
+        // Get options from project config
+        Map<String, String> config = Utils.getInstance().getConfig(getActivity());
+        isMediaButtonsEnabled = Boolean.parseBoolean(config.get(Constants.Config.SHOW_MEDIA_BUTTONS));
+        isRehabProject = Boolean.parseBoolean(config.get(Constants.Config.IS_REHAB_PROJECT));
+
         // Load connection symbols
         connectedStatusRESpeck = (ImageView) view.findViewById(R.id.connected_status_respeck);
         connectedStatusAirspeck = (ImageView) view.findViewById(R.id.connected_status_airspeck);
@@ -109,11 +116,6 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                 startDiaryApp(getActivity(), "com.specknet.diarydaphne");
             }
         });
-
-
-
-        Map<String, String> config = Utils.getInstance().getConfig(getActivity());
-        isMediaButtonsEnabled = Boolean.parseBoolean(config.get(Constants.Config.SHOW_MEDIA_BUTTONS));
 
         if (isMediaButtonsEnabled){
             // Photograph button
@@ -193,6 +195,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
         // Initialise pause button for RESpeck
         respeckPausePlayButton = (ImageButton) view.findViewById(R.id.respeck_pause_button);
+
+        if (isRehabProject) {
+            respeckPausePlayButton.setVisibility(View.INVISIBLE);
+        }
+
         respeckPausePlayButton.setEnabled(false);
         respeckPausePlayButton.setOnClickListener(v -> {
             if (isRespeckPaused) {
