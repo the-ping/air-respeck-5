@@ -91,6 +91,8 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
         speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_BROADCAST))
         speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_RESPECK_AVG_STORED_BROADCAST))
         speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_DIARY_BROADCAST))
+        speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.ACTION_REHAB_DIARY_BROADCAST))
+        speckService.registerReceiver(respeckReceiver, IntentFilter(Constants.REHAB_STATS_UPLOAD))
 
         // Setup upload queue which stores data until it can be uploaded
         val queueFile = File(speckService.filesDir, FILENAME)
@@ -208,6 +210,7 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
                     //mySubject.onNext(Gson().fromJson(jsonAverageStoredData.toString(), JsonElement::class.java).asJsonObject)
                     */
                 }
+                // TODO Add a new broadcast intent to push rehab data
                 Constants.ACTION_DIARY_BROADCAST -> {
                     val recordString = intent.getSerializableExtra(Constants.DIARY_FILE_STRING) as String
                     val recordJSONString = intent.getSerializableExtra(Constants.DIARY_JSON) as String
@@ -244,6 +247,66 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
                     diaryGson.addProperty("messagetype", "diary")
                     Log.i("Upload", "Diary upload: " + diaryGson)
                     mySubject.onNext(diaryGson)
+                }
+
+                //TODO complete rehab diary upload
+                Constants.ACTION_REHAB_DIARY_BROADCAST -> {
+                    Log.i("DEBUG", "In rehab diary boradcast")
+                    val recordString = intent.getStringExtra(Constants.REHAB_DIARY_FILE_STRING) as String
+                    val recordJSONString = intent.getStringExtra(Constants.REHAB_DIARY_JSON) as String
+                    Log.i("DEBUG", "Received rehab diary record string " + recordString)
+
+                    // Store diary
+                    var diaryWriter: OutputStreamWriter
+
+                    val subjectID = Utils.getInstance().getConfig(service)[Constants.Config.SUBJECT_ID]
+                    val androidID = Settings.Secure.getString(service.contentResolver, Settings.Secure.ANDROID_ID)
+
+                    val filenameDiary = Utils.getInstance().getDataDirectory(service) +
+                            Constants.DIARY_DATA_DIRECTORY_NAME + "/Diary $subjectID $androidID.csv"
+
+                    Log.i("Diary", "file path: " + filenameDiary)
+                    if (!File(filenameDiary).exists()) run {
+                        Log.i("RESpeckPacketHandler", "Diary data file created with header")
+                        // Open new connection to file (which creates file)
+                        diaryWriter = OutputStreamWriter(
+                                FileOutputStream(filenameDiary, true))
+
+                        diaryWriter.append(Constants.REHAB_DIARY_HEADER).append("\n")
+                        diaryWriter.close()
+                    }
+                    Log.i("Diary", "record created: " + recordString)
+
+                    diaryWriter = OutputStreamWriter(
+                            FileOutputStream(filenameDiary, true))
+                    diaryWriter.append(recordString + "\n")
+                    diaryWriter.close()
+
+                    // TODO put the upload in here
+                    // Upload
+                    val parser = JsonParser()
+                    val diaryGson = parser.parse(recordJSONString).asJsonObject
+                    diaryGson.addProperty("messagetype", "rehab_diary")
+                    Log.i("Upload", "Diary upload: " + diaryGson)
+                    mySubject.onNext(diaryGson)
+                }
+
+                Constants.REHAB_STATS_UPLOAD -> {
+                    Log.i("DEBUG", "In rehab stats upload")
+                    val rehabStats = intent.getStringExtra(Constants.REHAB_STATS_MSG) as String
+                    Log.i("DEBUG", "Received rehab stats string " + rehabStats)
+
+                    val jsonExerciseData = Gson().fromJson(rehabStats, JsonObject::class.java)
+
+                    Log.i("DEBUG_UPLOAD", "Successfully converted rehab stats to json: " + jsonExerciseData.isJsonObject)
+                    Log.i("DEBUG_UPLOAD", "Exercise list: " + jsonExerciseData.getAsJsonArray("exercise_data"))
+                    Log.i("DEBUG_UPLOAD", "First exercise: " + jsonExerciseData.getAsJsonArray("exercise_data").get(0))
+                    Log.i("DEBUG_UPLOAD", "First exercise is json obj: " + jsonExerciseData.getAsJsonArray("exercise_data").get(0).isJsonObject)
+
+                    mySubject.onNext(jsonExerciseData)
+
+                    Log.i("DEBUG_UPLOAD", "Uploaded rehab data")
+
                 }
                 else -> {
                     Log.i("Upload", "Respeck invalid message received")
