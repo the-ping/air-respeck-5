@@ -85,9 +85,39 @@ public class Constants {
     public static final String ACTION_RESPECK_AVG_STORED_BROADCAST =
             "com.specknet.respeck.RESPECK_AVG_STORED_BROADCAST";
 
+     /*
+    Modified by Teo for Rehab3
+     */
+
+    public static final String ACTION_RESPECK_REHAB_BROADCAST = "com.specknet.respeck.RESPECK_REHAB_BROADCAST";
+    public static final String RESPECK_REHAB_DATA = "respeck_rehab_data";
+    public static final String EXTRA_RESPECK_LIVE_BR = "respeck_breathing_rate";
+    public static final String EXTRA_RESPECK_LIVE_BS = "respeck_breathing_signal";
+    public static final String EXTRA_RESPECK_BS_TIMESTAMP = "respeck_interpolated_phone_timestamp";
+    public static final String EXTRA_RESPECK_RS_TIMESTAMP = "respeck_sensor_timestamp";
+    public static final String EXTRA_RESPECK_SEQ = "respeck_sequence_number";
+    public static final String EXTRA_RESPECK_LIVE_X = "respeck_x";
+    public static final String EXTRA_RESPECK_LIVE_Y = "respeck_y";
+    public static final String EXTRA_RESPECK_LIVE_Z = "respeck_z";
+    public static final String EXTRA_RESPECK_LIVE_ACTIVITY = "respeck_activity_level";
+    public static final String EXTRA_RESPECK_LIVE_ACTIVITY_TYPE = "respeck_activity_type";
+
+
+    /*
+    Rehab3 summary results
+     */
+    public static final String REHAB_STATS_UPLOAD = "com.specknet.uploadservice.REHAB_STATS_UPLOAD";
+    public static final String REHAB_STATS_MSG = "com.specknet.uploadservice.REHAB_STATS_MSG";
+
     public static final String ACTION_DIARY_BROADCAST = "com.specknet.diarydaphne.DIARY_BROADCAST";
     public static final String DIARY_JSON = "diary_json";
     public static final String DIARY_FILE_STRING = "diary_string";
+
+    // Constants for rehab diary
+    public static final String ACTION_REHAB_DIARY_BROADCAST = "com.specknet.rehabdiary.DIARY_BROADCAST";
+    public static final String REHAB_DIARY_JSON = "rehab_diary_json";
+    public static final String REHAB_DIARY_FILE_STRING = "rehab_diary_string";
+
 
     public static final String ACTION_RESPECK_CONNECTED =
             "com.specknet.respeck.RESPECK_CONNECTED";
@@ -264,6 +294,8 @@ public class Constants {
 
     public static final String DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6," +
             "answer7,answer8,pef,fev1,fev6,fvc,fef2575";
+
+    public static final String REHAB_DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6,answer7,answer8,score";
 
     public static final String ACTIVITY_RECORDING_HEADER = "subjectName,timestamp,x,y,z,breathingSignal,loggedActivity,activityLevel,activityType";
 
