@@ -407,6 +407,23 @@ public class RESpeckPacketHandler {
                 writeToRESpeck(newRESpeckLiveData);
             }
 
+            // Test: send live broadcast intent with strings and floats (for rehab app)
+            Intent liveDataIntentTest = new Intent(Constants.ACTION_RESPECK_REHAB_BROADCAST);
+            String testString = "Test me";
+            liveDataIntentTest.putExtra(Constants.RESPECK_REHAB_DATA, testString);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_BR, breathingRate);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_BS, breathingSignal);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_X, x);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_Y, y);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_Z, z);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_BS_TIMESTAMP, interpolatedPhoneTimestampOfCurrentSample);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_RS_TIMESTAMP, newRESpeckTimestamp);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_ACTIVITY, activityLevel);
+            liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_ACTIVITY_TYPE, activityType);
+            mSpeckService.sendBroadcast(liveDataIntentTest);
+
+            Log.i("RESpeckPacketHandler", "Sent RESpeck live data to rehab app: " + testString);
+
             // Send live broadcast intent
             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
             liveDataIntent.putExtra(Constants.RESPECK_LIVE_DATA, newRESpeckLiveData);
