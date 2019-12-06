@@ -21,6 +21,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
@@ -132,6 +133,9 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                     startRehabApp(getActivity(), "com.specknet.rehab3");
                 }
             });
+
+            TableRow airspeckRow = (TableRow) view.findViewById(R.id.airspeck_row);
+            airspeckRow.setVisibility(View.GONE);
         }
 
         if (isMediaButtonsEnabled){
