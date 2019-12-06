@@ -46,3 +46,4 @@ Thumbs.db
 # External build
 .externalNativeBuild
 app/release/
+app/.cxx/
