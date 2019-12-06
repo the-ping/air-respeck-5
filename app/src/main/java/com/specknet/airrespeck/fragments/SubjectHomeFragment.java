@@ -113,9 +113,26 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         diaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startDiaryApp(getActivity(), "com.specknet.diarydaphne");
+                if(isRehabProject) {
+                    startDiaryApp(getActivity(), "com.specknet.rehabdiary");
+                }
+                else {
+                    startDiaryApp(getActivity(), "com.specknet.diarydaphne");
+                }
+
             }
         });
+
+        if(isRehabProject) {
+            ImageButton rehabButton = (ImageButton) view.findViewById(R.id.rehab_button);
+            rehabButton.setVisibility(View.VISIBLE);
+            rehabButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startRehabApp(getActivity(), "com.specknet.rehab3");
+                }
+            });
+        }
 
         if (isMediaButtonsEnabled){
             // Photograph button
@@ -358,6 +375,18 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
         if (intent == null) {
             Toast.makeText(context, "Diary app not installed. Contact researchers for further information.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
+    public void startRehabApp(Context context, String packageName) {
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+
+        if (intent == null) {
+            Toast.makeText(context, "Rehab app not installed. Contact researchers for further information.",
                     Toast.LENGTH_LONG).show();
         } else {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
