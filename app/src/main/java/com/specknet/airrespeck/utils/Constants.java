@@ -271,6 +271,8 @@ public class Constants {
     public static final String DIARY_DATA_DIRECTORY_NAME = "/Diary/";
     public static final String LOGGING_DIRECTORY_NAME = "/Logging/";
     public static final String MEDIA_DIRECTORY_NAME = "/Media/";
+    public static final String REHAB_DIRECTORY_NAME = "/Rehab/";
+
 
 
     public static final String RESPECK_DATA_HEADER = "interpolatedPhoneTimestamp,respeckTimestamp,sequenceNumber,x,y,z," +
@@ -295,7 +297,7 @@ public class Constants {
     public static final String DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6," +
             "answer7,answer8,pef,fev1,fev6,fvc,fef2575";
 
-    public static final String REHAB_DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6,answer7,answer8,score";
+    public static final String REHAB_DIARY_HEADER = "timestamp,diary_id,answer1,answer2,answer3,answer4,answer5,answer6,answer7,answer8,answer9,answer10,score";
 
     public static final String ACTIVITY_RECORDING_HEADER = "subjectName,timestamp,x,y,z,breathingSignal,loggedActivity,activityLevel,activityType";
 

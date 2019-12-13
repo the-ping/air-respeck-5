@@ -296,6 +296,31 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
                     val rehabStats = intent.getStringExtra(Constants.REHAB_STATS_MSG) as String
                     Log.i("DEBUG", "Received rehab stats string " + rehabStats)
 
+                    var rehabWriter: OutputStreamWriter
+
+                    val subjectID = Utils.getInstance().getConfig(service)[Constants.Config.SUBJECT_ID]
+                    val androidID = Settings.Secure.getString(service.contentResolver, Settings.Secure.ANDROID_ID)
+
+                    val filenameRehab = Utils.getInstance().getDataDirectory(service) +
+                            Constants.REHAB_DIRECTORY_NAME + "/Rehab $subjectID $androidID.json"
+
+                    Log.i("Rehab", "file path: " + filenameRehab)
+                    if (!File(filenameRehab).exists()) run {
+                        Log.i("RESpeckPacketHandler", "Rehab file created with header")
+                        // Open new connection to file (which creates file)
+                        rehabWriter = OutputStreamWriter(
+                                FileOutputStream(filenameRehab, true))
+
+                        //rehabWriter.append(Constants.REHAB_EXERCISES_HEADER).append("\n")
+                        rehabWriter.close()
+                    }
+                    Log.i("Rehab", "record created: " + rehabStats)
+
+                    rehabWriter = OutputStreamWriter(
+                            FileOutputStream(filenameRehab, true))
+                    rehabWriter.append(rehabStats + "\n")
+                    rehabWriter.close()
+
                     val jsonExerciseData = Gson().fromJson(rehabStats, JsonObject::class.java)
 
                     Log.i("DEBUG_UPLOAD", "Successfully converted rehab stats to json: " + jsonExerciseData.isJsonObject)

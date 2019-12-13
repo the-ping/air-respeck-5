@@ -256,6 +256,17 @@ public final class Utils {
                 throw new RuntimeException("Couldn't create media directory on external storage");
             }
         }
+
+        // Create rehab folder
+        directory = new File(dataDirectoryPath + Constants.REHAB_DIRECTORY_NAME);
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (created) {
+                Log.i("DF", "Directory created: " + directory);
+            } else {
+                throw new RuntimeException("Couldn't create rehab directory on external storage");
+            }
+        }
     }
 
     private boolean loadConfig(Context context) {
