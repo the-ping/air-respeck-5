@@ -146,12 +146,12 @@
             android:id="@+id/rehab_button"
             android:layout_width="170dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:layout_marginTop="15dp"
-            android:visibility="invisible"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/clickable_button_background"
             android:padding="15dp"
-            app:srcCompat="@drawable/vec_lungs"/>
+            android:visibility="gone"
+            app:srcCompat="@drawable/vec_lungs" />
 
         <LinearLayout
             android:layout_width="match_parent"
