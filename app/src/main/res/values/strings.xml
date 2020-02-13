@@ -237,6 +237,8 @@
     <!-- Wrong orientation dialog -->
     <string name="wrong_orientation_message">The RESpeck sensor seems to be fastened in the wrong position.
         Please fasten it as depicted in the image.</string>
+    <string name="wrong_orientation_message_dutch">De RESpeck sensor is mogelijk onjuist bevestigd.
+        Plaats de sensor zoals aangegeven en in deze afbeelding.</string>
     <string name="wrong_orientation_done">Done</string>
 
     <!-- GPS dialog -->

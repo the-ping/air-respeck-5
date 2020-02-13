@@ -12,6 +12,7 @@
         android:src="@drawable/vec_orientation_respeck"/>
 
     <TextView
+        android:id="@+id/wrong_orientation_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
