@@ -887,6 +887,21 @@ public class MainActivity extends AppCompatActivity {
         return getString(R.string.wrong_orientation_message);
     }
 
+    public String getBreathingSuffix() {
+        String sid = "";
+        // Needs to be in Dutch for Windmill
+        if (mLoadedConfig.containsKey(Constants.Config.SUBJECT_ID)) {
+            sid = mLoadedConfig.get(Constants.Config.SUBJECT_ID);
+        }
+        Log.i("Rat", "SID " + sid);
+        if (sid.contains("WI") && !sid.contains("WIF")){
+            return "Ah/min";
+        }
+        return "BrPM";
+    }
+
+
+
     private void notifyNewRESpeckReading(RESpeckLiveData newData) {
         for (RESpeckDataObserver observer : respeckDataObservers) {
             observer.updateRESpeckData(newData);

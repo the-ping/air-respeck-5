@@ -81,10 +81,13 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
     private void updateReadings(RESpeckLiveData data) {
         // Update readings and activity symbol
         // Set breathing rate text to currently calculated rates
+
+        String suffix = ((MainActivity) getActivity()).getBreathingSuffix();
+
         if (!Float.isNaN(data.getBreathingRate())) {
-            breathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getBreathingRate()));
+            breathingRateText.setText(String.format(Locale.UK, "%.2f " + suffix, data.getBreathingRate()));
         }
-        averageBreathingRateText.setText(String.format(Locale.UK, "%.2f BrPM", data.getAvgBreathingRate()));
+        averageBreathingRateText.setText(String.format(Locale.UK, "%.2f " + suffix, data.getAvgBreathingRate()));
         stepCountText.setText(Integer.toString(data.getMinuteStepCount()));
 
         // Set activity icon to reflect currently predicted activity
