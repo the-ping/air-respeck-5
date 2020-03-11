@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Environment
+import android.os.StatFs
 import android.provider.Settings
 import android.util.Log
 import com.google.gson.*
@@ -21,6 +23,9 @@ import rx.subjects.PublishSubject
 import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
+import android.os.Environment.getExternalStorageDirectory
+
+
 
 
 class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
@@ -67,6 +72,8 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
 
         // Create header json object
         val jsonHeader = JSONObject()
+        val sf = StatFs(Environment.getExternalStorageDirectory().getPath())
+
         try {
             jsonHeader.put("android_id", Settings.Secure.getString(speckService.contentResolver,
                     Settings.Secure.ANDROID_ID))
@@ -78,6 +85,7 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
             jsonHeader.put("security_key", Utils.getSecurityKey(speckService));
             jsonHeader.put("patient_id", loadedConfig.get(Constants.Config.SUBJECT_ID))
             jsonHeader.put("app_version", utils.appVersionCode)
+            jsonHeader.put("free_space_mb", sf.getAvailableBytes() / 1024 / 1024)
         } catch (e: Exception) {
             e.printStackTrace()
         }
