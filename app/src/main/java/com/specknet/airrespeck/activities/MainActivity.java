@@ -153,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
     public InhalerData lastInhalerPress = null;
     private boolean mCollectMedia = false;
 
+    private PowerManager.WakeLock wakeLock;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -337,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
     private void aquireWakeLockToKeepAppRunning() {
         // Request wake lock to keep CPU running for all services of the app
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
         wakeLock.acquire();
     }
 
@@ -783,6 +785,17 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.i("DF", "App is being destroyed");
         FileLogger.logToFile(this, "App destroyed (stopped)");
+
+        try {
+            wakeLock.release();
+        } catch (NullPointerException e) {
+
+        }
+
+        //int pid = android.os.Process.myPid();
+        //android.os.Process.killProcess(pid);
+
+        //System.exit(0);
         super.onDestroy();
     }
 
