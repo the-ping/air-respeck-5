@@ -246,7 +246,10 @@ public class PhoneGPSService extends Service implements
             }
         }
         Log.i("GPSService", "GPS service stopped");
+
         super.onDestroy();
+        int pid = android.os.Process.myPid();
+        android.os.Process.killProcess(pid);
     }
 
     @Override

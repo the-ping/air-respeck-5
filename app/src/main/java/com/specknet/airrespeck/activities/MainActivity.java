@@ -792,11 +792,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        //int pid = android.os.Process.myPid();
-        //android.os.Process.killProcess(pid);
-
-        //System.exit(0);
         super.onDestroy();
+        System.exit(0);
     }
 
     private void stopServices() {

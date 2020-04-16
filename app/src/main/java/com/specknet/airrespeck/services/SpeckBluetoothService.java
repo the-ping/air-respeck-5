@@ -151,6 +151,8 @@ public class SpeckBluetoothService extends Service {
         stopSpeckService();
         Log.i(TAG, "SpeckService has been stopped");
         super.onDestroy();
+        int pid = android.os.Process.myPid();
+        android.os.Process.killProcess(pid);
     }
 
     @Nullable
