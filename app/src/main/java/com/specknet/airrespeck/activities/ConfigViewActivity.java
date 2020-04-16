@@ -4,10 +4,12 @@ import android.content.CursorLoader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.utils.Constants;
@@ -26,6 +28,8 @@ public class ConfigViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_config);
 
         configList = (ListView) findViewById(R.id.list_view_config_view);
+        TextView idtv = (TextView) findViewById(R.id.androidIDtextView);
+        idtv.setText("Phone ID: " + Settings.Secure.getString(getBaseContext().getContentResolver(), Settings.Secure.ANDROID_ID));
 
         loadValuesFromContentProvider();
     }

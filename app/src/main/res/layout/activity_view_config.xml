@@ -5,6 +5,15 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+
+    <TextView
+        android:id="@+id/androidIDtextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/place_autocomplete_button_padding"
+        android:text="Phone ID: "
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
+
     <android.widget.ListView
         android:id="@+id/list_view_config_view"
         android:layout_width="match_parent"
