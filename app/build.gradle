@@ -15,7 +15,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 25
         versionCode 105
-        versionName "2.5.9"
+        versionName "2.5.10-clean_exit"
 
         // Enabling multidex support.
         // multiDexEnabled true
