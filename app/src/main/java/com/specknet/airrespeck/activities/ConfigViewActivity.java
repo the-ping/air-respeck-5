@@ -12,7 +12,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.adapters.HashMapAdapter;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
 /**
  * Page to view the configuration set by the pairing app
@@ -28,10 +30,8 @@ public class ConfigViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_config);
 
         configList = (ListView) findViewById(R.id.list_view_config_view);
-        TextView idtv = (TextView) findViewById(R.id.androidIDtextView);
-        idtv.setText("Phone ID: " + Settings.Secure.getString(getBaseContext().getContentResolver(), Settings.Secure.ANDROID_ID));
-
-        loadValuesFromContentProvider();
+        HashMapAdapter adapter = new HashMapAdapter(Utils.getInstance().getConfig(this));
+        configList.setAdapter(adapter);
     }
 
     private void loadValuesFromContentProvider() {

@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
@@ -272,7 +273,9 @@ public final class Utils {
     private boolean loadConfig(Context context) {
         Cursor cursor = context.getContentResolver().query(Constants.Config.CONFIG_CONTENT_URI,
                 null, null, null, null);
-        loadedConfig = new HashMap<>();
+        loadedConfig = new LinkedHashMap<>();
+
+        loadedConfig.put("PhoneID", Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID));
 
         if (cursor != null) {
             // Set cursor to first row

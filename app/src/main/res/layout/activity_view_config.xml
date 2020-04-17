@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/place_autocomplete_button_padding"
-        android:text="Phone ID: "
+        android:text="Pairing information"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 
     <android.widget.ListView
