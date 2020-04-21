@@ -271,11 +271,17 @@ public final class Utils {
     }
 
     private boolean loadConfig(Context context) {
-        Cursor cursor = context.getContentResolver().query(Constants.Config.CONFIG_CONTENT_URI,
-                null, null, null, null);
         loadedConfig = new LinkedHashMap<>();
-
         loadedConfig.put("PhoneID", Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID));
+
+        Cursor cursor;
+        try {
+            cursor = context.getContentResolver().query(Constants.Config.CONFIG_CONTENT_URI,
+                    null, null, null, null);
+        } catch (SecurityException e) {
+            Log.i("RAT", "Permission denied when trying to access pairing info - install pairing app before airrespeck");
+            return false;
+        }
 
         if (cursor != null) {
             // Set cursor to first row
@@ -288,6 +294,7 @@ public final class Utils {
             cursor.close();
             return true;
         } else {
+            Log.i("RAT", "No pairing info found");
             return false;
         }
     }

@@ -122,6 +122,7 @@ public class SecurityKeySetupActivity extends Activity {
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         SecurityKeySetupActivity.this.finish();
+                        System.exit(0);
                     }
                 });
         alertDialogBuilder.create().show();
