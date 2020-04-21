@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mCollectMedia = false;
 
     private PowerManager.WakeLock wakeLock;
+    private boolean doFullAppClose = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i("MainActivity", "Pairing info: " + new Gson().toJson(mLoadedConfig));
 
-        if (mLoadedConfig.isEmpty()) {
+        if (mLoadedConfig.size() <= 1 || mLoadedConfig.get("SubjectID").compareTo("") == 0) {
             showDoPairingDialog();
             return;
         }
@@ -193,11 +194,13 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("No pairing detected. Please run Pairing app before starting this app!")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        MainActivity.this.doFullAppClose = true;
                         MainActivity.this.finish();
                     }
                 });
         alertDialogBuilder.create().show();
     }
+
 
     private void checkPermissionsAndInitMainActivity() {
         boolean isStoragePermissionGranted = Utils.checkAndRequestStoragePermission(MainActivity.this);
@@ -244,8 +247,10 @@ public class MainActivity extends AppCompatActivity {
 
         // If either the key hasn't been set yet, or if it wasn't created with the currently used project ID,
         // create a new key.
-        if (securityKey.equals("") || !projectIDKey.equals(
-                mLoadedConfig.get(Constants.Config.SUBJECT_ID).substring(0, 2))) {
+
+        String sid = mLoadedConfig.get(Constants.Config.SUBJECT_ID);
+
+        if (securityKey.equals("") || !projectIDKey.equals(sid.substring(0, 2))) {
             // Open SecurityKeyActivity
             Intent intent = new Intent(this, SecurityKeySetupActivity.class);
             startActivity(intent);
@@ -793,7 +798,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         super.onDestroy();
-        System.exit(0);
+
+        if (doFullAppClose) {
+            System.exit(0);
+        }
     }
 
     private void stopServices() {
@@ -844,6 +852,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_close_app:
                 stopServices();
+                doFullAppClose = true;
                 finish();
                 return true;
             case R.id.action_view_config:
