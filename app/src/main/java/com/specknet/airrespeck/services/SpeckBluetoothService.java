@@ -644,7 +644,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     public String getRESpeckFwVersion() {
-        if mRespeckName.charAt(3).equals("6") {
+        if (mRESpeckName.charAt(3) == '6') {
             return mRESpeckName.substring(3);
         }
         else {
