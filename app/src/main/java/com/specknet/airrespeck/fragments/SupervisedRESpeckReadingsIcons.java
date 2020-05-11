@@ -16,9 +16,11 @@ import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 import com.specknet.airrespeck.views.BreathingGraphView;
 
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Fragment created for the Windmill project which contains the breathing rate, minute average breathing rate,
@@ -35,6 +37,9 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
     ImageView activityIcon;
 
     private BreathingGraphView mBreathingGraphView;
+
+    private Utils mUtils;
+    private Map<String, String> mLoadedConfig;
 
 
     /**
@@ -74,6 +79,15 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
 
         // Register this fragment as connection state observer
         ((MainActivity) getActivity()).registerConnectionStateObserver(this);
+
+        // hide activity type icon if specified in pairing options
+        mUtils = Utils.getInstance();
+        mLoadedConfig = mUtils.getConfig(getActivity());
+        if (mLoadedConfig.containsKey(Constants.Config.HIDE_ACTIVITY_TYPE)) {
+            if (Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.HIDE_ACTIVITY_TYPE))) {
+                activityIcon.setVisibility(View.GONE);
+            }
+        }
 
         return view;
     }
