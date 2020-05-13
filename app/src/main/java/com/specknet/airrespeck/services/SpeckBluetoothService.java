@@ -608,7 +608,7 @@ public class SpeckBluetoothService extends Service {
 
         final String respeck_characteristic;
 
-        if (getRESpeckFwVersion().contains("4") || getRESpeckFwVersion().contains("5")) {
+        if (getRESpeckFwVersion().contains("4") || getRESpeckFwVersion().contains("5") || getRESpeckFwVersion().contains("6")) {
             respeck_characteristic = Constants.RESPECK_LIVE_V4_CHARACTERISTIC;
         } else {
             respeck_characteristic = Constants.RESPECK_LIVE_CHARACTERISTIC;
@@ -644,7 +644,12 @@ public class SpeckBluetoothService extends Service {
     }
 
     public String getRESpeckFwVersion() {
-        return mRESpeckName.substring(4);
+        if (mRESpeckName.charAt(3) == '6') {
+            return mRESpeckName.substring(3);
+        }
+        else {
+            return mRESpeckName.substring(4);
+        }
     }
 
     public String getAirspeckFwVersion() {
