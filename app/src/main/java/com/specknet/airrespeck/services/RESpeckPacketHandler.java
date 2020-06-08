@@ -57,6 +57,11 @@ public class RESpeckPacketHandler {
     private ArrayList<Float> lastMinuteActivityLevel = new ArrayList<>();
     private ArrayList<Integer> lastMinuteActivityType = new ArrayList<>();
 
+    // frequency estimation
+    private ArrayList<Long> frequencyTimestamps = new ArrayList<>();
+    private ArrayList<Float> minuteFrequency = new ArrayList<>();
+    private ArrayList<Float> rollingMedianFrequency = new ArrayList<>();
+
     // Writers
     private OutputStreamWriter mRespeckWriter;
     private Date mDateOfLastRESpeckWrite = new Date(0);
@@ -402,9 +407,33 @@ public class RESpeckPacketHandler {
             // There are 32 samples in each acceleration batch the RESpeck sends.
             long interpolatedPhoneTimestampOfCurrentSample = (long) ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) * (currentSequenceNumberInBatch * 1. / Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + mPhoneTimestampLastPacketReceived;
 
+            // Store the timestamps for frequency estimation
+            frequencyTimestamps.add(interpolatedPhoneTimestampOfCurrentSample);
+
+            // check for the full minute before creating the live data package
+            // Also calculate the approximation of the true sampling frequency
+            long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
+                    Calendar.MINUTE).getTime();
+
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
                     activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount());
+
+            if (currentProcessedMinute != lastProcessedMinute) {
+
+                Log.i("Freq", "One minute passed, calculating frequency");
+                // calculate an approximation of the sampling frequency
+                // and add it to a list for running median
+                float samplingFrequency = calculateSamplingFrequency();
+                minuteFrequency.add(samplingFrequency);
+
+                // modify the respeck packet here
+                newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
+                        newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
+                        activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), samplingFrequency);
+
+                Log.i("Freq", "newRespeckLiveData = " + newRESpeckLiveData);
+            }
 
             // Log.i("RESpeckPacketHandler", "New RESpeck data: " + newRESpeckLiveData);
 
@@ -435,9 +464,10 @@ public class RESpeckPacketHandler {
 
             // Every full minute, calculate the average breathing rate in that minute. This value will
             // only change after a call to "calculateAverageBreathing".
-            long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
+            currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
             if (currentProcessedMinute != lastProcessedMinute) {
+
                 calculateAverageBreathing();
 
                 mAverageBreathingRate = getAverageBreathingRate();
@@ -640,6 +670,19 @@ public class RESpeckPacketHandler {
             mRespeckWriter.flush();
             mRespeckWriter.close();
         }
+    }
+
+    float calculateSamplingFrequency() {
+        long first_ts = frequencyTimestamps.get(0);
+        long last_ts = frequencyTimestamps.get(frequencyTimestamps.size() - 1);
+
+        float samplingFrequency = ((frequencyTimestamps.size() * 1.f) / (last_ts - first_ts)) * 1000.f;
+        Log.i("Freq", "samplingFrequency = " + samplingFrequency);
+
+        // clear the frequency array
+        frequencyTimestamps.clear();
+
+        return samplingFrequency;
     }
 
     static {

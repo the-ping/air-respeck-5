@@ -33,6 +33,7 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
     TextView breathingRateText;
     TextView averageBreathingRateText;
     TextView stepCountText;
+    TextView frequencyText;
 
     ImageView activityIcon;
 
@@ -67,6 +68,7 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         averageBreathingRateText = (TextView) view.findViewById(R.id.text_breathing_average);
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
         stepCountText = (TextView) view.findViewById(R.id.text_step_count);
+        frequencyText = (TextView) view.findViewById(R.id.text_frequency);
 
         // Create new graph
         mBreathingGraphView = new BreathingGraphView(getActivity());
@@ -103,6 +105,13 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         }
         averageBreathingRateText.setText(String.format(Locale.UK, "%.2f " + suffix, data.getAvgBreathingRate()));
         stepCountText.setText(Integer.toString(data.getMinuteStepCount()));
+
+        // Update the frequency once a minute
+        // only if it's different than 0
+        if(data.getFrequency() != 0) {
+            frequencyText.setText(Float.toString(data.getFrequency()));
+        }
+
 
         // Set activity icon to reflect currently predicted activity
         switch (data.getActivityType()) {
@@ -142,6 +151,7 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
     public void updateRESpeckData(RESpeckLiveData data) {
         Log.i("RESpeckReadings", "updateRESpeckData");
         Log.i("RESpeckReadings", data.toString());
+        Log.i("Freq", "Respeck live data freq = " + data.getFrequency());
         // Update the graph
         mBreathingGraphView.addToBreathingGraphQueue(data);
 
