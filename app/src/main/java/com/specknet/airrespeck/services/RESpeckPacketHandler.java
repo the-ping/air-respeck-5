@@ -97,6 +97,10 @@ public class RESpeckPacketHandler {
         patientID = loadedConfig.get(Constants.Config.SUBJECT_ID);
         androidID = Secure.getString(speckService.getContentResolver(), Secure.ANDROID_ID);
 
+        // TODO maybe calculate here what the true sampling frequency has been over the last minute
+        // TODO darius said that the manual processing takes each minute separately and calculates the
+        // true sampling rate from there
+
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
                 Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR,
@@ -385,7 +389,9 @@ public class RESpeckPacketHandler {
             final float activityLevel = getActivityLevel();
             final int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
-            resetBreathingRate();
+            resetBreathingRate(); // TODO question - why is this here?
+            // this sets the current breathing rate to NaN so the next time we call
+            // getBreathingRate we will get NaN?
 
 
             // Store activity level and type for minute average
@@ -409,8 +415,8 @@ public class RESpeckPacketHandler {
 
             // Test: send live broadcast intent with strings and floats (for rehab app)
             Intent liveDataIntentTest = new Intent(Constants.ACTION_RESPECK_REHAB_BROADCAST);
-            String testString = "Test me";
-            liveDataIntentTest.putExtra(Constants.RESPECK_REHAB_DATA, testString);
+
+            liveDataIntentTest.putExtra(Constants.RESPECK_REHAB_DATA, "testString");
             liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_BR, breathingRate);
             liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_BS, breathingSignal);
             liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_X, x);
@@ -421,8 +427,6 @@ public class RESpeckPacketHandler {
             liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_ACTIVITY, activityLevel);
             liveDataIntentTest.putExtra(Constants.EXTRA_RESPECK_LIVE_ACTIVITY_TYPE, activityType);
             mSpeckService.sendBroadcast(liveDataIntentTest);
-
-            Log.i("RESpeckPacketHandler", "Sent RESpeck live data to rehab app: " + testString);
 
             // Send live broadcast intent
             Intent liveDataIntent = new Intent(Constants.ACTION_RESPECK_LIVE_BROADCAST);
