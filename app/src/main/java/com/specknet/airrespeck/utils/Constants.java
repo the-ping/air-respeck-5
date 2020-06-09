@@ -44,6 +44,7 @@ public class Constants {
     // and update frequency (as high as possible)
     public static final int NUMBER_OF_SAMPLES_PER_BATCH = 32;
     public static final float SAMPLING_FREQUENCY = 12.5f; //12.5f; //TODO this should be changed programatically
+    public static final float MINUTES_FOR_MEDIAN_CALC = 500;
 
     /**
      * HTTP WEB SERVICES (NEW USER, GET USER)

@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Collections;
 
 /**
  * This class processes new RESpeck packets which are passed from the SpeckBluetoothService.
@@ -61,6 +62,8 @@ public class RESpeckPacketHandler {
     private ArrayList<Long> frequencyTimestamps = new ArrayList<>();
     private ArrayList<Float> minuteFrequency = new ArrayList<>();
     private ArrayList<Float> rollingMedianFrequency = new ArrayList<>();
+    private float mSamplingFrequency = Constants.SAMPLING_FREQUENCY;
+    
 
     // Writers
     private OutputStreamWriter mRespeckWriter;
@@ -108,8 +111,8 @@ public class RESpeckPacketHandler {
 
         // Initialize Breathing Functions
         initBreathing(isPostFilterBreathingSignalEnabled, Constants.ACTIVITY_CUTOFF, Constants.THRESHOLD_FILTER_SIZE,
-                Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR,
-                Constants.SAMPLING_FREQUENCY);
+                Constants.MINIMUM_THRESHOLD, Constants.MAXIMUM_THRESHOLD, Constants.THRESHOLD_FACTOR, mSamplingFrequency
+                );
     }
 
     void processRESpeckLivePacket(final byte[] values) {
@@ -421,19 +424,36 @@ public class RESpeckPacketHandler {
 
             if (currentProcessedMinute != lastProcessedMinute) {
 
-                Log.i("Freq", "One minute passed, calculating frequency");
-                // calculate an approximation of the sampling frequency
-                // and add it to a list for running median
-                float samplingFrequency = calculateSamplingFrequency();
-                minuteFrequency.add(samplingFrequency);
+                if (minuteFrequency.size() < Constants.MINUTES_FOR_MEDIAN_CALC) {
+                    Log.i("Freq", "One minute passed, calculating frequency");
+                    // calculate an approximation of the sampling frequency
+                    // and add it to a list for running median
+                    mSamplingFrequency = calculateSamplingFrequency();
+                    minuteFrequency.add(mSamplingFrequency);
+                    //minuteFrequency.sort();
 
-                // TODO calculate the running median here and pass the new value to the breathing library
-                // updateSamplingFrequency(samplingFrequency);
+                    Collections.sort(minuteFrequency);
+                    float medianFrequency;
+
+                    if (minuteFrequency.size() % 2 == 0) {
+                        //Average 2 middles values
+                        medianFrequency = (minuteFrequency.get(minuteFrequency.size()/2) + minuteFrequency.get(minuteFrequency.size()/2 - 1)) /2;
+                    }
+                    else {
+                        //Take middle value
+                        medianFrequency = (minuteFrequency.get(minuteFrequency.size()/2));
+                    }
+
+                    Log.i("Freq", "medianFrequency = " + medianFrequency);
+                    updateSamplingFrequency(medianFrequency);
+                }
+                //After this, just stick to final mSamplingFrequency calculated.
 
                 // modify the respeck packet here
                 newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                         newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
-                        activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), samplingFrequency);
+                        activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), mSamplingFrequency);
+
 
                 Log.i("Freq", "newRespeckLiveData = " + newRESpeckLiveData);
             }
