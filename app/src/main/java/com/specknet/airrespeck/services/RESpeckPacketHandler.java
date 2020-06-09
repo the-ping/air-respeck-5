@@ -60,10 +60,10 @@ public class RESpeckPacketHandler {
 
     // frequency estimation
     private ArrayList<Long> frequencyTimestamps = new ArrayList<>();
-    private ArrayList<Float> minuteFrequency = new ArrayList<>();
+    private ArrayList<Float> minuteFrequencies = new ArrayList<>();
     private ArrayList<Float> rollingMedianFrequency = new ArrayList<>();
     private float mSamplingFrequency = Constants.SAMPLING_FREQUENCY;
-    
+
 
     // Writers
     private OutputStreamWriter mRespeckWriter;
@@ -424,28 +424,31 @@ public class RESpeckPacketHandler {
 
             if (currentProcessedMinute != lastProcessedMinute) {
 
-                if (minuteFrequency.size() < Constants.MINUTES_FOR_MEDIAN_CALC) {
+                float currentSamplingFrequency;
+
+                if (minuteFrequencies.size() < Constants.MINUTES_FOR_MEDIAN_CALC) {
                     Log.i("Freq", "One minute passed, calculating frequency");
                     // calculate an approximation of the sampling frequency
                     // and add it to a list for running median
-                    mSamplingFrequency = calculateSamplingFrequency();
-                    minuteFrequency.add(mSamplingFrequency);
+                    currentSamplingFrequency = calculateSamplingFrequency();
+                    minuteFrequencies.add(currentSamplingFrequency);
 
-                    Collections.sort(minuteFrequency);
+                    Collections.sort(minuteFrequencies);
                     float medianFrequency;
 
-                    if (minuteFrequency.size() % 2 == 0) {
-                        //Average 2 middles values
-                        medianFrequency = (minuteFrequency.get(minuteFrequency.size()/2) + minuteFrequency.get(minuteFrequency.size()/2 - 1)) / 2;
+                    if (minuteFrequencies.size() % 2 == 0) {
+                        //Average 2 middle values
+                        medianFrequency = (minuteFrequencies.get(minuteFrequencies.size()/2) + minuteFrequencies.get(minuteFrequencies.size()/2 - 1)) / 2;
                     }
                     else {
                         //Take middle value
-                        medianFrequency = (minuteFrequency.get(minuteFrequency.size()/2));
+                        medianFrequency = (minuteFrequencies.get(minuteFrequencies.size()/2));
                     }
 
                     Log.i("Freq", "medianFrequency = " + medianFrequency);
                     if (medianFrequency > 10 && medianFrequency < 15) {
-                        updateSamplingFrequency(medianFrequency);
+                        mSamplingFrequency = medianFrequency;
+                        updateSamplingFrequency(mSamplingFrequency);
                     }
                 }
                 //After this, just stick to final mSamplingFrequency calculated.
