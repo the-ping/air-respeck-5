@@ -430,14 +430,13 @@ public class RESpeckPacketHandler {
                     // and add it to a list for running median
                     mSamplingFrequency = calculateSamplingFrequency();
                     minuteFrequency.add(mSamplingFrequency);
-                    //minuteFrequency.sort();
 
                     Collections.sort(minuteFrequency);
                     float medianFrequency;
 
                     if (minuteFrequency.size() % 2 == 0) {
                         //Average 2 middles values
-                        medianFrequency = (minuteFrequency.get(minuteFrequency.size()/2) + minuteFrequency.get(minuteFrequency.size()/2 - 1)) /2;
+                        medianFrequency = (minuteFrequency.get(minuteFrequency.size()/2) + minuteFrequency.get(minuteFrequency.size()/2 - 1)) / 2;
                     }
                     else {
                         //Take middle value
@@ -445,7 +444,9 @@ public class RESpeckPacketHandler {
                     }
 
                     Log.i("Freq", "medianFrequency = " + medianFrequency);
-                    updateSamplingFrequency(medianFrequency);
+                    if (medianFrequency > 10 && medianFrequency < 15) {
+                        updateSamplingFrequency(medianFrequency);
+                    }
                 }
                 //After this, just stick to final mSamplingFrequency calculated.
 
