@@ -427,6 +427,9 @@ public class RESpeckPacketHandler {
                 float samplingFrequency = calculateSamplingFrequency();
                 minuteFrequency.add(samplingFrequency);
 
+                // TODO calculate the running median here and pass the new value to the breathing library
+                // updateSamplingFrequency(samplingFrequency);
+
                 // modify the respeck packet here
                 newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                         newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
@@ -672,7 +675,10 @@ public class RESpeckPacketHandler {
         }
     }
 
-    float calculateSamplingFrequency() {
+    private float calculateSamplingFrequency() {
+        if(frequencyTimestamps.size() <= 1) {
+            return 0;
+        }
         long first_ts = frequencyTimestamps.get(0);
         long last_ts = frequencyTimestamps.get(frequencyTimestamps.size() - 1);
 
@@ -727,4 +733,6 @@ public class RESpeckPacketHandler {
     public native float getUpperThreshold();
 
     public native float getLowerThreshold();
+
+    public native void updateSamplingFrequency(float sampling_frequency);
 }

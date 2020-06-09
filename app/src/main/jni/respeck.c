@@ -149,3 +149,7 @@ int getActivityClassification() {
 bool getIsBreathEnd() {
     return is_breath_end;
 }
+
+void updateSamplingFrequency(float sampling_frequency) {
+    update_sampling_frequency(sampling_frequency, &current_breath);
+}

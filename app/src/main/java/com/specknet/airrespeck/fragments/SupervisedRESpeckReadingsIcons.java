@@ -109,7 +109,8 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         // Update the frequency once a minute
         // only if it's different than 0
         if(data.getFrequency() != 0) {
-            frequencyText.setText(Float.toString(data.getFrequency()));
+            frequencyText.setText(String.format(Locale.UK, "%.2f" + " Hz", data.getFrequency()));
+//            frequencyText.setText(Float.toString(data.getFrequency()) + " Hz");
         }
 
 
@@ -151,7 +152,6 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
     public void updateRESpeckData(RESpeckLiveData data) {
         Log.i("RESpeckReadings", "updateRESpeckData");
         Log.i("RESpeckReadings", data.toString());
-        Log.i("Freq", "Respeck live data freq = " + data.getFrequency());
         // Update the graph
         mBreathingGraphView.addToBreathingGraphQueue(data);
 
