@@ -342,15 +342,16 @@ public class RESpeckPacketHandler {
         // Convert the timestamp of the RESpeck to correspond to milliseconds
         long newRESpeckTimestamp = (long) (uncorrectedRESpeckTimestamp * 197 / 32768. * 1000);
 */
-        byte[] time_array = {values[4], values[5], values[6], values[7], values[0], values[1], values[2], values[3]};
+        byte[] time_array = {values[0], values[1], values[2], values[3]};
         // and try ByteBuffer:
         ByteBuffer buffer = ByteBuffer.wrap(time_array);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.order(ByteOrder.BIG_ENDIAN);
         buffer.position(0);
-        long uncorrectedRESpeckTimestamp = buffer.getLong();
-        long newRESpeckTimestamp = uncorrectedRESpeckTimestamp / 1000000;
+        long uncorrectedRESpeckTimestamp = ((long) buffer.getInt()) & 0xffffffffL;
 
-        Log.i("RESpeckPacketHandler", "rsts: " + Long.toString(newRESpeckTimestamp / 1000));
+        long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 * 1000 / 32768;
+
+        Log.i("RESpeckPacketHandler", "Respeck timestamp (ms): " + Long.toString(newRESpeckTimestamp));
 
         // Independent of the RESpeck timestamp, we use the phone timestamp
         final long actualPhoneTimestamp = Utils.getUnixTimestamp();
