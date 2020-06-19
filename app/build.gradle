@@ -15,7 +15,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 25
         versionCode 110
-        versionName "2.6.2-ba"
+        versionName "2.6.2"
 
         // Enabling multidex support.
         // multiDexEnabled true
