@@ -207,3 +207,7 @@ void update_breath(float breathing_signal, float upper_threshold,
         }
     }
 }
+
+void update_sampling_frequency(float sampling_frequency, CurrentBreath *breath) {
+    breath->sampling_frequency = sampling_frequency;
+}

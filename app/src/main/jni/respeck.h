@@ -59,4 +59,6 @@ int getActivityClassification();
 
 bool getIsBreathEnd();
 
+void updateSamplingFrequency(float sampling_frequency);
+
 #endif

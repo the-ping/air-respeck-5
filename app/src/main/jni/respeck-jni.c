@@ -111,6 +111,13 @@ Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateBreathing(JNIEn
 
 }
 
+JNIEXPORT void JNICALL
+Java_com_specknet_airrespeck_services_RESpeckPacketHandler_updateSamplingFrequency(JNIEnv *env, jobject instance, jfloat sampling_frequency) {
+
+    updateSamplingFrequency(sampling_frequency);
+
+}
+
 JNIEXPORT jint JNICALL
 Java_com_specknet_airrespeck_services_RESpeckPacketHandler_getMinuteStepcount(JNIEnv *env, jobject instance) {
 

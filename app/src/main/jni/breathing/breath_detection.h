@@ -80,4 +80,6 @@ void initialise_breath(CurrentBreath *breath, float lower_threshold_limit, float
 void update_breath(float breathing_signal, float upper_threshold, float lower_threshold,
                    CurrentBreath *breath);
 
+void update_sampling_frequency(float sampling_frequency, CurrentBreath *breath);
+
 #endif

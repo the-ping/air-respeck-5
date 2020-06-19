@@ -96,7 +96,7 @@ void update_breathing_measures(float *new_accel_data_original, BreathingMeasures
         return;
     }
 
-    // Get the mean acceleration vector as soon as the filter is full and normalise it. We than overwrite the
+    // Get the mean acceleration vector as soon as the filter is full and normalise it. We then overwrite the
     // new acceleration values with this value, i.e. this is actually used for smoothing.
     copy_accel_vector(new_accel_data, mean_unit_accel_filter.mean_unit_vector);
 

@@ -48,12 +48,22 @@
                         android:id="@+id/text_breathing"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"
                         android:gravity="center"
                         android:text="-.- BrPM"
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:textSize="@dimen/text_size_bpm_small"
                         />
+                    <TextView
+                        android:id="@+id/text_frequency"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:gravity="center"
+                        android:text="-.- Hz"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textSize="@dimen/text_size_bpm_small"
+                        android:visibility="gone"/>
+
                 </LinearLayout>
 
                 <ImageView

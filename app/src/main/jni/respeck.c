@@ -55,7 +55,7 @@ void updateBreathing(float x, float y, float z) {
     // If the breathing rate has been updated, add it to the statistics
     if (current_breath.is_complete && !isnan(current_breath.breathing_rate)) {
         update_breathing_rate_stats(current_breath.breathing_rate, &breathing_rate_stats);
-        current_breath.is_complete = false;
+        current_breath.is_complete= false;
         is_breath_end = true;
     } else {
         is_breath_end = false;
@@ -148,4 +148,8 @@ int getActivityClassification() {
 
 bool getIsBreathEnd() {
     return is_breath_end;
+}
+
+void updateSamplingFrequency(float sampling_frequency) {
+    update_sampling_frequency(sampling_frequency, &current_breath);
 }
