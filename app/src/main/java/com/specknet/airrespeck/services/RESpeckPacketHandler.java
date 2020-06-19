@@ -78,6 +78,7 @@ public class RESpeckPacketHandler {
     private String androidID;
 
     private boolean mIsEncryptData;
+    private long last_seq_number = -1;
 
     public RESpeckPacketHandler() {
         // This is only meant for running tests on the c code!
@@ -565,6 +566,10 @@ public class RESpeckPacketHandler {
         buffer2.position(0);
         long seqNumber = ((long) buffer2.getInt()) & 0xffffffffL;
         Log.i("RESpeckPacketHandler", "Respeck seq number: " + Long.toString(seqNumber));
+        if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
+            Log.i("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
+        }
+        last_seq_number = seqNumber;
 
         // Independent of the RESpeck timestamp, we use the phone timestamp
         final long actualPhoneTimestamp = Utils.getUnixTimestamp();
