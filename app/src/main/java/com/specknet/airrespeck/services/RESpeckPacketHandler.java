@@ -567,7 +567,7 @@ public class RESpeckPacketHandler {
         long seqNumber = ((long) buffer2.getInt()) & 0xffffffffL;
         Log.i("RESpeckPacketHandler", "Respeck seq number: " + Long.toString(seqNumber));
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
-            Log.i("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
+            Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
         }
         last_seq_number = seqNumber;
 
