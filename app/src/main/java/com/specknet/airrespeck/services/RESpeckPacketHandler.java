@@ -569,6 +569,8 @@ public class RESpeckPacketHandler {
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
             Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
         }
+
+        // TODO keep track of this
         last_seq_number = seqNumber;
 
         // Independent of the RESpeck timestamp, we use the phone timestamp
