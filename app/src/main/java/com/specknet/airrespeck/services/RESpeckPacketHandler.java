@@ -41,6 +41,7 @@ public class RESpeckPacketHandler {
     private long mPhoneTimestampCurrentPacketReceived = -1;
     private long mPhoneTimestampLastPacketReceived = -1;
     private long mRESpeckTimestampCurrentPacketReceived = -1;
+    private long mRESpeckTimestampLastPacketReceived = -1;
     private Queue<RESpeckStoredSample> storedQueue;
     private long lastProcessedMinute = 0L;
     private int currentSequenceNumberInBatch = -1;
@@ -59,8 +60,10 @@ public class RESpeckPacketHandler {
     private ArrayList<Integer> lastMinuteActivityType = new ArrayList<>();
 
     // frequency estimation
+    private ArrayList<Long> frequencyTimestampsRespeck = new ArrayList<>();
     private ArrayList<Long> frequencyTimestamps = new ArrayList<>();
     private ArrayList<Float> minuteFrequencies = new ArrayList<>();
+    private ArrayList<Float> minuteRespeckFrequencies = new ArrayList<>();
     private ArrayList<Float> rollingMedianFrequency = new ArrayList<>();
     private float mSamplingFrequency = Constants.SAMPLING_FREQUENCY;
 
@@ -553,6 +556,7 @@ public class RESpeckPacketHandler {
         ByteBuffer buffer = ByteBuffer.wrap(time_array);
         buffer.order(ByteOrder.BIG_ENDIAN);
         buffer.position(0);
+
         long uncorrectedRESpeckTimestamp = ((long) buffer.getInt()) & 0xffffffffL;
         long newRESpeckTimestamp = uncorrectedRESpeckTimestamp * 197 * 1000 / 32768;
         Log.i("RESpeckPacketHandler", "Respeck timestamp (ms): " + Long.toString(newRESpeckTimestamp));
@@ -568,6 +572,7 @@ public class RESpeckPacketHandler {
         Log.i("RESpeckPacketHandler", "Respeck seq number: " + Long.toString(seqNumber));
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
             Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
+            restartRespeckSamplingFrequency();
         }
 
         // TODO keep track of this
@@ -604,6 +609,19 @@ public class RESpeckPacketHandler {
             mPhoneTimestampCurrentPacketReceived = extrapolatedPhoneTimestamp;
         }
 
+        // Similar calculations needed for the respeck timestamp for each sample
+        if (mRESpeckTimestampCurrentPacketReceived == -1) {
+            // If this is our first packet, make an approximation
+            mRESpeckTimestampLastPacketReceived = newRESpeckTimestamp - Constants.AVERAGE_TIME_DIFFERENCE_BETWEEN_RESPECK_PACKETS;
+        }
+        else {
+            // Store the previously used RESpeck timestamp as the previous timestamp
+            mRESpeckTimestampLastPacketReceived = mRESpeckTimestampCurrentPacketReceived;
+        }
+
+        // Update the current respeck timestamp
+        mRESpeckTimestampCurrentPacketReceived = newRESpeckTimestamp;
+
         currentSequenceNumberInBatch = 0;
 
 
@@ -618,7 +636,7 @@ public class RESpeckPacketHandler {
             final float activityLevel = getActivityLevel();
             final int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
-            resetBreathingRate(); // TODO question - why is this here?
+            resetBreathingRate(); // question - why is this here?
             // this sets the current breathing rate to NaN so the next time we call
             // getBreathingRate we will get NaN?
 
@@ -631,8 +649,14 @@ public class RESpeckPacketHandler {
             // There are 32 samples in each acceleration batch the RESpeck sends.
             long interpolatedPhoneTimestampOfCurrentSample = (long) ((mPhoneTimestampCurrentPacketReceived - mPhoneTimestampLastPacketReceived) * (currentSequenceNumberInBatch * 1. / Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + mPhoneTimestampLastPacketReceived;
 
+            // Calculate a similar interpolated timestamp of the current sample using the respeck timestamp
+            long interpolatedRespeckTimestampOfCurrentSample = (long) ((mRESpeckTimestampCurrentPacketReceived - mRESpeckTimestampLastPacketReceived) * (currentSequenceNumberInBatch * 1. / Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + mRESpeckTimestampLastPacketReceived;
+
             // Store the timestamps for frequency estimation
             frequencyTimestamps.add(interpolatedPhoneTimestampOfCurrentSample);
+
+            // Store the respeck timestamps for a second go at the frequency estimation
+            frequencyTimestampsRespeck.add(interpolatedRespeckTimestampOfCurrentSample);
 
             // check for the full minute before creating the live data package
             // Also calculate the approximation of the true sampling frequency
@@ -640,30 +664,37 @@ public class RESpeckPacketHandler {
                     Calendar.MINUTE).getTime();
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
-                    newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
+                    interpolatedRespeckTimestampOfCurrentSample, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
                     activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount());
 
             if (currentProcessedMinute != lastProcessedMinute) {
 
                 float currentSamplingFrequency;
+                float currentRespeckFrequency;
 
                 if (minuteFrequencies.size() < Constants.MINUTES_FOR_MEDIAN_CALC) {
                     Log.i("Freq", "One minute passed, calculating frequency");
                     // calculate an approximation of the sampling frequency
                     // and add it to a list for running median
                     currentSamplingFrequency = calculateSamplingFrequency();
+                    currentRespeckFrequency = calculateRespeckSamplingFrequency();
                     minuteFrequencies.add(currentSamplingFrequency);
+                    minuteRespeckFrequencies.add(currentRespeckFrequency);
 
                     Collections.sort(minuteFrequencies);
+                    Collections.sort(minuteRespeckFrequencies);
                     float medianFrequency;
+                    float medianRespeckFrequency;
 
                     if (minuteFrequencies.size() % 2 == 0) {
                         //Average 2 middle values
                         medianFrequency = (minuteFrequencies.get(minuteFrequencies.size()/2) + minuteFrequencies.get(minuteFrequencies.size()/2 - 1)) / 2;
+                        medianRespeckFrequency = (minuteRespeckFrequencies.get(minuteRespeckFrequencies.size()/2) + minuteRespeckFrequencies.get(minuteRespeckFrequencies.size()/2 - 1)) / 2;
                     }
                     else {
                         //Take middle value
                         medianFrequency = (minuteFrequencies.get(minuteFrequencies.size()/2));
+                        medianRespeckFrequency = (minuteRespeckFrequencies.get(minuteRespeckFrequencies.size()/2));
                     }
 
                     Log.i("Freq", "medianFrequency = " + medianFrequency);
@@ -671,6 +702,8 @@ public class RESpeckPacketHandler {
                         mSamplingFrequency = medianFrequency;
                         updateSamplingFrequency(mSamplingFrequency);
                     }
+
+                    Log.i("Freq", "median respeck frequency = " + medianRespeckFrequency);
                 }
                 //After this, just stick to final mSamplingFrequency calculated.
 
@@ -934,6 +967,31 @@ public class RESpeckPacketHandler {
         frequencyTimestamps.clear();
 
         return samplingFrequency;
+    }
+
+    private float calculateRespeckSamplingFrequency() {
+        int num_freq = frequencyTimestampsRespeck.size();
+
+        if( num_freq <= 1) {
+            return 0;
+        }
+        long first_ts = frequencyTimestampsRespeck.get(0);
+        long last_ts = frequencyTimestampsRespeck.get(num_freq - 1);
+
+        float samplingFrequencyRespeck = ((num_freq * 1.f) / (last_ts - first_ts)) * 1000.f;
+        Log.i("Freq", "samplingFrequencyRespeck = " + samplingFrequencyRespeck);
+
+        frequencyTimestampsRespeck.clear();
+
+        return samplingFrequencyRespeck;
+    }
+
+    private void restartRespeckSamplingFrequency() {
+        // Should get here if a packet was dropped
+        // we clear the collected timestamps
+        frequencyTimestampsRespeck.clear();
+
+        // TODO maybe stop the breathing algorithm
     }
 
     static {
