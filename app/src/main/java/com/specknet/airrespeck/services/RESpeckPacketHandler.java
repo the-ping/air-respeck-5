@@ -620,6 +620,8 @@ public class RESpeckPacketHandler {
             // this sets the current breathing rate to NaN so the next time we call
             // getBreathingRate we will get NaN?
 
+            // TODO activity recognition here
+
 
             // Store activity level and type for minute average
             lastMinuteActivityLevel.add(activityLevel);

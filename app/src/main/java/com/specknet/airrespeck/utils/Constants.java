@@ -245,6 +245,35 @@ public class Constants {
     public static final int ACTIVITY_LYING_DOWN_LEFT = 7;
     public static final int ACTIVITY_LYING_DOWN_STOMACH = 8;
     public static final int ACTIVITY_MOVEMENT = 9;
+
+    // Additional HAR and SS activities
+    public static final int ACTIVITY_SHUFFLING = 10;
+    public static final int ACTIVITY_RUNNING = 11;
+    public static final int ACTIVITY_ASCENDING = 12;
+    public static final int ACTIVITY_DESCENDING = 13;
+    public static final int ACTIVITY_BIKE = 14;
+    public static final int ACTIVITY_DRIVING = 30
+
+    public static final int SS_BREATHING = 20; //(applied to all activities unless a SS is specified.)
+    public static final int SS_COUGHING = 15;
+    public static final int SS_TALKING = 16;
+    public static final int SS_EATING = 17;
+    public static final int SS_SINGING = 18;
+    public static final int SS_LAUGHING = 19;
+
+    // PR exercises HAR
+    public static final int PR_SIT_TO_STAND = 21;
+    public static final int PR_KNEE_EXTENSION = 22;
+    public static final int PR_SQUATS = 23;
+    public static final int PR_HEEL_RAISES = 24;
+    public static final int PR_BICEP_CURL = 25;
+    public static final int PR_SHOULDER_PRESS = 26;
+    public static final int PR_WALL_PUSH = 27;
+    public static final int PR_LEG_SLIDE = 28;
+    public static final int PR_STEP_UPS = 29;
+    public static final int PR_WALKING = 1; // (equivalent to ACTIVITY_WALKING)
+    public static final int PR_SHUFFLING = 10; // (equivalent to ACTIVITY_SHUFFLING)
+
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down", "Wrong orientation"};
 
 
