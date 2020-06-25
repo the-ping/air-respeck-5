@@ -252,7 +252,7 @@ public class Constants {
     public static final int ACTIVITY_ASCENDING = 12;
     public static final int ACTIVITY_DESCENDING = 13;
     public static final int ACTIVITY_BIKE = 14;
-    public static final int ACTIVITY_DRIVING = 30
+    public static final int ACTIVITY_DRIVING = 30;
 
     public static final int SS_BREATHING = 20; //(applied to all activities unless a SS is specified.)
     public static final int SS_COUGHING = 15;
