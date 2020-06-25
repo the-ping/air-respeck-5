@@ -113,7 +113,7 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
 //            frequencyText.setText(Float.toString(data.getFrequency()) + " Hz");
         }
 
-
+        //TODO Activity Recognition Here
         // Set activity icon to reflect currently predicted activity
         switch (data.getActivityType()) {
             case Constants.ACTIVITY_LYING:
