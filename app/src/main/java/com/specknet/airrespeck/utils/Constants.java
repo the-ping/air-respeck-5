@@ -7,6 +7,8 @@ import android.os.Environment;
 import com.specknet.airrespeck.R;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class to keep all constants and string keys in one place. Note that for most of the constants below we cannot use
@@ -275,6 +277,44 @@ public class Constants {
     public static final int PR_SHUFFLING = 10; // (equivalent to ACTIVITY_SHUFFLING)
 
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down", "Wrong orientation"};
+    public static final Map<String, Integer> COUGHING_NAME_MAPPING = new HashMap<String, Integer>() {{
+       put("Coughing", SS_COUGHING);
+       put("Non-coughing", ACTIVITY_STAND_SIT);
+       put("Movement", ACTIVITY_MOVEMENT);
+    }};
+    public static final Map<String, Integer> ACTIVITY_NAME_MAPPING = new HashMap<String, Integer>() {{
+        put("Sitting/Standing", ACTIVITY_STAND_SIT);
+        put("Walking", ACTIVITY_WALKING);
+        put("Lying down", ACTIVITY_LYING);
+        put("Wrong orientation", WRONG_ORIENTATION);
+        put("Bent forward", ACTIVITY_SITTING_BENT_FORWARD);
+        put("Bent backward", ACTIVITY_SITTING_BENT_BACKWARD);
+        put("Lying down right", ACTIVITY_LYING_DOWN_RIGHT);
+        put("Lying down left", ACTIVITY_LYING_DOWN_LEFT);
+        put("Lying down stomach", ACTIVITY_LYING_DOWN_STOMACH);
+        put("Movement", ACTIVITY_MOVEMENT);
+        put("Shuffling", ACTIVITY_SHUFFLING);
+        put("Running", ACTIVITY_RUNNING);
+        put("Ascending stairs", ACTIVITY_ASCENDING);
+        put("Descending stairs", ACTIVITY_DESCENDING);
+        put("Cycling", ACTIVITY_BIKE);
+        put("Driving", ACTIVITY_DRIVING);
+        put("Breathing", SS_BREATHING);
+        put("Coughing", SS_COUGHING);
+        put("Talking", SS_TALKING);
+        put("Eating", SS_EATING);
+        put("Singing", SS_SINGING);
+        put("Laughing", SS_LAUGHING);
+        put("Sit to stand", PR_SIT_TO_STAND);
+        put("Knee extension", PR_KNEE_EXTENSION);
+        put("Squats", PR_SQUATS);
+        put("Heel raises", PR_HEEL_RAISES);
+        put("Bicep curl", PR_BICEP_CURL);
+        put("Shoulder press", PR_SHOULDER_PRESS);
+        put("Wall push", PR_WALL_PUSH);
+        put("Leg slide", PR_LEG_SLIDE);
+        put("Step ups", PR_STEP_UPS);
+    }};
 
 
     // The typical difference between two RESpeck packets dependent on the number of samples per batch. If the
