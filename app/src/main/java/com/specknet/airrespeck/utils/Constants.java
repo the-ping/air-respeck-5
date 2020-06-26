@@ -38,7 +38,8 @@ public class Constants {
     /**
      * UPLOAD SERVICES
      */
-    public static final String UPLOAD_SERVER_URL = "https://specknet-pyramid-test.appspot.com/";
+//    public static final String UPLOAD_SERVER_URL = "https://specknet-pyramid-test.appspot.com/";
+    public static final String UPLOAD_SERVER_URL = "https://record-coughing-dot-specknet-pyramid-test.ew.r.appspot.com";
     public static final String UPLOAD_SERVER_PATH = "uploadAirRespeck";
 
 

@@ -66,8 +66,6 @@ class Classifier(assetManager: AssetManager, modelPath: String, labelPath: Strin
     }
 
     fun classifyActivity(slidingWindow: ArrayList<ArrayList<Float>>): Recognition {
-        // something like
-        Log.i("Classification", "Received window = " + slidingWindow.toString())
         val byteBuffer = convertWindowToByteBuffer(slidingWindow)
 
         // run the inference
@@ -78,7 +76,6 @@ class Classifier(assetManager: AssetManager, modelPath: String, labelPath: Strin
     }
 
     private fun convertWindowToByteBuffer(slidingWindow: ArrayList<ArrayList<Float>>): ByteBuffer {
-        Log.i("Classification", "Received window in byte buffer = " + slidingWindow)
         val byteBuffer = ByteBuffer.allocateDirect(FloatSize * windowSize * numberOfFeatures)
         byteBuffer.order(ByteOrder.nativeOrder())
 

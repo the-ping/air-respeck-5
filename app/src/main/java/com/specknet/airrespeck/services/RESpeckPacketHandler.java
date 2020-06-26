@@ -276,15 +276,21 @@ public class RESpeckPacketHandler {
 
                     updateBreathing(x, y, z);
 
+
                     final float breathingSignal = getBreathingSignal();
                     final float activityLevel = getActivityLevel();
-                    final int activityType = getActivityClassification();
+                    int activityType = getActivityClassification();
                     final float breathingRate = getBreathingRate();
                     resetBreathingRate();
 
                     // Store activity level and type for minute average
                     lastMinuteActivityLevel.add(activityLevel);
                     lastMinuteActivityType.add(activityType);
+
+                    // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
+                    if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                        activityType = Constants.SS_COUGHING;
+                    }
 
                     // Calculate interpolated timestamp of current sample based on sequence number
                     // There are 32 samples in each acceleration batch the RESpeck sends.
@@ -430,7 +436,7 @@ public class RESpeckPacketHandler {
 
             final float breathingSignal = getBreathingSignal();
             final float activityLevel = getActivityLevel();
-            final int activityType = getActivityClassification();
+            int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
             resetBreathingRate(); // TODO question - why is this here?
             // this sets the current breathing rate to NaN so the next time we call
@@ -452,6 +458,11 @@ public class RESpeckPacketHandler {
             // Also calculate the approximation of the true sampling frequency
             long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
+
+            // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
+            if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                activityType = Constants.SS_COUGHING;
+            }
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
@@ -636,7 +647,7 @@ public class RESpeckPacketHandler {
 
             final float breathingSignal = getBreathingSignal();
             final float activityLevel = getActivityLevel();
-            final int activityType = getActivityClassification();
+            int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
             resetBreathingRate(); // TODO question - why is this here?
             // this sets the current breathing rate to NaN so the next time we call
@@ -660,6 +671,11 @@ public class RESpeckPacketHandler {
             // Also calculate the approximation of the true sampling frequency
             long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
+
+            // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
+            if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                activityType = Constants.SS_COUGHING;
+            }
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,

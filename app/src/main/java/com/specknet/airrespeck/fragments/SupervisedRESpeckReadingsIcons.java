@@ -145,6 +145,7 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
                 break;
             case Constants.SS_COUGHING:
                 activityIcon.setImageResource(R.drawable.ic_cough);
+                break;
             default:
                 activityIcon.setImageResource(R.drawable.vec_xmark);
         }
