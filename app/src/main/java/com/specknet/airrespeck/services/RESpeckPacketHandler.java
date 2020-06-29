@@ -8,6 +8,7 @@ import com.specknet.airrespeck.models.RESpeckAveragedData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -571,6 +572,7 @@ public class RESpeckPacketHandler {
         long seqNumber = ((long) buffer2.getInt()) & 0xffffffffL;
         Log.i("RESpeckPacketHandler", "Respeck seq number: " + Long.toString(seqNumber));
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
+            FileLogger.logToFile(this.mSpeckService.getApplicationContext(), "Unexpected respeck seq number. Expected:" + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
             Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
             restartRespeckSamplingFrequency();
         }
@@ -652,6 +654,9 @@ public class RESpeckPacketHandler {
             // Calculate a similar interpolated timestamp of the current sample using the respeck timestamp
             long interpolatedRespeckTimestampOfCurrentSample = (long) ((mRESpeckTimestampCurrentPacketReceived - mRESpeckTimestampLastPacketReceived) * (currentSequenceNumberInBatch * 1. / Constants.NUMBER_OF_SAMPLES_PER_BATCH)) + mRESpeckTimestampLastPacketReceived;
 
+//            FileLogger.logToFile(this.mSpeckService.getApplicationContext(), "Phone timestamp = " + interpolatedPhoneTimestampOfCurrentSample);
+//            FileLogger.logToFile(this.mSpeckService.getApplicationContext(), "Respeck timestamp = " + interpolatedRespeckTimestampOfCurrentSample);
+
             // Store the timestamps for frequency estimation
             frequencyTimestamps.add(interpolatedPhoneTimestampOfCurrentSample);
 
@@ -678,6 +683,10 @@ public class RESpeckPacketHandler {
                     // and add it to a list for running median
                     currentSamplingFrequency = calculateSamplingFrequency();
                     currentRespeckFrequency = calculateRespeckSamplingFrequency();
+
+                    FileLogger.logToFile(this.mSpeckService.getApplicationContext(), "FREQ Phone freq = " + currentSamplingFrequency);
+                    FileLogger.logToFile(this.mSpeckService.getApplicationContext(), "FREQ Respeck freq = " + currentRespeckFrequency);
+
                     minuteFrequencies.add(currentSamplingFrequency);
                     minuteRespeckFrequencies.add(currentRespeckFrequency);
 
