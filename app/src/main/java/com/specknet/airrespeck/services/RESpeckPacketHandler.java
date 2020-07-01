@@ -582,10 +582,11 @@ public class RESpeckPacketHandler {
 
         // Read battery level and charging status
         byte battLevel  = values[6];
-        Log.i("RESpeckPacketHandler", "Respeck battery level: " + Short.toString(battLevel) + "%");
+        Log.i("RESpeckPacketHandler", "Respeck battery level: " + Byte.toString(battLevel) + "%");
 
-        byte chargingStatus = values[7];
-        Log.i("RESpeckPacketHandler", "Respeck charging?: " + Short.toString(chargingStatus));
+        boolean chargingStatus = false;
+        if (values[7] == (byte)0x01) chargingStatus = true;
+        Log.i("RESpeckPacketHandler", "Respeck charging?: " + Boolean.toString(chargingStatus));
 
 
         // Independent of the RESpeck timestamp, we use the phone timestamp
@@ -668,7 +669,7 @@ public class RESpeckPacketHandler {
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     interpolatedRespeckTimestampOfCurrentSample, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
-                    activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount());
+                    activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), 0.0f, (int)battLevel, (boolean)chargingStatus);
 
             if (currentProcessedMinute != lastProcessedMinute) {
 
@@ -707,7 +708,7 @@ public class RESpeckPacketHandler {
                 // modify the respeck packet here
                 newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                         interpolatedRespeckTimestampOfCurrentSample, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
-                        activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), mSamplingFrequency);
+                        activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), mSamplingFrequency, battLevel, chargingStatus);
 
 
                 Log.i("Freq", "newRespeckLiveData = " + newRESpeckLiveData);
