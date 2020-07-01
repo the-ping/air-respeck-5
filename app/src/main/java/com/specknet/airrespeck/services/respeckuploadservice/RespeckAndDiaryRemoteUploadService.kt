@@ -121,26 +121,19 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
                 .map { jsonPacketFrom(filequeue.peek()) }
                 .doOnError {
                     Log.e("Upload", "Respeck filequeue: " + it.toString())
-                    FileLogger.logToFile(this.speckService.applicationContext, "Respeck Filequeue: " + it.toString())
                 }
                 .concatMap { respeckServer.submitData(it, configPath) }
                 .doOnError {
                     Log.e("Upload", "Error during upload: " + Log.getStackTraceString(it))
                     Log.e("Upload", "what is it" + it.toString())
-                    FileLogger.logToFile(this.speckService.applicationContext, "Error during upload " + Log.getStackTraceString(it))
-                    FileLogger.logToFile(this.speckService.applicationContext, "What is it " + it.toString())
                 }
                 .retry()
                 .doOnCompleted {
                     Log.e("Upload", "Upload has been completed")
-                    FileLogger.logToFile(this.speckService.applicationContext, "Upload completed")
                 }
                 .subscribe {
                     Log.d("Upload", "Respeck upload subscribe return: " + it.toString())
                     Log.d("Upload", "Queue size: " + filequeue.size())
-                    FileLogger.logToFile(this.speckService.applicationContext, "Upload subscribe return: " + it.toString())
-                    FileLogger.logToFile(this.speckService.applicationContext, "Queue size: " + filequeue.size())
-                    FileLogger.logToFile(this.speckService.applicationContext, "Queue = " + filequeue.peek().toString())
                     filequeue.remove()
                 }
 
