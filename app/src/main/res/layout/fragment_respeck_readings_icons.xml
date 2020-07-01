@@ -62,7 +62,7 @@
                         android:text="-.- Hz"
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:textSize="@dimen/text_size_bpm_small"
-                        android:visibility="visible"/>
+                        android:visibility="gone"/>
 
                 </LinearLayout>
 
