@@ -565,13 +565,17 @@ public class RESpeckPacketHandler {
         // get the packet sequence number.
         // This counts from zero when the respeck is reset and is a uint32 value,
         // so we'll all be long dead by the time it wraps!
-        byte[] seq_array = {values[4], values[5], values[6], values[7]};
+        byte[] seq_array = {values[4], values[5]};
         ByteBuffer buffer2 = ByteBuffer.wrap(seq_array);
         buffer2.order(ByteOrder.BIG_ENDIAN);
         buffer2.position(0);
-        long seqNumber = ((long) buffer2.getInt()) & 0xffffffffL;
+        int seqNumber  = ((int)buffer2.getShort()) & 0xffff;
 
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
+            // have we just wrapped?
+            if (seqNumber == 0 && last_seq_number == 65535) {
+                Log.w("RESpeckPacketHandler", "Respeck seq number wrapped");
+            }
             Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
             restartRespeckSamplingFrequency();
         }
