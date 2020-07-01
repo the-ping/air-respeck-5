@@ -576,8 +576,10 @@ public class RESpeckPacketHandler {
             if (seqNumber == 0 && last_seq_number == 65535) {
                 Log.w("RESpeckPacketHandler", "Respeck seq number wrapped");
             }
-            Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
-            restartRespeckSamplingFrequency();
+            else {
+                Log.w("RESpeckPacketHandler", "Unexpected respeck seq number. Expected: " + Long.toString(last_seq_number + 1) + ", received: " + Long.toString(seqNumber));
+                restartRespeckSamplingFrequency();
+            }
         }
 
         last_seq_number = seqNumber;
