@@ -10,7 +10,7 @@ data class RESpeckLiveData(val phoneTimestamp: Long, val respeckTimestamp: Long,
                            val sequenceNumberInBatch: Int, val accelX: Float, val accelY: Float, val accelZ: Float,
                            val breathingSignal: Float, val breathingRate: Float, val activityLevel: Float,
                            val activityType: Int, val avgBreathingRate: Float,
-                           val minuteStepCount: Int, val frequency: Float = 0.0f, val battLevelval : Int = -1, val chargingStatus: Boolean = false) : Serializable {
+                           val minuteStepCount: Int, val frequency: Float = 0.0f, val battLevel : Int = -1, val chargingStatus: Boolean = false) : Serializable {
 
     constructor(phoneTimestamp: Long, respeckTimestamp: Long,
                 sequenceNumberInBatch: Int, accelX: Float, accelY: Float, accelZ: Float,

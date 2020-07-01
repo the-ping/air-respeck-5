@@ -1,7 +1,6 @@
 package com.specknet.airrespeck.fragments;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
-import com.specknet.airrespeck.activities.ConnectionStateObserver;
 import com.specknet.airrespeck.activities.MainActivity;
 import com.specknet.airrespeck.activities.RESpeckDataObserver;
 import com.specknet.airrespeck.models.RESpeckLiveData;
@@ -118,9 +116,9 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         }
 
         // update battery level and charging status
-        if (data.getBattLevelval() != -1) {
+        if (data.getBattLevel() != -1) {
             battLevelText.setVisibility(View.VISIBLE);
-            battLevelText.setText(data.getBattLevelval() + "%");
+            battLevelText.setText(data.getBattLevel() + "%");
         }
         else {
             battLevelText.setVisibility(View.INVISIBLE);
