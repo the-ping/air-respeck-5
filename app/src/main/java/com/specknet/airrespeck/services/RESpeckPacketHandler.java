@@ -553,8 +553,7 @@ public class RESpeckPacketHandler {
 
     void processRESpeckV6Packet(final byte[] values) {
         //get the respeck timestamp
-        byte[] time_array = {values[0], values[1], values[2], values[3]};
-        ByteBuffer buffer = ByteBuffer.wrap(time_array);
+        ByteBuffer buffer = ByteBuffer.wrap(values);
         buffer.order(ByteOrder.BIG_ENDIAN);
         buffer.position(0);
 
@@ -565,11 +564,9 @@ public class RESpeckPacketHandler {
         // get the packet sequence number.
         // This counts from zero when the respeck is reset and is a uint32 value,
         // so we'll all be long dead by the time it wraps!
-        byte[] seq_array = {values[4], values[5]};
-        ByteBuffer buffer2 = ByteBuffer.wrap(seq_array);
-        buffer2.order(ByteOrder.BIG_ENDIAN);
-        buffer2.position(0);
-        int seqNumber  = ((int)buffer2.getShort()) & 0xffff;
+
+        int seqNumber  = ((int)buffer.getShort()) & 0xffff;
+        Log.w("RESpeckPacketHandler", "Respeck seq number: " + Integer.toString(seqNumber));
 
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
             // have we just wrapped?
@@ -581,8 +578,15 @@ public class RESpeckPacketHandler {
                 restartRespeckSamplingFrequency();
             }
         }
-
         last_seq_number = seqNumber;
+
+        // Read battery level and charging status
+        byte battLevel  = values[6];
+        Log.i("RESpeckPacketHandler", "Respeck battery level: " + Short.toString(battLevel) + "%");
+
+        byte chargingStatus = values[7];
+        Log.i("RESpeckPacketHandler", "Respeck charging?: " + Short.toString(chargingStatus));
+
 
         // Independent of the RESpeck timestamp, we use the phone timestamp
         final long actualPhoneTimestamp = Utils.getUnixTimestamp();
