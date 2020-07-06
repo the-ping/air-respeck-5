@@ -566,7 +566,7 @@ public class RESpeckPacketHandler {
         // so we'll all be long dead by the time it wraps!
 
         int seqNumber  = ((int)buffer.getShort()) & 0xffff;
-        Log.w("RESpeckPacketHandler", "Respeck seq number: " + Integer.toString(seqNumber));
+        Log.i("RESpeckPacketHandler", "Respeck seq number: " + Integer.toString(seqNumber));
 
         if (last_seq_number >= 0 && seqNumber - last_seq_number != 1) {
             // have we just wrapped?
