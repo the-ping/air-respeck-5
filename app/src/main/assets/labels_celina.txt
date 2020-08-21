@@ -1,0 +1,3 @@
+coughing
+movement
+non-coughing

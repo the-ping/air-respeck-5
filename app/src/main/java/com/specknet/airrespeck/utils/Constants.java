@@ -279,9 +279,9 @@ public class Constants {
 
     public static final String[] ACT_CLASS_NAMES = {"Sitting/Standing", "Walking", "Lying down", "Wrong orientation"};
     public static final Map<String, Integer> COUGHING_NAME_MAPPING = new HashMap<String, Integer>() {{
-       put("Coughing", SS_COUGHING);
-       put("Non-coughing", ACTIVITY_STAND_SIT);
-       put("Movement", ACTIVITY_MOVEMENT);
+       put("coughing", SS_COUGHING);
+       put("non-coughing", ACTIVITY_STAND_SIT);
+       put("movement", ACTIVITY_MOVEMENT);
     }};
     public static final Map<String, Integer> ACTIVITY_NAME_MAPPING = new HashMap<String, Integer>() {{
         put("Sitting/Standing", ACTIVITY_STAND_SIT);

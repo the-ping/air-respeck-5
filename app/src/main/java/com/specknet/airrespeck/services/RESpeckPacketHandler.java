@@ -8,6 +8,7 @@ import com.specknet.airrespeck.models.RESpeckAveragedData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.SlidingWindow;
 import com.specknet.airrespeck.utils.Utils;
 import com.specknet.airrespeck.utils.Classifier;
 
@@ -87,12 +88,25 @@ public class RESpeckPacketHandler {
     private String mModelPath = "model_magnitude.tflite";
     private String mLabelPath = "labels.txt";
 
-    private ArrayList<ArrayList<Float>> slidingWindow = new ArrayList<ArrayList<Float>>();
+    private String mModelPathCelina = "model_celina.tflite";
+    private String mLabelPathCelina = "labels_celina.txt";
+
+//    private ArrayList<ArrayList<Float>> slidingWindow = new ArrayList<ArrayList<Float>>();
     private int windowSize = 32;
     private int windowStep = 16;
     private int numberOfFeatures = 4;
+    private SlidingWindow slidingWindow = new SlidingWindow(windowSize, windowStep, numberOfFeatures, false);
+
+    private int windowSizeCelina = 25;
+    private int windowStepCelina = 12;
+    private int numberOfFeaturesCelina = 3;
+    private SlidingWindow slidingWindowCelina = new SlidingWindow(windowSizeCelina, windowStepCelina, numberOfFeaturesCelina, true);
 
     private Classifier classifier;
+    private Classifier classifierCelina;
+
+    private Classifier.Recognition lastResultMag = new Classifier.Recognition();
+    private Classifier.Recognition lastResultCelina = new Classifier.Recognition();
 
     private String prediction;
     private float confidence;
@@ -108,6 +122,7 @@ public class RESpeckPacketHandler {
         mSpeckService = speckService;
 
         classifier = new Classifier(mSpeckService.getAssets(), mModelPath, mLabelPath, windowSize, numberOfFeatures);
+        classifierCelina = new Classifier(mSpeckService.getAssets(), mModelPathCelina, mLabelPathCelina, windowSizeCelina, numberOfFeaturesCelina);
 
         // Initialise stored queue
         storedQueue = new LinkedList<>();
@@ -978,28 +993,40 @@ public class RESpeckPacketHandler {
         // magnitude here
         float mag = (float) Math.sqrt(x*x + y*y + z*z);
 
-        if(slidingWindow.size() < windowSize) {
-            // accumulate values while the window is not full
-        }
-        else {
+        if(slidingWindow.isFull()) {
 
             // send window to classifier
-            Classifier.Recognition result = classifier.classifyActivity(slidingWindow);
+            Classifier.Recognition result = classifier.classifyActivity(slidingWindow.getRawWindow());
 
             Log.i("Classification", "Prediction = " + result.getResult() + ", Confidence = " + result.getConfidence());
 
-            // take a step to the right
-            for(int i=1; i<= windowStep; i++) {
-                slidingWindow.remove(0);
-            }
-
             // add the classification result to a list
             // which should be refreshed every minute when we calculate the averages
-            updateClassificationsList(result);
+//            updateClassificationsList(result);
+            lastResultMag = result;
 
         }
 
-        slidingWindow.add(new ArrayList<Float>(Arrays.asList(x, y, z, mag)));
+        if(slidingWindowCelina.isFull()) {
+            Classifier.Recognition resultCelina = classifierCelina.classifyActivityWithFeatures(
+                    slidingWindowCelina.getGradientWindow(),
+                    slidingWindowCelina.extractStatsFromGrad());
+            Log.i("Classification Celina", "Prediction = " + resultCelina.getResult() + ", Confidence = " + resultCelina.getConfidence());
+
+            // add the classification result to a list
+            // which should be refreshed every minute when we calculate the averages
+            // TODO: Do something with both classifications
+            // TODO perhaps test for confidence
+//            updateClassificationsList(resultCelina);
+            lastResultCelina = resultCelina;
+        }
+
+        if(lastResultMag.getResult().equals(lastResultCelina.getResult()) && !lastResultMag.getResult().isEmpty()) {
+            // if they agree, update the classifications list with one of them
+            updateClassificationsList(lastResultMag);
+        }
+
+        slidingWindow.addToWindow(new ArrayList<Float>(Arrays.asList(x, y, z, mag)));
     }
 
     private void updateClassificationsList(Classifier.Recognition result) {
