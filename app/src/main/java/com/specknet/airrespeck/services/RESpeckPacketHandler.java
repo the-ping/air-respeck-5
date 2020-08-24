@@ -1052,6 +1052,9 @@ public class RESpeckPacketHandler {
             Log.i("Classification", "updating list with " + lastResult2.getResult());
             updateClassificationsList(lastResult2);
         }
+        else if(!lastResult1.getResult().isEmpty()) {
+            updateClassificationsList(lastResult1);
+        }
         // if they don't agree, we let the automatic activity recognition update as normal
     }
 
