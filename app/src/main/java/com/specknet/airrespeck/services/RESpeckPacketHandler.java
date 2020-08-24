@@ -111,6 +111,7 @@ public class RESpeckPacketHandler {
     private String prediction;
     private float confidence;
 
+    // where we keep track of activity classifications given by our models
     private ArrayList<Integer> activityClassifications = new ArrayList<>();
 
     public RESpeckPacketHandler() {
@@ -689,9 +690,11 @@ public class RESpeckPacketHandler {
 
             // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
             if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                Log.i("Classification", "new actType = " + activityType);
                 activityType = Constants.SS_COUGHING;
             }
 
+            Log.i("Classification", "respeck live data actType = " + activityType);
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
                     activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount());
@@ -1005,6 +1008,9 @@ public class RESpeckPacketHandler {
 //            updateClassificationsList(result);
             lastResultMag = result;
 
+            // we do this here because this sliding window is updated more frequently than the last one
+            combineClassificationResults(lastResultMag, lastResultCelina);
+
         }
 
         if(slidingWindowCelina.isFull()) {
@@ -1019,14 +1025,34 @@ public class RESpeckPacketHandler {
             // TODO perhaps test for confidence
 //            updateClassificationsList(resultCelina);
             lastResultCelina = resultCelina;
-        }
 
-        if(lastResultMag.getResult().equals(lastResultCelina.getResult()) && !lastResultMag.getResult().isEmpty()) {
-            // if they agree, update the classifications list with one of them
-            updateClassificationsList(lastResultMag);
+            // we do this here because this sliding window is updated more frequently than the last one
+            combineClassificationResults(lastResultMag, lastResultCelina);
         }
 
         slidingWindow.addToWindow(new ArrayList<Float>(Arrays.asList(x, y, z, mag)));
+        slidingWindowCelina.addToWindow(new ArrayList<>(Arrays.asList(x, y, z)));
+    }
+
+    private void combineClassificationResults(Classifier.Recognition lastResult1, Classifier.Recognition lastResult2) {
+        if(!lastResult1.getResult().isEmpty() && lastResult1.getResult().equals(lastResult2.getResult())) {
+            // if they agree, update the classifications list with one of them
+            Log.i("Classification", "updating list with " + lastResult1.getResult());
+            updateClassificationsList(lastResult1);
+        }
+        else if(!lastResult1.getResult().isEmpty() &&
+                (Constants.COUGHING_NAME_MAPPING.get(lastResult1.getResult()) == Constants.SS_COUGHING) &&
+                lastResult1.getConfidence() >= 0.8) {
+            Log.i("Classification", "updating list with " + lastResult1.getResult());
+            updateClassificationsList(lastResult1);
+        }
+        else if(!lastResult2.getResult().isEmpty() &&
+                (Constants.COUGHING_NAME_MAPPING.get(lastResult2.getResult()) == Constants.SS_COUGHING) &&
+                lastResult2.getConfidence() >= 0.8) {
+            Log.i("Classification", "updating list with " + lastResult2.getResult());
+            updateClassificationsList(lastResult2);
+        }
+        // if they don't agree, we let the automatic activity recognition update as normal
     }
 
     private void updateClassificationsList(Classifier.Recognition result) {
