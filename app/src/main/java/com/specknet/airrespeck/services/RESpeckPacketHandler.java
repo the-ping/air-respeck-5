@@ -1035,19 +1035,19 @@ public class RESpeckPacketHandler {
     }
 
     private void combineClassificationResults(Classifier.Recognition lastResult1, Classifier.Recognition lastResult2) {
-        if(!lastResult1.getResult().isEmpty() && lastResult1.getResult().equals(lastResult2.getResult())) {
+        if(!lastResult1.getResult().isEmpty() && lastResult1.getResult().toLowerCase().equals(lastResult2.getResult().toLowerCase())) {
             // if they agree, update the classifications list with one of them
             Log.i("Classification", "updating list with " + lastResult1.getResult());
             updateClassificationsList(lastResult1);
         }
         else if(!lastResult1.getResult().isEmpty() &&
-                (Constants.COUGHING_NAME_MAPPING.get(lastResult1.getResult()) == Constants.SS_COUGHING) &&
+                (Constants.COUGHING_NAME_MAPPING.get(lastResult1.getResult().toLowerCase()) == Constants.SS_COUGHING) &&
                 lastResult1.getConfidence() >= 0.8) {
             Log.i("Classification", "updating list with " + lastResult1.getResult());
             updateClassificationsList(lastResult1);
         }
         else if(!lastResult2.getResult().isEmpty() &&
-                (Constants.COUGHING_NAME_MAPPING.get(lastResult2.getResult()) == Constants.SS_COUGHING) &&
+                (Constants.COUGHING_NAME_MAPPING.get(lastResult2.getResult().toLowerCase()) == Constants.SS_COUGHING) &&
                 lastResult2.getConfidence() >= 0.8) {
             Log.i("Classification", "updating list with " + lastResult2.getResult());
             updateClassificationsList(lastResult2);
