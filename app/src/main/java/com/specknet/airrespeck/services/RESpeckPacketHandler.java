@@ -8,8 +8,10 @@ import com.specknet.airrespeck.models.RESpeckAveragedData;
 import com.specknet.airrespeck.models.RESpeckLiveData;
 import com.specknet.airrespeck.models.RESpeckStoredSample;
 import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.SlidingWindow;
 import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
+import com.specknet.airrespeck.utils.Classifier;
 
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -21,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
@@ -84,12 +87,46 @@ public class RESpeckPacketHandler {
     private boolean mIsEncryptData;
     private long last_seq_number = -1;
 
+    // Classification settings
+    private String mModelPathMag = "model_magnitude.tflite";
+    private String mLabelPathMag = "labels_magnitude.txt";
+
+    private String mModelPathFeat = "model_features.tflite";
+    private String mLabelPathFeat = "labels_features.txt";
+
+//    private ArrayList<ArrayList<Float>> slidingWindow = new ArrayList<ArrayList<Float>>();
+    private int windowSizeMag = 32;
+    private int windowStepMag = 16;
+    private int numberOfFeaturesMag = 4;
+    private SlidingWindow slidingWindowMag = new SlidingWindow(windowSizeMag, windowStepMag, numberOfFeaturesMag, false);
+
+    private int windowSizeFeat = 25;
+    private int windowStepFeat = 12;
+    private int numberOfFeaturesFeat = 3;
+    private SlidingWindow slidingWindowFeat = new SlidingWindow(windowSizeFeat, windowStepFeat, numberOfFeaturesFeat, true);
+
+    private Classifier classifierMag;
+    private Classifier classifierFeat;
+
+    private Classifier.Recognition lastResultMag = new Classifier.Recognition();
+    private Classifier.Recognition lastResultFeat = new Classifier.Recognition();
+
+    private String prediction;
+    private float confidence;
+
+    // where we keep track of activity classifications given by our models
+    private ArrayList<Integer> activityClassifications = new ArrayList<>();
+
     public RESpeckPacketHandler() {
         // This is only meant for running tests on the c code!
     }
 
     public RESpeckPacketHandler(SpeckBluetoothService speckService) {
+
         mSpeckService = speckService;
+
+        classifierMag = new Classifier(mSpeckService.getAssets(), mModelPathMag, mLabelPathMag, windowSizeMag, numberOfFeaturesMag);
+        classifierFeat = new Classifier(mSpeckService.getAssets(), mModelPathFeat, mLabelPathFeat, windowSizeFeat, numberOfFeaturesFeat);
 
         // Initialise stored queue
         storedQueue = new LinkedList<>();
@@ -258,15 +295,21 @@ public class RESpeckPacketHandler {
 
                     updateBreathing(x, y, z);
 
+
                     final float breathingSignal = getBreathingSignal();
                     final float activityLevel = getActivityLevel();
-                    final int activityType = getActivityClassification();
+                    int activityType = getActivityClassification();
                     final float breathingRate = getBreathingRate();
                     resetBreathingRate();
 
                     // Store activity level and type for minute average
                     lastMinuteActivityLevel.add(activityLevel);
                     lastMinuteActivityType.add(activityType);
+
+                    // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
+                    if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                        activityType = Constants.SS_COUGHING;
+                    }
 
                     // Calculate interpolated timestamp of current sample based on sequence number
                     // There are 32 samples in each acceleration batch the RESpeck sends.
@@ -323,7 +366,7 @@ public class RESpeckPacketHandler {
 
                         RESpeckAveragedData avgData = new RESpeckAveragedData(lastProcessedMinute,
                                 mAverageBreathingRate, stdDevBreathingRate, numberOfBreaths, meanActivityLevel,
-                                modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion());
+                                modeActivityType, stepCountC, mSpeckService.getRESpeckFwVersion(), getNumberOfCoughs());
 
                         // Send average broadcast intent
                         Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
@@ -412,7 +455,7 @@ public class RESpeckPacketHandler {
 
             final float breathingSignal = getBreathingSignal();
             final float activityLevel = getActivityLevel();
-            final int activityType = getActivityClassification();
+            int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
             resetBreathingRate(); // TODO question - why is this here?
             // this sets the current breathing rate to NaN so the next time we call
@@ -434,6 +477,11 @@ public class RESpeckPacketHandler {
             // Also calculate the approximation of the true sampling frequency
             long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
+
+            // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
+            if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                activityType = Constants.SS_COUGHING;
+            }
 
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     newRESpeckTimestamp, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
@@ -535,7 +583,7 @@ public class RESpeckPacketHandler {
 
                 RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute, mAverageBreathingRate,
                         stdDevBreathingRate, numberOfBreaths, meanActivityLevel, modeActivityType, stepCountC,
-                        mSpeckService.getRESpeckFwVersion());
+                        mSpeckService.getRESpeckFwVersion(), getNumberOfCoughs());
 
                 // Send average broadcast intent
                 Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
@@ -641,12 +689,14 @@ public class RESpeckPacketHandler {
 
             final float breathingSignal = getBreathingSignal();
             final float activityLevel = getActivityLevel();
-            final int activityType = getActivityClassification();
+            int activityType = getActivityClassification();
             final float breathingRate = getBreathingRate();
             resetBreathingRate(); // question - why is this here?
             // this sets the current breathing rate to NaN so the next time we call
             // getBreathingRate we will get NaN?
 
+            // TODO activity recognition here
+            updateActivityClassification(x, y, z);
 
             // Store activity level and type for minute average
             lastMinuteActivityLevel.add(activityLevel);
@@ -667,6 +717,13 @@ public class RESpeckPacketHandler {
             long currentProcessedMinute = DateUtils.truncate(new Date(mPhoneTimestampCurrentPacketReceived),
                     Calendar.MINUTE).getTime();
 
+            // get the activity classification from the classifier and if it's coughing, replace the BR_lib result with it
+            if(activityClassifications.size() > 0 && activityClassifications.get(activityClassifications.size() - 1) == Constants.SS_COUGHING) {
+                Log.i("Classification", "new actType = " + activityType);
+                activityType = Constants.SS_COUGHING;
+            }
+
+            Log.i("Classification", "respeck live data actType = " + activityType);
             RESpeckLiveData newRESpeckLiveData = new RESpeckLiveData(interpolatedPhoneTimestampOfCurrentSample,
                     interpolatedRespeckTimestampOfCurrentSample, currentSequenceNumberInBatch, x, y, z, breathingSignal, breathingRate,
                     activityLevel, activityType, mAverageBreathingRate, getMinuteStepcount(), 0.0f, (int)battLevel, (boolean)chargingStatus);
@@ -766,7 +823,7 @@ public class RESpeckPacketHandler {
 
                 RESpeckAveragedData avgData = new RESpeckAveragedData(currentProcessedMinute, mAverageBreathingRate,
                         stdDevBreathingRate, numberOfBreaths, meanActivityLevel, modeActivityType, stepCountC,
-                        mSpeckService.getRESpeckFwVersion());
+                        mSpeckService.getRESpeckFwVersion(), getNumberOfCoughs());
 
                 // Send average broadcast intent
                 Intent avgDataIntent = new Intent(Constants.ACTION_RESPECK_AVG_BROADCAST);
@@ -961,6 +1018,96 @@ public class RESpeckPacketHandler {
         frequencyTimestamps.clear();
 
         return samplingFrequency;
+    }
+
+    private void updateActivityClassification(float x, float y, float z) {
+        // magnitude here
+        float mag = (float) Math.sqrt(x*x + y*y + z*z);
+
+        if(slidingWindowMag.isFull()) {
+
+            // send window to classifier
+            Classifier.Recognition result = classifierMag.classifyActivity(slidingWindowMag.getRawWindow());
+
+            Log.i("Classification", "Prediction = " + result.getResult() + ", Confidence = " + result.getConfidence());
+
+            // add the classification result to a list
+            // which should be refreshed every minute when we calculate the averages
+//            updateClassificationsList(result);
+            lastResultMag = result;
+
+            // we do this here because this sliding window is updated more frequently than the last one
+            combineClassificationResults(lastResultMag, lastResultFeat);
+
+        }
+
+        if(slidingWindowFeat.isFull()) {
+            Classifier.Recognition resultFeat = classifierFeat.classifyActivityWithFeatures(
+                    slidingWindowFeat.getGradientWindow(),
+                    slidingWindowFeat.extractStatsFromGrad());
+            Log.i("Classification Celina", "Prediction = " + resultFeat.getResult() + ", Confidence = " + resultFeat.getConfidence());
+
+            // add the classification result to a list
+            // which should be refreshed every minute when we calculate the averages
+            // TODO: Do something with both classifications
+            // TODO perhaps test for confidence
+//            updateClassificationsList(resultCelina);
+            lastResultFeat = resultFeat;
+
+            // we do this here because this sliding window is updated more frequently than the last one
+            combineClassificationResults(lastResultMag, lastResultFeat);
+        }
+
+        slidingWindowMag.addToWindow(new ArrayList<Float>(Arrays.asList(x, y, z, mag)));
+        slidingWindowFeat.addToWindow(new ArrayList<>(Arrays.asList(x, y, z)));
+    }
+
+    private void combineClassificationResults(Classifier.Recognition lastResult1, Classifier.Recognition lastResult2) {
+        if(!lastResult1.getResult().isEmpty() && lastResult1.getResult().toLowerCase().equals(lastResult2.getResult().toLowerCase())) {
+            // if they agree, update the classifications list with one of them
+            Log.i("Classification", "updating list with " + lastResult1.getResult());
+            updateClassificationsList(lastResult1);
+        }
+        else if(!lastResult1.getResult().isEmpty() &&
+                (Constants.COUGHING_NAME_MAPPING.get(lastResult1.getResult().toLowerCase()) == Constants.SS_COUGHING) &&
+                lastResult1.getConfidence() >= 0.8) {
+            Log.i("Classification", "updating list with " + lastResult1.getResult());
+            updateClassificationsList(lastResult1);
+        }
+        else if(!lastResult2.getResult().isEmpty() &&
+                (Constants.COUGHING_NAME_MAPPING.get(lastResult2.getResult().toLowerCase()) == Constants.SS_COUGHING) &&
+                lastResult2.getConfidence() >= 0.8) {
+            Log.i("Classification", "updating list with " + lastResult2.getResult());
+            updateClassificationsList(lastResult2);
+        }
+
+        // TODO in the future - remove arbitrary update
+        else if(!lastResult1.getResult().isEmpty()) {
+            updateClassificationsList(lastResult1);
+        }
+        // if they don't agree, we let the automatic activity recognition update as normal
+    }
+
+    private void updateClassificationsList(Classifier.Recognition result) {
+        // get the activity integer from a mapping of class names
+        int activityMapping = Constants.COUGHING_NAME_MAPPING.get(result.getResult());
+        activityClassifications.add(activityMapping);
+    }
+
+    private int getNumberOfCoughs() {
+        // iterate through activityClassifications and add instances of coughing
+        int numberOfCoughs = 0;
+
+        for(int i=0; i<activityClassifications.size(); i++) {
+            if(activityClassifications.get(i) == Constants.SS_COUGHING) {
+                numberOfCoughs += 1;
+            }
+        }
+
+        // clear this every minute
+        activityClassifications.clear();
+
+        return numberOfCoughs;
     }
 
     private float calculateRespeckSamplingFrequency() {

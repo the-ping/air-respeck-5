@@ -191,6 +191,9 @@ class RespeckAndDiaryRemoteUploadService(bluetoothSpeckService: Service) {
                         jsonAverageData.put("stored", 0)
                         jsonAverageData.put("valid", 1)
                         jsonAverageData.put("fw", data.fwVersion)
+                        jsonAverageData.put("n_coughs", data.numberOfCoughs)
+
+                        Log.i("RespeckUpload", "Avg data with coughs = " + jsonAverageData.toString())
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }
