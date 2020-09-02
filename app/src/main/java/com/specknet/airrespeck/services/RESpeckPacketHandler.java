@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
@@ -85,28 +84,28 @@ public class RESpeckPacketHandler {
     private long last_seq_number = -1;
 
     // Classification settings
-    private String mModelPath = "model_magnitude.tflite";
-    private String mLabelPath = "labels.txt";
+    private String mModelPathMag = "model_magnitude.tflite";
+    private String mLabelPathMag = "labels_magnitude.txt";
 
-    private String mModelPathCelina = "model_celina.tflite";
-    private String mLabelPathCelina = "labels_celina.txt";
+    private String mModelPathFeat = "model_features.tflite";
+    private String mLabelPathFeat = "labels_features.txt";
 
 //    private ArrayList<ArrayList<Float>> slidingWindow = new ArrayList<ArrayList<Float>>();
-    private int windowSize = 32;
-    private int windowStep = 16;
-    private int numberOfFeatures = 4;
-    private SlidingWindow slidingWindow = new SlidingWindow(windowSize, windowStep, numberOfFeatures, false);
+    private int windowSizeMag = 32;
+    private int windowStepMag = 16;
+    private int numberOfFeaturesMag = 4;
+    private SlidingWindow slidingWindowMag = new SlidingWindow(windowSizeMag, windowStepMag, numberOfFeaturesMag, false);
 
-    private int windowSizeCelina = 25;
-    private int windowStepCelina = 12;
-    private int numberOfFeaturesCelina = 3;
-    private SlidingWindow slidingWindowCelina = new SlidingWindow(windowSizeCelina, windowStepCelina, numberOfFeaturesCelina, true);
+    private int windowSizeFeat = 25;
+    private int windowStepFeat = 12;
+    private int numberOfFeaturesFeat = 3;
+    private SlidingWindow slidingWindowFeat = new SlidingWindow(windowSizeFeat, windowStepFeat, numberOfFeaturesFeat, true);
 
-    private Classifier classifier;
-    private Classifier classifierCelina;
+    private Classifier classifierMag;
+    private Classifier classifierFeat;
 
     private Classifier.Recognition lastResultMag = new Classifier.Recognition();
-    private Classifier.Recognition lastResultCelina = new Classifier.Recognition();
+    private Classifier.Recognition lastResultFeat = new Classifier.Recognition();
 
     private String prediction;
     private float confidence;
@@ -122,8 +121,8 @@ public class RESpeckPacketHandler {
 
         mSpeckService = speckService;
 
-        classifier = new Classifier(mSpeckService.getAssets(), mModelPath, mLabelPath, windowSize, numberOfFeatures);
-        classifierCelina = new Classifier(mSpeckService.getAssets(), mModelPathCelina, mLabelPathCelina, windowSizeCelina, numberOfFeaturesCelina);
+        classifierMag = new Classifier(mSpeckService.getAssets(), mModelPathMag, mLabelPathMag, windowSizeMag, numberOfFeaturesMag);
+        classifierFeat = new Classifier(mSpeckService.getAssets(), mModelPathFeat, mLabelPathFeat, windowSizeFeat, numberOfFeaturesFeat);
 
         // Initialise stored queue
         storedQueue = new LinkedList<>();
@@ -996,10 +995,10 @@ public class RESpeckPacketHandler {
         // magnitude here
         float mag = (float) Math.sqrt(x*x + y*y + z*z);
 
-        if(slidingWindow.isFull()) {
+        if(slidingWindowMag.isFull()) {
 
             // send window to classifier
-            Classifier.Recognition result = classifier.classifyActivity(slidingWindow.getRawWindow());
+            Classifier.Recognition result = classifierMag.classifyActivity(slidingWindowMag.getRawWindow());
 
             Log.i("Classification", "Prediction = " + result.getResult() + ", Confidence = " + result.getConfidence());
 
@@ -1009,29 +1008,29 @@ public class RESpeckPacketHandler {
             lastResultMag = result;
 
             // we do this here because this sliding window is updated more frequently than the last one
-            combineClassificationResults(lastResultMag, lastResultCelina);
+            combineClassificationResults(lastResultMag, lastResultFeat);
 
         }
 
-        if(slidingWindowCelina.isFull()) {
-            Classifier.Recognition resultCelina = classifierCelina.classifyActivityWithFeatures(
-                    slidingWindowCelina.getGradientWindow(),
-                    slidingWindowCelina.extractStatsFromGrad());
-            Log.i("Classification Celina", "Prediction = " + resultCelina.getResult() + ", Confidence = " + resultCelina.getConfidence());
+        if(slidingWindowFeat.isFull()) {
+            Classifier.Recognition resultFeat = classifierFeat.classifyActivityWithFeatures(
+                    slidingWindowFeat.getGradientWindow(),
+                    slidingWindowFeat.extractStatsFromGrad());
+            Log.i("Classification Celina", "Prediction = " + resultFeat.getResult() + ", Confidence = " + resultFeat.getConfidence());
 
             // add the classification result to a list
             // which should be refreshed every minute when we calculate the averages
             // TODO: Do something with both classifications
             // TODO perhaps test for confidence
 //            updateClassificationsList(resultCelina);
-            lastResultCelina = resultCelina;
+            lastResultFeat = resultFeat;
 
             // we do this here because this sliding window is updated more frequently than the last one
-            combineClassificationResults(lastResultMag, lastResultCelina);
+            combineClassificationResults(lastResultMag, lastResultFeat);
         }
 
-        slidingWindow.addToWindow(new ArrayList<Float>(Arrays.asList(x, y, z, mag)));
-        slidingWindowCelina.addToWindow(new ArrayList<>(Arrays.asList(x, y, z)));
+        slidingWindowMag.addToWindow(new ArrayList<Float>(Arrays.asList(x, y, z, mag)));
+        slidingWindowFeat.addToWindow(new ArrayList<>(Arrays.asList(x, y, z)));
     }
 
     private void combineClassificationResults(Classifier.Recognition lastResult1, Classifier.Recognition lastResult2) {
@@ -1052,6 +1051,8 @@ public class RESpeckPacketHandler {
             Log.i("Classification", "updating list with " + lastResult2.getResult());
             updateClassificationsList(lastResult2);
         }
+
+        // TODO in the future - remove arbitrary update
         else if(!lastResult1.getResult().isEmpty()) {
             updateClassificationsList(lastResult1);
         }
