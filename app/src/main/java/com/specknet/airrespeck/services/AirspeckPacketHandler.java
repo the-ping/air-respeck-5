@@ -333,7 +333,7 @@ public class AirspeckPacketHandler {
         processOPCPacket(opcData);
         opcData.clear();
 
-        short batteryLevel = buffer.getShort();
+        short batteryLevel = (short)(buffer.getShort() & 0xff);
         Log.i("AirspeckPacketHandler", "Battery: " + batteryLevel);
 
         // Process location
