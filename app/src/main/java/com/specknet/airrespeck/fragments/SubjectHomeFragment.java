@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -388,11 +389,17 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
     public void startRehabApp(Context context, String packageName) {
         Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        String phoneID = Utils.getInstance().getConfig(context).get("PhoneID");
+        String subjectID = Utils.getInstance().getConfig(context).get(Constants.Config.SUBJECT_ID);
+        Log.i("Crashlytis", "Phone id = " + phoneID);
+        Log.i("Crashlytis", "Subject id = " + subjectID);
 
         if (intent == null) {
             Toast.makeText(context, "Rehab app not installed. Contact researchers for further information.",
                     Toast.LENGTH_LONG).show();
         } else {
+            intent.putExtra(Constants.PHONE_ID, phoneID);
+            intent.putExtra(Constants.SUBJECT_ID, subjectID);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }
