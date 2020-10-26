@@ -54,7 +54,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private Button mCancelButton;
 
     private EditText nameTextField;
-    private Spinner categorySpinner;
+//    private Spinner categorySpinner;
     private Spinner activitySpinner;
     private TextView timerText;
     private CountUpTimer countUpTimer;
@@ -90,6 +90,19 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private final String COUGHING = "Coughing";
     private final String NONCOUGHING = "Noncoughing";
 
+    // FOR PATIENT RECORDING
+    private final String SIT_BREATHE = "Sitting straight and breathing";
+    private final String SIT_BREATHE_DEEP = "Sitting straight and breathing deeply";
+    private final String SIT_COUGH = "Sitting straight and coughing";
+    private final String SIT_TALK = "Sitting straight and talking";
+    private final String LIE_BREATHE = "Lying down on back and breathing";
+    private final String LIE_COUGH = "Lying down on back and coughing";
+    private final String WALK = "Walking at a normal pace";
+    private final String WALK_SLOW = "Walking slowly";
+    private final String SWING = "Swinging front to back while sitting down";
+    private final String MOVE = "Sudden movement";
+    private final String SIT_HYPER = "Sitting straight and hyperventilating";
+
     private final String LOG_TAG = "RESpeckActivityLogging";
 
     private IndoorOutdoorPredictor indoorOutdoorPredictor;
@@ -108,55 +121,59 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
         nameTextField = (EditText) view.findViewById(R.id.name_text_field);
 
-        // Setup category spinner
-        categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
+//        // Setup category spinner
+//        categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
 
-        String[] categorySpinnerElements = new String[]{ORIENTATION, INOUT, TRANSPORT, COUGHING};
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_spinner_dropdown_item, categorySpinnerElements);
-        categorySpinner.setAdapter(categoryAdapter);
+//        String[] categorySpinnerElements = new String[]{ORIENTATION, INOUT, TRANSPORT, COUGHING};
+//        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getActivity(),
+//                android.R.layout.simple_spinner_dropdown_item, categorySpinnerElements);
+//        categorySpinner.setAdapter(categoryAdapter);
 
         // Setup activity spinner
         activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
-        final String[] orientationSpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD,
-                SITTING_BACKWARD, STANDING, LYING_ON_BACK, LYING_STOMACH, LYING_RIGHT, LYING_LEFT};
-        final String[] indoorOutdoorSpinnerElements = new String[]{OUTDOOR, INDOOR, HALF_OPEN};
-        final String[] transportSpinnerElements = new String[]{BUS, BIKE, TRAIN, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
-                WALKING_DOWNSTAIRS, RUNNING};
-        final String[] coughingSpinnerElements = new String[]{COUGHING, NONCOUGHING};
+//        final String[] orientationSpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD,
+//                SITTING_BACKWARD, STANDING, LYING_ON_BACK, LYING_STOMACH, LYING_RIGHT, LYING_LEFT};
+//        final String[] indoorOutdoorSpinnerElements = new String[]{OUTDOOR, INDOOR, HALF_OPEN};
+//        final String[] transportSpinnerElements = new String[]{BUS, BIKE, TRAIN, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
+//                WALKING_DOWNSTAIRS, RUNNING};
+//        final String[] coughingSpinnerElements = new String[]{COUGHING, NONCOUGHING};
+        final String[] patientSpinnerElements = new String[]{SIT_BREATHE, SIT_BREATHE_DEEP, SIT_COUGH, SIT_HYPER, SIT_TALK,
+                LIE_BREATHE, LIE_COUGH, WALK, WALK_SLOW, MOVE, SWING};
+        ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
+                android.R.layout.simple_spinner_dropdown_item, patientSpinnerElements);
+        activitySpinner.setAdapter(activityAdapter);
+//        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                String[] activitySpinnerElements = new String[]{};
+//                switch (position) {
+//                    case 0:
+//                        activitySpinnerElements = orientationSpinnerElements;
+//                        break;
+//                    case 1:
+//                        activitySpinnerElements = indoorOutdoorSpinnerElements;
+//                        break;
+//                    case 2:
+//                        activitySpinnerElements = transportSpinnerElements;
+//                        break;
+//                    case 3:
+//                        activitySpinnerElements = coughingSpinnerElements;
+//                        break;
+//                }
+//                ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
+//                        android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
+//                activitySpinner.setAdapter(activityAdapter);
+//            }
 
-        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String[] activitySpinnerElements = new String[]{};
-                switch (position) {
-                    case 0:
-                        activitySpinnerElements = orientationSpinnerElements;
-                        break;
-                    case 1:
-                        activitySpinnerElements = indoorOutdoorSpinnerElements;
-                        break;
-                    case 2:
-                        activitySpinnerElements = transportSpinnerElements;
-                        break;
-                    case 3:
-                        activitySpinnerElements = coughingSpinnerElements;
-                        break;
-                }
-                ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
-                        android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
-                activitySpinner.setAdapter(activityAdapter);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Set empty activity spinner
-                activitySpinner.setAdapter(
-                        new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item,
-                                new String[]{}));
-            }
-        });
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                // Set empty activity spinner
+//                activitySpinner.setAdapter(
+//                        new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item,
+//                                new String[]{}));
+//            }
+//        });
 
         // Load buttons
         mStartStopButton = (Button) view.findViewById(R.id.record_button);
@@ -209,11 +226,14 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         if (!mSubjectName.equals("")) {
             mActivity = activitySpinner.getSelectedItem().toString();
 
-            if (categorySpinner.getSelectedItem().toString().equals(INOUT)) {
-                mIsInOutRecording = true;
-            } else {
-                mIsRespeckRecording = true;
-            }
+//            if (categorySpinner.getSelectedItem().toString().equals(INOUT)) {
+//                mIsInOutRecording = true;
+//            } else {
+//                mIsRespeckRecording = true;
+//            }
+
+            mIsInOutRecording = false;
+            mIsRespeckRecording = true;
 
             // Change button label to tell the user that we are recording
             mStartStopButton.setText(R.string.button_text_stop_recording);
