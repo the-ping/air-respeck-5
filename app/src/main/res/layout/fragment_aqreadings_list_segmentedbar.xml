@@ -9,7 +9,7 @@
     android:paddingRight="10dp"
     android:paddingTop="15dp">
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/sb_item_list"
         android:name="com.specknet.airrespeck.fragments.ItemFragment"
         android:layout_width="match_parent"

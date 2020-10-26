@@ -2,8 +2,7 @@ package com.specknet.airrespeck.views;
 
 import android.app.Activity;
 import android.os.Handler;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
+import androidx.core.content.ContextCompat;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
@@ -22,7 +21,6 @@ import com.specknet.airrespeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Locale;
 
 /**
  * Graph which displays a live breathing signal when continuously fed with new data. It takes care of buffering incoming data to

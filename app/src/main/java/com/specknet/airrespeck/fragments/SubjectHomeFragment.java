@@ -11,9 +11,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -203,8 +205,8 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                 }
 
                 Fragment fragment = new AudioSubmission();
-                android.support.v4.app.FragmentManager fm = getActivity().getSupportFragmentManager();
-                android.support.v4.app.FragmentTransaction transaction = fm.beginTransaction();
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction transaction = fm.beginTransaction();
                 transaction.replace(R.id.main_frame, fragment);
                 transaction.addToBackStack(null);
                 transaction.commit();

@@ -6,7 +6,7 @@ import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.LocationManager;
 import android.os.Looper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.location.places.PlaceDetectionClient;
