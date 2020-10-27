@@ -27,6 +27,8 @@ import com.specknet.airrespeck.utils.CountUpTimer;
 import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 import com.specknet.airrespeck.utils.Utils;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,7 +55,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private Button mStartStopButton;
     private Button mCancelButton;
 
-    private EditText nameTextField;
+    private TextView nameTextField;
 //    private Spinner categorySpinner;
     private Spinner activitySpinner;
     private TextView timerText;
@@ -119,7 +121,9 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         androidID = Settings.Secure.getString(getActivity().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
 
-        nameTextField = (EditText) view.findViewById(R.id.name_text_field);
+//        nameTextField = (EditText) view.findViewById(R.id.name_text_field);
+        nameTextField = (TextView) view.findViewById(R.id.name_text_field);
+        nameTextField.setText("Subject ID: " + subjectID);
 
 //        // Setup category spinner
 //        categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
@@ -222,7 +226,10 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
     private void startRecording() {
         // Start recording
-        mSubjectName = nameTextField.getText().toString();
+        // mSubjectName = nameTextField.getText().toString();
+
+        mSubjectName = subjectID;
+
         if (!mSubjectName.equals("")) {
             mActivity = activitySpinner.getSelectedItem().toString();
 
