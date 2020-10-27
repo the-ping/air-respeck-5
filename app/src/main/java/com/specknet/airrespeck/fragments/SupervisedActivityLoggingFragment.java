@@ -1,9 +1,14 @@
 package com.specknet.airrespeck.fragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+
+//import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +21,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnPausedListener;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.AirspeckDataObserver;
 import com.specknet.airrespeck.activities.MainActivity;
@@ -36,6 +49,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Recording activity data
@@ -52,6 +66,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
     private Button mStartStopButton;
     private Button mCancelButton;
+    private Button mUploadButton;
 
     private EditText nameTextField;
     private Spinner categorySpinner;
@@ -94,6 +109,8 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
     private IndoorOutdoorPredictor indoorOutdoorPredictor;
     private OutputStreamWriter predictionWriter;
+
+    private FirebaseStorage storage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -163,6 +180,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         mStartStopButton.setBackgroundColor(
                 ContextCompat.getColor(getActivity(), R.color.md_grey_300));
         mCancelButton = (Button) view.findViewById(R.id.cancel_button);
+        mUploadButton = (Button) view.findViewById(R.id.upload_button);
 
         timerText = (TextView) view.findViewById(R.id.count_up_timer);
         countUpTimer = new CountUpTimer(1000) {
@@ -195,10 +213,19 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             }
         });
 
+        mUploadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uploadRecording();
+            }
+        });
+
         ((MainActivity) getActivity()).registerRESpeckDataObserver(this);
         ((MainActivity) getActivity()).registerAirspeckDataObserver(this);
 
         indoorOutdoorPredictor = new IndoorOutdoorPredictor(getActivity());
+
+        storage = FirebaseStorage.getInstance();
 
         return view;
     }
@@ -364,6 +391,51 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         mStartStopButton.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
         mCancelButton.setEnabled(false);
+    }
+
+    private void uploadRecording() {
+        Toast.makeText(getActivity(), "Uploading recording", Toast.LENGTH_LONG).show();
+
+        StorageReference storageRef = storage.getReferenceFromUrl("gs://airrespeck.appspot.com/recs");
+
+        // upload content
+        String filename = Utils.getInstance().getDataDirectory(getActivity()) + Constants.LOGGING_DIRECTORY_NAME +
+                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
+                " Activity RESpeck Logs " + Utils.getInstance().getConfig(getActivity()).get(
+                Constants.Config.RESPECK_UUID).replace(":", "") +
+                ".csv";
+        Uri file = Uri.fromFile(new File(filename));
+
+        StorageMetadata metadata = new StorageMetadata.Builder()
+                .setContentType("recs/csv")
+                .build();
+
+        UploadTask uploadTask = storageRef.child(Objects.requireNonNull(file.getLastPathSegment())).putFile(file, metadata);
+
+        // Listen for state changes, errors, and completion of the upload.
+        uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                Log.d("GCS", "Upload is " + progress + "% done");
+            }
+        }).addOnPausedListener(new OnPausedListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onPaused(UploadTask.TaskSnapshot taskSnapshot) {
+                Log.d("GCS", "Upload is paused");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle unsuccessful uploads
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // Handle successful uploads on complete
+                // ...
+            }
+        });
     }
 
     @Override
