@@ -428,6 +428,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             @Override
             public void onFailure(@NonNull Exception exception) {
                 // Handle unsuccessful uploads
+                Log.d("GCS", "Upload was unsuccessful!");
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
