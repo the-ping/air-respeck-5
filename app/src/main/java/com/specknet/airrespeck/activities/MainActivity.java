@@ -35,6 +35,7 @@ import android.view.MenuItem;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
@@ -181,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
         if (mLoadedConfig.containsKey(Constants.Config.SHOW_MEDIA_BUTTONS)) {
             mCollectMedia = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.SHOW_MEDIA_BUTTONS));
         }
+
+        FirebaseCrashlytics.getInstance().setUserId(mLoadedConfig.get(Constants.PHONE_ID) + "_" + mLoadedConfig.get(Constants.Config.SUBJECT_ID));
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();

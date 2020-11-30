@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -41,6 +42,8 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
 
     private Utils mUtils;
     private Map<String, String> mLoadedConfig;
+    // for Firebase testing
+    private Button crashButton;
 
 
     /**

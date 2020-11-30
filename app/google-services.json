@@ -33,20 +33,42 @@
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
               "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958739433950:android:abef05d8f6a0a830",
+        "android_client_info": {
+          "package_name": "com.specknet.pairing.pairing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPSRA88H2wktNtM416GoRcHHSYoXSgQbc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
