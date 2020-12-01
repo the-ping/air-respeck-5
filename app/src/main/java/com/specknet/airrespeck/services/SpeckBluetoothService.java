@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
 import android.util.Log;
@@ -125,14 +126,16 @@ public class SpeckBluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startMyOwnForeground();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+            startMyOwnForeground();
     }
 
     private void startMyOwnForeground(){
         final int SERVICE_NOTIFICATION_ID = 8598001;
         String NOTIFICATION_CHANNEL_ID = "com.specknet.airrespeck";
         String channelName = "Airrespeck Bluetooth Service";
-        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        NotificationChannel chan = null;
+        chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -165,19 +168,19 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void startInForeground() {
-        /*
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        Notification notification = new Notification.Builder(this).setContentTitle(
-                getText(R.string.notification_speck_title)).setContentText(
-                getText(R.string.notification_speck_text)).setSmallIcon(
-                R.drawable.vec_wireless_active).setContentIntent(pendingIntent).build();
+            Notification notification = new Notification.Builder(this).setContentTitle(
+                    getText(R.string.notification_speck_title)).setContentText(
+                    getText(R.string.notification_speck_text)).setSmallIcon(
+                    R.drawable.vec_wireless_active).setContentIntent(pendingIntent).build();
 
-        // Just use a "random" service ID
-        final int SERVICE_NOTIFICATION_ID = 8598001;
-        startForeground(SERVICE_NOTIFICATION_ID, notification);
-        */
+            // Just use a "random" service ID
+            final int SERVICE_NOTIFICATION_ID = 8598001;
+            startForeground(SERVICE_NOTIFICATION_ID, notification);
+        }
     }
 
     @Override

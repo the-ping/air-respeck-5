@@ -68,7 +68,8 @@ public class PhoneGPSService extends Service implements
     @Override
     public void onCreate() {
         super.onCreate();
-        startMyOwnForeground();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+            startMyOwnForeground();
     }
 
     private void startMyOwnForeground(){
@@ -118,19 +119,20 @@ public class PhoneGPSService extends Service implements
                 androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
                         Settings.Secure.ANDROID_ID);
 
-                /* NO LONGER WORKS
-                Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+                    final int SERVICE_NOTIFICATION_ID = 8598002;
+                    Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
 
-                Notification notification = new Notification.Builder(PhoneGPSService.this)
-                        .setContentTitle(getText(R.string.notification_gps_title))
-                        .setContentText(getText(R.string.notification_gps_text))
-                        .setSmallIcon(R.drawable.vec_location)
-                        .setContentIntent(pendingIntent)
-                        .build();
+                    Notification notification = new Notification.Builder(PhoneGPSService.this)
+                            .setContentTitle(getText(R.string.notification_gps_title))
+                            .setContentText(getText(R.string.notification_gps_text))
+                            .setSmallIcon(R.drawable.vec_location)
+                            .setContentIntent(pendingIntent)
+                            .build();
 
-                startForeground(SERVICE_NOTIFICATION_ID, notification);
-                */
+                    startForeground(SERVICE_NOTIFICATION_ID, notification);
+                }
 
                 mGoogleApiClient = new GoogleApiClient.Builder(PhoneGPSService.this)
                         .addConnectionCallbacks(PhoneGPSService.this)
