@@ -129,8 +129,9 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void startMyOwnForeground(){
-        String NOTIFICATION_CHANNEL_ID = "com.specknet.orientandroid";
-        String channelName = "My Background Service";
+        final int SERVICE_NOTIFICATION_ID = 8598001;
+        String NOTIFICATION_CHANNEL_ID = "com.specknet.airrespeck";
+        String channelName = "Airrespeck Bluetooth Service";
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
@@ -141,7 +142,7 @@ public class SpeckBluetoothService extends Service {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.vec_wireless_active)
-                .setContentTitle("App is running in background")
+                .setContentTitle("Airrespeck Bluetooth Service")
                 .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
@@ -164,6 +165,7 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void startInForeground() {
+        /*
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -175,6 +177,7 @@ public class SpeckBluetoothService extends Service {
         // Just use a "random" service ID
         final int SERVICE_NOTIFICATION_ID = 8598001;
         startForeground(SERVICE_NOTIFICATION_ID, notification);
+        */
     }
 
     @Override

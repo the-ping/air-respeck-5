@@ -544,8 +544,8 @@ public class MainActivity extends AppCompatActivity {
         // Only start service if it is not already running.
         if (!Utils.isServiceRunning(SpeckBluetoothService.class, this)) {
             FileLogger.logToFile(this, "Started Speck Bluetooth service");
-            //Intent intentStartService = new Intent(this, SpeckBluetoothService.class);
-            //startService(intentStartService);
+            Intent intentStartService = new Intent(this, SpeckBluetoothService.class);
+            startService(intentStartService);
         } else {
             FileLogger.logToFile(this, "Speck Bluetooth service already running. Don't start it again.");
         }

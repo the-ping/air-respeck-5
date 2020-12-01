@@ -57,7 +57,6 @@ public class PhoneGPSService extends Service implements
     private LocationRequest mLocationRequest;
     private OutputStreamWriter mGPSWriter;
     // Just in case there could be a conflict with another notification, we give it a high "random" integer
-    private final int SERVICE_NOTIFICATION_ID = 2148914;
 
     private Date mDateofLastWrite = new Date(0);
 
@@ -73,6 +72,7 @@ public class PhoneGPSService extends Service implements
     }
 
     private void startMyOwnForeground(){
+        final int SERVICE_NOTIFICATION_ID = 8598002;
         String NOTIFICATION_CHANNEL_ID = "com.specknet.airrespeck";
         String channelName = "Airrespeck GPS Service";
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
