@@ -1,6 +1,9 @@
 package com.specknet.airrespeck.services;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import androidx.core.app.NotificationCompat;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -9,10 +12,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
 
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.RxBleConnection;
@@ -115,6 +120,32 @@ public class SpeckBluetoothService extends Service {
 
     public SpeckBluetoothService() {
 
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        startMyOwnForeground();
+    }
+
+    private void startMyOwnForeground(){
+        String NOTIFICATION_CHANNEL_ID = "com.specknet.orientandroid";
+        String channelName = "My Background Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.vec_wireless_active)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(SERVICE_NOTIFICATION_ID, notification);
     }
 
     @Override
