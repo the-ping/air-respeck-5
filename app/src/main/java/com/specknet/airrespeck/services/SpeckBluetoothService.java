@@ -1,6 +1,9 @@
 package com.specknet.airrespeck.services;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import androidx.core.app.NotificationCompat;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -9,10 +12,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
 
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.RxBleConnection;
@@ -118,6 +124,35 @@ public class SpeckBluetoothService extends Service {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+            startMyOwnForeground();
+    }
+
+    private void startMyOwnForeground(){
+        final int SERVICE_NOTIFICATION_ID = 8598001;
+        String NOTIFICATION_CHANNEL_ID = "com.specknet.airrespeck";
+        String channelName = "Airrespeck Bluetooth Service";
+        NotificationChannel chan = null;
+        chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.vec_wireless_active)
+                .setContentTitle("Airrespeck Bluetooth Service")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(SERVICE_NOTIFICATION_ID, notification);
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, final int startId) {
         new Thread() {
             @Override
@@ -133,17 +168,19 @@ public class SpeckBluetoothService extends Service {
     }
 
     private void startInForeground() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        Notification notification = new Notification.Builder(this).setContentTitle(
-                getText(R.string.notification_speck_title)).setContentText(
-                getText(R.string.notification_speck_text)).setSmallIcon(
-                R.drawable.vec_wireless_active).setContentIntent(pendingIntent).build();
+            Notification notification = new Notification.Builder(this).setContentTitle(
+                    getText(R.string.notification_speck_title)).setContentText(
+                    getText(R.string.notification_speck_text)).setSmallIcon(
+                    R.drawable.vec_wireless_active).setContentIntent(pendingIntent).build();
 
-        // Just use a "random" service ID
-        final int SERVICE_NOTIFICATION_ID = 8598001;
-        startForeground(SERVICE_NOTIFICATION_ID, notification);
+            // Just use a "random" service ID
+            final int SERVICE_NOTIFICATION_ID = 8598001;
+            startForeground(SERVICE_NOTIFICATION_ID, notification);
+        }
     }
 
     @Override

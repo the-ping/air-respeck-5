@@ -2,10 +2,15 @@ package com.specknet.airrespeck.services;
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import androidx.core.app.NotificationCompat;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -52,7 +57,6 @@ public class PhoneGPSService extends Service implements
     private LocationRequest mLocationRequest;
     private OutputStreamWriter mGPSWriter;
     // Just in case there could be a conflict with another notification, we give it a high "random" integer
-    private final int SERVICE_NOTIFICATION_ID = 2148914;
 
     private Date mDateofLastWrite = new Date(0);
 
@@ -60,6 +64,34 @@ public class PhoneGPSService extends Service implements
     private boolean mIsStoreDataLocally;
     private String patientID;
     private String androidID;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+            startMyOwnForeground();
+    }
+
+    private void startMyOwnForeground(){
+        final int SERVICE_NOTIFICATION_ID = 8598002;
+        String NOTIFICATION_CHANNEL_ID = "com.specknet.airrespeck";
+        String channelName = "Airrespeck GPS Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.vec_location)
+                .setContentTitle("Airrespeck GPS Service")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(SERVICE_NOTIFICATION_ID, notification);
+    }
 
     @Nullable
     @Override
@@ -87,17 +119,20 @@ public class PhoneGPSService extends Service implements
                 androidID = Settings.Secure.getString(PhoneGPSService.this.getContentResolver(),
                         Settings.Secure.ANDROID_ID);
 
-                Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+                    final int SERVICE_NOTIFICATION_ID = 8598002;
+                    Intent notificationIntent = new Intent(PhoneGPSService.this, MainActivity.class);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(PhoneGPSService.this, 0, notificationIntent, 0);
 
-                Notification notification = new Notification.Builder(PhoneGPSService.this)
-                        .setContentTitle(getText(R.string.notification_gps_title))
-                        .setContentText(getText(R.string.notification_gps_text))
-                        .setSmallIcon(R.drawable.vec_location)
-                        .setContentIntent(pendingIntent)
-                        .build();
+                    Notification notification = new Notification.Builder(PhoneGPSService.this)
+                            .setContentTitle(getText(R.string.notification_gps_title))
+                            .setContentText(getText(R.string.notification_gps_text))
+                            .setSmallIcon(R.drawable.vec_location)
+                            .setContentIntent(pendingIntent)
+                            .build();
 
-                startForeground(SERVICE_NOTIFICATION_ID, notification);
+                    startForeground(SERVICE_NOTIFICATION_ID, notification);
+                }
 
                 mGoogleApiClient = new GoogleApiClient.Builder(PhoneGPSService.this)
                         .addConnectionCallbacks(PhoneGPSService.this)
