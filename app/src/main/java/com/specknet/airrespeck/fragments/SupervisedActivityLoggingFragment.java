@@ -457,6 +457,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 // Handle successful uploads on complete
                 // ...
+                Toast.makeText(getActivity(), "Upload complete", Toast.LENGTH_LONG).show();
             }
         });
     }
