@@ -53,6 +53,7 @@ import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
+import com.specknet.airrespeck.fragments.UploadFilesFragment;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.InhalerData;
 import com.specknet.airrespeck.models.PulseoxData;
@@ -407,6 +408,9 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case R.id.nav_inhaler:
                                 displayFragment(new SupervisedInhalerReadingsFragment());
+                                break;
+                            case R.id.upload_files:
+                                displayFragment(new UploadFilesFragment());
                                 break;
                         }
                         return true;
