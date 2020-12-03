@@ -42,8 +42,9 @@ class UploadFilesFragment : Fragment() {
     var totalBytesTransferred = 0L
     lateinit var progressBar: ProgressBar
     lateinit var progressBarLabel: TextView
-
-    var filesAndBytesUploaded = HashMap<String, Long>()
+    var totalFilesToUpload = 0
+    var totalFilesAlreadyUploaded = 0
+    lateinit var spinningCircle: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,9 +64,11 @@ class UploadFilesFragment : Fragment() {
 
         progressBar = view.findViewById(R.id.upload_progress_bar)
         progressBarLabel = view.findViewById(R.id.progress_bar_label)
+        spinningCircle = view.findViewById(R.id.spinning_circle)
 
         progressBar.visibility = View.INVISIBLE
         progressBarLabel.visibility = View.INVISIBLE
+        spinningCircle.visibility = View.INVISIBLE
 
         uploadButton.setOnClickListener {
             uploadFiles()
@@ -76,8 +79,10 @@ class UploadFilesFragment : Fragment() {
 
     fun updateProgressBar(bytesTransferred: Long) {
         if (progressBar.visibility == View.INVISIBLE) {
+            stopSpinningCircle()
             progressBar.visibility = View.VISIBLE
             progressBarLabel.visibility = View.VISIBLE
+            progressBarLabel.text = "Upload progress"
         }
 
         totalBytesTransferred  += bytesTransferred
@@ -95,8 +100,28 @@ class UploadFilesFragment : Fragment() {
         progressBarLabel.text = "Upload complete!"
     }
 
+    fun displayAlreadyUploaded() {
+        progressBar.visibility = View.INVISIBLE
+        stopSpinningCircle()
+
+        progressBarLabel.text = "Data already uploaded!"
+        progressBarLabel.visibility = View.VISIBLE
+    }
+
+    fun startSpinnningCircle() {
+        progressBar.visibility = View.INVISIBLE
+        progressBarLabel.visibility = View.INVISIBLE
+        spinningCircle.visibility = View.VISIBLE
+    }
+
+    fun stopSpinningCircle() {
+        spinningCircle.visibility = View.INVISIBLE
+    }
+
     fun uploadFiles() {
         Toast.makeText(activity, "Uploading all the files", Toast.LENGTH_LONG).show()
+
+        startSpinnningCircle()
 
         val storageRef: StorageReference = storage.getReferenceFromUrl("gs://airrespeck.appspot.com/")
 
@@ -119,6 +144,7 @@ class UploadFilesFragment : Fragment() {
 
                 if (subFiles != null) {
                     for (j in subFiles.indices) {
+                        totalFilesToUpload += 1
                         val currentFile = subFiles[j].absolutePath
                         Log.i("Firebase", "Subfile ${currentFile}")
 
@@ -137,6 +163,11 @@ class UploadFilesFragment : Fragment() {
                                 .metadata
                                 .addOnSuccessListener {
                                     Log.i("Firebase", "File exists! Skipping")
+                                    totalFilesAlreadyUploaded += 1
+
+                                    if (totalFilesAlreadyUploaded == totalFilesToUpload) {
+                                        displayAlreadyUploaded()
+                                    }
                                 }
                                 .addOnFailureListener {
                                     Log.i("Firebase", "File does not exist, uploading.")
