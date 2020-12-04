@@ -1,71 +1,33 @@
 {
   "project_info": {
-    "project_number": "958739433950",
-    "firebase_url": "https://airrespeck.firebaseio.com",
-    "project_id": "airrespeck",
-    "storage_bucket": "airrespeck.appspot.com"
+    "project_number": "644733586574",
+    "project_id": "specknet-pyramid-test",
+    "storage_bucket": "specknet-pyramid-test.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:958739433950:android:09b3d33a068e64d2",
+        "mobilesdk_app_id": "1:644733586574:android:9ba4c90894e6a8cf408ddf",
         "android_client_info": {
           "package_name": "com.specknet.airrespeck"
         }
       },
       "oauth_client": [
         {
-          "client_id": "958739433950-0i1ecgi0oj4r6acqaumsgtm0psaaoa57.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.specknet.airrespeck",
-            "certificate_hash": "7cb09fa5fb0bc6d3d0fe8c7cf6ee8f09eea056c2"
-          }
-        },
-        {
-          "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
+          "client_id": "644733586574-ne6an9l3nii67q5ebdpt80na2hgmopd0.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAPSRA88H2wktNtM416GoRcHHSYoXSgQbc"
+          "current_key": "AIzaSyDBzpTwCrP8_oyCtJIJYQUfp3JAFDEvZYY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:958739433950:android:abef05d8f6a0a830",
-        "android_client_info": {
-          "package_name": "com.specknet.pairing.pairing"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAPSRA88H2wktNtM416GoRcHHSYoXSgQbc"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "958739433950-vhrmq5p17jv7k4r2398r9sb0k28aqdau.apps.googleusercontent.com",
+              "client_id": "644733586574-ne6an9l3nii67q5ebdpt80na2hgmopd0.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

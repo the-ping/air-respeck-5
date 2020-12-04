@@ -21,6 +21,7 @@ import java.io.File
 import java.util.*
 import com.google.firebase.storage.ktx.component1
 import com.google.firebase.storage.ktx.component2
+import java.lang.RuntimeException
 import kotlin.collections.HashMap
 
 // TODO: Rename parameter arguments, choose names that match
@@ -123,7 +124,7 @@ class UploadFilesFragment : Fragment() {
 
         startSpinnningCircle()
 
-        val storageRef: StorageReference = storage.getReferenceFromUrl("gs://airrespeck.appspot.com/")
+        val storageRef: StorageReference = storage.getReferenceFromUrl("gs://specknet-pyramid-test.appspot.com")
 
         // Upload content
         val folderName = Utils.getInstance().getDataDirectory(activity)
