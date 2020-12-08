@@ -800,7 +800,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             wakeLock.release();
         } catch (NullPointerException e) {
-
+            Log.i("Lock", "The wakelock could not be released");
         }
 
         super.onDestroy();
