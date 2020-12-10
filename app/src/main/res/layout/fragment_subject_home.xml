@@ -86,12 +86,15 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:layout_gravity="center"
-                        android:gravity="fill_vertical|center">
+                        android:gravity="fill_vertical|center"
+                        android:id="@+id/battery_container_respeck"
+                        android:visibility="invisible">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/respeck_battery_level"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="0"
+                            android:layout_weight="1"
                             android:textSize="15sp"
                             android:text="92%"/>
 
@@ -99,20 +102,13 @@
                             android:id="@+id/battery_image"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:src="@drawable/vec_battery"
+                            android:src="@drawable/ic_battery_full"
                             android:layout_weight="1"/>
 
                     </LinearLayout>
 
 
-<!--                    <TextView-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:text="92%"/>-->
-
                 </LinearLayout>
-
-
 
             </LinearLayout>
 
@@ -142,28 +138,61 @@
                     android:layout_weight="1"
                     app:srcCompat="@drawable/ic_airspeck_new"/>
 
-                <ProgressBar
-                    android:id="@+id/progress_bar_airspeck"
-                    style="@android:style/Widget.DeviceDefault.Light.ProgressBar"
+                <LinearLayout
                     android:layout_width="65dp"
-                    android:layout_height="65dp"
-                    android:layout_gravity="center_vertical"
-                    android:visibility="visible"
-                    />
+                    android:layout_height="85dp"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:gravity="center">
 
-                <ImageView
-                    android:id="@+id/connected_status_airspeck"
-                    android:layout_width="65dp"
-                    android:layout_height="65dp"
-                    android:visibility="gone"
-                    app:srcCompat="@drawable/vec_wireless_active"/>
+                    <ProgressBar
+                        android:id="@+id/progress_bar_airspeck"
+                        style="@android:style/Widget.DeviceDefault.Light.ProgressBar"
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:layout_gravity="center_vertical"
+                        android:visibility="visible"
+                        />
 
-                <ImageView
-                    android:id="@+id/not_enabled_airspeck"
-                    android:layout_width="65dp"
-                    android:layout_height="65dp"
-                    android:src="@drawable/vec_xmark"
-                    android:visibility="gone"/>
+                    <ImageView
+                        android:id="@+id/connected_status_airspeck"
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:visibility="gone"
+                        app:srcCompat="@drawable/vec_wireless_active"/>
+
+                    <ImageView
+                        android:id="@+id/not_enabled_airspeck"
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:src="@drawable/vec_xmark"
+                        android:visibility="gone"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_gravity="center"
+                        android:gravity="fill_vertical|center"
+                        android:visibility="invisible">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="15sp"
+                            android:text="92%"/>
+
+                        <ImageView
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_battery_full"
+                            android:layout_weight="1"/>
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -253,7 +282,6 @@
             </LinearLayout>
 
         </LinearLayout>
-
 
     </LinearLayout>
 
