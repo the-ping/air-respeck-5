@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -68,7 +69,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private boolean isRespeckPaused;
 
     private boolean isMediaButtonsEnabled;
-    private TableLayout mediaButtonsTable;
+    private LinearLayout mediaButtonsTable;
 
     private boolean isRehabProject;
 
@@ -134,7 +135,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                 }
             });
 
-            TableRow airspeckRow = (TableRow) view.findViewById(R.id.airspeck_row);
+            LinearLayout airspeckRow = (LinearLayout) view.findViewById(R.id.airspeck_connection_container);
             airspeckRow.setVisibility(View.GONE);
         }
 
@@ -210,7 +211,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             });
 
             // Now that the buttons have been initialised, show them.
-            mediaButtonsTable = (TableLayout) view.findViewById(R.id.media_buttons_table);
+            mediaButtonsTable = (LinearLayout) view.findViewById(R.id.media_buttons_container);
             mediaButtonsTable.setVisibility(View.VISIBLE);
         }
 
