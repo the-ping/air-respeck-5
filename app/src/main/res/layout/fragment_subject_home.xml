@@ -88,7 +88,7 @@
                         android:layout_gravity="center"
                         android:gravity="fill_vertical|center"
                         android:id="@+id/battery_container_respeck"
-                        android:visibility="invisible">
+                        android:visibility="visible">
 
                         <TextView
                             android:id="@+id/respeck_battery_level"
@@ -96,7 +96,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textSize="15sp"
-                            android:text="92%"/>
+                            android:textAlignment="textEnd"
+                            android:text="2%"/>
 
                         <ImageView
                             android:id="@+id/battery_image"
