@@ -16,6 +16,7 @@
                       android:orientation="vertical"
                       android:weightSum="1">
 
+
             <TextView
                 android:id="@+id/name_text_field"
                 android:layout_width="match_parent"
@@ -33,6 +34,7 @@
 <!--                android:ems="10"-->
 <!--                android:hint="Name"-->
 <!--                android:inputType="textPersonName"/>-->
+
 
 <!--            <TextView-->
 <!--                android:layout_width="match_parent"-->

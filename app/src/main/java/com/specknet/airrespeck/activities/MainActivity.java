@@ -873,6 +873,9 @@ public class MainActivity extends AppCompatActivity {
             case android.R.id.home:
                 mNavDrawerLayout.openDrawer(GravityCompat.START);
                 return true;
+            case R.id.action_view_battery:
+                startActivity(new Intent(this, BatteryViewActivity.class));
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

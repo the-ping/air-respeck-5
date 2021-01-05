@@ -40,6 +40,8 @@ import com.specknet.airrespeck.utils.CountUpTimer;
 import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 import com.specknet.airrespeck.utils.Utils;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -183,7 +185,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 //                        android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
 //                activitySpinner.setAdapter(activityAdapter);
 //            }
-//
+
 //            @Override
 //            public void onNothingSelected(AdapterView<?> parent) {
 //                // Set empty activity spinner
@@ -252,6 +254,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         // Start recording
 //        mSubjectName = nameTextField.getText().toString();
         mSubjectName = subjectID;
+
         if (!mSubjectName.equals("")) {
             mActivity = activitySpinner.getSelectedItem().toString();
 
