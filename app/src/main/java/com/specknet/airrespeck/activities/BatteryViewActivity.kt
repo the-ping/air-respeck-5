@@ -5,8 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+//import android.support.v7.app.AppCompatActivity
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.specknet.airrespeck.R
 import com.specknet.airrespeck.models.RESpeckLiveData
 import com.specknet.airrespeck.utils.Constants
