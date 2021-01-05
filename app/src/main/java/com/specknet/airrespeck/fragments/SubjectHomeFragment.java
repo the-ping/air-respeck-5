@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,9 +20,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.specknet.airrespeck.R;
@@ -62,13 +65,16 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private ProgressBar progressBarAirspeck;
     private ImageView airspeckOffButton;
     private ImageView respeckPausePlayButton;
+    private TextView respeckBatteryLevel;
+    private ImageView batteryImage;
+    private LinearLayout batteryContainer;
 
     private boolean isAirspeckEnabled;
     private boolean isRespeckEnabled;
     private boolean isRespeckPaused;
 
     private boolean isMediaButtonsEnabled;
-    private TableLayout mediaButtonsTable;
+    private LinearLayout mediaButtonsTable;
 
     private boolean isRehabProject;
 
@@ -108,6 +114,11 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         ImageView airspeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_airspeck);
         ImageView respeckDisabledImage = (ImageView) view.findViewById(R.id.not_enabled_respeck);
 
+        respeckBatteryLevel = (TextView) view.findViewById(R.id.respeck_battery_level);
+        batteryImage = (ImageView) view.findViewById(R.id.battery_image);
+
+        batteryContainer = (LinearLayout) view.findViewById(R.id.battery_container_respeck);
+
         isRespeckPaused = false;
 
         ImageButton diaryButton = (ImageButton) view.findViewById(R.id.diary_button);
@@ -134,7 +145,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
                 }
             });
 
-            TableRow airspeckRow = (TableRow) view.findViewById(R.id.airspeck_row);
+            LinearLayout airspeckRow = (LinearLayout) view.findViewById(R.id.airspeck_connection_container);
             airspeckRow.setVisibility(View.GONE);
         }
 
@@ -210,7 +221,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             });
 
             // Now that the buttons have been initialised, show them.
-            mediaButtonsTable = (TableLayout) view.findViewById(R.id.media_buttons_table);
+            mediaButtonsTable = (LinearLayout) view.findViewById(R.id.media_buttons_container);
             mediaButtonsTable.setVisibility(View.VISIBLE);
         }
 
@@ -303,7 +314,24 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
     @Override
     public void updateRESpeckData(RESpeckLiveData data) {
+
         updateRESpeckConnectionSymbol(true);
+
+        // update battery level and charging status
+        if (data.getBattLevel() != -1) {
+            batteryContainer.setVisibility(View.VISIBLE);
+            respeckBatteryLevel.setText(data.getBattLevel() + "%");
+        }
+        else {
+            batteryContainer.setVisibility(View.INVISIBLE);
+        }
+
+        if (data.getChargingStatus()) {
+            batteryImage.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.vec_battery));
+        }
+        else {
+            batteryImage.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_battery_full));
+        }
     }
 
     private void showRESpeckPauseDialog() {

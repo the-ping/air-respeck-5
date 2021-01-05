@@ -32,8 +32,8 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
     TextView averageBreathingRateText;
     TextView stepCountText;
     TextView frequencyText;
-    TextView battLevelText;
-    TextView chargingText;
+//    TextView battLevelText;
+//    TextView chargingText;
 
     ImageView activityIcon;
 
@@ -69,8 +69,8 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
         stepCountText = (TextView) view.findViewById(R.id.text_step_count);
         frequencyText = (TextView) view.findViewById(R.id.text_frequency);
-        battLevelText = (TextView) view.findViewById(R.id.text_batt_level);
-        chargingText = (TextView) view.findViewById(R.id.text_charging_status);
+//        battLevelText = (TextView) view.findViewById(R.id.text_batt_level);
+//        chargingText = (TextView) view.findViewById(R.id.text_charging_status);
 
         // Create new graph
         mBreathingGraphView = new BreathingGraphView(getActivity());
@@ -116,20 +116,20 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         }
 
         // update battery level and charging status
-        if (data.getBattLevel() != -1) {
-            battLevelText.setVisibility(View.VISIBLE);
-            battLevelText.setText(data.getBattLevel() + "%");
-        }
-        else {
-            battLevelText.setVisibility(View.INVISIBLE);
-        }
-
-        if (data.getChargingStatus()) {
-            chargingText.setVisibility(View.VISIBLE);
-        }
-        else {
-            chargingText.setVisibility(View.INVISIBLE);
-        }
+//        if (data.getBattLevel() != -1) {
+//            battLevelText.setVisibility(View.VISIBLE);
+//            battLevelText.setText(data.getBattLevel() + "%");
+//        }
+//        else {
+//            battLevelText.setVisibility(View.INVISIBLE);
+//        }
+//
+//        if (data.getChargingStatus()) {
+//            chargingText.setVisibility(View.VISIBLE);
+//        }
+//        else {
+//            chargingText.setVisibility(View.INVISIBLE);
+//        }
 
         // Set activity icon to reflect currently predicted activity
         switch (data.getActivityType()) {
