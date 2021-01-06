@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
         // Check whether this is the first app start. If yes, a security key needs to be created
         boolean keyExists = checkIfSecurityKeyExists();
         if (!keyExists) {
+            // If the key was not created
             finish();
             return;
         }
@@ -301,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        // Load current mode if stored. If no mode was stored, use starting mode.
+        // Load current mode (supervised or subject) if stored. If no mode was stored, use starting mode.
         if (mSavedInstanceState != null) {
             mIsSupervisedModeCurrentlyShown = mSavedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
         } else {
@@ -317,13 +318,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Load connection state
-        Log.i("LFC", "mSavedInstanceState = " + mSavedInstanceState);
-        // TODO this is null after the app was closed from the drawer. Find a new way to store connection.
         if (mSavedInstanceState != null) {
-            Log.i("LFC", "mSavedInstanceState not null");
 
             mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
-            Log.i("LFC", "mIsRESpeckConnected = " + mIsRESpeckConnected);
             mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
             mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
             mIsInhalerConnected = mSavedInstanceState.getBoolean(Constants.IS_INHALER_CONNECTED);
@@ -582,6 +579,10 @@ public class MainActivity extends AppCompatActivity {
                         RESpeckLiveData liveRESpeckData = (RESpeckLiveData) intent.getSerializableExtra(
                                 Constants.RESPECK_LIVE_DATA);
                         sendMessageToHandler(UPDATE_RESPECK_READINGS, liveRESpeckData);
+                        // if the service was on before the activity was started, we need to update the connection variable
+                        if (!mIsRESpeckConnected) {
+                            updateRESpeckConnection(true);
+                        }
                         break;
                     case Constants.ACTION_RESPECK_CONNECTED:
                         String respeckUUID = intent.getStringExtra(Constants.Config.RESPECK_UUID);
@@ -594,6 +595,11 @@ public class MainActivity extends AppCompatActivity {
                         AirspeckData liveAirspeckData = (AirspeckData) intent.getSerializableExtra(
                                 Constants.AIRSPECK_DATA);
                         sendMessageToHandler(UPDATE_AIRSPECK_READINGS, liveAirspeckData);
+                        // if the service was on before the activity was started, but the connection variable is set to false,
+                        // we need to update the connection variable
+                        if (!mIsAirspeckConnected) {
+                            updateAirspeckConnection(true);
+                        }
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
                         String airspeckUUID = intent.getStringExtra(Constants.Config.AIRSPECKP_UUID);
@@ -609,6 +615,10 @@ public class MainActivity extends AppCompatActivity {
                         //        "Pulseox: " + pd.toStringForFile(),
                         //        Toast.LENGTH_LONG).show();
                         sendMessageToHandler(UPDATE_PULSEOX_READINGS, pd);
+                        // if the service was on before the activity was started, we need to update the connection variable
+                        if (!mIsPulseoxConnected) {
+                            updatePulseoxConnection(true);
+                        }
                         break;
                     case Constants.ACTION_PULSEOX_CONNECTED:
                         String pulseoxUUID = "00:1C:05:FF:F0:0F";
@@ -621,6 +631,9 @@ public class MainActivity extends AppCompatActivity {
                         InhalerData ind = (InhalerData) intent.getSerializableExtra(Constants.INHALER_DATA);
                         ind.toStringForFile();
                         sendMessageToHandler(UPDATE_INHALER_READINGS, ind);
+                        if (!mIsInhalerConnected) {
+                            updateInhalerConnection(true);
+                        }
                         Log.i("MainActivity", "Inhaler pressed: " + ind.getPhoneTimestamp());
                         lastInhalerPress = ind;
                         break;
@@ -809,6 +822,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         super.onDestroy();
+//        // if we want to stop services when app is explicitly closed
+//        stopServices();
+//        finish();
 
         if (doFullAppClose) {
             System.exit(0);
@@ -825,7 +841,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        Log.i("LFC", "onSavedInstanceState called and mIsRESpeckConnected = " + mIsRESpeckConnected);
         outState.putBoolean(SAVED_STATE_IS_SUPERVISED_MODE, mIsSupervisedModeCurrentlyShown);
 
         // Save connection state
@@ -1012,7 +1027,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void notifyNewConnectionState() {
         for (ConnectionStateObserver observer : connectionStateObservers) {
-            Log.i("LFC", "In notifyNewConnectionsState() with mIsRESpeckConnected = " + mIsRESpeckConnected);
             observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected,
                     mIsInhalerConnected);
         }
@@ -1036,7 +1050,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateRESpeckConnection(boolean isConnected) {
         mIsRESpeckConnected = isConnected;
 
-        Log.i("LFC", "In updateRespeckConnection() with mIsRESpeckConnected = " + mIsRESpeckConnected);
         notifyNewConnectionState();
     }
 
