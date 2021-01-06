@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 //import android.support.v4.content.ContextCompat;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnPausedListener;
 import com.google.firebase.storage.OnProgressListener;
@@ -59,6 +61,7 @@ import java.util.Objects;
 
 public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment implements RESpeckDataObserver, AirspeckDataObserver {
 
+    private static final String TAG = "ActivityLogging";
     private OutputStreamWriter mWriter;
 
     private boolean mIsRespeckRecording;
@@ -313,9 +316,10 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     }
 
     private void saveRespeckRecording() {
+        String currentActivity = activitySpinner.getSelectedItem().toString();
         String filename = Utils.getInstance().getDataDirectory(getActivity()) + Constants.LOGGING_DIRECTORY_NAME +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
-                " Activity RESpeck Logs " + Utils.getInstance().getConfig(getActivity()).get(
+                new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date()) +
+                " Activity RESpeck Logs " + currentActivity + " " + Utils.getInstance().getConfig(getActivity()).get(
                 Constants.Config.RESPECK_UUID).replace(":", "") +
                 ".csv";
 
@@ -421,48 +425,66 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private void uploadRecording() {
         Toast.makeText(getActivity(), "Uploading recording", Toast.LENGTH_LONG).show();
 
-        StorageReference storageRef = storage.getReferenceFromUrl("gs://airrespeck.appspot.com/recs");
+        StorageReference storageRef = storage.getReferenceFromUrl("gs://specknet-pyramid-test.appspot.com");
 
         // upload content
-        String filename = Utils.getInstance().getDataDirectory(getActivity()) + Constants.LOGGING_DIRECTORY_NAME +
-                new SimpleDateFormat("yyyy-MM-dd", Locale.UK).format(new Date()) +
-                " Activity RESpeck Logs " + Utils.getInstance().getConfig(getActivity()).get(
-                Constants.Config.RESPECK_UUID).replace(":", "") +
-                ".csv";
-        Uri file = Uri.fromFile(new File(filename));
+        String folderName = Utils.getInstance().getDataDirectory(getActivity()) + "/" + Constants.LOGGING_DIRECTORY_NAME;
+        Log.d(TAG, "uploadRecording: folderName = " + folderName);
 
-        StorageMetadata metadata = new StorageMetadata.Builder()
-                .setContentType("recs/csv")
-                .build();
+        File folderFile = new File(folderName);
+        File[] filesInFolder = folderFile.listFiles();
+        
+        int totalFilesToUpload = 0;
 
-        UploadTask uploadTask = storageRef.child(Objects.requireNonNull(file.getLastPathSegment())).putFile(file, metadata);
+        if (filesInFolder != null) {
+            Log.d(TAG, "uploadRecording: Folder size = " + filesInFolder.length);
 
-        // Listen for state changes, errors, and completion of the upload.
-        uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                Log.d("GCS", "Upload is " + progress + "% done");
+            for (int i = 0; i < filesInFolder.length; i++) {
+               File currentFile = filesInFolder[i];
+                Log.d(TAG, "uploadRecording: currentFile = " + currentFile.getName());
+
+                // check if file contains the substring 'Activity RESpeck Logs' in which case it is a calibration file
+                if(currentFile.getName().contains("Activity RESpeck Logs")) {
+                    Log.d(TAG, "uploadRecording: file " + currentFile.getName() + " is an activity recording file");
+                    totalFilesToUpload += 1;
+                    
+                    // upload this file
+                    String currentFileAbsPath = currentFile.getAbsolutePath();
+                    Uri fileUri = Uri.fromFile(currentFile);
+                    String fileExtension = currentFileAbsPath.substring(currentFileAbsPath.lastIndexOf(".") + 1);
+                
+                    StorageMetadata metadata = new StorageMetadata.Builder()
+                            .setContentType("AirRespeck/" + fileExtension)
+                            .build();
+                    
+                    // upload file and metadata to the path
+                    int indexOfAirRespeck = fileUri.getPath().indexOf("AirRespeck");
+                    String pathFromAirRespeck = fileUri.getPath().substring(indexOfAirRespeck + "AirRespeck".length());
+
+                    Task<StorageMetadata> uploadRef = storageRef.child("AirRespeck/" + pathFromAirRespeck)
+                            .getMetadata()
+                            .addOnSuccessListener(storageMetadata -> Log.d(TAG, "uploadRecording: File already exists"))
+                            .addOnFailureListener(exception -> {
+                                Log.d(TAG, "uploadRecording: File does not exist, must upload");
+
+                                UploadTask uploadTask = storageRef.child("AirRespeck/" + pathFromAirRespeck).putFile(fileUri, metadata);
+
+                                uploadTask
+                                        .addOnProgressListener(snapshot -> {
+                                            double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                                            Log.d(TAG, "Upload is " + progress + "% done");
+                                        })
+                                        .addOnPausedListener(snapshot -> Log.d(TAG, "onPaused: Upload is paused"))
+                                        .addOnFailureListener(e -> exception.printStackTrace())
+                                        .addOnSuccessListener(taskSnapshot -> Log.d(TAG, "uploadRecording: Upload Succesful!"));
+                            });
+                    
+                }
+
             }
-        }).addOnPausedListener(new OnPausedListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onPaused(UploadTask.TaskSnapshot taskSnapshot) {
-                Log.d("GCS", "Upload is paused");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle unsuccessful uploads
-                Log.d("GCS", "Upload was unsuccessful!");
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                // Handle successful uploads on complete
-                // ...
-                Toast.makeText(getActivity(), "Upload complete", Toast.LENGTH_LONG).show();
-            }
-        });
+
+        }
+
     }
 
     @Override
