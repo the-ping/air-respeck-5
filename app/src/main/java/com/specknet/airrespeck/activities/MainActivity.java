@@ -317,8 +317,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Load connection state
+        Log.i("LFC", "mSavedInstanceState = " + mSavedInstanceState);
+        // TODO this is null after the app was closed from the drawer. Find a new way to store connection.
         if (mSavedInstanceState != null) {
+            Log.i("LFC", "mSavedInstanceState not null");
+
             mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
+            Log.i("LFC", "mIsRESpeckConnected = " + mIsRESpeckConnected);
             mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
             mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
             mIsInhalerConnected = mSavedInstanceState.getBoolean(Constants.IS_INHALER_CONNECTED);
@@ -820,6 +825,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        Log.i("LFC", "onSavedInstanceState called and mIsRESpeckConnected = " + mIsRESpeckConnected);
         outState.putBoolean(SAVED_STATE_IS_SUPERVISED_MODE, mIsSupervisedModeCurrentlyShown);
 
         // Save connection state
@@ -1006,6 +1012,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void notifyNewConnectionState() {
         for (ConnectionStateObserver observer : connectionStateObservers) {
+            Log.i("LFC", "In notifyNewConnectionsState() with mIsRESpeckConnected = " + mIsRESpeckConnected);
             observer.updateConnectionState(mIsRESpeckConnected, mIsAirspeckConnected, mIsPulseoxConnected,
                     mIsInhalerConnected);
         }
@@ -1028,6 +1035,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRESpeckConnection(boolean isConnected) {
         mIsRESpeckConnected = isConnected;
+
+        Log.i("LFC", "In updateRespeckConnection() with mIsRESpeckConnected = " + mIsRESpeckConnected);
         notifyNewConnectionState();
     }
 
