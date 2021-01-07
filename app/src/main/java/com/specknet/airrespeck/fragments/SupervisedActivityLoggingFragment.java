@@ -431,7 +431,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private void updateProgressBar(long bytesTransferred) {
 
         if(progressBar.getVisibility() == View.INVISIBLE) {
-//            stopSpinningCircle();
             progressBar.setVisibility(View.VISIBLE);
             progressBarLabel.setVisibility(View.VISIBLE);
             progressBarLabel.setText("Upload progress");
@@ -444,7 +443,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         progressBar.setProgress((int) progress);
 
         if(progress >= 100) {
-            Toast.makeText(getContext(), "Upload done!", Toast.LENGTH_LONG).show();
             displaySuccessMessage();
         }
     }
@@ -456,7 +454,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
     private void displayAlreadyUploaded() {
         progressBar.setVisibility(View.INVISIBLE);
-//        stopSpinningCircle();
 
         progressBarLabel.setText("Data already uploaded!");
         progressBarLabel.setVisibility(View.VISIBLE);
@@ -464,7 +461,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
 
     private void uploadRecording() {
-        Toast.makeText(getActivity(), "Uploading recording", Toast.LENGTH_LONG).show();
 
         StorageReference storageRef = storage.getReferenceFromUrl("gs://specknet-pyramid-test.appspot.com");
 
@@ -507,7 +503,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                                 totalFilesAlreadyUploaded += 1;
 
                                 if(totalFilesAlreadyUploaded == totalFilesToUpload) {
-                                    Toast.makeText(getContext(), "All files already uploaded!", Toast.LENGTH_LONG).show();
                                     displayAlreadyUploaded();
                                 }
                             })
