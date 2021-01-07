@@ -12,6 +12,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.StorageReference
 import com.specknet.airrespeck.R
@@ -203,6 +204,15 @@ class UploadFilesFragment : Fragment() {
                                     }.addOnFailureListener {
                                         // Handle unsuccessful uploads
                                         Log.d("Firebase", "Upload unsuccessful!")
+                                        totalFilesToUpload -= 1
+                                        val errorCode = (it as StorageException).errorCode
+                                        val errorMessage = it.message
+                                        Log.d("UploadFiles", "uploadFiles: upload errror code = " + errorCode)
+                                        Log.d("UploadFiles", "uploadFiles: upload errror message = " + errorMessage)
+                                        if (errorCode == -13021 && errorMessage.equals("User does not have permission to access this object.")) {
+                                            progressBarLabel.text = "Unable to complete upload. User does not have permission to access object. Try to delete any non-csv files from storage and try again."
+                                            progressBar.visibility = View.INVISIBLE
+                                        }
                                         it.printStackTrace()
                                     }.addOnSuccessListener {
                                         // Handle successful uploads on complete
