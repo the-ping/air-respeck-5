@@ -73,6 +73,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Upload all recordings"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="50dp"
+                android:id="@+id/progress_bar_container">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload progress"
+                    android:id="@+id/progress_bar_label_act_log"
+                    android:layout_gravity="center"/>
+
+                <ProgressBar
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/upload_progress_bar_act_log"
+                    android:max="100"/>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

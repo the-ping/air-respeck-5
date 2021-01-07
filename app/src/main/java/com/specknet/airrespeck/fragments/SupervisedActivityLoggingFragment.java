@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 
-import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 //import android.support.v4.content.ContextCompat;
@@ -14,20 +12,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnPausedListener;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -42,8 +36,6 @@ import com.specknet.airrespeck.utils.CountUpTimer;
 import com.specknet.airrespeck.utils.IndoorOutdoorPredictor;
 import com.specknet.airrespeck.utils.Utils;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,7 +45,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Recording activity data
@@ -130,6 +122,15 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
     private FirebaseStorage storage;
 
+    long totalBytesForUploading = 0L;
+    long totalBytesTransferred = 0L;
+    int totalFilesToUpload = 0;
+    int totalFilesAlreadyUploaded = 0;
+
+//    LinearLayout progressBarContainer;
+    ProgressBar progressBar;
+    TextView progressBarLabel;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_activity_logging_respeck, container, false);
@@ -140,6 +141,13 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         subjectID = config.get(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(getActivity().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+
+//        progressBarContainer = (LinearLayout) view.findViewById(R.id.progress_bar_container);
+        progressBar = (ProgressBar) view.findViewById(R.id.upload_progress_bar_act_log);
+        progressBarLabel = (TextView) view.findViewById(R.id.progress_bar_label_act_log);
+
+        progressBar.setVisibility(View.INVISIBLE);
+        progressBarLabel.setVisibility(View.INVISIBLE);
 
         nameTextField = (TextView) view.findViewById(R.id.name_text_field);
         nameTextField.setText("Subject ID: " + subjectID);
@@ -218,14 +226,11 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
         outputData = new StringBuilder();
 
-        mStartStopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mIsRespeckRecording || mIsInOutRecording) {
-                    stopRecording();
-                } else {
-                    startRecording();
-                }
+        mStartStopButton.setOnClickListener(v -> {
+            if (mIsRespeckRecording || mIsInOutRecording) {
+                stopRecording();
+            } else {
+                startRecording();
             }
         });
 
@@ -261,12 +266,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         if (!mSubjectName.equals("")) {
             mActivity = activitySpinner.getSelectedItem().toString();
 
-//            if (categorySpinner.getSelectedItem().toString().equals(INOUT)) {
-//                mIsInOutRecording = true;
-//            } else {
-//                mIsRespeckRecording = true;
-//            }
-
             mIsInOutRecording = false;
             mIsRespeckRecording = true;
 
@@ -275,6 +274,9 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             mStartStopButton.setBackgroundColor(
                     ContextCompat.getColor(getActivity(), R.color.md_green_300));
             mCancelButton.setEnabled(true);
+            mUploadButton.setEnabled(false);
+            activitySpinner.setEnabled(false);
+            activitySpinner.setClickable(false);
 
             countUpTimer.start();
         } else {
@@ -291,27 +293,27 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         // Disable start button until then
         mStartStopButton.setEnabled(false);
         mCancelButton.setEnabled(false);
+        mUploadButton.setEnabled(true);
+        activitySpinner.setEnabled(true);
+        activitySpinner.setClickable(true);
 
         final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        handler.postDelayed(() -> {
 
-                if (mIsRespeckRecording) {
-                    mIsRespeckRecording = false;
-                    saveRespeckRecording();
-                } else if (mIsInOutRecording) {
-                    mIsInOutRecording = false;
-                    saveInOutRecording();
-                }
-
-                // Change button label to tell the user that the recording has stopped
-                mStartStopButton.setText(R.string.button_text_start_recording);
-                mStartStopButton.setEnabled(true);
-                mStartStopButton.setBackgroundColor(
-                        ContextCompat.getColor(getActivity(), R.color.md_grey_300));
-
+            if (mIsRespeckRecording) {
+                mIsRespeckRecording = false;
+                saveRespeckRecording();
+            } else if (mIsInOutRecording) {
+                mIsInOutRecording = false;
+                saveInOutRecording();
             }
+
+            // Change button label to tell the user that the recording has stopped
+            mStartStopButton.setText(R.string.button_text_start_recording);
+            mStartStopButton.setEnabled(true);
+            mStartStopButton.setBackgroundColor(
+                    ContextCompat.getColor(getActivity(), R.color.md_grey_300));
+
         }, 2000);
     }
 
@@ -420,7 +422,46 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         mStartStopButton.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
         mCancelButton.setEnabled(false);
+
+        mUploadButton.setEnabled(true);
+        activitySpinner.setEnabled(true);
+        activitySpinner.setClickable(true);
     }
+
+    private void updateProgressBar(long bytesTransferred) {
+
+        if(progressBar.getVisibility() == View.INVISIBLE) {
+//            stopSpinningCircle();
+            progressBar.setVisibility(View.VISIBLE);
+            progressBarLabel.setVisibility(View.VISIBLE);
+            progressBarLabel.setText("Upload progress");
+        }
+        totalBytesTransferred += bytesTransferred;
+
+        double progress = (100.0 * totalBytesTransferred) / totalBytesForUploading;
+
+        Log.d(TAG, "updateProgressBar: progress = " + progress);
+        progressBar.setProgress((int) progress);
+
+        if(progress >= 100) {
+            Toast.makeText(getContext(), "Upload done!", Toast.LENGTH_LONG).show();
+            displaySuccessMessage();
+        }
+    }
+
+    private void displaySuccessMessage() {
+        progressBar.setVisibility(View.INVISIBLE);
+        progressBarLabel.setText("Upload complete!");
+    }
+
+    private void displayAlreadyUploaded() {
+        progressBar.setVisibility(View.INVISIBLE);
+//        stopSpinningCircle();
+
+        progressBarLabel.setText("Data already uploaded!");
+        progressBarLabel.setVisibility(View.VISIBLE);
+    }
+
 
     private void uploadRecording() {
         Toast.makeText(getActivity(), "Uploading recording", Toast.LENGTH_LONG).show();
@@ -433,8 +474,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
         File folderFile = new File(folderName);
         File[] filesInFolder = folderFile.listFiles();
-        
-        int totalFilesToUpload = 0;
 
         if (filesInFolder != null) {
             Log.d(TAG, "uploadRecording: Folder size = " + filesInFolder.length);
@@ -463,16 +502,39 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
                     Task<StorageMetadata> uploadRef = storageRef.child("AirRespeck/" + pathFromAirRespeck)
                             .getMetadata()
-                            .addOnSuccessListener(storageMetadata -> Log.d(TAG, "uploadRecording: File already exists"))
+                            .addOnSuccessListener(storageMetadata -> {
+                                Log.d(TAG, "uploadRecording: File already exists");
+                                totalFilesAlreadyUploaded += 1;
+
+                                if(totalFilesAlreadyUploaded == totalFilesToUpload) {
+                                    Toast.makeText(getContext(), "All files already uploaded!", Toast.LENGTH_LONG).show();
+                                    displayAlreadyUploaded();
+                                }
+                            })
                             .addOnFailureListener(exception -> {
                                 Log.d(TAG, "uploadRecording: File does not exist, must upload");
 
                                 UploadTask uploadTask = storageRef.child("AirRespeck/" + pathFromAirRespeck).putFile(fileUri, metadata);
 
+                                totalBytesForUploading += currentFile.length();
+                                AtomicLong lastBytesUploaded = new AtomicLong(0L);
+
                                 uploadTask
                                         .addOnProgressListener(snapshot -> {
+
+                                            if (lastBytesUploaded.get() == 0L) {
+                                                Log.d(TAG, "uploadRecording: uploaded " + snapshot.getBytesTransferred());
+                                                updateProgressBar(snapshot.getBytesTransferred());
+                                            }
+                                            else {
+                                                long bytesTransferredSinceLastTime = snapshot.getBytesTransferred() - lastBytesUploaded.get();
+                                                updateProgressBar(bytesTransferredSinceLastTime);
+                                            }
+
+                                            lastBytesUploaded.set(snapshot.getBytesTransferred());
+
                                             double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                                            Log.d(TAG, "Upload is " + progress + "% done");
+                                            Log.d(TAG, "Upload for " + currentFile.getName() + " is " + progress + "% done");
                                         })
                                         .addOnPausedListener(snapshot -> Log.d(TAG, "onPaused: Upload is paused"))
                                         .addOnFailureListener(e -> exception.printStackTrace())
