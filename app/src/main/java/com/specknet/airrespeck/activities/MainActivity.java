@@ -13,6 +13,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -156,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PowerManager.WakeLock wakeLock;
     private boolean doFullAppClose = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -337,6 +340,7 @@ public class MainActivity extends AppCompatActivity {
                 Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         startBluetoothCheckTask();
+        startInternetCheckTask();
 
         startSpeckService();
 
@@ -532,6 +536,28 @@ public class MainActivity extends AppCompatActivity {
                 h.postDelayed(this, delay);
             }
         }, 0);
+    }
+
+    private void startInternetCheckTask() {
+        final Handler h = new Handler();
+        final int delay = 10000;
+
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showInternetRequest();
+                h.postDelayed(this, delay);
+            }
+        }, 0);
+    }
+
+    private void showInternetRequest() {
+        ConnectivityManager connManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connManager.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        if (!isConnected) {
+            Toast.makeText(this, "Please enable wifi or mobile data", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showBluetoothRequest() {

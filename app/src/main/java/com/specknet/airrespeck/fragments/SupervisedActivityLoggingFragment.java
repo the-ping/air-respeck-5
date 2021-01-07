@@ -532,7 +532,10 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                                             Log.d(TAG, "Upload for " + currentFile.getName() + " is " + progress + "% done");
                                         })
                                         .addOnPausedListener(snapshot -> Log.d(TAG, "onPaused: Upload is paused"))
-                                        .addOnFailureListener(e -> exception.printStackTrace())
+                                        .addOnFailureListener(e -> {
+                                            Log.d(TAG, "uploadRecording: failure when uploading");
+                                            exception.printStackTrace();
+                                        })
                                         .addOnSuccessListener(taskSnapshot -> Log.d(TAG, "uploadRecording: Upload Succesful!"));
                             });
                     
