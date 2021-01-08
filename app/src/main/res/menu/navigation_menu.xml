@@ -64,6 +64,9 @@
                     android:id="@+id/nav_coughing_prediction"
                     android:title="@string/menu_coughing"/>
                 -->
+                <item
+                    android:id="@+id/upload_files"
+                    android:title="@string/menu_upload_files"/>
             </menu>
         </item>
     </group>

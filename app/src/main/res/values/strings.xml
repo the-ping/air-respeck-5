@@ -75,6 +75,7 @@
 
     <string name="menu_inout_prediction">Indoor Prediction Testing</string>
     <string name="menu_coughing">Coughing Test</string>
+    <string name="menu_upload_files">Upload Files</string>
 
     <string name="menu_pulseox">Pulseox Readings</string>
     <string name="menu_inhaler">Inhaler Readings</string>

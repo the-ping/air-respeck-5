@@ -946,6 +946,7 @@ public class RESpeckPacketHandler {
 
     private void writeToRESpeck(RESpeckLiveData data) {
         // Check whether we are in a new day
+        // TODO if we are in a new day then this is where we should upload the last day
         Date now = new Date();
         long currentWriteDay = DateUtils.truncate(now, Calendar.DAY_OF_MONTH).getTime();
         long previousWriteDay = DateUtils.truncate(mDateOfLastRESpeckWrite, Calendar.DAY_OF_MONTH).getTime();

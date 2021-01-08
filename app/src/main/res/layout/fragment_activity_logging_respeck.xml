@@ -27,20 +27,6 @@
                 android:layout_marginBottom="50dp"/>
 
 
-<!--            <TextView-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginTop="15dp"-->
-<!--                android:layout_weight="0.04"-->
-<!--                android:gravity="center"-->
-<!--                android:text="Choose category"/>-->
-
-<!--            <Spinner-->
-<!--                android:id="@+id/category_spinner"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="40dp"-->
-<!--                android:layout_weight="0.04"/>-->
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -81,6 +67,33 @@
                 android:layout_weight="0.04"
                 android:enabled="false"
                 android:text="@string/button_text_cancel_recording"/>
+
+            <Button
+                android:id="@+id/upload_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload all recordings"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="50dp"
+                android:id="@+id/progress_bar_container">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload progress"
+                    android:id="@+id/progress_bar_label_act_log"
+                    android:layout_gravity="center"/>
+
+                <ProgressBar
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/upload_progress_bar_act_log"
+                    android:max="100"/>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

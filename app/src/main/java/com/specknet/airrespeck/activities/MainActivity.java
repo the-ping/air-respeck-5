@@ -13,29 +13,31 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+
+import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.lazydroid.autoupdateapk.AutoUpdateApk;
 import com.specknet.airrespeck.R;
@@ -53,6 +55,7 @@ import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
+import com.specknet.airrespeck.fragments.UploadFilesFragment;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.InhalerData;
 import com.specknet.airrespeck.models.PulseoxData;
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
     private PowerManager.WakeLock wakeLock;
     private boolean doFullAppClose = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,6 +186,8 @@ public class MainActivity extends AppCompatActivity {
         if (mLoadedConfig.containsKey(Constants.Config.SHOW_MEDIA_BUTTONS)) {
             mCollectMedia = Boolean.parseBoolean(mLoadedConfig.get(Constants.Config.SHOW_MEDIA_BUTTONS));
         }
+
+        FirebaseCrashlytics.getInstance().setUserId(mLoadedConfig.get(Constants.PHONE_ID) + "_" + mLoadedConfig.get(Constants.Config.SUBJECT_ID));
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
@@ -223,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
         // Check whether this is the first app start. If yes, a security key needs to be created
         boolean keyExists = checkIfSecurityKeyExists();
         if (!keyExists) {
+            // If the key was not created
             finish();
             return;
         }
@@ -298,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
 
-        // Load current mode if stored. If no mode was stored, use starting mode.
+        // Load current mode (supervised or subject) if stored. If no mode was stored, use starting mode.
         if (mSavedInstanceState != null) {
             mIsSupervisedModeCurrentlyShown = mSavedInstanceState.getBoolean(SAVED_STATE_IS_SUPERVISED_MODE);
         } else {
@@ -315,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Load connection state
         if (mSavedInstanceState != null) {
+
             mIsRESpeckConnected = mSavedInstanceState.getBoolean(Constants.IS_RESPECK_CONNECTED);
             mIsAirspeckConnected = mSavedInstanceState.getBoolean(Constants.IS_AIRSPECK_CONNECTED);
             mIsPulseoxConnected = mSavedInstanceState.getBoolean(Constants.IS_PULSEOX_CONNECTED);
@@ -332,6 +340,7 @@ public class MainActivity extends AppCompatActivity {
                 Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         startBluetoothCheckTask();
+        startInternetCheckTask();
 
         startSpeckService();
 
@@ -405,6 +414,9 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case R.id.nav_inhaler:
                                 displayFragment(new SupervisedInhalerReadingsFragment());
+                                break;
+                            case R.id.upload_files:
+                                displayFragment(new UploadFilesFragment());
                                 break;
                         }
                         return true;
@@ -526,6 +538,28 @@ public class MainActivity extends AppCompatActivity {
         }, 0);
     }
 
+    private void startInternetCheckTask() {
+        final Handler h = new Handler();
+        final int delay = 10000;
+
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showInternetRequest();
+                h.postDelayed(this, delay);
+            }
+        }, 0);
+    }
+
+    private void showInternetRequest() {
+        ConnectivityManager connManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connManager.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        if (!isConnected) {
+            Toast.makeText(this, "Please enable wifi or mobile data", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void showBluetoothRequest() {
         if (!mBluetoothAdapter.isEnabled() && !mIsBluetoothRequestDialogDisplayed) {
             mIsBluetoothRequestDialogDisplayed = true;
@@ -571,6 +605,10 @@ public class MainActivity extends AppCompatActivity {
                         RESpeckLiveData liveRESpeckData = (RESpeckLiveData) intent.getSerializableExtra(
                                 Constants.RESPECK_LIVE_DATA);
                         sendMessageToHandler(UPDATE_RESPECK_READINGS, liveRESpeckData);
+                        // if the service was on before the activity was started, we need to update the connection variable
+                        if (!mIsRESpeckConnected) {
+                            updateRESpeckConnection(true);
+                        }
                         break;
                     case Constants.ACTION_RESPECK_CONNECTED:
                         String respeckUUID = intent.getStringExtra(Constants.Config.RESPECK_UUID);
@@ -583,6 +621,11 @@ public class MainActivity extends AppCompatActivity {
                         AirspeckData liveAirspeckData = (AirspeckData) intent.getSerializableExtra(
                                 Constants.AIRSPECK_DATA);
                         sendMessageToHandler(UPDATE_AIRSPECK_READINGS, liveAirspeckData);
+                        // if the service was on before the activity was started, but the connection variable is set to false,
+                        // we need to update the connection variable
+                        if (!mIsAirspeckConnected) {
+                            updateAirspeckConnection(true);
+                        }
                         break;
                     case Constants.ACTION_AIRSPECK_CONNECTED:
                         String airspeckUUID = intent.getStringExtra(Constants.Config.AIRSPECKP_UUID);
@@ -598,6 +641,10 @@ public class MainActivity extends AppCompatActivity {
                         //        "Pulseox: " + pd.toStringForFile(),
                         //        Toast.LENGTH_LONG).show();
                         sendMessageToHandler(UPDATE_PULSEOX_READINGS, pd);
+                        // if the service was on before the activity was started, we need to update the connection variable
+                        if (!mIsPulseoxConnected) {
+                            updatePulseoxConnection(true);
+                        }
                         break;
                     case Constants.ACTION_PULSEOX_CONNECTED:
                         String pulseoxUUID = "00:1C:05:FF:F0:0F";
@@ -610,6 +657,9 @@ public class MainActivity extends AppCompatActivity {
                         InhalerData ind = (InhalerData) intent.getSerializableExtra(Constants.INHALER_DATA);
                         ind.toStringForFile();
                         sendMessageToHandler(UPDATE_INHALER_READINGS, ind);
+                        if (!mIsInhalerConnected) {
+                            updateInhalerConnection(true);
+                        }
                         Log.i("MainActivity", "Inhaler pressed: " + ind.getPhoneTimestamp());
                         lastInhalerPress = ind;
                         break;
@@ -794,10 +844,13 @@ public class MainActivity extends AppCompatActivity {
         try {
             wakeLock.release();
         } catch (NullPointerException e) {
-
+            Log.i("Lock", "The wakelock could not be released");
         }
 
         super.onDestroy();
+//        // if we want to stop services when app is explicitly closed
+//        stopServices();
+//        finish();
 
         if (doFullAppClose) {
             System.exit(0);
@@ -1022,6 +1075,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRESpeckConnection(boolean isConnected) {
         mIsRESpeckConnected = isConnected;
+
         notifyNewConnectionState();
     }
 

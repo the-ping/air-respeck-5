@@ -447,4 +447,7 @@ public class Constants {
     public static final String INDOOR_PREDICTION_STRING = "IndoorPredictionString";
     public static final String IS_INDOOR = "IsIndoor";
     public static final String ACTION_IS_INDOOR_BROADCAST = "com.specknet.airrespeck.IS_INDOOR_BROADCAST";
+
+    public static final String PHONE_ID = "phone_id";
+    public static final String SUBJECT_ID = "subject_id";
 }

@@ -2,14 +2,12 @@ package com.specknet.airrespeck.activities;
 
 import android.content.CursorLoader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.support.annotation.Nullable;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.Nullable;
+import androidx.cursoradapter.widget.SimpleCursorAdapter;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.HashMapAdapter;

@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,7 +20,6 @@ import com.specknet.airrespeck.models.KeyHolder;
 import com.specknet.airrespeck.remote.SpecknetClient;
 import com.specknet.airrespeck.remote.SpecknetService;
 import com.specknet.airrespeck.utils.Constants;
-import com.specknet.airrespeck.utils.FileLogger;
 import com.specknet.airrespeck.utils.Utils;
 
 import java.util.Map;
