@@ -415,9 +415,9 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.nav_inhaler:
                                 displayFragment(new SupervisedInhalerReadingsFragment());
                                 break;
-                            case R.id.upload_files:
-                                displayFragment(new UploadFilesFragment());
-                                break;
+//                            case R.id.upload_files:
+//                                displayFragment(new UploadFilesFragment());
+//                                break;
                         }
                         return true;
                     }
