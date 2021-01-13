@@ -66,6 +66,7 @@ public class AirspeckPacketHandler {
 
     private final int fullPacketLength = 104;
     boolean airspeck_mini = false;
+    boolean airspeck_v10 = false;
 
     private int currentSubpacketID = -1;
 
@@ -94,6 +95,10 @@ public class AirspeckPacketHandler {
             airspeck_mini = true;
         }
 
+        if (mSpeckService.mAirspeckName.contains("AIR10")) {
+            airspeck_v10 = true;
+        }
+
         // Start broadcast receiver for phone location
         mLastPhoneLocation = new LocationData(Float.NaN, Float.NaN, Float.NaN, Float.NaN);
         mLocationReceiver = new BroadcastReceiver() {
@@ -109,7 +114,10 @@ public class AirspeckPacketHandler {
     void processAirspeckPacket(byte[] bytes) {
 
         try {
-            if (airspeck_mini) {
+            if (airspeck_v10) {
+                Log.i("AirSpeckPacketHandler", "Paired with Airspeck v10 " + mSpeckService.getAirspeckFwVersion());
+            }
+            else if (airspeck_mini) {
                 Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini " + mSpeckService.getAirspeckFwVersion());
                 if (Character.isDigit(mSpeckService.getAirspeckFwVersion().charAt(0)) &&
                         Character.isLetter(mSpeckService.getAirspeckFwVersion().charAt(1)) &&
