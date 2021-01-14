@@ -51,7 +51,7 @@ public class SecurityKeySetupActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mLoginButton.setEnabled(false);
-                requestSecurityKey(usernameEditText.getText().toString(), passwordEditText.getText().toString());
+                requestSecurityKey(usernameEditText.getText().toString().trim(), passwordEditText.getText().toString());
             }
         });
     }
