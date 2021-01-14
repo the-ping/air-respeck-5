@@ -95,10 +95,6 @@ public class AirspeckPacketHandler {
             airspeck_mini = true;
         }
 
-        if (mSpeckService.mAirspeckName.contains("AIR10")) {
-            airspeck_v10 = true;
-        }
-
         // Start broadcast receiver for phone location
         mLastPhoneLocation = new LocationData(Float.NaN, Float.NaN, Float.NaN, Float.NaN);
         mLocationReceiver = new BroadcastReceiver() {
@@ -114,8 +110,10 @@ public class AirspeckPacketHandler {
     void processAirspeckPacket(byte[] bytes) {
 
         try {
-            if (airspeck_v10) {
+            if (mSpeckService.mAirspeckName.contains("Air10"))
+            {
                 Log.i("AirSpeckPacketHandler", "Paired with Airspeck v10 " + mSpeckService.getAirspeckFwVersion());
+                processAirspeckV10Packet(bytes);
             }
             else if (airspeck_mini) {
                 Log.i("AirSpeckPacketHandler", "Paired with Airspeck mini " + mSpeckService.getAirspeckFwVersion());
@@ -147,6 +145,49 @@ public class AirspeckPacketHandler {
         } catch (BufferOverflowException e) {
             FileLogger.logToFile(mSpeckService,
                     "BufferOverflowException in AirspeckPacketHandler: " + FileLogger.getStackTraceAsString(e));
+        }
+    }
+
+    private void processAirspeckV10Packet(byte[] bytes) {
+        packetData.clear();
+        packetData.put(bytes);
+        packetData.position(0);
+
+        long timestamp = packetData.getInt() & 0xffffffff;
+        Log.i("AirspeckPacketHandler", "TS: " + timestamp);
+
+        mBins = new int[24];
+        for (int i = 0; i < mBins.length; i++) {
+            mBins[i] = packetData.getShort() & 0xffff;
+            Log.i("AirspeckPacketHandler", "Bin " + i + ": " + mBins[i]);
+        }
+
+        mPm1 = packetData.getFloat();
+        mPm2_5 = packetData.getFloat();
+        mPm10 = packetData.getFloat();
+
+        Log.i("AirspeckPacketHandler", "PMs: " + mPm1 + ", " + mPm2_5 + ", " + mPm10);
+
+        if (mPm1 == 0.0 && mPm2_5 == 0.0 && mPm10 == 0.0) {
+            FileLogger.logToFile(mSpeckService, "PM values all zero");
+        }
+
+        long currentPhoneTimestamp = Utils.getUnixTimestamp();
+        LocationData location = mLastPhoneLocation;
+
+        AirspeckData newAirspeckData = new AirspeckData(currentPhoneTimestamp, mPm1, mPm2_5, mPm10, 0,
+                0, mBins, location, 0, 0, (short) 0, mSpeckService.getAirspeckFwVersion());
+
+        Log.i("AirspeckHandler", "New Airspeck packet processed: " + newAirspeckData);
+
+        // Send data to upload
+        Intent intentData = new Intent(Constants.ACTION_AIRSPECK_LIVE_BROADCAST);
+        intentData.putExtra(Constants.AIRSPECK_DATA, newAirspeckData);
+        mSpeckService.sendBroadcast(intentData);
+
+        // Store the important data in the external storage if set in config
+        if (mIsStoreDataLocally) {
+            writeToAirspeckFile(newAirspeckData);
         }
     }
 

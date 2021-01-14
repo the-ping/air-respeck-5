@@ -431,7 +431,7 @@ public class SpeckBluetoothService extends Service {
 
         String characteristic = Constants.AIRSPECK_LIVE_CHARACTERISTIC;
 
-        if (mAirspeckName.startsWith("AIR10")) {
+        if (mAirspeckName.startsWith("Air10")) {
             characteristic = Constants.AIRSPECK_10_CHARACTERISTIC;
         }
 
@@ -698,6 +698,10 @@ public class SpeckBluetoothService extends Service {
     }
 
     public String getAirspeckFwVersion() {
+        if (mAirspeckName.startsWith("Air")) {
+            mAirspeckName.substring(3);
+        }
+
         return mAirspeckName.substring(2);
     }
 
