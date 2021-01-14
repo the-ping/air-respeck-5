@@ -96,7 +96,7 @@ public class SpeckBluetoothService extends Service {
     private boolean mIsInhalerFound;
 
     private String mRESpeckName;
-    private String mAirspeckName;
+    protected String mAirspeckName;
     private String mPulseoxName;
     private String mInhalerName;
 
@@ -429,9 +429,17 @@ public class SpeckBluetoothService extends Service {
         Log.i(TAG, "Connecting to Airspeck...");
         FileLogger.logToFile(this, "Connecting to Airspeck");
 
+        String characteristic = Constants.AIRSPECK_LIVE_CHARACTERISTIC;
+
+        if (mAirspeckName.startsWith("Air10")) {
+            characteristic = Constants.AIRSPECK_10_CHARACTERISTIC;
+        }
+
+        final String final_characteristic = characteristic;
+
         airspeckSubscription = mAirspeckDevice.establishConnection(true).flatMap(
                 (Func1<RxBleConnection, Observable<?>>) rxBleConnection -> rxBleConnection.setupNotification(
-                        UUID.fromString(Constants.AIRSPECK_LIVE_CHARACTERISTIC))).doOnNext(notificationObservable -> {
+                        UUID.fromString(final_characteristic))).doOnNext(notificationObservable -> {
             // Notification has been set up
             Log.i(TAG, "Subscribed to Airspeck");
             FileLogger.logToFile(SpeckBluetoothService.this, "Subscribed to Airspeck");
@@ -690,6 +698,10 @@ public class SpeckBluetoothService extends Service {
     }
 
     public String getAirspeckFwVersion() {
+        if (mAirspeckName.startsWith("Air")) {
+            mAirspeckName.substring(3);
+        }
+
         return mAirspeckName.substring(2);
     }
 

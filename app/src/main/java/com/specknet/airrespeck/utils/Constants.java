@@ -385,6 +385,7 @@ public class Constants {
     // Characteristics Airspeck
     public static final String QOE_CLIENT_CHARACTERISTIC = "00002902-0000-1000-8000-00805f9b34fb";
     public static final String AIRSPECK_LIVE_CHARACTERISTIC = "00001524-1212-efde-1523-784feabcd123";
+    public static final String AIRSPECK_10_CHARACTERISTIC = "f5b74556-31cb-46b7-9325-a6d4ff7505c1";
     public static final String AIRSPECK_POWER_OFF_CHARACTERISTIC = "00001525-1212-efde-1523-784feabcd123";
     public final static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 
