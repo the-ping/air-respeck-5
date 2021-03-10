@@ -7,13 +7,9 @@
         android:left="8dip"
         android:right="8dip"
         android:top="-20dip"/>
-
-
     <stroke
         android:width="1dip"
         android:color="#707070"/>
 
-
-
-    
+    <solid android:color="#C4C4C4"/>
 </shape>

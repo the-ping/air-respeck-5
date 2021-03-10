@@ -1,6 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="175dp"
+    android:background="@color/colorAccent"
+    android:gravity="bottom"
+    android:padding="15dp"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_lungs"
+            >
+
+        </ImageView>
+
+        <TextView
+            android:id="@+id/app_titleversion"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingLeft="15dp"
+            android:text=" AirRespeck "
+            android:textSize="20dp"
+            android:textStyle="bold">
+
+        </TextView>
+
+    </LinearLayout>
+
+
+
+    <TextView
+        android:id="@+id/navHeader_subjectID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:text=" Subject ID : "
+        android:textSize="16dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1">
+
+    </TextView>
+
+
+        <TextView
+            android:id="@+id/navHeader_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="2dp"
+            android:text=" RESpeck status : "
+            android:textSize="13dp"
+            android:textColor="#e8e8e8e8">
+        </TextView>
+
+
+
+
+
+
+
 
 </LinearLayout>

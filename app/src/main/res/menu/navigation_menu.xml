@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    >
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/menu_airspeck_subgroup"
@@ -22,10 +23,12 @@
             <menu>
                 <item
                     android:id="@+id/nav_respeck_readings"
-                    android:title="@string/menu_respeck_readings"/>
+                    android:title="Live Readings"
+                    android:icon="@drawable/ic_breath"/>
                 <item
                     android:id="@+id/nav_activity_raw_accel_respeck"
-                    android:title="@string/menu_activity_raw_accel_respeck"/>
+                    android:title="@string/menu_activity_raw_accel_respeck"
+                    android:visible="false"/>
             </menu>
         </item>
         <item
@@ -52,13 +55,16 @@
             <menu>
                 <item
                     android:id="@+id/nav_activity_summary"
-                    android:title="@string/menu_activity_summary"/>
+                    android:title="@string/menu_activity_summary"
+                    android:icon="@drawable/ic_baseline_calendar_today_24"/>
                 <item
                     android:id="@+id/nav_activity_logging"
-                    android:title="@string/menu_activity_logging"/>
+                    android:title="@string/menu_activity_logging"
+                    android:icon="@drawable/ic_writing"/>
                 <item
                     android:id="@+id/nav_inout_prediction"
-                    android:title="@string/menu_inout_prediction"/>
+                    android:title="@string/menu_inout_prediction"
+                    android:visible="false"/>
                 <!--
                 <item
                     android:id="@+id/nav_coughing_prediction"

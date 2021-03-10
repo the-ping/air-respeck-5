@@ -7,11 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -19,17 +20,17 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.activities.AirspeckDataObserver;
 import com.specknet.airrespeck.activities.ConnectionStateObserver;
@@ -94,6 +95,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
@@ -296,6 +298,8 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
 
         return view;
     }
+
+
 
     @Override
     public void updateConnectionState(boolean showRESpeckConnected, boolean showAirspeckConnected,

@@ -7,19 +7,258 @@
 
 
     <TextView
-        android:id="@+id/androidIDtextView"
+        android:id="@+id/Title_Devicestatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/place_autocomplete_button_padding"
-        android:text="Pairing information"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
+        android:layout_margin="5dp"
+        android:text="Respeck device"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/fragment_title"
+        android:textStyle="bold">
 
-    <android.widget.ListView
-        android:id="@+id/list_view_config_view"
+    </TextView>
+
+    <TextView
+        android:id="@+id/subtTitle_devicestatus"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="15dp"
-        tools:context=".activities.ConfigViewActivity"
-        tools:listitem="@layout/list_item_config_view"/>
+        android:layout_height="wrap_content"
+        android:text=" ">
+
+
+    </TextView>
+
+    <LinearLayout
+        android:id="@+id/status_container"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/background_rounded_lightgrey"
+        android:gravity="start"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView
+            android:layout_weight="3.5"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="Status"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/background_leftlined"
+            android:orientation="vertical"
+            android:paddingLeft="15dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/status_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_baseline_bluetooth_24">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/respeck_connection_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:text="Connection:"
+                    android:textSize="15sp"
+                    />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/bat_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_battery_full">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/respeck_battery_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:text="Battery level:"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/charge_icon"
+                    android:layout_width="25dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_lighting">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/respeck_charging_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:text="Charging: "
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/pairing_container"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/background_rounded_lightgrey"
+        android:gravity="start"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView
+            android:layout_weight="3.5"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="Pairing info"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/background_leftlined"
+            android:orientation="vertical"
+            android:paddingLeft="15dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/subject_icon"
+                    android:layout_width="25dp"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_baseline_person_outline_24">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/subjectid_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:text="Subject ID:"
+                    android:textSize="15sp"
+                    />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="25dp"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/respeck_icon"
+                        android:layout_width="25dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:src="@drawable/vec_respeck">
+
+                    </ImageView>
+
+                </LinearLayout>
+
+
+
+                <TextView
+                    android:id="@+id/respeckid_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:text="Respeck ID:"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+<!--    <TextView-->
+<!--        android:id="@+id/androidIDtextView"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:paddingLeft="@dimen/place_autocomplete_button_padding"-->
+<!--        android:text="Pairing information"-->
+<!--        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />-->
+
+<!--    <android.widget.ListView-->
+<!--        android:layout_weight="1"-->
+<!--        android:id="@+id/list_view_config_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:layout_marginTop="15dp"-->
+<!--        tools:context=".activities.ConfigViewActivity"-->
+<!--        tools:listitem="@layout/list_item_config_view"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/show_text"-->
+<!--        android:layout_weight="1"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="500dp"-->
+<!--        android:text=" hii ">-->
+
+<!--    </TextView>-->
 
 </LinearLayout>

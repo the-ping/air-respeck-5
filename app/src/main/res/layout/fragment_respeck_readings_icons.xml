@@ -6,22 +6,25 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="20dp"
-        tools:context=".fragments.SubjectValuesFragment">
+<!--    <ScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center_horizontal"-->
+<!--        android:orientation="vertical"-->
+<!--        -->
+<!--        tools:context=".fragments.SubjectValuesFragment">-->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="100dp"
                 android:layout_marginTop="25dp"
                 android:orientation="horizontal">
 
@@ -56,33 +59,91 @@
 <!--                </LinearLayout>-->
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="20"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.4"
                     android:animateLayoutChanges="false"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:layout_marginRight="10dp"
+                    android:padding="2dp"
+                    android:background="@drawable/background_rounded_lightgrey"
+                    >
 
                     <TextView
-                        android:id="@+id/text_breathing_average"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="-.- BrPM"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:textColor="#041389"
-                        android:textSize="@dimen/text_size_bpm_large"
-                        />
+                        android:text="Breathe Per Minute"
+                        android:textColor="#888888"
+                        android:textSize="20dp"
+                        android:textStyle="bold"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:background="@drawable/background_underlined"
+                        >
 
-                    <TextView
-                        android:id="@+id/text_breathing"
+                    </TextView>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:orientation="horizontal"
                         android:gravity="center"
-                        android:text="-.- BrPM"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:textSize="@dimen/text_size_bpm_small"
-                        />
+                        android:paddingTop="5dp"
+                        >
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Average"
+                            android:paddingRight="20dp"
+                            android:textSize="@dimen/text_size_bpm_large"
+                            >
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/text_breathing_average"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="-.-"
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:textColor="#041389"
+                            android:textSize="@dimen/text_size_bpm_large"
+                            />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Current"
+                            android:paddingRight="20dp"
+                            android:textSize="@dimen/text_size_bpm_small"
+                            >
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/text_breathing"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="-.-"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textSize="@dimen/text_size_bpm_small"
+                            />
+                    </LinearLayout>
+
                     <TextView
                         android:id="@+id/text_frequency"
                         android:layout_width="match_parent"
@@ -96,20 +157,42 @@
 
                 </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/activity_icon"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:layout_gravity="center_vertical"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
                     android:layout_weight="1"
-                    app:srcCompat="@drawable/vec_standing_sitting"
-                    />
+                    android:background="@drawable/background_rounded_lightgrey">
+
+                    <ImageView
+                        android:id="@+id/activity_icon"
+                        android:padding="5dp"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/vec_standing_sitting"
+                        />
+
+                    <TextView
+                        android:id="@+id/detected_activity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text=" "
+                        android:paddingBottom="1dp"
+                        android:gravity="center"
+                        android:inputType="textMultiLine"
+                        >
+
+                    </TextView>
+
+                </LinearLayout>
+
             </LinearLayout>
 
             <FrameLayout
                 android:id="@+id/breathing_graph_container"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
+                android:layout_height="200dp"
                 android:layout_marginTop="25dp">
 
             </FrameLayout>
@@ -121,26 +204,44 @@
                 android:layout_marginTop="40dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical">
+
+<!--                ping: instead of stepcounts, include accel data-->
 
                 <TextView
-                    android:id="@+id/text_step_count"
-                    android:layout_width="wrap_content"
+                    android:text="@string/readings_respeck_acceleration_title"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="00"
-                    android:textSize="40sp"/>
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="7dp"/>
 
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="50dp"
-                    android:layout_height="70dp"
-                    android:layout_weight="0.3"
-                    android:src="@drawable/step_feet"/>
+                <ListView
+                    android:id="@+id/acc_readings_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="15dp"
+                    android:paddingEnd="15dp"
+                    android:paddingStart="15dp"/>
+
+<!--                <TextView-->
+<!--                    android:id="@+id/text_step_count"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:gravity="center"-->
+<!--                    android:text="00"-->
+<!--                    android:textSize="40sp"/>-->
+
+<!--                <ImageView-->
+<!--                    android:id="@+id/imageView"-->
+<!--                    android:layout_width="50dp"-->
+<!--                    android:layout_height="70dp"-->
+<!--                    android:layout_weight="0.3"-->
+<!--                    android:src="@drawable/step_feet"/>-->
             </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+<!--    </ScrollView>-->
 
     <include layout="@layout/content_connecting"/>
 </RelativeLayout>

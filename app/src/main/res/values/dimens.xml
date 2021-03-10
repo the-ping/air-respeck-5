@@ -21,8 +21,16 @@
     <dimen name="sb_segment_gap_width">2dp</dimen>
     <dimen name="sb_value_sign_round">4dp</dimen>
 
-
-    <dimen name="text_size_bpm_large">30sp</dimen>
-    <dimen name="text_size_bpm_small">20sp</dimen>
+    <dimen name="text_size_bpm_bigtitle">23sp</dimen>
+    <dimen name="text_size_bpm_large">20sp</dimen>
+    <dimen name="text_size_bpm_small">15sp</dimen>
     <dimen name="button_and_battery_height">75dp</dimen>
+
+<!--    ping add-->
+    <dimen name="actlogging_buttons_tsize">15sp</dimen>
+    <dimen name="actlogging_subheadings_tsize">18sp</dimen>
+
+    <dimen name="fragment_title">25sp</dimen>
+
+
 </resources>

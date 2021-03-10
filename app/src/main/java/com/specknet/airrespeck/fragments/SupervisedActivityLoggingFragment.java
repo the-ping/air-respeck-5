@@ -1,5 +1,6 @@
 package com.specknet.airrespeck.fragments;
 
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,8 +15,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,11 +70,24 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private Button mCancelButton;
     private Button mUploadButton;
 
+    //ping add:
+    private LinearLayout mCancelLayout;
+    private LinearLayout mUploadLayout;
+    private ImageView recording_image;
+    private ImageView cancel_image;
+    private ImageView upload_image;
+
+    private static final int SITBREATHE = 0;
+    private static final int SITBREATHEDEEP = 1;
+    private static final int HYPE = 2;
+
+
     private TextView nameTextField;
 //    private Spinner categorySpinner;
-    private Spinner activitySpinner;
+//    private Spinner activitySpinner;
     private TextView timerText;
     private CountUpTimer countUpTimer;
+
 
     private StringBuilder outputData;
 
@@ -135,6 +153,9 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_activity_logging_respeck, container, false);
 
+        //set actionbar title
+        getActivity().setTitle("Activity Logging");
+
         // Load config variables
         Map<String, String> config = Utils.getInstance().getConfig(getActivity());
         airspeckUUID = config.get(Constants.Config.AIRSPECKP_UUID);
@@ -146,11 +167,11 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         progressBar = (ProgressBar) view.findViewById(R.id.upload_progress_bar_act_log);
         progressBarLabel = (TextView) view.findViewById(R.id.progress_bar_label_act_log);
 
-        progressBar.setVisibility(View.INVISIBLE);
-        progressBarLabel.setVisibility(View.INVISIBLE);
-
-        nameTextField = (TextView) view.findViewById(R.id.name_text_field);
-        nameTextField.setText("Subject ID: " + subjectID);
+//        progressBar.setVisibility(View.INVISIBLE);
+//        progressBarLabel.setVisibility(View.INVISIBLE);
+//
+//        nameTextField = (TextView) view.findViewById(R.id.name_text_field);
+//        nameTextField.setText("Subject ID: " + subjectID);
 
         // Setup category spinner
 //        categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
@@ -161,18 +182,22 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 //        categorySpinner.setAdapter(categoryAdapter);
 
         // Setup activity spinner
-        activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
+//        activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
 //        final String[] orientationSpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD,
 //                SITTING_BACKWARD, STANDING, LYING_ON_BACK, LYING_STOMACH, LYING_RIGHT, LYING_LEFT};
 //        final String[] indoorOutdoorSpinnerElements = new String[]{OUTDOOR, INDOOR, HALF_OPEN};
 //        final String[] transportSpinnerElements = new String[]{BUS, BIKE, TRAIN, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
 //                WALKING_DOWNSTAIRS, RUNNING};
 //        final String[] coughingSpinnerElements = new String[]{COUGHING, NONCOUGHING};
-        final String[] patientSpinnerElements = new String[]{SIT_BREATHE, SIT_BREATHE_DEEP, SIT_COUGH, SIT_HYPER, SIT_TALK,
-                LIE_BREATHE, LIE_COUGH, WALK, WALK_SLOW, MOVE, SWING};
-        ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_spinner_dropdown_item, patientSpinnerElements);
-        activitySpinner.setAdapter(activityAdapter);
+
+        //ping uncommented:
+//        final String[] patientSpinnerElements = new String[]{SIT_BREATHE, SIT_BREATHE_DEEP, SIT_COUGH, SIT_HYPER, SIT_TALK,
+//                LIE_BREATHE, LIE_COUGH, WALK, WALK_SLOW, MOVE, SWING};
+//        ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
+//                android.R.layout.simple_spinner_dropdown_item, patientSpinnerElements);
+//        activitySpinner.setAdapter(activityAdapter);
+
+
 //        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 //
 //            @Override
@@ -206,12 +231,23 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 //            }
 //        });
 
+
         // Load buttons
         mStartStopButton = (Button) view.findViewById(R.id.record_button);
-        mStartStopButton.setBackgroundColor(
-                ContextCompat.getColor(getActivity(), R.color.md_grey_300));
+
+        //ping uncommented:
+        mStartStopButton.setBackgroundColor(0xffffff);
+        recording_image = view.findViewById(R.id.record_imagebutton);
         mCancelButton = (Button) view.findViewById(R.id.cancel_button);
+        cancel_image = view.findViewById(R.id.cancel_imagebutton);
         mUploadButton = (Button) view.findViewById(R.id.upload_button);
+        upload_image = view.findViewById(R.id.upload_imagebutton);
+        mCancelLayout = view.findViewById(R.id.cancel_layout);
+        mUploadLayout = view.findViewById(R.id.upload_layout);
+
+//        mCancelButton.setTextColor(0x065A61);
+//        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey);
+
 
         timerText = (TextView) view.findViewById(R.id.count_up_timer);
         countUpTimer = new CountUpTimer(1000) {
@@ -255,28 +291,245 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
         storage = FirebaseStorage.getInstance();
 
+        // load radio buttons
+        RadioButton r_sitbreathe = view.findViewById(R.id.sitbreathe_rad);
+        RadioButton r_sitbreathedeep = view.findViewById(R.id.sitbreathedeep_rad);
+        RadioButton r_sithyper = view.findViewById(R.id.sithyper_rad);
+        RadioButton r_sitcough = view.findViewById(R.id.sitcough_rad);
+        RadioButton r_sittalk = view.findViewById(R.id.sittalk_rad);
+        RadioButton r_sitfrontback = view.findViewById(R.id.sitfrontback_rad);
+        RadioButton r_liebreathe = view.findViewById(R.id.liebreathe_rad);
+        RadioButton r_liecough = view.findViewById(R.id.liecough_rad);
+        RadioButton r_walknorm = view.findViewById(R.id.walknormal_rad);
+        RadioButton r_walkslow = view.findViewById(R.id.walkslow_rad);
+        RadioButton r_movesudden = view.findViewById(R.id.movesudden_rad);
+
+        // set up onClick radio buttons
+        r_sitbreathe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(true);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = SIT_BREATHE;
+            }
+        });
+
+        r_sitbreathedeep.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(true);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = SIT_BREATHE_DEEP;
+            }
+        });
+
+        r_sithyper.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(true);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = SIT_HYPER;
+            }
+        });
+        r_sitcough.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(true);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = SIT_COUGH;
+            }
+        });
+
+        r_sittalk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(true);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = SIT_TALK;
+            }
+        });
+
+        r_sitfrontback.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(true);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = SWING;
+            }
+        });
+        r_liebreathe.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(true);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = LIE_BREATHE;
+            }
+        });
+        r_liecough.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(true);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = LIE_COUGH;
+            }
+        });
+        r_walknorm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(true);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(false);
+                mActivity = WALK;
+            }
+        });
+        r_walkslow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(true);
+                r_movesudden.setChecked(false);
+                mActivity = WALK_SLOW;
+            }
+        });
+        r_movesudden.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                r_sitbreathe.setChecked(false);
+                r_sitbreathedeep.setChecked(false);
+                r_sithyper.setChecked(false);
+                r_sitcough.setChecked(false);
+                r_sittalk.setChecked(false);
+                r_sitfrontback.setChecked(false);
+                r_liebreathe.setChecked(false);
+                r_liecough.setChecked(false);
+                r_walknorm.setChecked(false);
+                r_walkslow.setChecked(false);
+                r_movesudden.setChecked(true);
+                mActivity = MOVE;
+            }
+        });
+
+
         return view;
     }
+
 
     private void startRecording() {
         // Start recording
 //        mSubjectName = nameTextField.getText().toString();
+        progressBarLabel.setVisibility(View.INVISIBLE);
         mSubjectName = subjectID;
 
         if (!mSubjectName.equals("")) {
-            mActivity = activitySpinner.getSelectedItem().toString();
+//            mActivity = activitySpinner.getSelectedItem().toString();
 
             mIsInOutRecording = false;
             mIsRespeckRecording = true;
 
-            // Change button label to tell the user that we are recording
+            // Change button label and color to tell the user that we are recording
             mStartStopButton.setText(R.string.button_text_stop_recording);
-            mStartStopButton.setBackgroundColor(
-                    ContextCompat.getColor(getActivity(), R.color.md_green_300));
+            mStartStopButton.setBackgroundColor(0x00ffff);
+//            mStartStopButton.setBackgroundColor(
+//                    ContextCompat.getColor(getActivity(), R.color.md_green_300));
+            recording_image.setImageResource(R.drawable.ic_diskette);
             mCancelButton.setEnabled(true);
+            mCancelLayout.setBackgroundResource(R.drawable.rounded_button);
+//            mCancelButton.setTextColor(0xFFFFFF);
+            cancel_image.setImageResource(R.drawable.ic_baseline_delete_24);
             mUploadButton.setEnabled(false);
-            activitySpinner.setEnabled(false);
-            activitySpinner.setClickable(false);
+            upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_clicked);
+            mUploadLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
+//            activitySpinner.setEnabled(false);
+//            activitySpinner.setClickable(false);
+
 
             countUpTimer.start();
         } else {
@@ -292,10 +545,15 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         // Wait 1 second before actually ending the run, to factor in bluetooth lag
         // Disable start button until then
         mStartStopButton.setEnabled(false);
+        mStartStopButton.setBackgroundColor(0x00ffff);
         mCancelButton.setEnabled(false);
+//        mCancelButton.setTextColor(0x065A61);
+        cancel_image.setImageResource(R.drawable.ic_baseline_delete_clicked);
+        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
         mUploadButton.setEnabled(true);
-        activitySpinner.setEnabled(true);
-        activitySpinner.setClickable(true);
+        upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_24);
+        mUploadLayout.setBackgroundResource(R.drawable.rounded_button);
+        progressBarLabel.setVisibility(View.INVISIBLE);
 
         final Handler handler = new Handler();
         handler.postDelayed(() -> {
@@ -311,14 +569,18 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             // Change button label to tell the user that the recording has stopped
             mStartStopButton.setText(R.string.button_text_start_recording);
             mStartStopButton.setEnabled(true);
-            mStartStopButton.setBackgroundColor(
-                    ContextCompat.getColor(getActivity(), R.color.md_grey_300));
+            mStartStopButton.setBackgroundColor(0x00ffff);
+            recording_image.setImageResource(R.drawable.ic_baseline_fiber_manual_record_24);
+//            mStartStopButton.setBackgroundColor(
+//                    ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
         }, 2000);
     }
 
     private void saveRespeckRecording() {
-        String currentActivity = activitySpinner.getSelectedItem().toString();
+        //ping add:
+        String currentActivity = mActivity;
+//        String currentActivity = activitySpinner.getSelectedItem().toString();
         String filename = Utils.getInstance().getDataDirectory(getActivity()) + Constants.LOGGING_DIRECTORY_NAME +
                 new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.UK).format(new Date()) +
                 " Activity RESpeck Logs " + currentActivity + " " + Utils.getInstance().getConfig(getActivity()).get(
@@ -419,13 +681,15 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
         // Change button label to tell the user that the recording has stopped
         mStartStopButton.setText(R.string.button_text_start_recording);
-        mStartStopButton.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.md_grey_300));
+        recording_image.setImageResource(R.drawable.ic_baseline_fiber_manual_record_24);
+//        mStartStopButton.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
         mCancelButton.setEnabled(false);
+//        mCancelButton.setTextColor(0x065A61);
+        cancel_image.setImageResource(R.drawable.ic_baseline_delete_clicked);
+        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
 
         mUploadButton.setEnabled(true);
-        activitySpinner.setEnabled(true);
-        activitySpinner.setClickable(true);
     }
 
     private void updateProgressBar(long bytesTransferred) {
@@ -450,6 +714,9 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private void displaySuccessMessage() {
         progressBar.setVisibility(View.INVISIBLE);
         progressBarLabel.setText("Upload complete!");
+        mUploadButton.setEnabled(true);
+        upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_24);
+        mUploadLayout.setBackgroundResource(R.drawable.rounded_button);
     }
 
     private void displayAlreadyUploaded() {
@@ -461,6 +728,10 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
 
     private void uploadRecording() {
+
+        mUploadButton.setEnabled(false);
+        upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_clicked);
+        mUploadLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
 
         StorageReference storageRef = storage.getReferenceFromUrl("gs://specknet-pyramid-test.appspot.com");
 
@@ -564,8 +835,12 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         indoorOutdoorPredictor.updateScores(data, getActivity());
         if (mIsInOutRecording) {
             outputData.append(
+//                    Utils.getUnixTimestamp() + ";" + mSubjectName + ";" + indoorOutdoorPredictor.toFileString() + ";" +
+//                            activitySpinner.getSelectedItem().toString() + "\n");
                     Utils.getUnixTimestamp() + ";" + mSubjectName + ";" + indoorOutdoorPredictor.toFileString() + ";" +
-                            activitySpinner.getSelectedItem().toString() + "\n");
+                            mActivity + "\n");
+
+
         }
     }
 

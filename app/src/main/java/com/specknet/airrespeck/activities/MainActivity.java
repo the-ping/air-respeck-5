@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -22,8 +23,11 @@ import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.core.view.GravityCompat;
@@ -34,7 +38,9 @@ import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -44,7 +50,6 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
-import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
@@ -55,7 +60,6 @@ import com.specknet.airrespeck.fragments.SupervisedInhalerReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedPulseoxReadingsFragment;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckRawAccerelationData;
 import com.specknet.airrespeck.fragments.SupervisedRESpeckReadingsIcons;
-import com.specknet.airrespeck.fragments.UploadFilesFragment;
 import com.specknet.airrespeck.models.AirspeckData;
 import com.specknet.airrespeck.models.InhalerData;
 import com.specknet.airrespeck.models.PulseoxData;
@@ -159,10 +163,14 @@ public class MainActivity extends AppCompatActivity {
     private PowerManager.WakeLock wakeLock;
     private boolean doFullAppClose = false;
 
+    //ping add:
+    private String connectionStatus;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mIsActivityRunning = true;
 
         mSavedInstanceState = savedInstanceState;
@@ -175,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
         // Load configuration
         mUtils = Utils.getInstance();
         mLoadedConfig = mUtils.getConfig(this);
+
+
 
         Log.i("MainActivity", "Pairing info: " + new Gson().toJson(mLoadedConfig));
 
@@ -282,6 +292,24 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         mMainFrameLayout = (FrameLayout) findViewById(R.id.main_frame);
 
+        //ping add: subjectID, Title, respeck connection on nav header
+        View headerView = navigationView.getHeaderView(0);
+        TextView navSubjectID = (TextView) headerView.findViewById(R.id.navHeader_subjectID);
+        navSubjectID.setText("Subject ID : " + mLoadedConfig.get(Constants.Config.SUBJECT_ID));
+        TextView navTitle = (TextView) headerView.findViewById(R.id.app_titleversion);
+        navTitle.setText(getString(R.string.app_name) + " (v" + mUtils.getAppVersionName() + ")");
+        TextView navStatus = (TextView) headerView.findViewById(R.id.navHeader_status);
+
+        if (mIsRESpeckConnected) {
+            connectionStatus = "Connected";
+
+        } else {
+            connectionStatus = "Disconnected";
+        }
+
+        navStatus.setText("Respeck status: " + connectionStatus );
+
+
         aquireWakeLockToKeepAppRunning();
 
         loadConfigInstanceVariables();
@@ -301,9 +329,14 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+        //ping add:
+//        Drawable drawable = ContextCompat.getDrawable(getApplicationContext(),R.drawable.ic_menu);
+//        mToolbar.setOverflowIcon(drawable);
+
 
         // Set activity title
         this.setTitle(getString(R.string.app_name) + ", v" + mUtils.getAppVersionName());
+
 
         // Load current mode (supervised or subject) if stored. If no mode was stored, use starting mode.
         if (mSavedInstanceState != null) {
@@ -350,6 +383,9 @@ public class MainActivity extends AppCompatActivity {
         startAirspeckWatchdogUpdaterTask();
     }
 
+
+
+    @SuppressLint("InvalidWakeLockTag")
     private void aquireWakeLockToKeepAppRunning() {
         // Request wake lock to keep CPU running for all services of the app
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -357,8 +393,10 @@ public class MainActivity extends AppCompatActivity {
         wakeLock.acquire();
     }
 
+
     public void setupNavigationDrawer(NavigationView navigationView) {
         Menu navigationMenu = navigationView.getMenu();
+
 
         // Hide parts of the navigation menu we don't need
         if (!mIsAirspeckEnabled) {
@@ -374,9 +412,15 @@ public class MainActivity extends AppCompatActivity {
             navigationMenu.findItem(R.id.menu_inhaler_subgroup).setVisible(false);
         }
 
+        //        navigationView.setNavigationItemSelectedListener((NavigationView.OnNavigationItemSelectedListener) this);
+//        TextView subjectID_onHeader = (TextView) navigationView.getHeaderView(0).findViewById(R.id.navHeader_subjectID);
+//        String subjectID = mLoadedConfig.get(Constants.Config.SUBJECT_ID);
+//        subjectID_onHeader.setText("Testing!!");
+
         // Setup nav drawer menu
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
+
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         // set item as selected to persist highlight
@@ -823,8 +867,12 @@ public class MainActivity extends AppCompatActivity {
         mActionbar.setDisplayHomeAsUpEnabled(false);
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-        // Replace fragment
-        displayFragment(new SubjectHomeFragment());
+        // Open a new Activity - SubjectActivity
+        Intent intent = new Intent(this, SubjectActivity.class);
+        startActivity(intent);
+
+//        // Replace fragment
+//        displayFragment(new SubjectHomeFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();
@@ -920,9 +968,9 @@ public class MainActivity extends AppCompatActivity {
             case android.R.id.home:
                 mNavDrawerLayout.openDrawer(GravityCompat.START);
                 return true;
-            case R.id.action_view_battery:
-                startActivity(new Intent(this, BatteryViewActivity.class));
-                return true;
+//            case R.id.action_view_battery:
+//                startActivity(new Intent(this, BatteryViewActivity.class));
+//                return true;
         }
         return super.onOptionsItemSelected(item);
     }

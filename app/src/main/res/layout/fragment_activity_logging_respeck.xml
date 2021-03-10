@@ -1,101 +1,658 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="2dp">
 
-    <ScrollView
+<!--    <ScrollView-->
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="15dp">
+        android:padding="10dp">
 
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:orientation="vertical"
-                      android:weightSum="1">
+        <LinearLayout
+            android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:weightSum="1"
+            android:padding="5dp">
 
 
             <TextView
                 android:id="@+id/name_text_field"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.04"
+                android:textSize="18sp"
                 android:gravity="center"
-                android:text="Subject ID: "
-                android:layout_marginBottom="50dp"/>
+                android:text="Record and upload activity "
+                android:layout_marginBottom="8dp"/>
 
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
-                android:layout_weight="0.04"
-                android:gravity="center"
-                android:text="Choose activity"/>
+                android:textSize="@dimen/actlogging_subheadings_tsize"
+                android:gravity="left"
+                android:text="Choose ONE activity"
+                android:textStyle="bold" />
 
-            <Spinner
-                android:id="@+id/activity_spinner"
+            <LinearLayout
+                android:padding="5dp"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_weight="0.04"/>
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:weightSum="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sitting while:"
+                    android:textSize="@dimen/actlogging_subheadings_tsize">
+
+                </TextView>
+
+                <RadioGroup
+                    android:id="@+id/radioGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton
+                            android:id="@+id/sitbreathe_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Breathing"
+                            android:textSize="@dimen/actlogging_buttons_tsize"
+                            android:layout_margin="5dp"
+                            android:checked="true"
+                            >
+
+                        </RadioButton>
+
+                        <RadioButton
+                            android:id="@+id/sitbreathedeep_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Breathing deeply"
+                            android:layout_toRightOf="@+id/sitbreathe_rad"
+                            android:textSize="@dimen/actlogging_buttons_tsize"
+                            android:layout_margin="5dp">
+
+                        </RadioButton>
+
+
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton
+                            android:id="@+id/sitcough_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Coughing"
+                            android:layout_margin="5dp"
+                            android:textSize="@dimen/actlogging_buttons_tsize">
+
+                        </RadioButton>
+
+                        <RadioButton
+                            android:id="@+id/sithyper_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hyperventilating"
+                            android:layout_toRightOf="@+id/sitcough_rad"
+                            android:textSize="@dimen/actlogging_buttons_tsize"
+                            android:layout_margin="5dp">
+                        </RadioButton>
+
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton
+                            android:id="@+id/sitfrontback_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Swinging front to back"
+                            android:layout_margin="5dp"
+                            android:textSize="@dimen/actlogging_buttons_tsize">
+
+                        </RadioButton>
+
+                        <RadioButton
+                            android:id="@+id/sittalk_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Talking"
+                            android:layout_toRightOf="@+id/sitfrontback_rad"
+                            android:layout_margin="5dp"
+                            android:textSize="@dimen/actlogging_buttons_tsize">
+
+                        </RadioButton>
+
+
+
+
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Lying while:"
+                        android:textSize="@dimen/actlogging_subheadings_tsize">
+
+                    </TextView>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton
+                            android:id="@+id/liebreathe_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Breathing"
+                            android:layout_margin="5dp"
+                            android:textSize="@dimen/actlogging_buttons_tsize">
+
+                        </RadioButton>
+
+                        <RadioButton
+                            android:id="@+id/liecough_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Coughing"
+                            android:layout_toRightOf="@+id/liebreathe_rad"
+                            android:layout_margin="5dp"
+                            android:textSize="@dimen/actlogging_buttons_tsize">
+
+                        </RadioButton>
+
+                    </RelativeLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Walking pace"
+                        android:textSize="@dimen/actlogging_subheadings_tsize">
+
+                    </TextView>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton
+                            android:id="@+id/walknormal_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Normal"
+                            android:layout_margin="5dp"
+                            android:textSize="@dimen/actlogging_buttons_tsize">
+
+                        </RadioButton>
+
+                        <RadioButton
+                            android:id="@+id/walkslow_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Slow"
+                            android:textSize="@dimen/actlogging_buttons_tsize"
+                            android:layout_toRightOf="@+id/walknormal_rad"
+                            android:layout_margin="5dp">
+
+                        </RadioButton>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Others:"
+                        android:textSize="@dimen/actlogging_subheadings_tsize">
+
+
+                    </TextView>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton
+                            android:id="@+id/movesudden_rad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sudden movement"
+                            android:textSize="@dimen/actlogging_buttons_tsize"
+                            android:layout_margin="5dp">
+
+                        </RadioButton>
+
+                    </RelativeLayout>
+
+                </RadioGroup>
+
+
+
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingTop="2dp"-->
+<!--                    android:paddingBottom="2dp">-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/sitbreathe_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Breathing"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp"-->
+
+<!--                        >-->
+
+<!--                    </Button>-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/sitbreathedeep_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Breathing Deeply"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:layout_toRightOf="@id/sitbreathe_button"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp"-->
+<!--                        >-->
+
+<!--                    </Button>-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/sitcough_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Coughing"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:layout_toRightOf="@id/sitbreathedeep_button"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp">-->
+
+<!--                    </Button>-->
+
+
+<!--                </RelativeLayout>-->
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingBottom="2dp">-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/sithyper_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Hyperventilate"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp">-->
+
+<!--                    </Button>-->
+
+
+<!--                    <Button-->
+<!--                        android:id="@+id/sitswing_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Swinging front to back"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:layout_toRightOf="@id/sithyper_button"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp"-->
+<!--                        >-->
+
+<!--                    </Button>-->
+<!--                </RelativeLayout>-->
+
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingBottom="2dp">-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/sittalk_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Talking"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp"-->
+<!--                        >-->
+
+<!--                    </Button>-->
+
+<!--                </RelativeLayout>-->
+
+
+
+
+<!--                        <RelativeLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:paddingTop="2dp"-->
+<!--                            android:paddingBottom="2dp">-->
+
+<!--                            <Button-->
+<!--                                android:id="@+id/liebreath_button"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="40dp"-->
+<!--                                android:text="Breathing"-->
+<!--                                android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                                android:background="@drawable/rounded_button"-->
+<!--                                android:layout_margin="5dp">-->
+
+<!--                            </Button>-->
+
+<!--                            <Button-->
+<!--                                android:id="@+id/liecough_button"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="40dp"-->
+<!--                                android:text="Coughing"-->
+<!--                                android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                                android:layout_toRightOf="@id/liebreath_button"-->
+<!--                                android:background="@drawable/rounded_button"-->
+<!--                                android:layout_margin="5dp">-->
+
+<!--                            </Button>-->
+
+<!--                        </RelativeLayout>-->
+
+
+
+
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content">-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/walknormal_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Normal"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp">-->
+
+<!--                    </Button>-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/walkslow_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Slow"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:layout_toRightOf="@id/walknormal_button"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp">-->
+
+<!--                    </Button>-->
+
+<!--                </RelativeLayout>-->
+
+
+
+
+
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:paddingTop="2dp"-->
+<!--                    android:paddingBottom="2dp">-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/movesudden_button"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:text="Sudden Movement"-->
+<!--                        android:textSize="@dimen/actlogging_buttons_tsize"-->
+<!--                        android:background="@drawable/rounded_button"-->
+<!--                        android:layout_margin="5dp">-->
+
+<!--                    </Button>-->
+
+<!--                </RelativeLayout>-->
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/count_up_timer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="40dp"
-                android:layout_weight="0.04"
                 android:gravity="center"
                 android:text="00:00"
                 android:textSize="20sp"/>
 
-            <Button
-                android:id="@+id/record_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="40dp"
-                android:layout_weight="0.04"
-                android:text="@string/button_text_start_recording"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/cancel_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:layout_weight="0.04"
-                android:enabled="false"
-                android:text="@string/button_text_cancel_recording"/>
+                    <LinearLayout
+                        android:id="@+id/record_layout"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:background="@drawable/rounded_button"
+                        android:layout_marginRight="3dp">
 
-            <Button
-                android:id="@+id/upload_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upload all recordings"/>
+                        <ImageView
+                            android:id="@+id/record_imagebutton"
+                            android:layout_weight="2"
+                            android:layout_width="match_parent"
+                            android:layout_height="35dp"
+                            android:layout_marginRight="2dp"
+                            android:layout_gravity="center|center_vertical"
+                            android:src="@drawable/ic_fiber_manual_record_red_24dp"
+                            />
+
+                        <ImageView
+                            android:id="@+id/stop_imagebutton"
+                            android:layout_weight="2"
+                            android:layout_width="match_parent"
+                            android:layout_height="35dp"
+                            android:layout_marginRight="2dp"
+                            android:layout_gravity="center|center_vertical"
+                            android:src="@drawable/ic_fiber_manual_record_red_24dp"
+                            android:visibility="gone"
+                            />
+
+                        <Button
+                            android:id="@+id/record_button"
+                            android:layout_weight="1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:paddingLeft="2dp"
+                            android:text="@string/button_text_start_recording"
+                            android:textColor="#FFFFFF"
+                            android:background="#00FFFFFF"
+                            >
+
+                        </Button>
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/cancel_layout"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:background="@drawable/background_rounded_lightgrey_lined"
+                        android:layout_marginRight="3dp"
+                        android:layout_marginLeft="3dp"
+                        >
+
+
+                        <ImageView
+                            android:id="@+id/cancel_imagebutton"
+                            android:layout_weight="2"
+                            android:layout_width="match_parent"
+                            android:layout_height="35dp"
+                            android:layout_marginRight="2dp"
+                            android:layout_gravity="center|center_vertical"
+                            android:src="@drawable/ic_baseline_delete_clicked"
+                            />
+<!--                        mCancelButton.setTextColor(0x065A61);-->
+
+                        <Button
+                            android:id="@+id/cancel_button"
+                            android:layout_weight="1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:enabled="false"
+                            android:textColor="@drawable/text_color_change"
+                            android:background="@null"
+                            android:paddingLeft="2dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:textSize="13dip"
+                            android:text="@string/button_text_cancel_recording"/>
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/upload_layout"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:background="@drawable/rounded_button"
+                        android:layout_marginLeft="3dp"
+                        >
+                        <ImageView
+                            android:id="@+id/upload_imagebutton"
+                            android:layout_weight="2"
+                            android:layout_width="match_parent"
+                            android:layout_height="35dp"
+                            android:layout_marginRight="2dp"
+                            android:layout_gravity="center|center_vertical"
+                            android:src="@drawable/ic_baseline_cloud_upload_24"
+                            />
+                        <Button
+                            android:layout_weight="1"
+                            android:id="@+id/upload_button"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#00FFFFFF"
+                            android:textSize="13dip"
+                            android:textColor="@drawable/text_color_change"
+                            android:text="@string/button_text_upload_recording"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="350dp"
+                android:layout_gravity="center"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="50dp"
+                android:paddingTop="15dp"
+
                 android:id="@+id/progress_bar_container">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Upload progress"
                     android:id="@+id/progress_bar_label_act_log"
-                    android:layout_gravity="center"/>
+                    android:layout_gravity="center"
+                    android:visibility="invisible"
+                    />
 
                 <ProgressBar
                     style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/upload_progress_bar_act_log"
-                    android:max="100"/>
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
+                    android:max="100"
+                    android:visibility="invisible"/>
 
-    <include layout="@layout/content_connecting"/>
-</RelativeLayout>
+
+
+<!--            <Spinner-->
+<!--                android:id="@+id/activity_spinner"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="40dp"-->
+<!--                android:layout_weight="0.04"/>-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/count_up_timer"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="40dp"-->
+<!--                android:layout_weight="0.04"-->
+<!--                android:gravity="center"-->
+<!--                android:text="00:00"-->
+<!--                android:textSize="20sp"/>-->
+
+<!--            <Button-->
+<!--                android:id="@+id/record_button"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="40dp"-->
+<!--                android:layout_weight="0.04"-->
+<!--                android:text="@string/button_text_start_recording"/>-->
+
+<!--            <Button-->
+<!--                android:id="@+id/cancel_button"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="30dp"-->
+<!--                android:layout_weight="0.04"-->
+<!--                android:enabled="false"-->
+<!--                android:text="@string/button_text_cancel_recording"/>-->
+
+<!--            <Button-->
+<!--                android:id="@+id/upload_button"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Upload all recordings"/>-->
+
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:orientation="vertical"-->
+<!--                android:padding="50dp"-->
+<!--                android:id="@+id/progress_bar_container">-->
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Upload progress"-->
+<!--                    android:id="@+id/progress_bar_label_act_log"-->
+<!--                    android:layout_gravity="center"/>-->
+
+<!--                <ProgressBar-->
+<!--                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:id="@+id/upload_progress_bar_act_log"-->
+<!--                    android:max="100"/>-->
+            </LinearLayout>
+<!--        </LinearLayout>-->
+
+            <include layout="@layout/content_connecting"/>
+
+</LinearLayout>
+<!--    </ScrollView>
+android:padding="50dp"-->
+
+</LinearLayout>

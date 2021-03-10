@@ -1,66 +1,101 @@
 package com.specknet.airrespeck.fragments;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
+import com.google.android.material.tabs.TabLayout;
 import com.specknet.airrespeck.R;
+import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
+import com.specknet.airrespeck.adapters.SectionsPagerAdapter;
+import com.specknet.airrespeck.adapters.ping_SectionPagerAdapter;
+import com.specknet.airrespeck.models.ReadingItem;
+import com.specknet.airrespeck.utils.Constants;
+import com.specknet.airrespeck.utils.Utils;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ActSumFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ActSumFragment extends Fragment {
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class ActSumTabFragment extends Fragment {
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private ViewPager viewpager;
+    private TabLayout tablayout;
 
-    public ActSumFragment() {
+
+
+    public ActSumTabFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ActSumFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ActSumFragment newInstance(String param1, String param2) {
-        ActSumFragment fragment = new ActSumFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    public static ActSumTabFragment getInstance() {
+        return new ActSumTabFragment();
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_act_sum, container, false);
+        View view = inflater.inflate(R.layout.fragment_act_sum_tab, container, false);
+
+        //Load tab menu
+        viewpager = view.findViewById(R.id.actsum_viewpager);
+        tablayout = view.findViewById(R.id.actsum_tablayout);
+
+
+
+        return view;
     }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        setUpViewPager(viewpager);
+        tablayout.setupWithViewPager(viewpager);
+
+        tablayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+    }
+
+    public void setUpViewPager(ViewPager viewpager) {
+        ping_SectionPagerAdapter adapter = new ping_SectionPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+
+        adapter.addFragment(new actsum_today_Fragment(), "Today");
+        adapter.addFragment(new actsum_pastweek_Fragment(), "Past week");
+
+        viewpager.setAdapter(adapter);
+    }
+
+
 }

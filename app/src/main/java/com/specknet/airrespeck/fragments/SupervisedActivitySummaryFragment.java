@@ -9,8 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
+import com.specknet.airrespeck.adapters.ping_SectionPagerAdapter;
 import com.specknet.airrespeck.models.ReadingItem;
 import com.specknet.airrespeck.utils.Constants;
 import com.specknet.airrespeck.utils.Utils;
@@ -29,6 +35,11 @@ import java.util.Locale;
  */
 
 public class SupervisedActivitySummaryFragment extends ConnectionOverlayFragment {
+
+    private ViewPager viewpager;
+    private TabLayout tablayout;
+
+    private Utils mUtils;
 
     private ArrayList<ReadingItem> mReadingItems;
     private ReadingItemArrayAdapter mListViewAdapter;
@@ -53,37 +64,76 @@ public class SupervisedActivitySummaryFragment extends ConnectionOverlayFragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mReadingItems = new ArrayList<>();
-        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_HOUR, "", "-"));
-        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_DAY, "", "-"));
-        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_WEEK, "", "-"));
-        mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
+        // set action bar title
+        getActivity().setTitle("Activity Summary");
+
+//        mReadingItems = new ArrayList<>();
+//        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_HOUR, "", "-"));
+//        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_DAY, "", "-"));
+//        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_WEEK, "", "-"));
+//        mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_activity_summary, container, false);
 
-        // Attach the adapter to a ListView
-        ListView mListView = (ListView) view.findViewById(R.id.readings_list);
-        mListView.setAdapter(mListViewAdapter);
+        //ping add: Load tab menu
+        viewpager = view.findViewById(R.id.sup_actsum_viewpager);
+        tablayout = view.findViewById(R.id.sup_actsum_tablayout);
 
-        // Update readings with default "Loading data" values
-        updateReadings();
-
-        if (savedInstanceState != null) {
-            // Load previously calculated values
-            mHourStatsString = savedInstanceState.getString(KEY_HOUR);
-            mDayStatsString = savedInstanceState.getString(KEY_DAY);
-            mWeekStatsString = savedInstanceState.getString(KEY_WEEK);
-            updateReadings();
-        } else {
-            updateActivitySummary();
-        }
-
-        startActivitySummaryUpdaterTask();
+//        // Attach the adapter to a ListView
+//        ListView mListView = (ListView) view.findViewById(R.id.readings_list);
+//        mListView.setAdapter(mListViewAdapter);
+//
+//        // Update readings with default "Loading data" values
+//        updateReadings();
+//
+//        if (savedInstanceState != null) {
+//            // Load previously calculated values
+//            mHourStatsString = savedInstanceState.getString(KEY_HOUR);
+//            mDayStatsString = savedInstanceState.getString(KEY_DAY);
+//            mWeekStatsString = savedInstanceState.getString(KEY_WEEK);
+//            updateReadings();
+//        } else {
+//            updateActivitySummary();
+//        }
+//
+//        startActivitySummaryUpdaterTask();
 
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        setUpViewPager(viewpager);
+        tablayout.setupWithViewPager(viewpager);
+
+        tablayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+    }
+
+    public void setUpViewPager(ViewPager viewpager) {
+        ping_SectionPagerAdapter adapter = new ping_SectionPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+
+        adapter.addFragment(new sup_actsum_todayFragment(), "Today");
+        adapter.addFragment(new sup_actsum_pastweekFragment(), "Past week");
+
+        viewpager.setAdapter(adapter);
     }
 
     private void startActivitySummaryUpdaterTask() {

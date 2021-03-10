@@ -2,6 +2,24 @@
 <resources>
     <string name="app_name">AirRespeck</string>
 
+    <!--    Ping's strings-->
+
+    <!--    Subject Bottom Nav Menu-->
+    <string name="botnav_actsum">Summary</string>
+    <string name="botnav_liveact">Live Activity</string>
+    <string name="botnav_home">Home</string>
+    <string name="botnav_diary">Diary</string>
+    <string name="botnav_rehab">Rehab</string>
+
+    <!-- Subject's Act Sum DayWeek Nav Menu -->
+    <string name="actsum_day">Day</string>
+    <string name="actsum_week">Week</string>
+
+    <!-- Supervisor mode -->
+    <string name="detected_act"> <text size="9"> <i> detecting activity... </i> </text> </string>
+    <string name="menu_actsum">Summary</string>
+
+    <!--    Ping's strings-->
 
     <!-- Strings related to Initial Setup -->
 
@@ -100,9 +118,18 @@
 
     <!-- Volume recording -->
     <string name="title_activity_volume_recording">Volume recording</string>
-    <string name="button_text_start_recording">Start recording</string>
-    <string name="button_text_stop_recording">Stop recording</string>
-    <string name="button_text_cancel_recording">Cancel recording</string>
+    <string name="button_text_start_recording">
+        <font size="12">Start</font>
+    </string>
+    <string name="button_text_stop_recording">
+        <font size="13">Stop</font>
+    </string>
+    <string name="button_text_cancel_recording">
+        <font size="12">Cancel</font>
+    </string>
+    <string name="button_text_upload_recording">
+        <font size="12">Upload</font>
+    </string>
 
     <!-- Strings related to AirSpeck and RESpeck apps -->
 

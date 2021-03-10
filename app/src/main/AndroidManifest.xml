@@ -28,7 +28,8 @@
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.BatteryViewActivity"></activity>
+        <activity android:name=".activities.SubjectActivity"></activity>
+        <activity android:name=".activities.BatteryViewActivity" />
 
         <meta-data
             android:name="AA_DB_NAME"
@@ -156,7 +157,7 @@
             android:name=".services.PhoneGPSService"
             android:enabled="true"
             android:exported="true"
-            android:process=":phone_gps_service"></service>
+            android:process=":phone_gps_service" />
 
         <activity
             android:name=".activities.MapsAQActivity"

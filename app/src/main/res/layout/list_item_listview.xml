@@ -4,15 +4,18 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
+
     <TextView
         android:id="@+id/name"
-        android:layout_width="0dp"
+        android:text="name"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="2"
         android:gravity="center" />
 
     <TextView
         android:id="@+id/value"
+        android:text="value"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
@@ -20,6 +23,7 @@
 
     <TextView
         android:id="@+id/unit"
+        android:text="unit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
