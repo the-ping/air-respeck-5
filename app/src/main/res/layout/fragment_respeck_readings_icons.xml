@@ -67,7 +67,7 @@
                     android:orientation="vertical"
                     android:layout_marginRight="10dp"
                     android:padding="2dp"
-                    android:background="@drawable/background_rounded_lightgrey"
+                    android:background="@drawable/background_rounded_primarylight_lined"
                     >
 
                     <TextView
@@ -162,7 +162,7 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:layout_weight="1"
-                    android:background="@drawable/background_rounded_lightgrey">
+                    android:background="@drawable/background_rounded_primarylight_lined">
 
                     <ImageView
                         android:id="@+id/activity_icon"
@@ -200,11 +200,13 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:padding="2dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginTop="40dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@drawable/background_rounded_secondlight">
 
 <!--                ping: instead of stepcounts, include accel data-->
 

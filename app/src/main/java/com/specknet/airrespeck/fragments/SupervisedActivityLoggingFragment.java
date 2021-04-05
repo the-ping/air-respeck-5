@@ -1,27 +1,24 @@
 package com.specknet.airrespeck.fragments;
 
-import android.graphics.drawable.Drawable;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-
-import androidx.core.content.ContextCompat;
 
 //import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -73,6 +70,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     //ping add:
     private LinearLayout mCancelLayout;
     private LinearLayout mUploadLayout;
+    private LinearLayout mStartStopLayout;
     private ImageView recording_image;
     private ImageView cancel_image;
     private ImageView upload_image;
@@ -94,6 +92,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private String androidID;
     private String airspeckUUID;
     private String subjectID;
+    private TextView respeckstat;
 
     private final String OUTDOOR = "Outdoor";
     private final String INDOOR = "Indoor";
@@ -145,6 +144,9 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     int totalFilesToUpload = 0;
     int totalFilesAlreadyUploaded = 0;
 
+    private BroadcastReceiver respeckBroadcasterReceiver;
+    private IntentFilter filter;
+
 //    LinearLayout progressBarContainer;
     ProgressBar progressBar;
     TextView progressBarLabel;
@@ -153,8 +155,11 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_activity_logging_respeck, container, false);
 
+
         //set actionbar title
         getActivity().setTitle("Activity Logging");
+
+
 
         // Load config variables
         Map<String, String> config = Utils.getInstance().getConfig(getActivity());
@@ -162,6 +167,14 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         subjectID = config.get(Constants.Config.SUBJECT_ID);
         androidID = Settings.Secure.getString(getActivity().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+
+        //display respeck connection status
+        respeckstat = view.findViewById(R.id.actlog_respeckstat);
+        respeckstat.setText(config.get(Constants.ACTION_AIRSPECK_CONNECTED));
+//        getRespeckStat();
+
+
+
 
 //        progressBarContainer = (LinearLayout) view.findViewById(R.id.progress_bar_container);
         progressBar = (ProgressBar) view.findViewById(R.id.upload_progress_bar_act_log);
@@ -244,6 +257,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         upload_image = view.findViewById(R.id.upload_imagebutton);
         mCancelLayout = view.findViewById(R.id.cancel_layout);
         mUploadLayout = view.findViewById(R.id.upload_layout);
+        mStartStopLayout = view.findViewById(R.id.record_layout);
 
 //        mCancelButton.setTextColor(0x065A61);
 //        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey);
@@ -501,6 +515,26 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         return view;
     }
 
+    private void getRespeckStat() {
+        respeckBroadcasterReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if (intent.getAction() == Constants.ACTION_RESPECK_LIVE_BROADCAST) {
+                    updateRESpeckData((RESpeckLiveData) intent.getSerializableExtra(Constants.RESPECK_LIVE_DATA));
+                }
+                else if (intent.getAction() == Constants.ACTION_RESPECK_CONNECTED) {
+                    respeckstat.setText("Respeck: Connected");
+                }
+                else if (intent.getAction() == Constants.ACTION_RESPECK_DISCONNECTED) {
+                    respeckstat.setText("Respeck: Disconnected");                }
+            }
+        };
+
+//        registerReceiver(respeckBroadcasterReceiver, new IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST));
+//        registerReceiver(respeckBroadcasterReceiver, new IntentFilter(Constants.ACTION_RESPECK_CONNECTED));
+//        registerReceiver(respeckBroadcasterReceiver, new IntentFilter(Constants.ACTION_RESPECK_DISCONNECTED));
+    }
 
     private void startRecording() {
         // Start recording
@@ -526,7 +560,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             cancel_image.setImageResource(R.drawable.ic_baseline_delete_24);
             mUploadButton.setEnabled(false);
             upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_clicked);
-            mUploadLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
+            mUploadLayout.setBackgroundResource(R.drawable.background_rounded_white_lined);
 //            activitySpinner.setEnabled(false);
 //            activitySpinner.setClickable(false);
 
@@ -543,17 +577,16 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         timerText.setText("00:00");
 
         // Wait 1 second before actually ending the run, to factor in bluetooth lag
-        // Disable start button until then
+        // Disable start and cancel button until then
         mStartStopButton.setEnabled(false);
         mStartStopButton.setBackgroundColor(0x00ffff);
+        recording_image.setImageResource(R.drawable.ic_diskette_disabled);
+        mStartStopLayout.setBackgroundResource(R.drawable.background_rounded_white_lined);
+
         mCancelButton.setEnabled(false);
-//        mCancelButton.setTextColor(0x065A61);
         cancel_image.setImageResource(R.drawable.ic_baseline_delete_clicked);
-        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
-        mUploadButton.setEnabled(true);
-        upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_24);
-        mUploadLayout.setBackgroundResource(R.drawable.rounded_button);
-        progressBarLabel.setVisibility(View.INVISIBLE);
+        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_white_lined);
+
 
         final Handler handler = new Handler();
         handler.postDelayed(() -> {
@@ -566,11 +599,18 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                 saveInOutRecording();
             }
 
-            // Change button label to tell the user that the recording has stopped
+            // Upload is ready
+            mUploadButton.setEnabled(true);
+            upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_24);
+            mUploadLayout.setBackgroundResource(R.drawable.rounded_button);
+            progressBarLabel.setVisibility(View.INVISIBLE);
+
+            // Change button label to tell the user that the recording has stopped, can record new
             mStartStopButton.setText(R.string.button_text_start_recording);
             mStartStopButton.setEnabled(true);
             mStartStopButton.setBackgroundColor(0x00ffff);
             recording_image.setImageResource(R.drawable.ic_baseline_fiber_manual_record_24);
+            mStartStopLayout.setBackgroundResource(R.drawable.rounded_button);
 //            mStartStopButton.setBackgroundColor(
 //                    ContextCompat.getColor(getActivity(), R.color.md_grey_300));
 
@@ -687,9 +727,11 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         mCancelButton.setEnabled(false);
 //        mCancelButton.setTextColor(0x065A61);
         cancel_image.setImageResource(R.drawable.ic_baseline_delete_clicked);
-        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
+        mCancelLayout.setBackgroundResource(R.drawable.background_rounded_white_lined);
 
         mUploadButton.setEnabled(true);
+        upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_24);
+        mUploadLayout.setBackgroundResource(R.drawable.rounded_button);
     }
 
     private void updateProgressBar(long bytesTransferred) {
@@ -731,7 +773,7 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
 
         mUploadButton.setEnabled(false);
         upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_clicked);
-        mUploadLayout.setBackgroundResource(R.drawable.background_rounded_lightgrey_lined);
+        mUploadLayout.setBackgroundResource(R.drawable.background_rounded_white_lined);
 
         StorageReference storageRef = storage.getReferenceFromUrl("gs://specknet-pyramid-test.appspot.com");
 

@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="175dp"
-    android:background="@color/colorAccent"
+    android:background="@color/colorSecondary"
     android:gravity="bottom"
     android:padding="15dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
@@ -29,6 +29,7 @@
             android:gravity="center_vertical"
             android:paddingLeft="15dp"
             android:text=" AirRespeck "
+            android:textColor="#000000"
             android:textSize="20dp"
             android:textStyle="bold">
 
@@ -44,6 +45,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:text=" Subject ID : "
+        android:textColor="#000000"
         android:textSize="16dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1">
 
@@ -57,7 +59,7 @@
             android:paddingTop="2dp"
             android:text=" RESpeck status : "
             android:textSize="13dp"
-            android:textColor="#e8e8e8e8">
+            android:textColor="#000000">
         </TextView>
 
 

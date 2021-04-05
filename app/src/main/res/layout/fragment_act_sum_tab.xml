@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.ActSumTabFragment"
-    android:background="@color/md_light_blue_400">
+    tools:context=".fragments.ActSumTabFragment">
 
 <!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
 <!--        android:id="@+id/actsum_nav_menu"-->
@@ -27,7 +25,7 @@
         android:id="@+id/actsum_appbarlayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/md_yellow_600"
+        android:background="@color/colorPrimaryLight"
 
         >
 

@@ -71,6 +71,7 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
 
         //set action bar title
         getActivity().setTitle("Live Reading");
+        getActivity().setTitleColor(0x000000);
 
         mReadingItems = new ArrayList<>();
         mReadingItems.add(new ReadingItem("x", "", 0f));

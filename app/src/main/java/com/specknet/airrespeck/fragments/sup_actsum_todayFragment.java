@@ -1,6 +1,8 @@
 package com.specknet.airrespeck.fragments;
 
 import android.content.res.Resources;
+import android.graphics.Color;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -14,6 +16,16 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.LegendEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.IValueFormatter;
+import com.github.mikephil.charting.utils.ColorTemplate;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
 import com.specknet.airrespeck.adapters.ReadingItemSegmentedBarAdapter;
@@ -27,6 +39,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
@@ -44,7 +57,23 @@ public class sup_actsum_todayFragment extends Fragment {
     private String mDayStatsString = "Loading data";
     private String mWeekStatsString = "Loading data";
 
-    private TextView p_text;
+    //ping add:
+
+    private TextView sittime_text;
+    private TextView walktime_text;
+    private TextView lietime_text;
+    private int sit_timeval;
+    private int walk_timeval;
+    private int lie_timeval;
+
+    private int day_sit;
+    private int day_walk;
+    private int day_lie;
+
+    private PieChart pieChart;
+    private PieDataSet pieDataSet;
+    private PieData pieData;
+
 
     public sup_actsum_todayFragment() {
         // Required empty public constructor
@@ -58,7 +87,6 @@ public class sup_actsum_todayFragment extends Fragment {
         mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_DAY, "", "-"));
         mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_WEEK, "", "-"));
         mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
-
     }
 
     @Override
@@ -72,13 +100,17 @@ public class sup_actsum_todayFragment extends Fragment {
         ListView mListView = (ListView) view.findViewById(R.id.readings_list);
         mListView.setAdapter(mListViewAdapter);
 
-
         // Update readings with default "Loading data" values
         updateReadings();
 
-        //ping add:
-        p_text = view.findViewById(R.id.print_test);
-        p_text.setText(mReadingItems.get(2).toString());
+        //ping add: set up pie chart
+        pieChart = view.findViewById(R.id.today_piechart);
+        pieChart.setNoDataText("Loading chart..");
+        setupPieChart();
+
+        sittime_text = view.findViewById(R.id.sit_time);
+        walktime_text = view.findViewById(R.id.walk_time);
+        lietime_text = view.findViewById(R.id.lie_time);
 
 
         if (savedInstanceState != null) {
@@ -96,6 +128,85 @@ public class sup_actsum_todayFragment extends Fragment {
         return view;
     }
 
+    private void updatePieChart(int sit, int walk, int lie) {
+
+//        String sit_label;
+//        String walk_label;
+//        String lie_label;
+//        String sit_val;
+//        String walk_val;
+//        String lie_val;
+
+        if (pieDataSet.getEntryCount()==0) {
+
+            pieDataSet.addEntry(new PieEntry(day_sit, "Sit/Stand: " + day_sit + "%"));
+            pieDataSet.addEntry(new PieEntry(day_walk, "Walk: " + day_walk + "%"));
+            pieDataSet.addEntry(new PieEntry(day_lie, "Lie: " + day_lie + "%"));
+
+            pieData.notifyDataChanged();
+            pieChart.notifyDataSetChanged();
+            pieChart.invalidate();
+
+            pieChart.setCenterText("Activity past 24h");
+
+
+        } else {
+            pieDataSet.removeEntryByXValue(0f);
+            pieDataSet.removeEntryByXValue(1f);
+            pieDataSet.removeEntryByXValue(2f);
+
+            pieData.notifyDataChanged();
+            pieChart.notifyDataSetChanged();
+            pieChart.invalidate();
+
+            pieDataSet.addEntry(new PieEntry(day_sit, "Sit/Stand " + day_sit + "%"));
+            pieDataSet.addEntry(new PieEntry(day_walk, "Walk " + day_walk + "%"));
+            pieDataSet.addEntry(new PieEntry(day_lie, "Lie " + day_lie + "%"));
+
+            pieData.notifyDataChanged();
+            pieChart.notifyDataSetChanged();
+            pieChart.invalidate();
+
+            pieChart.setCenterText("Activity past 24h");
+
+
+        }
+    }
+
+
+
+    private void setupPieChart() {
+        //medium, light, dark secondary colors
+        int[] colors_list = {Color.rgb(255,183,77), Color.rgb(255,233,125), Color.rgb(200,135,25)};
+
+        ArrayList<PieEntry> entries = new ArrayList<>();
+//        entries.add(new PieEntry(day_sit, "Sit/Stand"));
+//        entries.add(new PieEntry(day_walk, "Walk"));
+//        entries.add(new PieEntry(day_lie, "Lie"));
+
+
+        pieDataSet = new PieDataSet(entries, "");
+        pieDataSet.setColors(colors_list);
+
+        pieData = new PieData(pieDataSet);
+
+        pieChart.setData(pieData);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setCenterText("Loading chart..");
+        pieData.setDrawValues(false); //remove y values
+        pieChart.setDrawEntryLabels(false); //remove x values
+        pieChart.setCenterTextSize(15);
+
+        //style legend
+        pieChart.getLegend().setTextSize(12);
+        pieChart.getLegend().setOrientation(Legend.LegendOrientation.VERTICAL); //vertical legend
+        pieChart.getLegend().setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
+        pieChart.getLegend().setVerticalAlignment(Legend.LegendVerticalAlignment.CENTER);
+
+
+
+    }
+
     private void startActivitySummaryUpdaterTask() {
         final int delay = 5 * 60 * 1000;
         final Handler h = new Handler();
@@ -106,6 +217,8 @@ public class sup_actsum_todayFragment extends Fragment {
                 h.postDelayed(this, delay);
             }
         }, delay);
+
+
     }
 
     @Override
@@ -133,6 +246,8 @@ public class sup_actsum_todayFragment extends Fragment {
             int[] hourStats = new int[]{0, 0, 0};
             int[] dayStats = new int[]{0, 0, 0};
             int[] weekStats = new int[]{0, 0, 0};
+
+            int[] daySec = new int[] {0, 0, 0};
 
             // Go through filenames in Airspeck directory
             if (getActivity() == null) {
@@ -165,8 +280,10 @@ public class sup_actsum_todayFragment extends Fragment {
                                             weekStats[activityType]++;
                                             if (tsFile >= Utils.roundToDay(oneDayBefore) && tsFile <= now) {
                                                 dayStats[activityType]++;
+                                                daySec[activityType]+=80; //every entry is 80ms long
                                                 if (tsFile >= Utils.roundToDay(oneHourBefore) && tsFile <= now) {
                                                     hourStats[activityType]++;
+
                                                 }
                                             }
                                         }
@@ -201,8 +318,13 @@ public class sup_actsum_todayFragment extends Fragment {
                     (weekStats[0] * 1. / weekSum * 100), (weekStats[1] * 1. / weekSum * 100),
                     (weekStats[2] * 1. / weekSum * 100));
 
+            day_sit = (int) (dayStats[0] * 1. / daySum * 100);
+            day_walk = (int) (dayStats[1] * 1. / daySum * 100);
+            day_lie = (int) (dayStats[2] * 1. / daySum * 100);
 
-
+            sit_timeval = daySec[0];
+            walk_timeval = daySec[1];
+            lie_timeval = daySec[2];
 
             return null;
         }
@@ -210,6 +332,24 @@ public class sup_actsum_todayFragment extends Fragment {
         @Override
         protected void onPostExecute(Void nothing) {
             updateReadings();
+            updatePieChart(day_sit, day_walk, day_lie);
+
+            int hr = sit_timeval/1000/60/60;
+            int min = (sit_timeval - hr*60*60*1000)/1000/60;
+            int sec = (sit_timeval - min*60*1000)/1000;
+
+            int walk_hr = walk_timeval/1000/60/60;
+            int walk_min = (walk_timeval - walk_hr*1000*60*60)/1000/60;
+            int walk_sec = (walk_timeval - walk_min*1000*60)/1000;
+
+            int lie_hr = lie_timeval/1000/60/60;
+            int lie_min = (lie_timeval - lie_hr*1000*60*60)/1000/60;
+            int lie_sec = (lie_timeval - lie_min*1000*60)/1000;
+
+            sittime_text.setText(String.format(Locale.UK, "%dh : %dm : %ds", hr, min, sec));
+            walktime_text.setText(String.format(Locale.UK, "%dh : %dm : %ds", walk_hr, walk_min, walk_sec));
+            lietime_text.setText(String.format(Locale.UK, "%dh : %dm : %ds", lie_hr, lie_min, lie_sec));
+
         }
 
     }

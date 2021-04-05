@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
     //ping add:
     private String connectionStatus;
+    private TextView navStatus;
 
 
     @Override
@@ -201,6 +202,9 @@ public class MainActivity extends AppCompatActivity {
 
         // First, we have to make sure that we have permission to access storage. We need this for loading the config.
         checkPermissionsAndInitMainActivity();
+
+
+
     }
 
     private void showDoPairingDialog() {
@@ -292,22 +296,13 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         mMainFrameLayout = (FrameLayout) findViewById(R.id.main_frame);
 
-        //ping add: subjectID, Title, respeck connection on nav header
+        //ping add: subjectID, Title, Respeck connection on nav header
         View headerView = navigationView.getHeaderView(0);
         TextView navSubjectID = (TextView) headerView.findViewById(R.id.navHeader_subjectID);
         navSubjectID.setText("Subject ID : " + mLoadedConfig.get(Constants.Config.SUBJECT_ID));
         TextView navTitle = (TextView) headerView.findViewById(R.id.app_titleversion);
         navTitle.setText(getString(R.string.app_name) + " (v" + mUtils.getAppVersionName() + ")");
-        TextView navStatus = (TextView) headerView.findViewById(R.id.navHeader_status);
-
-        if (mIsRESpeckConnected) {
-            connectionStatus = "Connected";
-
-        } else {
-            connectionStatus = "Disconnected";
-        }
-
-        navStatus.setText("Respeck status: " + connectionStatus );
+        navStatus = (TextView) headerView.findViewById(R.id.navHeader_status);
 
 
         aquireWakeLockToKeepAppRunning();
@@ -329,6 +324,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+
         //ping add:
 //        Drawable drawable = ContextCompat.getDrawable(getApplicationContext(),R.drawable.ic_menu);
 //        mToolbar.setOverflowIcon(drawable);
@@ -366,6 +362,8 @@ public class MainActivity extends AppCompatActivity {
             updatePulseoxConnection(mIsInhalerConnected);
         }
 
+
+
         // For use with snack bar (notification bar at the bottom of the screen)
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -381,8 +379,9 @@ public class MainActivity extends AppCompatActivity {
         initBroadcastReceiver();
 
         startAirspeckWatchdogUpdaterTask();
-    }
 
+
+    }
 
 
     @SuppressLint("InvalidWakeLockTag")
@@ -412,10 +411,6 @@ public class MainActivity extends AppCompatActivity {
             navigationMenu.findItem(R.id.menu_inhaler_subgroup).setVisible(false);
         }
 
-        //        navigationView.setNavigationItemSelectedListener((NavigationView.OnNavigationItemSelectedListener) this);
-//        TextView subjectID_onHeader = (TextView) navigationView.getHeaderView(0).findViewById(R.id.navHeader_subjectID);
-//        String subjectID = mLoadedConfig.get(Constants.Config.SUBJECT_ID);
-//        subjectID_onHeader.setText("Testing!!");
 
         // Setup nav drawer menu
         navigationView.setNavigationItemSelectedListener(
@@ -424,7 +419,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         // set item as selected to persist highlight
-                        menuItem.setChecked(true);
+//                        menuItem.setChecked(true);
+                        menuItem.setCheckable(true);
                         // close drawer when item is tapped
                         mNavDrawerLayout.closeDrawers();
 
@@ -657,9 +653,13 @@ public class MainActivity extends AppCompatActivity {
                     case Constants.ACTION_RESPECK_CONNECTED:
                         String respeckUUID = intent.getStringExtra(Constants.Config.RESPECK_UUID);
                         sendMessageToHandler(SHOW_RESPECK_CONNECTED, respeckUUID);
+                        connectionStatus = "Respeck status: Connected";
+                        navStatus.setText(connectionStatus);
                         break;
                     case Constants.ACTION_RESPECK_DISCONNECTED:
                         sendMessageToHandler(SHOW_RESPECK_DISCONNECTED, null);
+                        connectionStatus = "Respeck status: Disconnected";
+                        navStatus.setText(connectionStatus);
                         break;
                     case Constants.ACTION_AIRSPECK_LIVE_BROADCAST:
                         AirspeckData liveAirspeckData = (AirspeckData) intent.getSerializableExtra(
@@ -1024,7 +1024,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return "BrPM";
     }
-
 
 
     private void notifyNewRESpeckReading(RESpeckLiveData newData) {

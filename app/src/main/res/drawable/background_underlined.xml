@@ -12,5 +12,4 @@
         android:startColor="#000000"
         android:centerColor="@android:color/transparent"
         android:centerX="0.01" />
-
 </shape>

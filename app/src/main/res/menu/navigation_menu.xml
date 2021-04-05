@@ -11,7 +11,8 @@
                     android:title="@string/menu_airspeck_readings"/>
                 <item
                     android:id="@+id/nav_airspeck_graphs"
-                    android:title="@string/menu_airspeck_graphs"/>
+                    android:title="@string/menu_airspeck_graphs"
+                    />
                 <item
                     android:id="@+id/nav_airspeck_map"
                     android:title="@string/menu_airspeck_map"/>
@@ -23,8 +24,9 @@
             <menu>
                 <item
                     android:id="@+id/nav_respeck_readings"
+                    android:icon="@drawable/ic_breath"
                     android:title="Live Readings"
-                    android:icon="@drawable/ic_breath"/>
+                    />
                 <item
                     android:id="@+id/nav_activity_raw_accel_respeck"
                     android:title="@string/menu_activity_raw_accel_respeck"
@@ -55,12 +57,13 @@
             <menu>
                 <item
                     android:id="@+id/nav_activity_summary"
-                    android:title="@string/menu_activity_summary"
-                    android:icon="@drawable/ic_baseline_calendar_today_24"/>
+                    android:icon="@drawable/ic_baseline_calendar_today_24"
+                    android:title="@string/menu_activity_summary"/>
                 <item
                     android:id="@+id/nav_activity_logging"
+                    android:icon="@drawable/ic_writing"
                     android:title="@string/menu_activity_logging"
-                    android:icon="@drawable/ic_writing"/>
+                    />
                 <item
                     android:id="@+id/nav_inout_prediction"
                     android:title="@string/menu_inout_prediction"

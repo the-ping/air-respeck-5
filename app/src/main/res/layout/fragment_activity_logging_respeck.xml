@@ -37,7 +37,8 @@
                 android:textSize="@dimen/actlogging_subheadings_tsize"
                 android:gravity="left"
                 android:text="Choose ONE activity"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:background="@color/colorSecondaryLight"/>
 
             <LinearLayout
                 android:padding="5dp"
@@ -439,7 +440,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="00:00"
-                android:textSize="20sp"/>
+                android:textSize="20sp"
+                android:layout_marginTop="10dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -483,7 +485,7 @@
                             android:layout_height="match_parent"
                             android:paddingLeft="2dp"
                             android:text="@string/button_text_start_recording"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@drawable/text_color_change"
                             android:background="#00FFFFFF"
                             >
 
@@ -496,9 +498,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="horizontal"
-                        android:background="@drawable/background_rounded_lightgrey_lined"
+                        android:background="@drawable/background_rounded_white_lined"
                         android:layout_marginRight="3dp"
                         android:layout_marginLeft="3dp"
+                        android:layout_marginTop="3dp"
                         >
 
 
@@ -647,9 +650,25 @@
 <!--                    android:id="@+id/upload_progress_bar_act_log"-->
 <!--                    android:max="100"/>-->
             </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/actlog_respeckstat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:textSize="@dimen/actlogging_buttons_tsize"
+                android:text="Respeck:"
+                android:visibility="gone">
+
+            </TextView>
+
+            <include layout="@layout/content_connecting"
+                android:visibility="invisible"/>
+
 <!--        </LinearLayout>-->
 
-            <include layout="@layout/content_connecting"/>
+
 
 </LinearLayout>
 <!--    </ScrollView>

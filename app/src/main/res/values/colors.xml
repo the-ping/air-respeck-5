@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#065a61</color>
-    <color name="colorPrimaryDark">#043b40</color>
-    <color name="colorAccent">#065a61</color>
+    <color name="colorPrimary">#64b5f6</color>
+    <color name="colorPrimaryLight">#9be7ff</color>
+    <color name="colorPrimaryDark">#2286c3</color>
+    <color name="colorSecondary">#ffb74d</color>
+    <color name="colorSecondaryLight">#ffe97d</color> ccba64
+    <color name="colorSecondaryDark">#c88719</color>
+    <color name="colorAccent">#1080D1</color>
 
     <color name="sb_value_sign_background">#7492E2</color>
     <color name="sb_empty_segment_background">#858585</color>
