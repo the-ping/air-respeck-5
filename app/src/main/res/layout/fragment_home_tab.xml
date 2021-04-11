@@ -29,14 +29,24 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <ProgressBar
                 android:id="@+id/pBar_durationworn"
                 style="?android:attr/progressBarStyle"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:layout_gravity="center"/>
+                android:layout_gravity="center"
+                android:visibility="gone"/>
+            <ImageView
+                android:id="@+id/subj_activity_icon"
+                android:padding="5dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/vec_standing_sitting"
+                />
         </LinearLayout>
 
         <LinearLayout

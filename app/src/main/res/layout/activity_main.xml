@@ -44,16 +44,6 @@
 
 
 
-
-<!--        <com.google.android.material.bottomnavigation.BottomNavigationView-->
-<!--            app:menu="@menu/tab_nav_menu_subjecthome"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="60dp"-->
-<!--            android:background="?attr/colorPrimaryDark"-->
-<!--            android:layout_gravity="bottom"/>-->
-
-
-
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <!-- Container for contents of drawer - use NavigationView to make configuration easier -->

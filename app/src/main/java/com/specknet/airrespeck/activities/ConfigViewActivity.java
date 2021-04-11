@@ -40,7 +40,6 @@ public class ConfigViewActivity extends AppCompatActivity {
     private TextView show_charging;
 
     private BroadcastReceiver respeckBroadcasterReceiver;
-    private IntentFilter filter;
 
 
     @Override

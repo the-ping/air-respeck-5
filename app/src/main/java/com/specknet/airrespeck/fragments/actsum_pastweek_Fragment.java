@@ -176,7 +176,7 @@ public class actsum_pastweek_Fragment extends Fragment {
         pieData.setDrawValues(false); //remove y values
         pieChart.setDrawEntryLabels(false); //remove x values
         pieChart.setCenterTextSize(15);
-        pieChart.getLegend().setTextSize(12);
+        pieChart.getLegend().setTextSize(16);
         pieChart.getLegend().setOrientation(Legend.LegendOrientation.VERTICAL); //vertical legend
         pieChart.getLegend().setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
         pieChart.getLegend().setVerticalAlignment(Legend.LegendVerticalAlignment.CENTER);

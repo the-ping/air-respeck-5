@@ -5,12 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".fragments.actsum_today_Fragment">
+    tools:context=".fragments.actsum_today_Fragment"
+    android:background="@color/white">
 
     <com.github.mikephil.charting.charts.PieChart
+        android:layout_weight="1"
         android:id="@+id/subj_today_piechart"
         android:layout_width="match_parent"
-        android:layout_height="340dp"
+        android:layout_height="match_parent"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginBottom="5dp"
@@ -20,6 +22,7 @@
     </com.github.mikephil.charting.charts.PieChart>
 
     <LinearLayout
+        android:layout_weight="1.5"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -29,12 +32,12 @@
         android:background="@drawable/background_rounded_primarylight"
         >
         <LinearLayout
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             >
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_weight="1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -44,17 +47,21 @@
                 <ImageView
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="10dp"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:src="@drawable/vec_standing_sitting"
                     app:tint="@color/colorSecondary"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:gravity="center"
                     >
 
                 </ImageView>
 
-            </LinearLayout>
-            <LinearLayout
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_weight="1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -65,16 +72,20 @@
                 <ImageView
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="10dp"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:src="@drawable/vec_walking"
                     app:tint="@color/colorSecondaryLight"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:gravity="center">
 
                 </ImageView>
 
-            </LinearLayout>
-            <LinearLayout
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_weight="1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -83,18 +94,22 @@
                 <ImageView
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="20dp"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:src="@drawable/vec_lying"
                     app:tint="@color/colorSecondaryDark"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:gravity="center">
 
                 </ImageView>
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
         <LinearLayout
-            android:layout_weight="1"
+            android:layout_weight="0.8"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
@@ -109,6 +124,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
+                    android:textSize="@dimen/font_size_older_normal"
                     android:text="Loading duration..">
 
                 </TextView>
@@ -125,7 +141,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="Loading duration..">
+                    android:text="Loading duration.."
+                    android:textSize="@dimen/font_size_older_normal">
 
                 </TextView>
 
@@ -140,7 +157,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="Loading duration..">
+                    android:text="Loading duration.."
+                    android:textSize="@dimen/font_size_older_normal">
 
                 </TextView>
 

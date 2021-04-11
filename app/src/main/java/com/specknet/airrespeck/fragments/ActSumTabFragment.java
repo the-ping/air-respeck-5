@@ -3,18 +3,22 @@ package com.specknet.airrespeck.fragments;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.adapters.ReadingItemArrayAdapter;
@@ -60,9 +64,19 @@ public class ActSumTabFragment extends Fragment {
         viewpager = view.findViewById(R.id.actsum_viewpager);
         tablayout = view.findViewById(R.id.actsum_tablayout);
 
+        //set action bar title
+        getActivity().setTitle("Activity Summary");
+        getActivity().setTitleColor(0x000000);
 
 
         return view;
+    }
+
+    public void replaceFragment(Fragment someFragment) {
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame_container, someFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     @Override

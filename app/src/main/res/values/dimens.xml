@@ -2,6 +2,12 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="appbar_padding_top">2sp</dimen>
 
+    <dimen name="font_size_older_normal">11pt</dimen>
+    <dimen name="font_size_older_secondary">10pt</dimen>
+    <dimen name="font_size_older_title">13pt</dimen>
+    <dimen name="font_size_younger_normal">10pt</dimen>
+    <dimen name="font_size_younger_title">12pt</dimen>
+
     <dimen name="font_size_small">12sp</dimen>
     <dimen name="font_size_normal">18sp</dimen>
     <dimen name="font_size_large">24sp</dimen>

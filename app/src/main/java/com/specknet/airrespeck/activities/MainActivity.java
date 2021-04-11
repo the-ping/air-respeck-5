@@ -50,6 +50,8 @@ import com.specknet.airrespeck.R;
 import com.specknet.airrespeck.dialogs.SupervisedPasswordDialog;
 import com.specknet.airrespeck.dialogs.TurnGPSOnDialog;
 import com.specknet.airrespeck.dialogs.WrongOrientationDialog;
+import com.specknet.airrespeck.fragments.ComfortHomeFragment;
+import com.specknet.airrespeck.fragments.SubjectHomeFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivityLoggingFragment;
 import com.specknet.airrespeck.fragments.SupervisedActivitySummaryFragment;
 import com.specknet.airrespeck.fragments.SupervisedAirspeckGraphsFragment;
@@ -141,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsPulseoxConnected;
     private boolean mIsInhalerConnected;
     private boolean mIsSupervisedModeCurrentlyShown;
+    private boolean mIsSubjectClassicModeCurrentlyShown;
     private DialogFragment mWrongOrientationDialog;
     private boolean mIsWrongOrientationDialogDisplayed = false;
     private boolean mIsGPSDialogDisplayed = false;
@@ -345,8 +348,10 @@ public class MainActivity extends AppCompatActivity {
         // Call displayMode methods so the tabs are set correctly
         if (mIsSupervisedModeCurrentlyShown) {
             displaySupervisedMode();
-        } else {
+        } else if (mIsSubjectClassicModeCurrentlyShown) {
             displaySubjectMode();
+        } else {
+            displayComforttMode();
         }
 
         // Load connection state
@@ -419,7 +424,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         // set item as selected to persist highlight
-//                        menuItem.setChecked(true);
                         menuItem.setCheckable(true);
                         // close drawer when item is tapped
                         mNavDrawerLayout.closeDrawers();
@@ -860,19 +864,32 @@ public class MainActivity extends AppCompatActivity {
         invalidateOptionsMenu();
     }
 
-    public void displaySubjectMode() {
+    public void displayComforttMode() {
         mIsSupervisedModeCurrentlyShown = false;
+        mIsSubjectClassicModeCurrentlyShown = false;
 
-        // Disable navigation drawerF
+        // Disable navigation drawer
         mActionbar.setDisplayHomeAsUpEnabled(false);
         mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-        // Open a new Activity - SubjectActivity
-        Intent intent = new Intent(this, SubjectActivity.class);
-        startActivity(intent);
+        // Replace fragment
+        displayFragment(new ComfortHomeFragment());
 
-//        // Replace fragment
-//        displayFragment(new SubjectHomeFragment());
+        // Recreate options menu
+        invalidateOptionsMenu();
+
+    }
+
+    public void displaySubjectMode() {
+        mIsSupervisedModeCurrentlyShown = false;
+        mIsSubjectClassicModeCurrentlyShown = true;
+
+        // Disable navigation drawer
+        mActionbar.setDisplayHomeAsUpEnabled(false);
+        mNavDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        // Replace fragment
+        displayFragment(new SubjectHomeFragment());
 
         // Recreate options menu
         invalidateOptionsMenu();
@@ -931,10 +948,14 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu, this adds items to the action bar if it is present.
         if (mIsSupervisedModeCurrentlyShown) {
             getMenuInflater().inflate(R.menu.menu_supervised, menu);
-        } else {
-            // We currently only use one setting item in subject mode, namely for enabling the supervised mode.
+        } else if (mIsSubjectClassicModeCurrentlyShown) {
+            // Can enable supervisor mode, or Subject (comfort) mode
             getMenuInflater().inflate(R.menu.menu_subject, menu);
+        } else {
+            // Can enable supervisor mode, or Subject (classic) mode
+            getMenuInflater().inflate(R.menu.menu_comfort, menu);
         }
+
         return true;
     }
 
@@ -950,6 +971,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_subject_mode:
                 displaySubjectMode();
+                return true;
+            case R.id.action_comfort_mode:
+                displayComforttMode();
                 return true;
             case R.id.action_close_app:
                 stopServices();

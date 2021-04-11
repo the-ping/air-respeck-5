@@ -91,11 +91,8 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
         breathingRateText = (TextView) view.findViewById(R.id.text_breathing);
         averageBreathingRateText = (TextView) view.findViewById(R.id.text_breathing_average);
         activityIcon = (ImageView) view.findViewById(R.id.activity_icon);
-//        stepCountText = (TextView) view.findViewById(R.id.text_step_count);
         frequencyText = (TextView) view.findViewById(R.id.text_frequency);
         detectedAct = (TextView) view.findViewById(R.id.detected_activity);
-//        battLevelText = (TextView) view.findViewById(R.id.text_batt_level);
-//        chargingText = (TextView) view.findViewById(R.id.text_charging_status);
 
         // Create new graph
         mBreathingGraphView = new BreathingGraphView(getActivity());
@@ -135,30 +132,12 @@ public class SupervisedRESpeckReadingsIcons extends ConnectionOverlayFragment im
             breathingRateText.setText(String.format(Locale.UK, "%.2f " + suffix, data.getBreathingRate()));
         }
         averageBreathingRateText.setText(String.format(Locale.UK, "%.2f " + suffix, data.getAvgBreathingRate()));
-//        stepCountText.setText(Integer.toString(data.getMinuteStepCount()));
 
         // Update the frequency once a minute
         // only if it's different than 0
         if(data.getFrequency() != 0) {
             frequencyText.setText(String.format(Locale.UK, "%.2f" + " Hz", data.getFrequency()));
-//            frequencyText.setText(Float.toString(data.getFrequency()) + " Hz");
         }
-
-        // update battery level and charging status
-//        if (data.getBattLevel() != -1) {
-//            battLevelText.setVisibility(View.VISIBLE);
-//            battLevelText.setText(data.getBattLevel() + "%");
-//        }
-//        else {
-//            battLevelText.setVisibility(View.INVISIBLE);
-//        }
-//
-//        if (data.getChargingStatus()) {
-//            chargingText.setVisibility(View.VISIBLE);
-//        }
-//        else {
-//            chargingText.setVisibility(View.INVISIBLE);
-//        }
 
         // Set activity icon to reflect currently predicted activity
         //ping add: reflect label

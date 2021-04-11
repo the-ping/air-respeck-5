@@ -234,30 +234,6 @@
 
 
     </LinearLayout>
-<!--    <TextView-->
-<!--        android:id="@+id/androidIDtextView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:paddingLeft="@dimen/place_autocomplete_button_padding"-->
-<!--        android:text="Pairing information"-->
-<!--        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />-->
 
-<!--    <android.widget.ListView-->
-<!--        android:layout_weight="1"-->
-<!--        android:id="@+id/list_view_config_view"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:layout_marginTop="15dp"-->
-<!--        tools:context=".activities.ConfigViewActivity"-->
-<!--        tools:listitem="@layout/list_item_config_view"/>-->
-
-<!--    <TextView-->
-<!--        android:id="@+id/show_text"-->
-<!--        android:layout_weight="1"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="500dp"-->
-<!--        android:text=" hii ">-->
-
-<!--    </TextView>-->
 
 </LinearLayout>

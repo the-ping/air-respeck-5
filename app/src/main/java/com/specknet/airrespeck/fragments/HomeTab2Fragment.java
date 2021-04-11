@@ -1,3 +1,4 @@
+
 package com.specknet.airrespeck.fragments;
 
 import android.Manifest;
@@ -67,8 +68,14 @@ import static android.app.Activity.RESULT_OK;
  * Home screen for subjects using the app
  */
 
-public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver, AirspeckDataObserver,
+public class HomeTab2Fragment extends Fragment implements RESpeckDataObserver, AirspeckDataObserver,
         ConnectionStateObserver {
+
+    static final int REQUEST_IMAGE_CAPTURE = 0;
+    static final int REQUEST_VIDEO_CAPTURE = 1;
+
+
+    File mediaFile = null;
 
     // Icons/Images
     private ImageView connectedStatusRESpeck;
@@ -113,7 +120,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     private String mDayStatsString = "Loading data";
     private String mWeekStatsString = "Loading data";
 
-    public SubjectHomeFragment() {
+    public HomeTab2Fragment() {
 
     }
 
@@ -135,41 +142,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_subject_home, container, false);
-
-        // Load Bottom Tab Menu
-        BottomNavigationView bottomNav = view.findViewById(R.id.bot_nav_menu);
-
-        // set home tab as the main fragment
-        bottomNav.setSelectedItemId(R.id.home_tab);
-
-        bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                Fragment selectedFragment = null;
-                // set item as selected to persist highlight
-                menuItem.setChecked(true);
-                switch (menuItem.getItemId()) {
-                    case R.id.actsum_tab:
-                        selectedFragment = new ActSumTabFragment();
-                        replaceFragment(selectedFragment);
-                        break;
-                    case R.id.liveact_tab:
-                        selectedFragment = new LiveActTabFragment();
-                        replaceFragment(selectedFragment);
-                        break;
-                    case R.id.settings_tab:
-                        selectedFragment = new SettingsTabFragment();
-                        replaceFragment(selectedFragment);
-                        break;
-                    case R.id.home_tab:
-                        selectedFragment = new HomeTab2Fragment();
-                        replaceFragment(selectedFragment);
-                        break;
-                }
-                return false;
-            }
-        });
+        View view = inflater.inflate(R.layout.fragment_subject_home2, container, false);
 
         // Set up pie chart
         pieChart = view.findViewById(R.id.today_piechart);
@@ -216,8 +189,8 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         batteryContainer = (LinearLayout) view.findViewById(R.id.battery_container_respeck);
 
         isRespeckPaused = false;
-        respeckPausePlayButton.setEnabled(false);
 
+        respeckPausePlayButton.setEnabled(false);
         respeckPausePlayButton.setOnClickListener(v -> {
             if (isRespeckPaused) {
                 // Send CONTINUE command
@@ -329,7 +302,7 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     }
 
     public void updateActivitySummary() {
-        new SubjectHomeFragment.LoadActivityDataTask().execute();
+        new HomeTab2Fragment.LoadActivityDataTask().execute();
     }
 
     private class LoadActivityDataTask extends AsyncTask<Void, Integer, Void> {
@@ -480,11 +453,6 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
             int lie_hr = lie_timeval/1000/60/60;
             int lie_min = (lie_timeval - lie_hr*1000*60*60)/1000/60;
             int lie_sec = (lie_timeval - lie_min*1000*60)/1000;
-
-//            sittime_text = hr+ "h : " + min + "m : " + sec + "s";
-//            walktime_text = walk_hr+ "h : " + walk_min + "m : " + walk_sec + "s";
-//            lietime_text = lie_hr+ "h : " + lie_min + "m : " + lie_sec + "s";
-
             updatepieReadings();
             updatePieChart();
 
@@ -667,6 +635,24 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
     }
 
 
+    public void startRehabApp(Context context, String packageName) {
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        String phoneID = Utils.getInstance().getConfig(context).get("PhoneID");
+        String subjectID = Utils.getInstance().getConfig(context).get(Constants.Config.SUBJECT_ID);
+        Log.i("Crashlytis", "Phone id = " + phoneID);
+        Log.i("Crashlytis", "Subject id = " + subjectID);
+
+        if (intent == null) {
+            Toast.makeText(context, "Rehab app not installed. Contact researchers for further information.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            intent.putExtra(Constants.PHONE_ID, phoneID);
+            intent.putExtra(Constants.SUBJECT_ID, subjectID);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -737,6 +723,9 @@ public class SubjectHomeFragment extends Fragment implements RESpeckDataObserver
         super.onDestroy();
     }
 
+
 }
+
+
 
 

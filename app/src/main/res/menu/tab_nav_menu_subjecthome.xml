@@ -2,29 +2,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/act_sum"
+        android:id="@+id/actsum_tab"
         android:icon="@drawable/ic_baseline_calendar_today_24"
         android:title="@string/botnav_actsum" />
 
     <item
-        android:id="@+id/live_act"
+        android:id="@+id/liveact_tab"
         android:icon="@drawable/ic_baseline_directions_run_24"
-        android:title="@string/botnav_liveact" />
+        android:title="Readings" />
 
     <item
-        android:id="@+id/home_subject"
+        android:id="@+id/home_tab"
         android:icon="@drawable/ic_baseline_home_24"
         android:title="@string/botnav_home" />
 
     <item
-        android:id="@+id/diary"
-        android:icon="@drawable/ic_baseline_menu_book_24"
-        android:title="@string/botnav_diary" />
+        android:id="@+id/settings_tab"
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="@string/botnav_settings" />
 
-    <item
-        android:id="@+id/rehab"
-        android:icon="@drawable/ic_massage"
-        android:title="@string/botnav_rehab" />
 
 
 </menu>

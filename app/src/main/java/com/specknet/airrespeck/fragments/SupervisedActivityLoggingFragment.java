@@ -75,14 +75,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private ImageView cancel_image;
     private ImageView upload_image;
 
-    private static final int SITBREATHE = 0;
-    private static final int SITBREATHEDEEP = 1;
-    private static final int HYPE = 2;
-
-
-    private TextView nameTextField;
-//    private Spinner categorySpinner;
-//    private Spinner activitySpinner;
     private TextView timerText;
     private CountUpTimer countUpTimer;
 
@@ -93,31 +85,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     private String airspeckUUID;
     private String subjectID;
     private TextView respeckstat;
-
-    private final String OUTDOOR = "Outdoor";
-    private final String INDOOR = "Indoor";
-    private final String HALF_OPEN = "Half-open";
-    private final String BUS = "Riding a bus";
-    private final String BIKE = "Riding a bicycle";
-    private final String TRAIN = "Riding a train";
-    private final String RUNNING = "Running (at different speeds)";
-    private final String WALKING = "Walking (without stops)";
-    private final String WALKING_UPSTAIRS = "Walking upstairs";
-    private final String WALKING_DOWNSTAIRS = "Walking downstairs";
-    private final String WALKING_100_STEPS = "Walking 100 steps";
-    private final String SITTING_STRAIGHT = "Sitting straight";
-    private final String SITTING_FORWARD = "Sitting bent forward";
-    private final String SITTING_BACKWARD = "Sitting bent backward";
-    private final String STANDING = "Standing";
-    private final String LYING_ON_BACK = "Lying down normal on back";
-    private final String LYING_STOMACH = "Lying down on stomach";
-    private final String LYING_RIGHT = "Lying down to the right";
-    private final String LYING_LEFT = "Lying down to the left";
-    private final String ORIENTATION = "Orientation";
-    private final String INOUT = "Indoor / Outdoor";
-    private final String TRANSPORT = "Movement / Modes of transport";
-    private final String COUGHING = "Coughing";
-    private final String NONCOUGHING = "Noncoughing";
 
     // FOR PATIENT RECORDING
     private final String SIT_BREATHE = "Sitting straight and breathing";
@@ -155,11 +122,8 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_activity_logging_respeck, container, false);
 
-
         //set actionbar title
         getActivity().setTitle("Activity Logging");
-
-
 
         // Load config variables
         Map<String, String> config = Utils.getInstance().getConfig(getActivity());
@@ -171,78 +135,10 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         //display respeck connection status
         respeckstat = view.findViewById(R.id.actlog_respeckstat);
         respeckstat.setText(config.get(Constants.ACTION_AIRSPECK_CONNECTED));
-//        getRespeckStat();
-
-
-
 
 //        progressBarContainer = (LinearLayout) view.findViewById(R.id.progress_bar_container);
         progressBar = (ProgressBar) view.findViewById(R.id.upload_progress_bar_act_log);
         progressBarLabel = (TextView) view.findViewById(R.id.progress_bar_label_act_log);
-
-//        progressBar.setVisibility(View.INVISIBLE);
-//        progressBarLabel.setVisibility(View.INVISIBLE);
-//
-//        nameTextField = (TextView) view.findViewById(R.id.name_text_field);
-//        nameTextField.setText("Subject ID: " + subjectID);
-
-        // Setup category spinner
-//        categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
-
-//        String[] categorySpinnerElements = new String[]{ORIENTATION, INOUT, TRANSPORT, COUGHING};
-//        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getActivity(),
-//                android.R.layout.simple_spinner_dropdown_item, categorySpinnerElements);
-//        categorySpinner.setAdapter(categoryAdapter);
-
-        // Setup activity spinner
-//        activitySpinner = (Spinner) view.findViewById(R.id.activity_spinner);
-//        final String[] orientationSpinnerElements = new String[]{SITTING_STRAIGHT, SITTING_FORWARD,
-//                SITTING_BACKWARD, STANDING, LYING_ON_BACK, LYING_STOMACH, LYING_RIGHT, LYING_LEFT};
-//        final String[] indoorOutdoorSpinnerElements = new String[]{OUTDOOR, INDOOR, HALF_OPEN};
-//        final String[] transportSpinnerElements = new String[]{BUS, BIKE, TRAIN, WALKING, WALKING_100_STEPS, WALKING_UPSTAIRS,
-//                WALKING_DOWNSTAIRS, RUNNING};
-//        final String[] coughingSpinnerElements = new String[]{COUGHING, NONCOUGHING};
-
-        //ping uncommented:
-//        final String[] patientSpinnerElements = new String[]{SIT_BREATHE, SIT_BREATHE_DEEP, SIT_COUGH, SIT_HYPER, SIT_TALK,
-//                LIE_BREATHE, LIE_COUGH, WALK, WALK_SLOW, MOVE, SWING};
-//        ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
-//                android.R.layout.simple_spinner_dropdown_item, patientSpinnerElements);
-//        activitySpinner.setAdapter(activityAdapter);
-
-
-//        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                String[] activitySpinnerElements = new String[]{};
-//                switch (position) {
-//                    case 0:
-//                        activitySpinnerElements = orientationSpinnerElements;
-//                        break;
-//                    case 1:
-//                        activitySpinnerElements = indoorOutdoorSpinnerElements;
-//                        break;
-//                    case 2:
-//                        activitySpinnerElements = transportSpinnerElements;
-//                        break;
-//                    case 3:
-//                        activitySpinnerElements = coughingSpinnerElements;
-//                        break;
-//                }
-//                ArrayAdapter<String> activityAdapter = new ArrayAdapter<>(getActivity(),
-//                        android.R.layout.simple_spinner_dropdown_item, activitySpinnerElements);
-//                activitySpinner.setAdapter(activityAdapter);
-//            }
-
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//                // Set empty activity spinner
-//                activitySpinner.setAdapter(
-//                        new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item,
-//                                new String[]{}));
-//            }
-//        });
 
 
         // Load buttons
@@ -530,10 +426,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
                     respeckstat.setText("Respeck: Disconnected");                }
             }
         };
-
-//        registerReceiver(respeckBroadcasterReceiver, new IntentFilter(Constants.ACTION_RESPECK_LIVE_BROADCAST));
-//        registerReceiver(respeckBroadcasterReceiver, new IntentFilter(Constants.ACTION_RESPECK_CONNECTED));
-//        registerReceiver(respeckBroadcasterReceiver, new IntentFilter(Constants.ACTION_RESPECK_DISCONNECTED));
     }
 
     private void startRecording() {
@@ -543,7 +435,6 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
         mSubjectName = subjectID;
 
         if (!mSubjectName.equals("")) {
-//            mActivity = activitySpinner.getSelectedItem().toString();
 
             mIsInOutRecording = false;
             mIsRespeckRecording = true;
@@ -551,18 +442,13 @@ public class SupervisedActivityLoggingFragment extends ConnectionOverlayFragment
             // Change button label and color to tell the user that we are recording
             mStartStopButton.setText(R.string.button_text_stop_recording);
             mStartStopButton.setBackgroundColor(0x00ffff);
-//            mStartStopButton.setBackgroundColor(
-//                    ContextCompat.getColor(getActivity(), R.color.md_green_300));
             recording_image.setImageResource(R.drawable.ic_diskette);
             mCancelButton.setEnabled(true);
             mCancelLayout.setBackgroundResource(R.drawable.rounded_button);
-//            mCancelButton.setTextColor(0xFFFFFF);
             cancel_image.setImageResource(R.drawable.ic_baseline_delete_24);
             mUploadButton.setEnabled(false);
             upload_image.setImageResource(R.drawable.ic_baseline_cloud_upload_clicked);
             mUploadLayout.setBackgroundResource(R.drawable.background_rounded_white_lined);
-//            activitySpinner.setEnabled(false);
-//            activitySpinner.setClickable(false);
 
 
             countUpTimer.start();

@@ -13,9 +13,9 @@
 
     <group>
         <item
-            android:id="@+id/action_comfort_mode"
+            android:id="@+id/action_subject_mode"
             android:orderInCategory="90"
-            android:title="Subject mode (Comfort)"
+            android:title="Subject mode (Classic)"
             app:showAsAction="never"/>
     </group>
 </menu>

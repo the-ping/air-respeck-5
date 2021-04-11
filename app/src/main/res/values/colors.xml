@@ -7,6 +7,8 @@
     <color name="colorSecondaryLight">#ffe97d</color> ccba64
     <color name="colorSecondaryDark">#c88719</color>
     <color name="colorAccent">#1080D1</color>
+    <color name="colorSelected">#525252</color>
+    <color name="white">#FFFFFF</color>
 
     <color name="sb_value_sign_background">#7492E2</color>
     <color name="sb_empty_segment_background">#858585</color>

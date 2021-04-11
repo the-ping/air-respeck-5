@@ -48,15 +48,13 @@ public class actsum_today_Fragment extends Fragment {
     private String mDayStatsString = "Loading data";
     private String mWeekStatsString = "Loading data";
 
-    //ping add:
-
+    // activity label and time values
     private TextView sittime_text;
     private TextView walktime_text;
     private TextView lietime_text;
     private int sit_timeval;
     private int walk_timeval;
     private int lie_timeval;
-
     private int day_sit;
     private int day_walk;
     private int day_lie;
@@ -74,7 +72,7 @@ public class actsum_today_Fragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mReadingItems = new ArrayList<>();
-        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_HOUR, "", "-")); //hour, , -
+        mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_HOUR, "", "-"));
         mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_DAY, "", "-"));
         mReadingItems.add(new ReadingItem(Constants.ACTIVITY_SUMMARY_WEEK, "", "-"));
         mListViewAdapter = new ReadingItemArrayAdapter(getActivity(), mReadingItems);
@@ -86,15 +84,10 @@ public class actsum_today_Fragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_actsum_today_, container, false);
 
-
-        // Attach the adapter to a ListView
-//        ListView mListView = (ListView) view.findViewById(R.id.readings_list);
-//        mListView.setAdapter(mListViewAdapter);
-
         // Update readings with default "Loading data" values
         updateReadings();
 
-        //ping add: set up pie chart
+        // Set up pie chart
         pieChart = view.findViewById(R.id.subj_today_piechart);
         pieChart.setNoDataText("Loading chart..");
         setupPieChart();
@@ -118,7 +111,7 @@ public class actsum_today_Fragment extends Fragment {
         return view;
     }
 
-    private void updatePieChart(int sit, int walk, int lie) {
+    private void updatePieChart() {
 
         if (pieDataSet.getEntryCount()==0) {
 
@@ -174,7 +167,7 @@ public class actsum_today_Fragment extends Fragment {
         pieChart.setCenterTextSize(15);
 
         // style legend
-        pieChart.getLegend().setTextSize(12);
+        pieChart.getLegend().setTextSize(16);
         pieChart.getLegend().setOrientation(Legend.LegendOrientation.VERTICAL); //vertical legend
         pieChart.getLegend().setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
         pieChart.getLegend().setVerticalAlignment(Legend.LegendVerticalAlignment.CENTER);
@@ -308,7 +301,7 @@ public class actsum_today_Fragment extends Fragment {
         @Override
         protected void onPostExecute(Void nothing) {
             updateReadings();
-            updatePieChart(day_sit, day_walk, day_lie);
+            updatePieChart();
 
             // display duration in h:m:s format
             int hr = sit_timeval/1000/60/60;
