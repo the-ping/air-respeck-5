@@ -1,6 +1,6 @@
 # air-respeck
 
-App's pages:
+App's pages:\
 [Supervisor Mode]
 1. Live Readings
 2. Activity Summary
