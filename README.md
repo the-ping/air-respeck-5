@@ -6,7 +6,11 @@ App's pages:\
 2. Activity Summary
 3. Activity Logging
 4. Navigation drawer header
-5. Kebab menu settings
+5. Kebab menu
+(5a.) Subject mode
+5b. Respeck device
+(5c.) Check for updates
+(5d.) Close app
 
 [Subject Mode]\
 6. Home
@@ -44,3 +48,45 @@ xml: layout/fragment_activity_logging_respeck.xml
 code: activity/MainActivity (line 303)\
 xml: layout/navigation_header.xml
 
+5)
+code: activities/MainActivity (line 963)\
+xml: menu/menu_supervised.xml
+
+5b) 
+code: activities/ConfigViewActivity
+xml: activity_view_config.xml
+
+6)
+code: fragments/HomeTabFragment\
+xml: fragment_subject_home.xml
+
+7)
+code: fragments/LiveActTabFragment\
+xml: fragment_live_act_tab.xml
+
+8)
+code: fragments/ActSumTabFragment\
+xml: fragment_act_sum_tab.xml
+
+**(Tab menu inflates these fragments)**\
+code: fragments/actsum_today_Fragment\
+xml: layout/fragment_sup_actsum_today.xml
+
+code: fragments/actsum_pastweek_Fragment\
+xml: layout/fragment_actsum_pastweek_.xml
+
+9)
+code: fragments/SettingsTabFragment\
+xml: layout/fragment_settings_tab.xml
+
+10)
+code: activities/MainActivity (line 963)\
+xml: menu/menu_subject.xml
+
+11)
+code: fragments/ComfortHomeFragment\
+xml: layout/fragment_comfort_home.xml
+
+12)
+code: activities/MainActivity (line 963)\
+xml:menu/ menu_comfort.xml
